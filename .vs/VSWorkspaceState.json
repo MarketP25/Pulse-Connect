@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.idea",
+    "\\.next",
+    "\\.next\\types",
+    "\\src",
+    "\\src\\app",
+    "\\src\\app\\api\\ai-chat",
+    "\\src\\app\\api\\generate-content",
+    "\\src\\app\\dashboard",
+    "\\src\\app\\login"
+  ],
+  "SelectedNode": "\\src\\app\\login\\page.tsx",
+  "PreviewInSolutionExplorer": false
+}
