@@ -15,7 +15,7 @@ import {
   getDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { app } from "@/firebase/config";
+import { app } from "@/firebase/firebaseConfig";
 
 export default function LoginPage() {
   const auth = getAuth(app);
