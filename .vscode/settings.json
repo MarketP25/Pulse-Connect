@@ -1,0 +1,5 @@
+{
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "editor.inlineSuggest.edits.showCollapsed": true,
+    "json.schemaDownload.enable": false
+}
