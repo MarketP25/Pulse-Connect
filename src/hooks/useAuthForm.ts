@@ -1,7 +1,7 @@
+// src/hooks/useAuthForm.ts
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   signInWithEmailAndPassword,
@@ -9,12 +9,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/firebase/config";
 
 interface UseAuthForm {
@@ -35,6 +30,14 @@ interface UseAuthForm {
 export function useAuthForm(): UseAuthForm {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Guard against null searchParams
+  const validSearchParams = useMemo(() => {
+    if (!searchParams) {
+      return new URLSearchParams(); // empty fallback
+    }
+    return searchParams;
+  }, [searchParams]);
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -66,7 +69,11 @@ export function useAuthForm(): UseAuthForm {
     setLoading(true);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       if (!user.emailVerified) {
@@ -90,7 +97,8 @@ export function useAuthForm(): UseAuthForm {
     setLoading(true);
 
     try {
-      const referrer = searchParams.get("ref");
+      const referrer = validSearchParams.get("ref");
+
       if (referrer?.toLowerCase() === email.toLowerCase()) {
         setError("You cannot refer yourself.");
         return;
@@ -99,14 +107,19 @@ export function useAuthForm(): UseAuthForm {
       let referredBy: string | null = null;
       if (referrer) {
         const refSnap = await getDoc(doc(db, "users", referrer));
-        if (refSnap.exists()) referredBy = referrer;
-        else {
+        if (refSnap.exists()) {
+          referredBy = referrer;
+        } else {
           setError("Referral code is invalid.");
           return;
         }
       }
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       await setDoc(doc(db, "users", user.uid), {
@@ -127,7 +140,9 @@ export function useAuthForm(): UseAuthForm {
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent): Promise<void> => {
+  const handleResetPassword = async (
+    e: React.FormEvent
+  ): Promise<void> => {
     e.preventDefault();
     setError("");
     setInfo("");

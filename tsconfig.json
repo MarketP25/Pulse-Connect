@@ -1,27 +1,30 @@
+// tsconfig.json
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
     "moduleResolution": "node",
+    "jsx": "preserve",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    // ← set baseUrl to project root:
     "baseUrl": ".",
+    // ← map "@/…" → "<root>/src/…"
     "paths": {
       "@/*": [
         "src/*"
       ]
     },
-    "jsx": "preserve",
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
     "allowJs": true,
-    "skipLibCheck": true,
     "noEmit": true,
     "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "plugins": [
@@ -31,11 +34,10 @@
     ]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
-, "src/hooks/postcss.config.js", "src/app/dashboard/AIAssistantPrograms.tsx"  ],
+    ".next/types/**/*.ts",
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules"
   ]

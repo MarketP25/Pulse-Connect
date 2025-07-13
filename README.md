@@ -1,8 +1,12 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pulse Connect 🌐
 
-## Getting Started
+Pulse Connect is a Next.js–powered digital marketing platform, thoughtfully architected for scalability, accessibility, and seamless branding consistency. This project was scaffolded using `create-next-app`, setting the stage for a modular, accessible, and user-centered Next.js experience.
 
-First, run the development server:
+---
+
+## 🚀 Getting Started
+
+To launch the development server, run:
 
 ```bash
 npm run dev
@@ -12,25 +16,24 @@ yarn dev
 pnpm dev
 # or
 bun dev
-```
+Then visit http://localhost:3000 in your browser to preview the application.
+Start iterating by modifying the app/page.tsx file. Updates will reflect instantly.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🎨 Design & Branding
+Pulse Connect integrates the Pulse Connect logo across headers, splash screens, and meta tags. Font optimization is handled via , featuring the Geist font family from Vercel.
+Our design system is:
+- ✳️ Modular: built with reusable, scalable components
+- 🔁 Responsive: optimized across devices and screen sizes
+- ♿ Accessible: designed to meet global accessibility standards
+- 🎯 Brand-consistent: every detail echoes Pulse Connect’s identity
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+📚 Learn More
+- Next.js Documentation – explore features and API
+- Learn Next.js – an interactive tutorial to master the framework
+- Next.js GitHub – contribute feedback and improvements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🌍 Deployment
+Deploy Pulse Connect seamlessly using Vercel, the creators of Next.js.
+For more details and best practices, see the Next.js Deployment Guide.
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

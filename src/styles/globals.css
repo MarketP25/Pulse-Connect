@@ -1,0 +1,17 @@
+/* src/styles/globals.css */
+:root {
+  --bg: #ffffff;
+  --fg: #111;
+  --header-bg: #f8f8f8;
+}
+
+[data-theme="dark"] {
+  --bg: #111;
+  --fg: #eee;
+  --header-bg: #222;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
