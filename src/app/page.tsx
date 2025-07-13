@@ -58,7 +58,7 @@ export default function LoginPage() {
     try {
       if (email && password) {
         if (isSignUp) {
-          const referrer = searchParams.get("ref");
+          const referrer = searchParams?.get("ref");
           if (referrer && referrer.toLowerCase() === email.toLowerCase()) {
             setError("You cannot refer yourself.");
             setLoading(false);

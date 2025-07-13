@@ -1,114 +1,166 @@
 "use client";
-import { useState } from "react";
 
-const API_ENDPOINTS = {
+import React, { useState, useEffect } from "react";
+
+type ProgramType = "marketing" | "workout" | "tutorial" | "forex";
+
+const ENDPOINTS: Record<ProgramType, string> = {
   marketing: "/api/ai/marketing",
-  workout:   "/api/ai/workout",
-  tutorial:  "/api/ai/tutorial",
-  forex:     "/api/ai/forex",
-};
-
-type ProgramType = keyof typeof API_ENDPOINTS;
-
-type AIResult = {
-  type:    "video" | "audio" | "text" | "short" | "script";
-  content: string;
-  prompt?: string;
+  workout: "/api/ai/workout",
+  tutorial: "/api/ai/tutorial",
+  forex: "/api/ai/forex",
 };
 
 const PLAN_REQUIREMENTS: Record<ProgramType, string[]> = {
   marketing: ["basic", "plus", "pro", "patron", "patronTrial"],
-  workout:   ["plus", "pro", "patron", "patronTrial"],
-  tutorial:  ["pro", "patron", "patronTrial"],
-  forex:     ["pro", "patron", "patronTrial"],
+  workout: ["plus", "pro", "patron", "patronTrial"],
+  tutorial: ["pro", "patron", "patronTrial"],
+  forex: ["pro", "patron", "patronTrial"],
 };
 
 const PLAN_LABELS: Record<ProgramType, string> = {
   marketing: "Basic",
-  workout:   "Plus",
-  tutorial:  "Pro",
-  forex:     "Pro",
+  workout: "Plus",
+  tutorial: "Pro",
+  forex: "Pro",
 };
 
-export default function AIAssistantPrograms({ userRole }: { userRole: string }) {
-  // State
-  const [loading, setLoading]           = useState<ProgramType | null>(null);
-  const [result, setResult]             = useState<AIResult | null>(null);
-  const [error, setError]               = useState<string | null>(null);
-  const [history, setHistory]           = useState<AIResult[]>([]);
-  const [toast, setToast]               = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+type AIResult = {
+  type: "video" | "audio" | "text" | "short" | "script";
+  content: string;
+  prompt?: string;
+};
 
-  const [personalization, setPersonalization] = useState<Record<ProgramType, string>>({
-    marketing: "",
-    workout:   "",
-    tutorial:  "",
-    forex:     "",
+type LastUsed = {
+  program: ProgramType;
+  prompt: string;
+  time: number;
+};
+export default function AIAssistantPrograms({ userRole }: { userRole: string }) {
+  const [loading, setLoading] = useState<ProgramType | null>(null);
+  const [result, setResult] = useState<AIResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<AIResult[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const [advanced, setAdvanced] = useState(false);
+
+  const [prompts, setPrompts] = useState<Record<ProgramType, string>>({
+    marketing: "", workout: "", tutorial: "", forex: ""
   });
 
-  const [feedback, setFeedback]         = useState("");
+  const [lastUsed, setLastUsed] = useState<LastUsed | null>(null);
+
+  const [feedback, setFeedback] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
-  const [complaint, setComplaint]           = useState("");
-  const [complaintSent, setComplaintSent]   = useState(false);
-  const [inquiry, setInquiry]           = useState("");
-  const [inquirySent, setInquirySent]   = useState(false);
+  const [complaint, setComplaint] = useState("");
+  const [complaintSent, setComplaintSent] = useState(false);
+  const [inquiry, setInquiry] = useState("");
+  const [inquirySent, setInquirySent] = useState(false);
 
-  // Helpers
-  function hasAccess(type: ProgramType) {
-    return PLAN_REQUIREMENTS[type].includes(userRole);
-  }
+  useEffect(() => {
+    const raw = localStorage.getItem(`pc-lastUsed-${userRole}`);
+    if (raw) {
+      try {
+        setLastUsed(JSON.parse(raw));
+      } catch {}
+    }
+  }, [userRole]);
 
-  function renderResultBlock(item: AIResult) {
-    switch (item.type) {
-      case "video":
-      case "short":
-        return (
-          <video controls className="w-full rounded mt-1">
-            <source src={item.content} />
-          </video>
-        );
-      case "audio":
-        return (
-          <audio controls className="w-full mt-1">
-            <source src={item.content} />
-          </audio>
-        );
-      default:
-        return (
-          <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 rounded px-3 py-2 text-sm whitespace-pre-line mt-1">
-            {item.content}
-          </div>
-        );
+  const hasAccess = (t: ProgramType) => PLAN_REQUIREMENTS[t].includes(userRole);
+
+  const showToast = (msg: string, d = 2000) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), d);
+  };
+
+  async function downloadMedia(url: string, filename: string) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      showToast("Could not download file.", 2000);
     }
   }
 
-  function showToast(message: string, duration = 2000) {
-    setToast(message);
-    setTimeout(() => setToast(null), duration);
+  function handleCopy(text?: string) {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    showToast("Copied to clipboard!", 1500);
+  }
+    function renderResultBlock(item: AIResult) {
+    if (item.type === "video" || item.type === "short") {
+      return (
+        <div>
+          <video controls className="w-full rounded mt-2">
+            <source src={item.content} />
+          </video>
+          <button
+            type="button"
+            onClick={() => downloadMedia(item.content, "video.mp4")}
+            className="mt-2 px-3 py-1 bg-gray-100 text-gray-800 rounded text-xs hover:bg-gray-200"
+          >
+            Download Video
+          </button>
+        </div>
+      );
+    }
+    if (item.type === "audio") {
+      return (
+        <div>
+          <audio controls className="w-full mt-2">
+            <source src={item.content} />
+          </audio>
+          <button
+            type="button"
+            onClick={() => downloadMedia(item.content, "audio.mp3")}
+            className="mt-2 px-3 py-1 bg-gray-100 text-gray-800 rounded text-xs hover:bg-gray-200"
+          >
+            Download Audio
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 rounded px-3 py-2 mt-2 text-sm whitespace-pre-line">
+        {item.content}
+      </div>
+    );
   }
 
-  // API calls
-  async function handleAIRequest(type: ProgramType) {
+  async function handleGenerate(type: ProgramType) {
     if (!hasAccess(type)) return;
     setLoading(type);
     setResult(null);
     setError(null);
 
     try {
-      const prompt = personalization[type];
-      const res = await fetch(API_ENDPOINTS[type], {
+      const prompt = prompts[type];
+      const res = await fetch(ENDPOINTS[type], {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
-      const aiResult: AIResult = data.result || { type: "text", content: "No result returned.", prompt };
+      if (!res.ok) throw new Error();
+      const data: { result?: AIResult } = await res.json();
+      const aiResult = data.result || { type: "text", content: "No result returned.", prompt };
       setResult(aiResult);
       setHistory(prev => [{ ...aiResult, prompt }, ...prev]);
+
+      const lu: LastUsed = { program: type, prompt, time: Date.now() };
+      setLastUsed(lu);
+      localStorage.setItem(`pc-lastUsed-${userRole}`, JSON.stringify(lu));
+
       showToast("AI result generated!");
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Failed to fetch AI program. Please try again.");
       showToast("Error fetching AI result.");
     } finally {
@@ -116,14 +168,6 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
     }
   }
 
-  // Copy to clipboard
-  function handleCopy(text?: string) {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    showToast("Copied to clipboard!", 1500);
-  }
-
-  // Form submissions
   function handleFeedbackSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFeedback("");
@@ -145,44 +189,60 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
     showToast("Inquiry sent!");
   }
 
-  function renderPlanPrompt(type: ProgramType) {
-    if (hasAccess(type)) return null;
+  const formatTime = (ms: number) =>
+    new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     return (
-      <p className="mt-1 text-xs text-indigo-600">
-        Requires <strong>{PLAN_LABELS[type]}</strong> plan.{" "}
-        <a href="/upgrade" className="underline hover:text-indigo-700">
-          Upgrade now →
-        </a>
-      </p>
-    );
-  }
-
-  return (
-    <div className="bg-white border shadow-sm rounded-lg p-6 mb-8">
+    <div className="bg-white p-6 rounded-lg shadow mb-8 relative">
       {toast && (
         <div className="fixed top-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded shadow-lg z-50 animate-fade-in">
           {toast}
         </div>
       )}
 
-      <h2 className="text-xl font-semibold text-indigo-700 mb-4">AI Productivity Programs</h2>
+      <h2 className="text-2xl font-semibold text-indigo-700 mb-4">
+        AI Productivity Programs
+      </h2>
 
+      {lastUsed && (
+        <div className="mb-4 flex justify-between items-center text-sm text-gray-700">
+          <div>
+            Last used <strong>{lastUsed.program}</strong> at {formatTime(lastUsed.time)}.
+          </div>
+          <button
+            type="button"
+            onClick={() => handleGenerate(lastUsed.program)}
+            disabled={!hasAccess(lastUsed.program)}
+            className={`px-3 py-1 rounded text-sm font-semibold ${
+              hasAccess(lastUsed.program)
+                ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Repeat
+          </button>
+        </div>
+      )}
+
+      {/* Program List */}
       <ul className="space-y-6">
-        {(Object.keys(API_ENDPOINTS) as ProgramType[]).map(type => (
+        {(Object.keys(ENDPOINTS) as ProgramType[]).map(type => (
           <li key={type}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <div>
                 <strong className="text-indigo-800">
                   {type === "forex"
                     ? "Forex AI Powered Classes"
-                    : `AI ${type[0].toUpperCase() + type.slice(1)}`}
+                    : `AI ${type.charAt(0).toUpperCase() + type.slice(1)}`}
                 </strong>{" "}
-                <span className="text-xs text-gray-500">(Requires {PLAN_LABELS[type]}+)</span>
+                <span className="text-xs text-gray-500">(Requires {PLAN_LABELS[type]})</span>
               </div>
-              <div className="mt-2 sm:mt-0 flex flex-wrap items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <input
                   type="text"
-                  value={personalization[type]}
+                  value={prompts[type]}
+                  onChange={e =>
+                    setPrompts(prev => ({ ...prev, [type]: e.target.value }))
+                  }
                   placeholder={`e.g. ${
                     type === "workout"
                       ? "Home HIIT"
@@ -190,96 +250,104 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
                       ? "Landing page design"
                       : "Instagram growth"
                   }`}
-                  onChange={e =>
-                    setPersonalization(prev => ({ ...prev, [type]: e.target.value }))
-                  }
-                  className="flex-1 border rounded px-2 py-1 text-xs max-w-xs"
+                  className="border rounded px-2 py-1 text-xs"
                   aria-label={`${type} prompt`}
                 />
-                <button
-                  type="button"
-                  onClick={() => handleAIRequest(type)}
-                  disabled={loading !== null || !hasAccess(type)}
-                  className={`px-4 py-1 rounded text-sm font-semibold transition ${
-                    hasAccess(type)
-                      ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  {loading === type ? (
-                    <span className="flex items-center">
-                      <span className="animate-spin mr-2">⏳</span>
-                      Loading...
-                    </span>
-                  ) : {
-                      marketing: "Get Campaign Ideas",
-                      workout:   "Generate Workout",
-                      tutorial:  "Start Learning",
-                      forex:     "Start Forex Class",
-                    }[type]}
-                </button>
+                {hasAccess(type) ? (
+                  <button
+                    type="button"
+                    onClick={() => handleGenerate(type)}
+                    disabled={loading === type}
+                    className="px-4 py-1 bg-indigo-600 text-white rounded text-sm font-semibold hover:bg-indigo-700 transition"
+                  >
+                    {loading === type ? "⏳ Generating" : "Generate"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => (window.location.href = "/pricing")}
+                    className="px-4 py-1 underline text-indigo-600 text-sm"
+                  >
+                    Upgrade to {PLAN_LABELS[type]}
+                  </button>
+                )}
               </div>
             </div>
-            {renderPlanPrompt(type)}
           </li>
         ))}
 
+        {/* Advanced toggle */}
         <li>
           <button
+            id="advanced-toggle"
             type="button"
-            onClick={() => setShowAdvanced(v => !v)}
-            className="text-xs text-indigo-600 underline"
-            aria-expanded={showAdvanced}
+            onClick={() => setAdvanced(a => !a)}
+            className="text-xs underline text-indigo-600"
+            aria-expanded={advanced}
+            aria-controls="advanced-options"
           >
-            {showAdvanced ? "Hide Advanced Options" : "Show Advanced Options"}
+            {advanced ? "Hide Advanced Options" : "Show Advanced Options"}
           </button>
         </li>
-
-        {showAdvanced && (
-          <li className="text-sm text-gray-700">
-            <strong>AI Tutorial Mode</strong> (Pro+)
-            <div className="mt-1">
-              <label className="inline-flex items-center">
-                <input type="checkbox" className="form-checkbox" />
-                <span className="ml-2">Enable deep-dive tutorial sequencing</span>
-              </label>
-            </div>
-          </li>
-        )}
       </ul>
 
-      <div className="mt-6 min-h-[3rem]" aria-live="polite">
+      {/* Advanced options panel */}
+      {advanced && (
+        <ul
+          id="advanced-options"
+          role="region"
+          aria-labelledby="advanced-toggle"
+          className="text-sm text-gray-700 flex flex-col gap-2 mt-2"
+        >
+          <ul>
+            <label className="inline-flex items-center">
+              <input
+                type="checkbox"
+                className="form-checkbox"
+                aria-label="Enable deep-dive tutorial mode"
+              />
+              <span className="ml-2">Enable deep-dive tutorial mode (Pro+)</span>
+            </label>
+          </li> 
+        </ul> 
+      )}
+
+      {/* AI Result & Error */}
+      <div className="mt-6 min-h-[4rem]" aria-live="polite">
         {result && (
-          <div>
+          <>
             {renderResultBlock(result)}
             <button
               type="button"
               onClick={() => handleCopy(result.content)}
-              className="mt-3 bg-gray-100 text-gray-800 px-3 py-1 rounded text-xs hover:bg-gray-200"
+              className="mt-2 text-xs underline text-gray-700"
             >
               Copy Result
             </button>
-          </div>
+          </>
         )}
         {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 rounded px-3 py-2 text-sm">
+          <div className="mt-2 px-3 py-2 rounded bg-red-50 text-red-700 text-sm border border-red-200">
             {error}
           </div>
         )}
       </div>
 
+      {/* History */}
       {history.length > 0 && (
         <div className="mt-6">
-          <h3 className="text-sm font-semibold mb-2 text-gray-700">Previous Results</h3>
-          <ul className="space-y-2 max-h-40 overflow-y-auto text-xs">
-            {history.map((item, i) => (
-              <li key={i} className="bg-gray-50 border rounded px-2 py-2 flex flex-col gap-1">
-                {item.prompt && <div className="italic text-gray-500">Prompt: {item.prompt}</div>}
-                {renderResultBlock(item)}
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Previous Results</h3>
+          <ul className="space-y-1 max-h-40 overflow-y-auto text-xs">
+            {history.map((h, i) => (
+              <li key={i} className="bg-gray-50 border rounded p-2">
+                {h.prompt && (
+                  <div className="italic text-gray-500">Prompt: {h.prompt}</div>
+                )}
+                {renderResultBlock(h)}
                 <button
                   type="button"
-                  onClick={() => handleCopy(item.content)}
-                  className="self-end mt-1 bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs hover:bg-gray-200"
+                  onClick={() => handleCopy(h.content)}
+                  className="mt-1 text-xs underline text-gray-700"
                 >
                   Copy
                 </button>
@@ -289,17 +357,17 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
         </div>
       )}
 
-      {/* Feedback */}
+      {/* Feedback Form */}
       <section className="mt-8">
         <h3 className="text-sm font-semibold mb-2 text-indigo-700">Your Feedback</h3>
-        <form onSubmit={handleFeedbackSubmit} className="flex flex-col sm:flex-row gap-2">
+        <form onSubmit={handleFeedbackSubmit} className="flex gap-2">
           <input
             type="text"
             value={feedback}
             onChange={e => setFeedback(e.target.value)}
             placeholder="Share your feedback..."
-            maxLength={300}
             required
+            maxLength={300}
             className="flex-1 border rounded px-2 py-1 text-sm"
             aria-label="Feedback"
           />
@@ -311,20 +379,24 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
             Send
           </button>
         </form>
-        {feedbackSent && <div className="mt-2 text-green-600 text-xs">Thank you!</div>}
+        {feedbackSent && (
+          <div className="mt-2 text-green-600 text-xs">
+            Thank you for your feedback!
+          </div>
+        )}
       </section>
 
-      {/* Complaint */}
+      {/* Complaint Form */}
       <section className="mt-6">
         <h3 className="text-sm font-semibold mb-2 text-red-700">Submit a Complaint</h3>
-        <form onSubmit={handleComplaintSubmit} className="flex flex-col sm:flex-row gap-2">
+        <form onSubmit={handleComplaintSubmit} className="flex gap-2">
           <input
             type="text"
             value={complaint}
             onChange={e => setComplaint(e.target.value)}
             placeholder="Describe your issue..."
-            maxLength={500}
             required
+            maxLength={500}
             className="flex-1 border rounded px-2 py-1 text-sm"
             aria-label="Complaint"
           />
@@ -336,20 +408,24 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
             Submit
           </button>
         </form>
-        {complaintSent && <div className="mt-2 text-green-600 text-xs">Received. Thank you!</div>}
+        {complaintSent && (
+          <div className="mt-2 text-green-600 text-xs">
+            Your complaint has been received. Thank you!
+          </div>
+        )}
       </section>
 
-      {/* Inquiry */}
+      {/* Inquiry Form */}
       <section className="mt-6 mb-8">
         <h3 className="text-sm font-semibold mb-2 text-indigo-700">General Inquiries</h3>
-        <form onSubmit={handleInquirySubmit} className="flex flex-col sm:flex-row gap-2">
+        <form onSubmit={handleInquirySubmit} className="flex gap-2">
           <input
             type="text"
             value={inquiry}
             onChange={e => setInquiry(e.target.value)}
             placeholder="Ask a question..."
-            maxLength={500}
             required
+            maxLength={500}
             className="flex-1 border rounded px-2 py-1 text-sm"
             aria-label="Inquiry"
           />
@@ -361,7 +437,11 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
             Send
           </button>
         </form>
-        {inquirySent && <div className="mt-2 text-green-600 text-xs">Received. Thank you!</div>}
+        {inquirySent && (
+          <div className="mt-2 text-green-600 text-xs">
+            Your inquiry has been received. Thank you!
+          </div>
+        )}
       </section>
     </div>
   );
