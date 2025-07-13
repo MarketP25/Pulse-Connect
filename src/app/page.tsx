@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -31,8 +32,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showReset, setShowReset] = useState(false);
 
-  // Map Firebase errors to user-friendly messages
-  function getErrorMessage(code: string) {
+  function getErrorMessage(code: string): string {
     switch (code) {
       case "auth/email-already-in-use":
         return "This email is already in use.";
@@ -58,7 +58,6 @@ export default function LoginPage() {
     try {
       if (email && password) {
         if (isSignUp) {
-          // Prevent self-referral (case-insensitive)
           const referrer = searchParams.get("ref");
           if (referrer && referrer.toLowerCase() === email.toLowerCase()) {
             setError("You cannot refer yourself.");
@@ -66,13 +65,11 @@ export default function LoginPage() {
             return;
           }
 
-          // Check if referrer exists (if provided)
-          let referredBy = null;
+          let referredBy: string | null = null;
           if (referrer) {
             const refSnap = await getDoc(doc(db, "users", referrer));
-            if (refSnap.exists()) {
-              referredBy = referrer;
-            } else {
+            if (refSnap.exists()) referredBy = referrer;
+            else {
               setError("Invalid referral code.");
               setLoading(false);
               return;
@@ -82,7 +79,6 @@ export default function LoginPage() {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
 
-          // Store user data
           await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             email: user.email,
@@ -91,18 +87,14 @@ export default function LoginPage() {
             createdAt: serverTimestamp(),
           });
 
-          // Send email verification
           await sendEmailVerification(user);
-
           setInfo("Account created! Please check your email for verification.");
           setLoading(false);
           return;
         } else {
-          // Login
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
 
-          // Check if email is verified
           if (!user.emailVerified) {
             setError("Please verify your email before logging in.");
             setLoading(false);
@@ -118,8 +110,7 @@ export default function LoginPage() {
         setError(
           getErrorMessage(
             (err as { code?: string; message?: string }).code ||
-              (err as { message?: string }).message ||
-              ""
+            (err as { message?: string }).message || ""
           )
         );
       } else {
@@ -135,6 +126,7 @@ export default function LoginPage() {
     setError("");
     setInfo("");
     setLoading(true);
+
     try {
       if (!email) {
         setError("Please enter your email to reset password.");
@@ -148,8 +140,7 @@ export default function LoginPage() {
         setError(
           getErrorMessage(
             (err as { code?: string; message?: string }).code ||
-              (err as { message?: string }).message ||
-              ""
+            (err as { message?: string }).message || ""
           )
         );
       } else {
@@ -169,9 +160,7 @@ export default function LoginPage() {
       >
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-indigo-700">Pulse Connect</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Your digital marketing command center
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Your digital marketing command center</p>
         </div>
 
         <h2 className="text-2xl font-bold mb-6 text-center">
@@ -185,6 +174,7 @@ export default function LoginPage() {
         <label htmlFor="email" className="sr-only">Email</label>
         <input
           id="email"
+          name="email"
           type="email"
           placeholder="Email"
           value={email}
@@ -197,16 +187,31 @@ export default function LoginPage() {
         {!showReset && (
           <>
             <label htmlFor="password" className="sr-only">Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Password"
-              value={password}
-              autoComplete={isSignUp ? "new-password" : "current-password"}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full mb-4 px-4 py-2 border rounded"
-              required
-            />
+            {isSignUp ? (
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                autoComplete="new-password"
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full mb-4 px-4 py-2 border rounded"
+                required
+              />
+            ) : (
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                autoComplete="current-password"
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full mb-4 px-4 py-2 border rounded"
+                required
+              />
+            )}
           </>
         )}
 
