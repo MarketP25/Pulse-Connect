@@ -1,21 +1,26 @@
 // src/firebase/config.ts
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+// ✅ Use environment variables for security and scalability
 const firebaseConfig = {
-  apiKey: "AIzaSyDtVE2utCUY1SVqX1cGKNyDUPQnUjtTz4I",
-  authDomain: "marketpulse-tech.firebaseapp.com",
-  projectId: "marketpulse-tech", // ✅ typo fixed
-  storageBucket: "marketpulse-tech.appspot.com",
-  messagingSenderId: "171998488670",
-  appId: "1:171998488670:web:57dd1d3bb5ad69ad4a6ccf",
-  measurementId: "G-2T1S0CKMDV",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
 };
 
-// Use existing app instance if already initialized
-export const app =
-  getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// 🔍 Confirm environment variables are being read
+console.log("📦 Firebase Config Loaded:", firebaseConfig);
 
+// Prevent re-initializing on hot reload
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+// Export Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
