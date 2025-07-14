@@ -1,9 +1,9 @@
 // src/lib/firebase.ts
 
-import { 
-  initializeApp, 
-  getApps, 
-  getApp 
+import {
+  initializeApp,
+  getApps,
+  getApp
 } from "firebase/app";
 
 import { getAuth } from "firebase/auth";
@@ -19,6 +19,9 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
+// 🔍 Confirm environment variables are being read
+console.log("🔥 Firebase API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+
 // Prevent re-initializing on hot reload
 const app = !getApps().length
   ? initializeApp(firebaseConfig)
@@ -26,4 +29,4 @@ const app = !getApps().length
 
 // Expose Auth & Firestore instances
 export const auth = getAuth(app);
-export const db   = getFirestore(app);
+export const db = getFirestore(app);
