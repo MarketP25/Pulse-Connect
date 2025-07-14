@@ -4,7 +4,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getPerformance } from "firebase/performance";
+import { getPerformance, trace } from "firebase/performance";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // ✅ Firebase config from .env.local
@@ -15,7 +15,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!, // Optional, but included for completeness
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!, // Optional
 };
 
 // 🔍 Confirm environment variables are being read
@@ -32,6 +32,19 @@ initializeAppCheck(app, {
 
 // 📊 Initialize Performance Monitoring
 const perf = getPerformance(app);
+
+// 🧭 Custom Performance Trace for Firebase Initialization
+try {
+  const initTrace = trace(perf, "firebase_init_trace");
+  initTrace.start();
+
+  // Wrap any additional setup here if needed
+
+  initTrace.stop();
+  console.log("📈 Firebase init trace sent");
+} catch (error) {
+  console.warn("⚠️ Performance trace failed:", error);
+}
 
 // 🗂️ Expose Firebase services
 export const auth = getAuth(app);
