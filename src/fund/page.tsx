@@ -41,15 +41,15 @@ const PLAN_REQUIREMENTS: Record<ProgramType, string[]> = {
   forex: ["pro", "patron", "patronTrial"],
 };
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-  { id: "basic", name: "Basic", prices: { USD: 9, KES: 1000, EUR: 8 } },
-  { id: "plus", name: "Plus", prices: { USD: 19, KES: 2000, EUR: 17 } },
-  { id: "pro", name: "Pro", prices: { USD: 29, KES: 3000, EUR: 26 } },
-  { id: "patron", name: "Patron", prices: { USD: 49, KES: 5000, EUR: 44 } },
+  { id: "basic", name: "Basic", prices: { USD: 10, KES: 1000, EUR: 9 } },
+  { id: "plus", name: "Plus", prices: { USD: 20, KES: 2500, EUR: 18 } },
+  { id: "pro", name: "Pro", prices: { USD: 30, KES: 4000, EUR: 26 } },
+  { id: "patron", name: "Patron", prices: { USD: 45, KES: 6000, EUR: 40 } },
   { id: "patronTrial", name: "Patron Trial", prices: { USD: 0, KES: 0, EUR: 0 } },
 ];
 const DONATION_TIERS = [
-  { name: "Spark", kes: "KES 500", usd: "$5", desc: "Unlimited campaigns & uploads.", paypalAmt: "5" },
-  { name: "Patron", kes: "KES 2,500", usd: "$25", desc: "Early features + badge.", paypalAmt: "25" },
+  { name: "Spark", kes: "KES 1500", usd: "$15", desc: "Unlimited campaigns & uploads.", paypalAmt: "15" },
+  { name: "Patron", kes: "KES 2500", usd: "$25", desc: "Early features + badge.", paypalAmt: "25" },
   { name: "Investor", kes: "KES 10,000", usd: "$100", desc: "Partner status + spotlight.", paypalAmt: "100" },
 ];
 

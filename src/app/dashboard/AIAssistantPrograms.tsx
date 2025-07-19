@@ -285,7 +285,7 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
           <button
             id="advanced-toggle"
             type="button"
-            aria-expanded={advanced}
+            aria-expanded="true"
             aria-controls="advanced-options"
             onClick={() => setAdvanced(prev => !prev)}
             className="text-xs underline text-indigo-600"
