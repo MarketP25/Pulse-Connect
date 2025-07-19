@@ -1,22 +1,15 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// src/app/layout.tsx
 import "./globals.css";
-import Providers from "@/components/Providers";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import React from "react";
+import { Inter } from "next/font/google";
+import { Metadata } from "next";
+import { RoleProvider } from "@/context/RoleContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Pulse Connect",
-  description: "Your marketing hub",
+  title: "PulseConnect",
+  description: "AI-powered digital marketing platform",
 };
 
 export default function RootLayout({
@@ -26,15 +19,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {/* Providers must be inside <body> and marked "use client" */}
-        <Providers>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </Providers>
+      <body className={inter.className}>
+        <RoleProvider>
+          {children}
+        </RoleProvider>
       </body>
     </html>
   );

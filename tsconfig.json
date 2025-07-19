@@ -1,44 +1,46 @@
-// tsconfig.json
 {
   "compilerOptions": {
+    /* Target modern browsers with ESNext features */
     "target": "esnext",
-    "moduleResolution": "node",
+    "lib": ["dom", "dom.iterable", "esnext"],
+
+    /* Preserve JSX for Next.js */
     "jsx": "preserve",
+
+    /* Module resolution */
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Strict type-checking */
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
-    // ← set baseUrl to project root:
-    "baseUrl": ".",
-    // ← map "@/…" → "<root>/src/…"
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    },
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+
+    /* Allow JS files alongside TS */
     "allowJs": true,
+
+    /* Never emit; Next.js handles builds */
     "noEmit": true,
     "incremental": true,
-    "module": "esnext",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+
+    /* Path mapping for @/… → src/… */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    /* Next.js plugin */
+    "plugins": [{ "name": "next" }]
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "src/**/*"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", ".next"]
 }

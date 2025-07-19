@@ -1,5 +1,11 @@
 {
-    "github.copilot.nextEditSuggestions.enabled": true,
-    "editor.inlineSuggest.edits.showCollapsed": true,
-    "json.schemaDownload.enable": false
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "editor.inlineSuggest.edits.showCollapsed": true,
+  "json.schemaDownload.enable": false,
+  "files.exclude": {
+    "**/.next": true
+  },
+  "search.exclude": {
+    "**/.next": true
+  }
 }
