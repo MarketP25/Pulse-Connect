@@ -2,3 +2,11 @@
 . "$(dirname "$0")/_/husky.sh"
 
 find . -type f -empty ! -name '.gitignore' ! -name '.env*' -delete
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Clean up empty files before commit
+find . -type f -empty ! -name '.gitignore' ! -name '.env*' -delete
+
+# Lint and format staged files
+npx lint-staged

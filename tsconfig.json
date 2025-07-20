@@ -42,5 +42,13 @@
     ".next/types/**/*.ts",
     "src/**/*"
   ],
-  "exclude": ["node_modules", ".next"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+
+    /* Prevent IDE from type-checking nested tsconfig inside packages like 'call-bound' */
+    "**/node_modules/@ljharb/tsconfig/**",
+    "**/node_modules/call-bound/**"
+  ]
 }
