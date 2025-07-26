@@ -26,6 +26,7 @@
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
+    "stripe": "^18.3.0",
     "uuid": "^11.1.0",
     "zod": "^4.0.5"
   },
