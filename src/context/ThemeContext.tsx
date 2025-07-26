@@ -1,3 +1,8 @@
+import { useContext } from 'react';
+// Custom hook for consuming theme context
+export function useTheme() {
+  return useContext(ThemeContext);
+}
 // src/context/ThemeContext.tsx
 import React, {
   createContext,
@@ -25,6 +30,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   // Load stored preference
   useEffect(() => {
+    // Only non-sensitive theme preference is stored in localStorage
     const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
     if (stored) {
       setTheme(stored);
@@ -34,6 +40,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // Apply to document and persist
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    // Only non-sensitive theme preference is stored in localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
 

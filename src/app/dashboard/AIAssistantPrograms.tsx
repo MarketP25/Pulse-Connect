@@ -57,6 +57,7 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
   const [inquirySent, setInquirySent]   = useState(false);
 
   useEffect(() => {
+    // Only non-sensitive UI state is stored in localStorage
     const raw = localStorage.getItem(`pc-lastUsed-${userRole}`);
     if (raw) {
       try { setLastUsed(JSON.parse(raw)); } catch {}
@@ -155,6 +156,7 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
 
       const lu: LastUsed = { program: type, prompt, time: Date.now() };
       setLastUsed(lu);
+      // Only non-sensitive UI state is stored in localStorage
       localStorage.setItem(`pc-lastUsed-${userRole}`, JSON.stringify(lu));
 
       showToast("AI result generated!");

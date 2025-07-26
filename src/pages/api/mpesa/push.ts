@@ -81,7 +81,7 @@ export default async function handler(
     const data = await pushRes.json();
     return res.status(200).json(data);
   } catch (err: any) {
-    console.error("MPesa push error:", err);
+    // ...existing code...
     return res.status(500).json({ error: err.message || "Internal error" });
   }
 }

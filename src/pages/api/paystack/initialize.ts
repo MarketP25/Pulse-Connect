@@ -35,7 +35,7 @@ export default async function handler(
 
     return res.status(200).json(data);
   } catch (error: any) {
-    console.error("Paystack init error:", error.response?.data || error.message);
+    // ...existing code...
     return res.status(500).json({
       status: false,
       message: "Could not initialize Paystack transaction",

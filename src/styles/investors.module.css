@@ -1,0 +1,42 @@
+.investor-container {
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0001;
+}
+.investor-title {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+.investor-desc {
+  margin-bottom: 24px;
+}
+.investor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.investor-input {
+  padding: 8px;
+  font-size: 16px;
+}
+.investor-btn {
+  padding: 12px;
+  font-size: 18px;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.investor-message {
+  margin-top: 20px;
+}
+.investor-message.success {
+  color: green;
+}
+.investor-message.error {
+  color: red;
+}
