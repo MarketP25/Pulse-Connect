@@ -1,3 +1,5 @@
+// Add your real PayPal.me link here
+export const PAYPAL_ME_LINK = "https://paypal.me/yourRealPayPalLink";
 // src/config/paymentGateways.ts
 export type Gateway = "mpesa" | "paystack" | "alipay" | "paypal";
 
