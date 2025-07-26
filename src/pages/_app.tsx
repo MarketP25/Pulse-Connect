@@ -11,6 +11,7 @@ import "@/styles/globals.css";
 import { SessionProvider } from "@/context/SessionProvider";
 import { RealtimeProvider } from "@/context/RealtimeContext";
 import { RoleProvider } from "@/context/RoleContext";
+import { LanguageProvider } from "@/context/LanguageProvider";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const [showSplash, setShowSplash] = useState(true);
@@ -23,15 +24,17 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   if (showSplash) return <SplashScreen />;
 
   return (
-    <SessionProvider>
-      <RealtimeProvider>
-        <RoleProvider>
-          <Header />
-          <RealtimeBanner />
-          <UpgradePrompt />
-          <Component {...pageProps} />
-        </RoleProvider>
-      </RealtimeProvider>
-    </SessionProvider>
+    <LanguageProvider>
+      <SessionProvider>
+        <RealtimeProvider>
+          <RoleProvider>
+            <Header />
+            <RealtimeBanner />
+            <UpgradePrompt />
+            <Component {...pageProps} />
+          </RoleProvider>
+        </RealtimeProvider>
+      </SessionProvider>
+    </LanguageProvider>
   );
 }

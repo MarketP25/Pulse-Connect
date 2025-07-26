@@ -15,43 +15,24 @@ import {
   addDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import {
+  PROGRAM_LABELS,
+  PLAN_REQUIREMENTS,
+  SUBSCRIPTION_PLANS,
+  DONATION_TIERS,
+  Currency,
+  ProgramType,
+  SubscriptionPlan,
+} from "@/lib/upgradePlans";
 import { app } from "@/firebase/config";
 import { PaymentButton } from "@/components/PaymentButton";
 
 /* TYPES */
-type Currency = "USD" | "KES" | "EUR";
-type ProgramType = "marketing" | "workout" | "tutorial" | "forex";
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  prices: Record<Currency, number>;
-}
+// Types and constants are now imported from @/lib/upgradePlans
 
 /* CONFIG */
-const PROGRAM_LABELS: Record<ProgramType, string> = {
-  marketing: "Marketing Campaign Ideas",
-  workout: "Workout Plans",
-  tutorial: "Step-by-Step Tutorials",
-  forex: "Forex AI Classes",
-};
-const PLAN_REQUIREMENTS: Record<ProgramType, string[]> = {
-  marketing: ["basic", "plus", "pro", "patron", "patronTrial"],
-  workout: ["plus", "pro", "patron", "patronTrial"],
-  tutorial: ["pro", "patron", "patronTrial"],
-  forex: ["pro", "patron", "patronTrial"],
-};
-const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-  { id: "basic", name: "Basic", prices: { USD: 10, KES: 1000, EUR: 9 } },
-  { id: "plus", name: "Plus", prices: { USD: 20, KES: 2500, EUR: 18 } },
-  { id: "pro", name: "Pro", prices: { USD: 30, KES: 4000, EUR: 26 } },
-  { id: "patron", name: "Patron", prices: { USD: 45, KES: 6000, EUR: 40 } },
-  { id: "patronTrial", name: "Patron Trial", prices: { USD: 0, KES: 0, EUR: 0 } },
-];
-const DONATION_TIERS = [
-  { name: "Spark", kes: "KES 1500", usd: "$15", desc: "Unlimited campaigns & uploads.", paypalAmt: "15" },
-  { name: "Patron", kes: "KES 2500", usd: "$25", desc: "Early features + badge.", paypalAmt: "25" },
-  { name: "Investor", kes: "KES 10,000", usd: "$100", desc: "Partner status + spotlight.", paypalAmt: "100" },
-];
+
+// Upgrade plan constants are now imported from @/lib/upgradePlans
 
 /* HELPERS */
 function getUserCurrency(): Currency {
@@ -68,7 +49,7 @@ function formatPrice(amount: number, currency: Currency, suffix: "/mo" | "/yr") 
   }).format(amount) + suffix;
 }
 function trackEvent(event: string, data: Record<string, unknown>) {
-  console.log(`[Analytics] ${event}`, data);
+  // ...existing code...
 }
 
 /* SimpleForm Component */
@@ -165,6 +146,7 @@ export default function FundPage() {
 
   // 2) tip jar once
   useEffect(() => {
+    // Only non-sensitive UI state is stored in localStorage
     if (!loadingAuth && !localStorage.getItem("tipJarDismissed")) setShowTipJar(true);
   }, [loadingAuth]);
 
@@ -190,7 +172,7 @@ export default function FundPage() {
         billingCycle,
         attemptedAt: serverTimestamp(),
       });
-      if (!emailVerified) throw new Error("Verify your email.");
+      if (!emailVerified) throw new Error("Please verify your email before upgrading your plan.");
       await updateDoc(doc(db, "users", userId), {
         role: planId,
         billingCycle,
@@ -198,10 +180,17 @@ export default function FundPage() {
       });
       setCurrentPlan(planId);
       setShowUpgradePopup(false);
-      setStatus({ type: "success", message: `Subscribed to ${planId}!` });
+      setStatus({ type: "success", message: `Successfully subscribed to the ${planId} plan!` });
       upgradeRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (e) {
-      setStatus({ type: "error", message: (e as Error).message });
+      // Provide more detailed error feedback for debugging
+      let msg = "An error occurred during upgrade. Please try again.";
+      if (e instanceof Error) {
+        msg = e.message;
+      } else if (typeof e === "string") {
+        msg = e;
+      }
+      setStatus({ type: "error", message: msg });
     } finally {
       setLoadingPlanId(null);
     }
@@ -219,40 +208,60 @@ export default function FundPage() {
         tierName,
         fundedAt: serverTimestamp(),
       });
-      setStatus({ type: "success", message: `${tierName} recorded. Thank you!` });
+      setStatus({ type: "success", message: `${tierName} donation recorded. Thank you for your support!` });
     } catch (e) {
-      setStatus({ type: "error", message: (e as Error).message });
+      // Provide more detailed error feedback for debugging
+      let msg = "An error occurred while processing your donation. Please try again.";
+      if (e instanceof Error) {
+        msg = e.message;
+      } else if (typeof e === "string") {
+        msg = e;
+      }
+      setStatus({ type: "error", message: msg });
     } finally {
       setLoadingTierName(null);
     }
   }
 
   // complaint
+  // complaint
   async function onComplaintSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!complaint.trim()) return;
-    await addDoc(collection(db, "complaints"), {
-      userId,
-      userEmail,
-      complaint,
-      createdAt: serverTimestamp(),
-    });
-    setComplaint("");
-    setComplaintSent(true);
+    try {
+      await addDoc(collection(db, "complaints"), {
+        userId,
+        userEmail,
+        complaint,
+        createdAt: serverTimestamp(),
+      });
+      setComplaint("");
+      setComplaintSent(true);
+    } catch (e) {
+      let msg = "An error occurred while submitting your complaint. Please try again.";
+      if (e instanceof Error) msg = e.message;
+      setStatus({ type: "error", message: msg });
+    }
   }
 
   // feedback
   async function onFeedbackSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!feedback.trim()) return;
-    await addDoc(collection(db, "feedback"), {
-      userId,
-      userEmail,
-      feedback,
-      createdAt: serverTimestamp(),
-    });
-    setFeedback("");
-    setFeedbackSent(true);
+    try {
+      await addDoc(collection(db, "feedback"), {
+        userId,
+        userEmail,
+        feedback,
+        createdAt: serverTimestamp(),
+      });
+      setFeedback("");
+      setFeedbackSent(true);
+    } catch (e) {
+      let msg = "An error occurred while submitting your feedback. Please try again.";
+      if (e instanceof Error) msg = e.message;
+      setStatus({ type: "error", message: msg });
+    }
   }
 
   if (loadingAuth) return <p className="text-center py-12">Loading...</p>;
@@ -288,6 +297,7 @@ export default function FundPage() {
           <button
             onClick={() => {
               handleDonate("Tip Jar");
+              // Only non-sensitive UI state is stored in localStorage
               localStorage.setItem("tipJarDismissed","true");
               setShowTipJar(false);
             }}

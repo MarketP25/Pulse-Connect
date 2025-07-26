@@ -19,7 +19,7 @@ const firebaseConfig = {
 };
 
 // 🔍 Confirm environment variables are being read
-console.log("🔥 Firebase API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+// ...existing code...
 
 // 🔄 Prevent duplicate init on hot reload
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -41,9 +41,9 @@ try {
   // Wrap any additional setup here if needed
 
   initTrace.stop();
-  console.log("📈 Firebase init trace sent");
+  // ...existing code...
 } catch (error) {
-  console.warn("⚠️ Performance trace failed:", error);
+  // ...existing code...
 }
 
 // 🗂️ Expose Firebase services

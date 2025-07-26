@@ -124,7 +124,7 @@ function UpgradeSuccessToast({ onClose }: { onClose: () => void }) {
 
 // --- Fake email sender ---
 async function sendWelcomeEmail(email: string, username: string) {
-  console.log(`Welcome email sent to ${email} for ${username}`);
+  // ...existing code...
 }
 
 // --- Dashboard Page ---

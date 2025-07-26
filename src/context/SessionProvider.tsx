@@ -21,7 +21,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    // TODO: Fetch session from auth or API
+    // TODO: Implement session fetch from auth or API if needed in future
   }, []);
 
   return (

@@ -1,13 +1,8 @@
-import { useSession } from "@/hooks/useSession";
+import { useLanguage } from "@/context/LanguageProvider";
 
+  const { lang, setLang } = useLanguage();
 export default function LocaleSwitcher() {
-  const { user } = useSession();
-
-  const setLocale = (newLocale: string) => {
-    // TODO: Persist to session store or localStorage
-    console.log("Switching locale to:", newLocale);
-  };
-
+  const { lang, setLang } = useLanguage();
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor="locale-select" className="text-sm font-medium text-gray-700">
@@ -15,8 +10,8 @@ export default function LocaleSwitcher() {
       </label>
       <select
         id="locale-select"
-        value={user.locale}
-        onChange={(e) => setLocale(e.target.value)}
+        value={lang}
+        onChange={e => setLang(e.target.value)}
         className="border px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="en">English</option>

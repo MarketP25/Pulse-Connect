@@ -98,7 +98,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
           setFundingSource(resolvedFunding);
           setFeatures(resolvedFeatures);
         } catch (err) {
-          console.error("Error reading claims:", err);
+          // ...existing code...
           setRole("guest");
           setOrg(null);
           setLanguage("en");

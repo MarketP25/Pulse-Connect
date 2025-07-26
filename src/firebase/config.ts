@@ -15,7 +15,7 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
 };
 
-console.log("📦 Firebase Config Loaded:", firebaseConfig);
+// ...existing code...
 
 export const app = getApps().length === 0
   ? initializeApp(firebaseConfig)
