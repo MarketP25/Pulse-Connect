@@ -1,0 +1,8 @@
+.container {
+  max-width: 400px;
+  margin: 2rem auto;
+}
+
+.errorText {
+  color: red;
+}

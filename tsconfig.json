@@ -35,7 +35,10 @@
     },
 
     /* Next.js plugin */
-    "plugins": [{ "name": "next" }]
+    "plugins": [{ "name": "next" }],
+
+    /* Include custom type roots so our NextAuth augmentation is picked up */
+    "typeRoots": ["./src/types", "./node_modules/@types"]
   },
   "include": [
     "next-env.d.ts",
@@ -46,8 +49,6 @@
     "node_modules",
     ".next",
     "dist",
-
-    /* Prevent IDE from type-checking nested tsconfig inside packages like 'call-bound' */
     "**/node_modules/@ljharb/tsconfig/**",
     "**/node_modules/call-bound/**"
   ]

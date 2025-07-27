@@ -1,0 +1,16 @@
+.container {
+  max-width: 600px;
+  margin: 2rem auto;
+}
+.planList {
+  display: grid;
+  gap: 1rem;
+}
+.planCard {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 4px;
+}
+.button {
+  margin-top: 0.5rem;
+}
