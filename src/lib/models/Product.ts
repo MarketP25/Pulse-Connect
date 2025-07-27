@@ -1,0 +1,16 @@
+import { z } from "zod";
+
+export const ProductSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().min(3, "Name needs at least 3 characters"),
+  description: z.string().min(10, "Description needs at least 10 characters"),
+  price: z.number().nonnegative("Price must be zero or positive"),
+  currency: z.string().length(3, "Use a 3-letter currency code"),
+  imageUrl: z.string().url("Must be a valid URL"),
+  category: z.string().min(1, "Category is required"),
+  region: z.string().min(2, "Region code is required"),
+  sellerId: z.string().uuid("Invalid seller ID"),
+  createdAt: z.date().optional(),
+});
+
+export type Product = z.infer<typeof ProductSchema>;
