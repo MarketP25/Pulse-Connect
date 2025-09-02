@@ -1,0 +1,21 @@
+{
+  "features": {
+    "create-listing": {
+      "name": "Create Listing",
+      "description": "Create and manage property listings"
+    },
+    "advanced-analytics": {
+      "name": "Advanced Analytics",
+      "description": "Access detailed analytics and insights"
+    },
+    "bulk-operations": {
+      "name": "Bulk Operations",
+      "description": "Perform operations on multiple items at once"
+    },
+    "upgrade_required": {
+      "title": "Feature Not Available",
+      "description": "This feature requires a {tier} subscription.",
+      "cta": "Upgrade Now"
+    }
+  }
+}

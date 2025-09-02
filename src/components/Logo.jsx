@@ -1,4 +1,4 @@
-import React from 'react';
+// [CLEANED] Removed redundant React import
 import logo from '../assets/Pulse-Connect-logo.png';
 import styles from './Logo.module.css'; // Assuming Logo.module.css is in the same folder
 

@@ -1,13 +1,7 @@
 // pages/products/index.tsx
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  DocumentData,
-} from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, DocumentData } from "firebase/firestore";
 import { db } from "@/lib/firebaseClient";
 import styles from "@/styles/products.module.css";
 
@@ -26,10 +20,7 @@ export default function ProductsPage() {
   useEffect(() => {
     if (status !== "authenticated") return;
 
-    const q = query(
-      collection(db, "products"),
-      orderBy("createdAt", "desc")
-    );
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -40,7 +31,7 @@ export default function ProductsPage() {
             id: doc.id,
             name: d.name,
             price: d.price,
-            createdAt: d.createdAt,
+            createdAt: d.createdAt
           };
         });
         setProducts(items);
@@ -69,9 +60,7 @@ export default function ProductsPage() {
           <li key={p.id} className={styles.productItem}>
             <strong>{p.name}</strong> — ${p.price.toFixed(2)}
             <br />
-            <small>
-              Created at: {new Date(p.createdAt).toLocaleString()}
-            </small>
+            <small>Created at: {new Date(p.createdAt).toLocaleString()}</small>
           </li>
         ))}
       </ul>

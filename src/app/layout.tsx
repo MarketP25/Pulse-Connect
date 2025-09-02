@@ -1,28 +1,24 @@
 // src/app/layout.tsx
 import "./globals.css";
-import { Inter }        from "next/font/google";
-import { Metadata }     from "next";
-import { RoleProvider } from "@/context/RoleContext";  // ← your custom provider
+import { Inter } from "next/font/google";
+import { Metadata } from "next";
+import { RoleProvider } from "@/context/RoleContext";
+import { GlobalTranslationProvider } from "@/components/GlobalTranslationProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "PulseConnect",
-  description: "AI-powered digital marketing platform",
+  description: "AI-powered digital marketing platform"
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html>
       <body className={inter.className}>
-        {/* Wrap everything in RoleProvider */}
-        <RoleProvider>
-          {children}
-        </RoleProvider>
+        <GlobalTranslationProvider>
+          <RoleProvider>{children}</RoleProvider>
+        </GlobalTranslationProvider>
       </body>
     </html>
   );

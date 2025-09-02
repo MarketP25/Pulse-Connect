@@ -1,0 +1,9 @@
+export type Gateway = "mpesa" | "paystack" | "stripe" | "paypal";
+
+export const selectGateway = (region: string): Gateway => {
+  const normalized = region.trim().toLowerCase();
+  if (["ke", "kenya"].includes(normalized)) return "mpesa";
+  if (["ng", "nigeria"].includes(normalized)) return "paystack";
+  if (["us", "ca", "uk"].includes(normalized)) return "stripe";
+  return "paypal"; // fallback for global
+};

@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { PermissionManager } from "@/lib/auth/PermissionManager";
+import { ApiPermissionGuard } from "@/lib/auth/guards/ApiPermissionGuard";
+import { getSession } from "@/lib/auth/session";
+
+export async function permissionMiddleware(request: NextRequest) {
+  const session = await getSession(request);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const permissionManager = new PermissionManager(
+    session.user.role,
+    session.subscription?.tier || "FREE"
+  );
+
+  const apiGuard = new ApiPermissionGuard(permissionManager);
+
+  if (!apiGuard.canAccessEndpoint(request.method, request.nextUrl.pathname)) {
+    return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+  }
+
+  return NextResponse.next();
+}
+
+export function withPermissionMiddleware(
+  handler: Function,
+  options: {
+    requiredPermissions?: string[];
+    methods?: string[];
+  }
+) {
+  return async function (req: NextRequest) {
+    const result = await permissionMiddleware(req);
+
+    if (result.status === 401 || result.status === 403) {
+      return result;
+    }
+
+    return handler(req);
+  };
+}

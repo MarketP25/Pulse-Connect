@@ -1,0 +1,14 @@
+import { z } from "zod";
+
+/**
+ * Zod schema for product creation + retrieval.
+ * createdAt will default to `new Date()` if not provided.
+ */
+export const ProductSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().min(1),
+  price: z.number().nonnegative(),
+  createdAt: z.date().default(() => new Date())
+});
+
+export type Product = z.infer<typeof ProductSchema>;

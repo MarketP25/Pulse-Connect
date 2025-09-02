@@ -2,10 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { PlanResponseSchema, PlanSchema } from "@/types/plan";
 import { getAllPlans } from "@/lib/models/Plan";
 
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).end(`Method ${req.method} Not Allowed`);

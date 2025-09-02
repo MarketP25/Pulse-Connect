@@ -1,0 +1,154 @@
+import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+import { createAdminUser, verifyAdminUser, getAdminByEmail } from "@/lib/services/admin";
+import { getRedisClient } from "@/lib/redis";
+import { MAX_ADMINS } from "@/config/admin";
+
+jest.mock("@/lib/redis", () => ({
+  getRedisClient: jest.fn()
+}));
+
+jest.mock("@/lib/utils/token", () => ({
+  generateVerificationToken: () => "test-verification-token"
+}));
+
+jest.mock("@/lib/utils/password", () => ({
+  hashPassword: (password: string) => Promise.resolve(`hashed_${password}`)
+}));
+
+describe("Admin Service", () => {
+  const mockRedis = {
+    get: jest.fn(),
+    set: jest.fn(),
+    expire: jest.fn(),
+    hset: jest.fn(),
+    hgetall: jest.fn(),
+    incr: jest.fn(),
+    del: jest.fn()
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getRedisClient as jest.Mock).mockReturnValue(mockRedis);
+  });
+
+  describe("createAdminUser", () => {
+    const testUser = {
+      email: "test@example.com",
+      fullName: "Test User",
+      password: "TestPass123!"
+    };
+
+    it("should create a new admin user successfully", async () => {
+      mockRedis.get.mockResolvedValueOnce(null); // No existing admins
+      mockRedis.get.mockResolvedValueOnce(null); // Email doesn't exist
+
+      const result = await createAdminUser(testUser);
+
+      expect(result).toEqual({
+        verificationCode: "test-verification-token"
+      });
+
+      expect(mockRedis.set).toHaveBeenCalledWith(
+        "admin:pending:test-verification-token",
+        expect.any(String)
+      );
+      expect(mockRedis.set).toHaveBeenCalledWith(
+        "admin:email:test@example.com",
+        "test-verification-token"
+      );
+    });
+
+    it("should throw error when max admins reached", async () => {
+      mockRedis.get.mockResolvedValueOnce(MAX_ADMINS.toString());
+
+      await expect(createAdminUser(testUser)).rejects.toThrow("Maximum number of admins reached");
+    });
+
+    it("should throw error when email already exists", async () => {
+      mockRedis.get.mockResolvedValueOnce("0"); // Admin count
+      mockRedis.get.mockResolvedValueOnce("existing-code"); // Email exists
+
+      await expect(createAdminUser(testUser)).rejects.toThrow(
+        "An account with this email already exists"
+      );
+    });
+  });
+
+  describe("verifyAdminUser", () => {
+    const verificationCode = "test-verification-token";
+    const testUserData = {
+      email: "test@example.com",
+      fullName: "Test User",
+      password: "hashed_TestPass123!",
+      verified: "false",
+      createdAt: "1234567890"
+    };
+
+    it("should verify admin user successfully", async () => {
+      mockRedis.get
+        .mockResolvedValueOnce(JSON.stringify(testUserData)) // Pending admin data
+        .mockResolvedValueOnce("0"); // Current admin count
+
+      await verifyAdminUser(verificationCode);
+
+      expect(mockRedis.hset).toHaveBeenCalledWith(
+        "admin:test@example.com",
+        expect.objectContaining({
+          ...testUserData,
+          verified: "true",
+          verifiedAt: expect.any(String)
+        })
+      );
+      expect(mockRedis.incr).toHaveBeenCalledWith("admin:count");
+      expect(mockRedis.del).toHaveBeenCalledTimes(2);
+    });
+
+    it("should throw error for invalid verification code", async () => {
+      mockRedis.get.mockResolvedValueOnce(null);
+
+      await expect(verifyAdminUser(verificationCode)).rejects.toThrow(
+        "Invalid or expired verification code"
+      );
+    });
+
+    it("should throw error when max admins reached during verification", async () => {
+      mockRedis.get
+        .mockResolvedValueOnce(JSON.stringify(testUserData))
+        .mockResolvedValueOnce(MAX_ADMINS.toString());
+
+      await expect(verifyAdminUser(verificationCode)).rejects.toThrow(
+        "Maximum number of admins reached"
+      );
+    });
+  });
+
+  describe("getAdminByEmail", () => {
+    const email = "test@example.com";
+    const adminData = {
+      email: "test@example.com",
+      fullName: "Test User",
+      password: "hashed_TestPass123!",
+      verified: "true",
+      createdAt: "1234567890"
+    };
+
+    it("should return admin data if found", async () => {
+      mockRedis.hgetall.mockResolvedValueOnce(adminData);
+
+      const result = await getAdminByEmail(email);
+
+      expect(result).toEqual({
+        ...adminData,
+        verified: true
+      });
+    });
+
+    it("should return null if admin not found", async () => {
+      mockRedis.hgetall.mockResolvedValueOnce({});
+
+      const result = await getAdminByEmail(email);
+
+      expect(result).toBeNull();
+    });
+  });
+});
