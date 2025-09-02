@@ -15,7 +15,7 @@ const UpgradePage: NextPage = () => {
   const { plans, loading, error } = usePlan();
 
   if (loading) return <div>Loading…</div>;
-  if (error)   return <div>Error: {error.message}</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div>
@@ -24,11 +24,23 @@ const UpgradePage: NextPage = () => {
           <h2>{getLocalizedValue(plan.name, locale)}</h2>
           <p>{getLocalizedValue(plan.description, locale)}</p>
           <p>
-            {getLocalizedValue(plan.currency, locale)}{" "}
-            {plan.price.toFixed(2)}
+            {getLocalizedValue(plan.currency, locale)} {plan.price.toFixed(2)}
           </p>
-          <button onClick={() => console.log("Upgrade to", plan.id)}>
-            {getLocalizedValue({ en: "Upgrade", es: "Actualizar", fr: "Mettre à niveau", de: "Aktualisieren", sw: "Sasisha" }, locale)}
+          <button
+            onClick={() => {
+              /* [CLEANED] Removed debug log */
+            }}
+          >
+            {getLocalizedValue(
+              {
+                en: "Upgrade",
+                es: "Actualizar",
+                fr: "Mettre à niveau",
+                de: "Aktualisieren",
+                sw: "Sasisha"
+              },
+              locale
+            )}
           </button>
         </div>
       ))}

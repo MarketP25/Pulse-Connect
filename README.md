@@ -1,12 +1,12 @@
-# Pulse Connect 🌐
+# 🌍 Pulse Connect
 
-Pulse Connect is a Next.js–powered digital marketing platform, thoughtfully architected for scalability, accessibility, and seamless branding consistency. This project was scaffolded using `create-next-app`, setting the stage for a modular, accessible, and user-centered Next.js experience.
+Pulse Connect is a celebration-powered, region-aware platform where anyone can list and book garages, rooms, Airbnbs, and more—from Kenya to Berlin. Inspired by the best of **Canva** (joyful creation), **Fiver**(micro-entrepreneurship), and **Upwork** (secure collaboration), Pulse Connect empowers hosts and guests with clarity, trust, and delight.
 
 ---
 
 ## 🚀 Getting Started
 
-To launch the development server, run:
+To launch the development server:
 
 ```bash
 npm run dev
@@ -16,24 +16,49 @@ yarn dev
 pnpm dev
 # or
 bun dev
-Then visit http://localhost:3000 in your browser to preview the application.
-Start iterating by modifying the app/page.tsx file. Updates will reflect instantly.
+Then visit http://localhost:3000 to preview the app.
+Start iterating by modifying src/pages/index.tsx. Updates reflect instantly.
 
-🎨 Design & Branding
-Pulse Connect integrates the Pulse Connect logo across headers, splash screens, and meta tags. Font optimization is handled via , featuring the Geist font family from Vercel.
-Our design system is:
-- ✳️ Modular: built with reusable, scalable components
-- 🔁 Responsive: optimized across devices and screen sizes
-- ♿ Accessible: designed to meet global accessibility standards
-- 🎯 Brand-consistent: every detail echoes Pulse Connect’s identity
+🎨 Design System
+Pulse Connect’s design system is:
+- ✳️ Modular – built with reusable, scalable components
+- 🔁 Responsive – optimized across devices and screen sizes
+- ♿ Accessible – meets global accessibility standards
+- 🎯 Brand-consistent – every detail echoes Pulse Connect’s identity
+- 🎉 Celebratory – milestone badges, confetti, and affirming feedback
+Fonts are optimized via Vercel’s font loader, featuring the Geist family.
+
+💸 Payments & Region Awareness
+Pulse Connect supports multi-gateway payments:
+- Stripe, PayPal, M-Pesa, Paystack
+- Region-aware currency conversion
+- Metadata-rich, audit-friendly booking flows
+
+🧠 Core Features
+- 🖼️ Drag-and-drop listing builder 
+- 👤 Host profiles with tiered packages and badges 
+- 📩 Custom request flow and escrow logic 
+- 🔐 Secure messaging and dispute resolution
+- 🌍 Localization: language, currency, county filters
+- 🎉 Celebration UX: confetti, toasts, milestone tracking
 
 📚 Learn More
-- Next.js Documentation – explore features and API
-- Learn Next.js – an interactive tutorial to master the framework
-- Next.js GitHub – contribute feedback and improvements
+- Next.js Documentation
+- Learn Next.js
+- Next.js GitHub
 
 🌍 Deployment
 Deploy Pulse Connect seamlessly using Vercel, the creators of Next.js.
-For more details and best practices, see the Next.js Deployment Guide.
+For best practices, see the Next.js Deployment Guide.
 
+🛠️ Tech Stack
+- Frontend: React + Next.js + TypeScript
+- Backend: Node.js or Django (flexible)
+- Payments: Stripe, PayPal, M-Pesa, Paystack
+- Analytics: Plausible + Firebase
+- Styling: Tailwind CSS + custom animations
+- Testing: Jest + Testing Library
+
+🎯 Vision
+Pulse Connect is more than a platform—it’s a movement. Every listing is a business. Every booking is a celebration. Every host is a founder.
 

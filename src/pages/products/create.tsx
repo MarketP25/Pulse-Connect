@@ -20,15 +20,12 @@ export default function CreateProductPage() {
   if (status === "loading") return <p>Loading session…</p>;
   if (!session) return <p>You must be signed in to create a product.</p>;
 
-  const handleChange =
-    (field: keyof FormState) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((f) => ({
-        ...f,
-        [field]:
-          field === "price" ? Number(e.target.value) : e.target.value,
-      }));
-    };
+  const handleChange = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((f) => ({
+      ...f,
+      [field]: field === "price" ? Number(e.target.value) : e.target.value
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +36,7 @@ export default function CreateProductPage() {
       const resp = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(form)
       });
 
       if (!resp.ok) {
@@ -60,12 +57,7 @@ export default function CreateProductPage() {
       <form onSubmit={handleSubmit}>
         <label>
           Name
-          <input
-            type="text"
-            value={form.name}
-            onChange={handleChange("name")}
-            required
-          />
+          <input type="text" value={form.name} onChange={handleChange("name")} required />
         </label>
         <label>
           Price (USD)

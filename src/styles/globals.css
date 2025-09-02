@@ -1,17 +1,93 @@
-/* src/styles/globals.css */
 :root {
   --bg: #ffffff;
   --fg: #111;
   --header-bg: #f8f8f8;
+  --accent: #0077cc;
+  --accent-hover: #005fa3;
+  --card-bg: #f2f2f2;
+  --border-radius: 8px;
+  --font-family: 'Segoe UI', sans-serif;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="dark"] {
   --bg: #111;
   --fg: #eee;
   --header-bg: #222;
+  --card-bg: #1a1a1a;
+  --accent: #3399ff;
+  --accent-hover: #1a8cff;
+  --shadow: 0 2px 6px rgba(255, 255, 255, 0.05);
 }
 
 body {
   background: var(--bg);
   color: var(--fg);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+}
+
+main {
+  padding: 2rem;
+  max-width: 800px;
+  margin: auto;
+}
+
+h1, h2 {
+  margin-bottom: 1rem;
+  color: var(--fg);
+}
+
+section {
+  margin-top: 2rem;
+}
+
+form {
+  display: grid;
+  gap: 1rem;
+}
+
+input,
+select,
+textarea,
+button {
+  font-size: 1rem;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  border: 1px solid #ccc;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+button {
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--accent-hover);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  border: 1px solid #ccc;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
 }

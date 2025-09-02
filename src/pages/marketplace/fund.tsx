@@ -32,11 +32,7 @@ export default function FundPage() {
             required
           />
         </label>
-        <button
-          type="submit"
-          disabled={funding}
-          className={styles.button}
-        >
+        <button type="submit" disabled={funding} className={styles.button}>
           {funding ? "Processing…" : "Fund Wallet"}
         </button>
         {error && <p className={styles.errorText}>{error}</p>}

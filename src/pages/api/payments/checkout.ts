@@ -1,133 +1,128 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-// Use global fetch in Node.js 18+ or Next.js
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-const paypalMeLink = process.env.PAYPAL_ME_LINK; // Add this to your .env or config
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY!;
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
+const paypalMeLink = process.env.PAYPAL_ME_LINK!;
+const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY!;
 
-const stripe = new Stripe(stripeSecretKey!, { apiVersion: "2025-06-30.basil" });
+const stripe = new Stripe(stripeSecretKey, { apiVersion: "2025-06-30.basil" });
+
+function getCurrencyForRegion(region: string | undefined): string {
+  const currencyMap: Record<string, string> = {
+    KE: "kes",
+    US: "usd",
+    EU: "eur",
+    NG: "ngn"
+  };
+  return currencyMap[region ?? ""] || "usd";
+}
+
+function validateBody(body: any) {
+  const supportedGateways = ["stripe", "paypal", "mpesa", "paystack", "alipay"];
+  if (!supportedGateways.includes(body.gateway)) throw new Error("Unsupported payment gateway.");
+  if (typeof body.amount !== "number" || body.amount <= 0)
+    throw new Error("Invalid payment amount.");
+  if (typeof body.email !== "string") throw new Error("Missing or invalid email.");
+}
 
 export async function POST(req: Request) {
   try {
-    // Parse and validate input
     const body = await req.json();
-    const { amount, currency, description, email, gateway } = body;
+    const { amount, currency, description, email, gateway, locale, region } = body;
+    validateBody(body);
 
-    const supportedGateways = ["stripe", "paypal", "mpesa", "paystack", "alipay"];
-    if (!gateway || !supportedGateways.includes(gateway)) {
-      return NextResponse.json({ error: "Invalid or missing payment gateway." }, { status: 400 });
-    }
+    const chosenCurrency = currency || getCurrencyForRegion(region);
+    const unitAmount = Math.round(amount * 100);
 
-    if (!amount || typeof amount !== "number" || amount <= 0) {
-      return NextResponse.json({ error: "Invalid or missing amount." }, { status: 400 });
-    }
-    if (!email || typeof email !== "string") {
-      return NextResponse.json({ error: "Missing or invalid email." }, { status: 400 });
-    }
-    if (!baseUrl) {
-      return NextResponse.json({ error: "Server misconfiguration: missing NEXT_PUBLIC_BASE_URL." }, { status: 500 });
-    }
+    const metadata = {
+      email,
+      gateway,
+      region: region || "global",
+      app: "pulse-connect",
+      description: description || "Pulse Connect Payment"
+    };
 
-    // Optionally log the payment attempt (for debugging/audit)
-    console.log("[Payment Attempt]", { amount, currency, description, email, gateway });
+    // [CLEANED] Removed debug log
 
-    if (gateway === "stripe") {
-      // Create Stripe Checkout session for card payments
+    // Stripe & Alipay Checkout
+    if (gateway === "stripe" || gateway === "alipay") {
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
+        payment_method_types: [gateway],
         line_items: [
           {
             price_data: {
-              currency: currency || "usd",
-              product_data: { name: description || "Pulse Connect Payment" },
-              unit_amount: Math.round(amount * 100), // Stripe expects cents
+              currency: chosenCurrency,
+              product_data: { name: metadata.description },
+              unit_amount: unitAmount
             },
-            quantity: 1,
-          },
+            quantity: 1
+          }
         ],
         mode: "payment",
         customer_email: email,
         success_url: `${baseUrl}/success`,
         cancel_url: `${baseUrl}/cancel`,
+        locale: locale || "auto",
+        metadata
       });
       return NextResponse.json({ url: session.url });
-    } else if (gateway === "alipay") {
-      // Create Stripe Checkout session for Alipay payments
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["alipay"],
-        line_items: [
-          {
-            price_data: {
-              currency: currency || "usd",
-              product_data: { name: description || "Pulse Connect Payment" },
-              unit_amount: Math.round(amount * 100),
-            },
-            quantity: 1,
-          },
-        ],
-        mode: "payment",
-        customer_email: email,
-        success_url: `${baseUrl}/success`,
-        cancel_url: `${baseUrl}/cancel`,
-      });
-      return NextResponse.json({ url: session.url });
-    } else if (gateway === "paypal") {
-      // Return PayPal.me link (frontend should handle the redirect)
-      if (!paypalMeLink) {
-        return NextResponse.json({ error: "PayPal.me link not configured." }, { status: 500 });
-      }
-      // Optionally, you can append amount to the PayPal.me link if supported
+    }
+
+    // PayPal
+    if (gateway === "paypal") {
       const paypalUrl = `${paypalMeLink}/${amount}`;
       return NextResponse.json({ url: paypalUrl });
-    } else if (gateway === "mpesa") {
-      // TODO: Integrate real Mpesa API here
-      // For now, return a placeholder message or redirect URL
-      return NextResponse.json({
-        message: "Mpesa payment support coming soon. Please use Stripe or PayPal for now.",
-        info: "You can use your local Mpesa account or card with Stripe or PayPal to fund Pulse Connect globally."
+    }
+
+    // M-Pesa integration (calls your existing push.ts logic)
+    if (gateway === "mpesa") {
+      const res = await fetch(`${baseUrl}/api/mpesa/push`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount, currency: chosenCurrency, description, email, region })
       });
-    } else if (gateway === "paystack") {
-      // Real Paystack integration (basic session creation)
-      const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
-      if (!paystackSecretKey) {
-        return NextResponse.json({ error: "Paystack secret key not configured." }, { status: 500 });
+      const data = await res.json();
+      if (data.url || data.status === "pending") {
+        return NextResponse.json(data);
+      } else {
+        return NextResponse.json({ error: "M-Pesa push failed.", details: data }, { status: 500 });
       }
-      // Paystack expects amount in kobo (NGN) or the smallest currency unit
-      const paystackAmount = Math.round(amount * 100);
-      const paystackCallbackUrl = `${baseUrl}/success`;
+    }
+
+    // Paystack
+    if (gateway === "paystack") {
       const paystackBody = {
         email,
-        amount: paystackAmount,
-        currency: currency || "NGN",
-        callback_url: paystackCallbackUrl,
-        metadata: {
-          description: description || "Pulse Connect Payment"
-        }
+        amount: unitAmount,
+        currency: chosenCurrency,
+        callback_url: `${baseUrl}/success`,
+        metadata
       };
-      const paystackRes = await fetch("https://api.paystack.co/transaction/initialize", {
+      const res = await fetch("https://api.paystack.co/transaction/initialize", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${paystackSecretKey}`,
+          Authorization: `Bearer ${paystackSecretKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(paystackBody)
       });
-      const paystackData = await paystackRes.json();
-      if (paystackData.status && paystackData.data && paystackData.data.authorization_url) {
-        return NextResponse.json({ url: paystackData.data.authorization_url });
+      const data = await res.json();
+      if (data.status && data.data?.authorization_url) {
+        return NextResponse.json({ url: data.data.authorization_url });
       } else {
-        return NextResponse.json({ error: "Failed to initialize Paystack payment.", details: paystackData }, { status: 500 });
+        return NextResponse.json(
+          { error: "Paystack init failed.", details: data },
+          { status: 500 }
+        );
       }
     }
-    // Fallback (should not reach here)
-    return NextResponse.json({ error: "Unsupported payment gateway." }, { status: 400 });
+
+    // Fallback
+    return NextResponse.json({ error: "Unhandled gateway." }, { status: 400 });
   } catch (err: any) {
-    // Log error for debugging
-    console.error("[Payment API Error]", err);
-    if (err?.type === "StripeCardError" || err?.raw?.message) {
-      return NextResponse.json({ error: err.raw.message }, { status: 400 });
-    }
-    return NextResponse.json({ error: "Payment processing failed. Please try again later." }, { status: 500 });
+    console.error("[Checkout Error]", err);
+    const message = err?.message || "Unexpected payment failure.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
