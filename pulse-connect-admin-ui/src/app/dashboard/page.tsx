@@ -289,7 +289,7 @@ export default function DashboardPage() {
   const services = [
     { id: "graphic_design_course", name: "Graphic Design Course", price: 1500 },
     { id: "social_management_course", name: "Social Management Course", price: 1500 },
-    { id: "web_hosting_service", name: "Web Hosting Service", price: 20000 }
+    { id: "web_hosting_service", name: "Web Hosting Service", price: 10000 }
   ];
 
   const [bookedService, setBookedService] = useState<string | null>(null);

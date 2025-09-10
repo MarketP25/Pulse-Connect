@@ -1,6 +1,6 @@
 import { sendEmail } from "./transport";
 import { Booking } from "../booking/types";
-import { PaymentResponse } from "../payment/types";
+import { PaymentResponse } from "../payment.ts/types";
 import { logger } from "@/lib/logger";
 
 export async function sendBookingConfirmation(booking: Booking): Promise<boolean> {
