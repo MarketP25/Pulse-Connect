@@ -1,0 +1,23 @@
+[
+  {
+    "listingId": "LIST001",
+    "feedbackId": "FB001",
+    "submittedBy": "user_456",
+    "role": "buyer",
+    "rating": 4.5,
+    "comment": "Great quality, fast delivery. Would buy again.",
+    "language": "en",
+    "emotionalFlag": false,
+    "timestamp": "2025-09-28T16:35:00"
+  },
+  {
+    "listingId": "LIST001",
+    "feedbackId": "FB002",
+    "submittedBy": "Council",
+    "role": "reviewer",
+    "comment": "Listing approved. No override required.",
+    "language": "en",
+    "emotionalFlag": false,
+    "timestamp": "2025-09-28T16:40:00"
+  }
+]

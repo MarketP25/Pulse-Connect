@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { LOCALE_REGION_MAPPING } from '../src/config/lang'; // ✅ Adjust path if needed
+// import { LOCALE_REGION_MAPPING } from '../pulse-connect-core/src/config/lang'; // Uncomment when ready
 
 const commonTranslations = {
   navigation: {
@@ -74,17 +74,38 @@ const commonTranslations = {
     paymentSuccess: 'Payment successful',
     paymentFailed: 'Payment failed',
   },
+  governance: {
+    overrideRequired: 'Override required',
+    emotionalFlagTriggered: 'Emotional flag triggered',
+    accessDenied: 'Access denied: Upgrade required for financial flows',
+    tradeExecuted: 'Trade executed',
+    permissionDenied: 'Permission denied',
+    councilReview: 'Council review required',
+    feeCharged: 'Fee charged',
+    refundIssued: 'Refund issued',
+    basicTierLimitReached: 'Basic tier limit reached',
+    upgradeRequired: 'Upgrade required to continue',
+    auditLogged: 'Action logged for Council review',
+  }
 };
 
 const messagesDir = path.join(process.cwd(), 'messages');
+const i18nDir = path.join(process.cwd(), 'i18n');
+const auditDir = path.join(process.cwd(), 'audit');
+const langMapPath = path.join(i18nDir, 'lang-map.json');
+const untranslatedLogPath = path.join(auditDir, 'untranslated-keys.json');
 
-// Ensure messages directory exists
-if (!fs.existsSync(messagesDir)) {
-  fs.mkdirSync(messagesDir, { recursive: true });
-}
+// Ensure directories exist
+[messagesDir, i18nDir, auditDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
-Object.keys(LOCALE_REGION_MAPPING).forEach((localeKey) => {
-  const locale = String(localeKey); // ✅ Avoid symbol conversion errors
+// Fallback locale mapping (replace with LOCALE_REGION_MAPPING when ready)
+const fallbackLocales = ['en', 'sw', 'fr'];
+
+fallbackLocales.forEach((locale) => {
   const localeDir = path.join(messagesDir, locale);
 
   try {
@@ -95,10 +116,26 @@ Object.keys(LOCALE_REGION_MAPPING).forEach((localeKey) => {
     const commonPath = path.join(localeDir, 'common.json');
     fs.writeFileSync(commonPath, JSON.stringify(commonTranslations, null, 2));
 
+    // Write to lang-map.json
+    const existingMap = fs.existsSync(langMapPath)
+      ? JSON.parse(fs.readFileSync(langMapPath))
+      : {};
+    existingMap[locale] = commonTranslations;
+    fs.writeFileSync(langMapPath, JSON.stringify(existingMap, null, 2));
+
     console.log(`✅ Generated translations for: ${locale}`);
   } catch (err) {
     console.error(`❌ Failed to generate translations for ${locale}:`, err);
   }
 });
+
+// Log missing keys for Council review
+function logMissingKey(key: string, locale: string) {
+  const existing = fs.existsSync(untranslatedLogPath)
+    ? JSON.parse(fs.readFileSync(untranslatedLogPath))
+    : [];
+  existing.push({ key, locale, timestamp: new Date().toISOString() });
+  fs.writeFileSync(untranslatedLogPath, JSON.stringify(existing, null, 2));
+}
 
 console.log('🎉 Translation templates generated successfully!');
