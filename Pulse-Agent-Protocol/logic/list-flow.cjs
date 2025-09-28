@@ -1,4 +1,4 @@
-const scanListing = require("./emotional-scan");
+const scanListing = require("./emotional-scan.cjs");
 
 function processListing(listing) {
   const flagged = scanListing(listing);

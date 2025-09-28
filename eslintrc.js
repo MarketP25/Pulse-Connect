@@ -1,6 +1,10 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: ['./tsconfig.json', './tsconfig.next.json'],
+    tsconfigRootDir: __dirname
+  },
   plugins: ['@typescript-eslint', 'react', 'react-hooks', 'jsx-a11y', 'prettier'],
   extends: [
     'eslint:recommended',

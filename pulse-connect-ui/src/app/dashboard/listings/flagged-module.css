@@ -1,0 +1,8 @@
+.flagged-listings {
+  padding: 1rem;
+}
+
+.pending {
+  color: red;
+  font-weight: bold;
+}

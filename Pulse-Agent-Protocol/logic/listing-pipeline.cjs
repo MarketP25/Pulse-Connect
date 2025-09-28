@@ -1,6 +1,6 @@
 const fs = require("fs");
 const scanListing = require("./emotional-scan.cjs");
-const processListing = require("./listing-flow");
+const processListing = require("./list-flow.cjs");
 
 const submittedPath = "../data/listing-submitted.json";
 const flaggedPath = "../audit/listing-flagged.json";

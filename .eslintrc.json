@@ -18,6 +18,11 @@
   "settings": {
     "react": {
       "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {
+        "project": "./tsconfig.json"
+      }
     }
   },
   "ignorePatterns": ["node_modules/", ".next/", "dist/", "**/*.js"],
@@ -25,16 +30,20 @@
     {
       "files": ["src/**/*.{ts,tsx}"],
       "excludedFiles": ["node_modules/**"]
+    },
+    {
+      "files": ["next.config.ts"],
+      "parserOptions": {
+        "project": ["./tsconfig.next.json"],
+        "tsconfigRootDir": "."
+      }
     }
   ],
   "rules": {
-    /* PulseConnect priorities */
-    "react/react-in-jsx-scope": "off", // Not needed in Next.js
+    "react/react-in-jsx-scope": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-    "jsx-a11y/no-autofocus": "off", // Controlled for onboarding UX
-
-    /* Clean formatting */
+    "jsx-a11y/no-autofocus": "off",
     "comma-dangle": ["error", "never"],
     "quotes": ["error", "double", { "avoidEscape": true }],
     "semi": ["error", "always"],
