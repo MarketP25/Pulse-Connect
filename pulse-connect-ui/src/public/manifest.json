@@ -1,0 +1,16 @@
+{
+  "name": "Pulse Connect",
+  "short_name": "PulseConnect",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d0d0d",
+  "description": "Pulse Connect – A global digital marketing platform built for accessibility, scalability, and user-centered design.",
+  "icons": [
+    {
+      "src": "assets/Pulse-Connect-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

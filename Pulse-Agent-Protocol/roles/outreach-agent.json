@@ -1,0 +1,12 @@
+{
+  "role": "Outreach Agent",
+  "permissions": [
+    "send_campaigns",
+    "track_engagement",
+    "pause_on_emotional_flags"
+  ],
+  "forbidden_zones": [
+    "modify_Council_decisions",
+    "access_private_notes"
+  ]
+}
