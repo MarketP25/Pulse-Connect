@@ -3,3 +3,21 @@
 **/.terraform/**
 **/node_modules/**
 
+
+# local and build artifacts
+.env.local
+.idea/
+.next/
+coverage/
+tsconfig.tsbuildinfo
+**/node_modules/**
+
+
+# local and build artifacts
+.env.local
+.idea/
+.next/
+coverage/
+tsconfig.tsbuildinfo
+**/node_modules/**
+
