@@ -1,0 +1,40 @@
+import { z } from "zod";
+
+export const RiskLevel = z.enum(["low", "medium", "high", "critical"]);
+export type RiskLevel = z.infer<typeof RiskLevel>;
+
+export const RiskFactor = z.enum([
+  "multiple_cards",
+  "high_value",
+  "rapid_booking",
+  "ip_mismatch",
+  "unusual_location",
+  "card_country_mismatch",
+  "failed_attempts",
+  "suspicious_email",
+  "new_account"
+]);
+export type RiskFactor = z.infer<typeof RiskFactor>;
+
+export const RiskAssessmentSchema = z.object({
+  userId: z.string(),
+  sessionId: z.string(),
+  ipAddress: z.string(),
+  userAgent: z.string(),
+  amount: z.number(),
+  currency: z.string(),
+  email: z.string().email(),
+  cardCountry: z.string().optional(),
+  deviceId: z.string().optional(),
+  timestamp: z.date()
+});
+
+export type RiskAssessment = z.infer<typeof RiskAssessmentSchema>;
+
+export interface RiskResult {
+  level: RiskLevel;
+  factors: RiskFactor[];
+  score: number;
+  allowTransaction: boolean;
+  requiresReview: boolean;
+}

@@ -7,16 +7,11 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail,
+  sendPasswordResetEmail
 } from "firebase/auth";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { app } from "@/firebase/config";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 export default function LoginPage() {
   const auth = getAuth(app);
@@ -31,23 +26,6 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showReset, setShowReset] = useState(false);
-
-  function getErrorMessage(code: string): string {
-    switch (code) {
-      case "auth/email-already-in-use":
-        return "This email is already in use.";
-      case "auth/invalid-email":
-        return "Invalid email address.";
-      case "auth/weak-password":
-        return "Password should be at least 6 characters.";
-      case "auth/user-not-found":
-        return "No user found with this email.";
-      case "auth/wrong-password":
-        return "Incorrect password.";
-      default:
-        return "An error occurred. Please try again.";
-    }
-  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +62,7 @@ export default function LoginPage() {
             email: user.email,
             role: "basic",
             referredBy,
-            createdAt: serverTimestamp(),
+            createdAt: serverTimestamp()
           });
 
           await sendEmailVerification(user);
@@ -110,7 +88,8 @@ export default function LoginPage() {
         setError(
           getErrorMessage(
             (err as { code?: string; message?: string }).code ||
-            (err as { message?: string }).message || ""
+              (err as { message?: string }).message ||
+              ""
           )
         );
       } else {
@@ -140,7 +119,8 @@ export default function LoginPage() {
         setError(
           getErrorMessage(
             (err as { code?: string; message?: string }).code ||
-            (err as { message?: string }).message || ""
+              (err as { message?: string }).message ||
+              ""
           )
         );
       } else {
@@ -167,11 +147,13 @@ export default function LoginPage() {
           {showReset
             ? "Reset Your Password"
             : isSignUp
-            ? "Create a Pulse Connect Account"
-            : "Sign In to Pulse Connect"}
+              ? "Create a Pulse Connect Account"
+              : "Sign In to Pulse Connect"}
         </h2>
 
-        <label htmlFor="email" className="sr-only">Email</label>
+        <label htmlFor="email" className="sr-only">
+          Email
+        </label>
         <input
           id="email"
           name="email"
@@ -186,7 +168,9 @@ export default function LoginPage() {
 
         {!showReset && (
           <>
-            <label htmlFor="password" className="sr-only">Password</label>
+            <label htmlFor="password" className="sr-only">
+              Password
+            </label>
             {isSignUp ? (
               <input
                 id="password"
@@ -216,10 +200,7 @@ export default function LoginPage() {
         )}
 
         {(error || info) && (
-          <p
-            className={`mb-4 text-sm ${error ? "text-red-500" : "text-green-600"}`}
-            role="alert"
-          >
+          <p className={`mb-4 text-sm ${error ? "text-red-500" : "text-green-600"}`} role="alert">
             {error || info}
           </p>
         )}
@@ -232,10 +213,10 @@ export default function LoginPage() {
           {loading
             ? "Processing..."
             : showReset
-            ? "Send Reset Email"
-            : isSignUp
-            ? "Sign Up"
-            : "Login"}
+              ? "Send Reset Email"
+              : isSignUp
+                ? "Sign Up"
+                : "Login"}
         </button>
 
         <div className="flex flex-col items-center mt-4 gap-2">

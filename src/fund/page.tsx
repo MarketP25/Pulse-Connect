@@ -13,7 +13,7 @@ import {
   updateDoc,
   collection,
   addDoc,
-  serverTimestamp,
+  serverTimestamp
 } from "firebase/firestore";
 import {
   PROGRAM_LABELS,
@@ -22,7 +22,7 @@ import {
   DONATION_TIERS,
   Currency,
   ProgramType,
-  SubscriptionPlan,
+  SubscriptionPlan
 } from "@/lib/upgradePlans";
 import { app } from "@/firebase/config";
 import { PaymentButton } from "@/components/PaymentButton";
@@ -42,11 +42,13 @@ function getUserCurrency(): Currency {
 }
 function formatPrice(amount: number, currency: Currency, suffix: "/mo" | "/yr") {
   if (amount === 0) return "Free 7-day";
-  return new Intl.NumberFormat(navigator.language, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-  }).format(amount) + suffix;
+  return (
+    new Intl.NumberFormat(navigator.language, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0
+    }).format(amount) + suffix
+  );
 }
 function trackEvent(event: string, data: Record<string, unknown>) {
   // ...existing code...
@@ -61,7 +63,7 @@ function SimpleForm({
   buttonLabel,
   sent,
   sentMessage,
-  buttonColor,
+  buttonColor
 }: {
   value: string;
   onChange(v: string): void;
@@ -83,7 +85,11 @@ function SimpleForm({
           className="flex-1 border rounded px-2 py-1 text-sm"
           required
         />
-        <button type="submit" disabled={!value.trim()} className={`px-4 py-1 rounded ${buttonColor}`}>
+        <button
+          type="submit"
+          disabled={!value.trim()}
+          className={`px-4 py-1 rounded ${buttonColor}`}
+        >
           {buttonLabel}
         </button>
       </form>
@@ -170,13 +176,13 @@ export default function FundPage() {
         userEmail,
         planId,
         billingCycle,
-        attemptedAt: serverTimestamp(),
+        attemptedAt: serverTimestamp()
       });
       if (!emailVerified) throw new Error("Please verify your email before upgrading your plan.");
       await updateDoc(doc(db, "users", userId), {
         role: planId,
         billingCycle,
-        upgradedAt: serverTimestamp(),
+        upgradedAt: serverTimestamp()
       });
       setCurrentPlan(planId);
       setShowUpgradePopup(false);
@@ -206,9 +212,12 @@ export default function FundPage() {
         userId,
         userEmail,
         tierName,
-        fundedAt: serverTimestamp(),
+        fundedAt: serverTimestamp()
       });
-      setStatus({ type: "success", message: `${tierName} donation recorded. Thank you for your support!` });
+      setStatus({
+        type: "success",
+        message: `${tierName} donation recorded. Thank you for your support!`
+      });
     } catch (e) {
       // Provide more detailed error feedback for debugging
       let msg = "An error occurred while processing your donation. Please try again.";
@@ -233,7 +242,7 @@ export default function FundPage() {
         userId,
         userEmail,
         complaint,
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp()
       });
       setComplaint("");
       setComplaintSent(true);
@@ -253,7 +262,7 @@ export default function FundPage() {
         userId,
         userEmail,
         feedback,
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp()
       });
       setFeedback("");
       setFeedbackSent(true);
@@ -283,9 +292,11 @@ export default function FundPage() {
 
       {/* Status */}
       {status && (
-        <div className={`max-w-md mx-auto px-4 py-2 mb-6 rounded text-center ${
-            status.type==="success"?"bg-green-100 text-green-700":"bg-red-100 text-red-700"
-          }`}>
+        <div
+          className={`max-w-md mx-auto px-4 py-2 mb-6 rounded text-center ${
+            status.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+          }`}
+        >
           {status.message}
         </div>
       )}
@@ -298,7 +309,7 @@ export default function FundPage() {
             onClick={() => {
               handleDonate("Tip Jar");
               // Only non-sensitive UI state is stored in localStorage
-              localStorage.setItem("tipJarDismissed","true");
+              localStorage.setItem("tipJarDismissed", "true");
               setShowTipJar(false);
             }}
             className="bg-indigo-600 text-white px-3 py-1 rounded"
@@ -310,15 +321,15 @@ export default function FundPage() {
 
       {/* Billing Toggle */}
       <div className="flex justify-center gap-4 mb-6">
-        {(["monthly","yearly"] as const).map(cycle=>(
+        {(["monthly", "yearly"] as const).map((cycle) => (
           <button
             key={cycle}
-            onClick={()=>setBillingCycle(cycle)}
+            onClick={() => setBillingCycle(cycle)}
             className={`px-4 py-2 rounded ${
-              billingCycle===cycle?"bg-indigo-600 text-white":"bg-gray-100"
+              billingCycle === cycle ? "bg-indigo-600 text-white" : "bg-gray-100"
             }`}
           >
-            {cycle.charAt(0).toUpperCase()+cycle.slice(1)}
+            {cycle.charAt(0).toUpperCase() + cycle.slice(1)}
           </button>
         ))}
       </div>
@@ -329,37 +340,40 @@ export default function FundPage() {
       {/* Subscription Plans */}
       <h2 className="text-xl font-semibold text-center mb-4">Subscription Plans</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-        {SUBSCRIPTION_PLANS.map(plan=>{
-          const isCurrent = plan.id===currentPlan;
-          const isLoading = loadingPlanId===plan.id;
+        {SUBSCRIPTION_PLANS.map((plan) => {
+          const isCurrent = plan.id === currentPlan;
+          const isLoading = loadingPlanId === plan.id;
           const unit = plan.prices[currency] ?? plan.prices["USD"];
-          const priceTxt = billingCycle==="monthly"
-            ? formatPrice(unit,currency,"/mo")
-            : formatPrice(unit*10,currency,"/yr");
+          const priceTxt =
+            billingCycle === "monthly"
+              ? formatPrice(unit, currency, "/mo")
+              : formatPrice(unit * 10, currency, "/yr");
 
           return (
             <article key={plan.id} className="border rounded p-6 flex flex-col">
               <h3 className="text-lg font-semibold mb-2">{plan.name}</h3>
               <p className="text-2xl font-bold mb-4">{priceTxt}</p>
               <ul className="flex-1 mb-4">
-                {Object.entries(PROGRAM_LABELS).map(([k,label])=>{
+                {Object.entries(PROGRAM_LABELS).map(([k, label]) => {
                   const ok = PLAN_REQUIREMENTS[k as ProgramType].includes(plan.id);
                   return (
                     <li key={k} className="flex items-center">
-                      <span className={ok?"text-green-600":"text-gray-300"}>{ok?"✔":"✕"}</span>
-                      <span className={`ml-2 ${!ok?"text-gray-400":""}`}>{label}</span>
+                      <span className={ok ? "text-green-600" : "text-gray-300"}>
+                        {ok ? "✔" : "✕"}
+                      </span>
+                      <span className={`ml-2 ${!ok ? "text-gray-400" : ""}`}>{label}</span>
                     </li>
                   );
                 })}
               </ul>
               <button
-                onClick={()=>handleUpgrade(plan.id)}
-                disabled={isCurrent||isLoading}
+                onClick={() => handleUpgrade(plan.id)}
+                disabled={isCurrent || isLoading}
                 className={`mt-auto py-2 rounded ${
-                  isCurrent?"bg-gray-200":"bg-indigo-600 text-white"
+                  isCurrent ? "bg-gray-200" : "bg-indigo-600 text-white"
                 }`}
               >
-                {isCurrent?"Current": isLoading?"Processing…":"Upgrade"}
+                {isCurrent ? "Current" : isLoading ? "Processing…" : "Upgrade"}
               </button>
             </article>
           );
@@ -369,14 +383,16 @@ export default function FundPage() {
       {/* Donation Tiers */}
       <h2 className="text-xl font-semibold text-center mb-4">Donation Tiers</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {DONATION_TIERS.map(t=>(
+        {DONATION_TIERS.map((t) => (
           <article key={t.name} className="border rounded p-6 flex flex-col">
             <h3 className="font-semibold mb-2">{t.name} Tier</h3>
             <p className="text-sm mb-2">{t.desc}</p>
-            <p className="italic mb-4">{t.kes} / {t.usd}</p>
+            <p className="italic mb-4">
+              {t.kes} / {t.usd}
+            </p>
             <PaymentButton
               amount={Number(t.paypalAmt)}
-              onSuccess={()=>setStatus({type:"success",message:`${t.name} funded!`})}
+              onSuccess={() => setStatus({ type: "success", message: `${t.name} funded!` })}
             />
           </article>
         ))}
@@ -410,8 +426,15 @@ export default function FundPage() {
           <div className="bg-white p-6 rounded">
             <h3 className="font-semibold mb-2">Unlock More Features</h3>
             <p className="mb-4">Upgrade for AI tutorials, workouts, and more.</p>
-            <button onClick={()=>handleUpgrade("plus")} className="bg-indigo-600 text-white px-4 py-2 rounded mr-2">Upgrade Now</button>
-            <button onClick={()=>setShowUpgradePopup(false)} className="underline">Remind Me Later</button>
+            <button
+              onClick={() => handleUpgrade("plus")}
+              className="bg-indigo-600 text-white px-4 py-2 rounded mr-2"
+            >
+              Upgrade Now
+            </button>
+            <button onClick={() => setShowUpgradePopup(false)} className="underline">
+              Remind Me Later
+            </button>
           </div>
         </div>
       )}

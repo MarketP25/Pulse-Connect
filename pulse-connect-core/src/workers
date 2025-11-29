@@ -1,0 +1,49 @@
+import { processEmailQueue } from "@/lib/services/announcements";
+
+// Configuration
+const BATCH_SIZE = 100; // Number of emails to process in each batch
+const INTERVAL = 5000; // Process every 5 seconds
+const MAX_CONCURRENT_BATCHES = 5; // Maximum number of concurrent processing batches
+
+let isProcessing = false;
+let processingBatches = 0;
+
+async function processQueue() {
+  if (isProcessing) return;
+  isProcessing = true;
+
+  try {
+    while (processingBatches < MAX_CONCURRENT_BATCHES) {
+      processingBatches++;
+
+      const result = await processEmailQueue(BATCH_SIZE);
+
+      console.log(
+        `Processed batch: ${result.processed} sent, ${result.failed} failed, ${result.remaining} remaining`
+      );
+
+      if (result.remaining === 0) {
+        break; // No more emails to process
+      }
+
+      processingBatches--;
+    }
+  } catch (error) {
+    console.error("Error processing email queue:", error);
+  } finally {
+    isProcessing = false;
+    processingBatches = 0;
+  }
+}
+
+// Start the queue processor
+console.log("Starting email queue processor...");
+setInterval(processQueue, INTERVAL);
+
+// Handle graceful shutdown
+process.on("SIGTERM", async () => {
+  console.log("Shutting down email queue processor...");
+  isProcessing = true; // Prevent new processing
+  await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for current batch to complete
+  process.exit(0);
+});

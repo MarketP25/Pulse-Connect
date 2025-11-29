@@ -2,10 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { FundSchema } from "@/lib/models/Fund";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).end();
@@ -19,7 +16,5 @@ export default async function handler(
     return res.status(400).json({ errors: parse.error.format() });
   }
   // Charge via gateway, update user wallet...
-  return res
-    .status(200)
-    .json({ message: `Funded ${parse.data.amount} ${parse.data.currency}` });
+  return res.status(200).json({ message: `Funded ${parse.data.amount} ${parse.data.currency}` });
 }

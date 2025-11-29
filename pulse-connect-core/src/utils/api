@@ -1,0 +1,52 @@
+import { NextResponse } from "next/server";
+import { ZodError } from "zod";
+import { logger } from "../logger";
+
+export class APIError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number = 400,
+    public code?: string
+  ) {
+    super(message);
+    this.name = "APIError";
+  }
+}
+
+export const handleAPIError = (error: unknown) => {
+  if (error instanceof APIError) {
+    return NextResponse.json(
+      {
+        error: error.message,
+        code: error.code
+      },
+      { status: error.statusCode }
+    );
+  }
+
+  if (error instanceof ZodError) {
+    return NextResponse.json(
+      {
+        error: "Validation Error",
+        details: error.errors
+      },
+      { status: 400 }
+    );
+  }
+
+  logger.error("Unhandled API Error:", error);
+
+  return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+};
+
+export const validateRequestBody = async <T>(
+  req: Request,
+  schema: { parse: (data: unknown) => T }
+): Promise<T> => {
+  try {
+    const body = await req.json();
+    return schema.parse(body);
+  } catch (error) {
+    throw error instanceof ZodError ? error : new APIError("Invalid request body", 400);
+  }
+};

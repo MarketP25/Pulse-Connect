@@ -1,0 +1,36 @@
+{
+  "featureGate": {
+    "noPermission": "You don't have permission to access this {feature}. Contact your administrator if you need {role} privileges.",
+    "upgradeRequired": "This feature requires an upgraded plan"
+  },
+  "errors": {
+    "permissionDenied": {
+      "title": "Access Denied",
+      "scope": "You don't have the required permission: {scope}",
+      "resourceAction": "You don't have permission to {action} {resource}"
+    }
+  },
+  "auth": {
+    "roles": {
+      "USER": "User",
+      "HOST": "Host",
+      "ADMIN": "Administrator",
+      "SUPER_ADMIN": "Super Administrator"
+    }
+  },
+  "resources": {
+    "listings": "listings",
+    "bookings": "bookings",
+    "payments": "payments",
+    "users": "users",
+    "settings": "settings",
+    "analytics": "analytics",
+    "admin": "administrative features"
+  },
+  "actions": {
+    "read": "view",
+    "write": "modify",
+    "delete": "delete",
+    "manage": "manage"
+  }
+}

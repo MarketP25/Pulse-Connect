@@ -1,0 +1,35 @@
+{
+  "chat": {
+    "title": "Messages",
+    "typeMessage": "Type your message...",
+    "send": "Send",
+    "translating": "Translating...",
+    "showOriginalText": "Show original text",
+    "translated": "Translated from {{language}}",
+    "errorTranslating": "Error translating message",
+    "retryTranslation": "Retry translation",
+    "copied": "Message copied to clipboard",
+    "copy": "Copy message",
+    "messageNotSent": "Message not sent",
+    "retry": "Retry",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnecting": "Reconnecting...",
+    "languageDetected": "Language detected: {{language}}",
+    "sendingMessage": "Sending message...",
+    "messageSent": "Message sent",
+    "messageDelivered": "Message delivered",
+    "messageRead": "Message read",
+    "typing": "{{user}} is typing...",
+    "multipleTyping": "Multiple people are typing...",
+    "translateError": "Could not translate message. Showing original text.",
+    "automaticTranslation": "Automatic translation enabled",
+    "translationQuality": {
+      "high": "High quality translation",
+      "medium": "Medium quality translation",
+      "low": "Low quality translation",
+      "machine": "Machine translated"
+    }
+  }
+}

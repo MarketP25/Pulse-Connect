@@ -10,16 +10,16 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
           { role: "system", content: "You are a helpful content generator." },
-          { role: "user", content: prompt },
+          { role: "user", content: prompt }
         ],
-        max_tokens: 512,
-      }),
+        max_tokens: 512
+      })
     });
 
     if (!openaiRes.ok) {
@@ -31,8 +31,7 @@ export async function POST(req: Request) {
     const content = data.choices?.[0]?.message?.content ?? "No content generated.";
 
     return NextResponse.json({ content });
-  } catch (errors)
-{
+  } catch (errors) {
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
 }

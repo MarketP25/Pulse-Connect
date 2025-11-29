@@ -1,28 +1,12 @@
 // pages/plans.tsx
-import fs from 'fs';
-import path from 'path';
-import { useTranslations } from 'next-intl';
-import type { GetStaticProps } from 'next';
-import { PlanList } from '@/components/PlanList';
-
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
-  const filePath = path.join(
-    process.cwd(),
-    'messages',
-    locale!,
-    'plans.json'
-  );
-  const messages = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-
-  return { props: { messages } };
-};
+import { useLanguage } from "@/context/LanguageProvider";
+import { PlanList } from "@/components/PlanList";
 
 const PlansPage: React.FC = () => {
-  const t = useTranslations('plans');
-
+  const { t } = useLanguage();
   return (
     <main>
-      <h1>{t('title')}</h1>
+      <h1>{t("plans.title")}</h1>
       <PlanList />
     </main>
   );

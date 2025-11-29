@@ -3,15 +3,7 @@
 import { useAuthForm } from "@/hooks/useAuthForm";
 
 export default function LoginPage() {
-  const {
-    email,
-    password,
-    error,
-    loading,
-    setEmail,
-    setPassword,
-    handleLogin,
-  } = useAuthForm();
+  const { email, password, error, loading, setEmail, setPassword, handleLogin } = useAuthForm();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-200 flex items-center justify-center px-4">
@@ -22,9 +14,7 @@ export default function LoginPage() {
       >
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-indigo-700">Pulse Connect</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Your digital marketing command center
-          </p>
+          <p className="text-gray-500 text-sm mt-1">Your digital marketing command center</p>
         </div>
 
         <h2 className="text-2xl font-bold mb-6 text-center">Sign In to Pulse Connect</h2>
