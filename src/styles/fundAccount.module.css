@@ -1,0 +1,14 @@
+.container {
+  max-width: 400px;
+  margin: 2rem auto;
+}
+.field {
+  margin-bottom: 1rem;
+}
+.button {
+  padding: 0.5rem 1rem;
+}
+.errorText {
+  color: red;
+  margin-top: 0.5rem;
+}

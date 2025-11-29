@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    /* Target modern browsers with ESNext features */
+    "target": "esnext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+
+    /* Preserve JSX for Next.js */
+    "jsx": "preserve",
+
+    /* Module resolution */
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Strict type-checking */
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+
+    /* Allow JS files alongside TS */
+    "allowJs": true,
+
+    /* Never emit; Next.js handles builds */
+    "noEmit": true,
+    "incremental": true,
+    "isolatedModules": true,
+
+    /* Path mapping for @/… → src/… */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    /* Next.js plugin */
+    "plugins": [{ "name": "next" }],
+
+    /* Include custom type roots so our NextAuth augmentation is picked up */
+    "typeRoots": ["./src/types", "./node_modules/@types"]
+  },
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "**/node_modules/@ljharb/tsconfig/**",
+    "**/node_modules/call-bound/**"
+  ]
+}
