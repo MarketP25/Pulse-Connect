@@ -4,7 +4,11 @@
 import React, { useState } from "react";
 import styles from "./PaymentButton.module.css";
 import { getBrowserRegion } from "@/lib/region";
-import { REGION_GATEWAY, DEFAULT_GATEWAY, Gateway } from "@/config/paymentGateways";
+import {
+  REGION_GATEWAY,
+  DEFAULT_GATEWAY,
+  Gateway,
+} from "@/config/paymentGateways";
 import { PAYPAL_ME_LINK } from "@/config/paymentGateways";
 import { useLanguage } from "../context/LanguageProvider"; // Correct import path for useLanguage
 
@@ -23,7 +27,7 @@ export function PaymentButton({
   currency = "USD",
   description = "Pulse Connect Payment",
   email = "",
-  onSuccess
+  onSuccess,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +45,7 @@ export function PaymentButton({
       const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, currency, description, email, gateway })
+        body: JSON.stringify({ amount, currency, description, email, gateway }),
       });
       const data = await res.json();
       if (data.url) {

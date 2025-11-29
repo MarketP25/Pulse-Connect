@@ -9,7 +9,13 @@ export interface EmailPayload {
 }
 
 export async function sendEmail(payload: EmailPayload): Promise<void> {
-  const { to, subject, html, text, from = "no-reply@pulseconnect.io" } = payload;
+  const {
+    to,
+    subject,
+    html,
+    text,
+    from = "no-reply@pulseconnect.io",
+  } = payload;
 
   // TODO: swap console.log for your real provider call
   console.log("📤 Sending email");

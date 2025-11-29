@@ -18,7 +18,7 @@ export default function InvestorsPage() {
       const res = await fetch("/api/investors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (res.ok) setMessage("Thank you for your interest! We'll be in touch.");
@@ -33,8 +33,8 @@ export default function InvestorsPage() {
     <div className={styles["investor-container"]}>
       <h1 className={styles["investor-title"]}>Investor Relations</h1>
       <p className={styles["investor-desc"]}>
-        Interested in investing in Pulse Connect? Fill out the form below and our team will contact
-        you.
+        Interested in investing in Pulse Connect? Fill out the form below and
+        our team will contact you.
       </p>
       <form onSubmit={handleSubmit} className={styles["investor-form"]}>
         <input
@@ -64,7 +64,11 @@ export default function InvestorsPage() {
           min={1000}
           className={styles["investor-input"]}
         />
-        <button type="submit" disabled={loading} className={styles["investor-btn"]}>
+        <button
+          type="submit"
+          disabled={loading}
+          className={styles["investor-btn"]}
+        >
           {loading ? "Submitting..." : "Submit Interest"}
         </button>
       </form>

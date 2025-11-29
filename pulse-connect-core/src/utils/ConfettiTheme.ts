@@ -5,11 +5,17 @@ export function isRTL(lang: string): boolean {
 }
 
 // 2. Locale-based date, time, and currency formatting helpers
-export function formatDate(date: Date, lang: string, options?: Intl.DateTimeFormatOptions) {
+export function formatDate(
+  date: Date,
+  lang: string,
+  options?: Intl.DateTimeFormatOptions
+) {
   return new Intl.DateTimeFormat(lang, options).format(date);
 }
 export function formatCurrency(amount: number, currency: string, lang: string) {
-  return new Intl.NumberFormat(lang, { style: "currency", currency }).format(amount);
+  return new Intl.NumberFormat(lang, { style: "currency", currency }).format(
+    amount
+  );
 }
 
 // 3. ARIA and accessibility best practices (usage comment)
@@ -22,12 +28,13 @@ export const CONFETTI_THEMES: Record<string, string[]> = {
   yo: ["#fecd1a", "#008751", "#ffffff", "#e30b17"], // Yoruba (Nigeria): yellow, green, white, red
   ar: ["#ce1126", "#fefefe", "#000000", "#239f40"], // Arabic (Egypt): red, white, black, green
   pt: ["#009c3b", "#ffdf00", "#002776", "#ffffff"], // Portuguese (Brazil): green, yellow, blue, white
-  hi: ["#ff9933", "#138808", "#ffffff", "#000080"] // Hindi (India): orange, green, white, navy
+  hi: ["#ff9933", "#138808", "#ffffff", "#000080"], // Hindi (India): orange, green, white, navy
 };
 
 export function getConfettiTheme(lang: string): string[] {
   return (
-    CONFETTI_THEMES[lang] ?? CONFETTI_THEMES["en"] ?? ["#6366f1", "#f59e42", "#10b981", "#f43f5e"]
+    CONFETTI_THEMES[lang] ??
+    CONFETTI_THEMES["en"] ?? ["#6366f1", "#f59e42", "#10b981", "#f43f5e"]
   );
 }
 import { useSession } from "@/hooks/useSession";
@@ -39,7 +46,7 @@ const palettes: Record<"KE" | "NG" | "BR" | "IN" | "EG" | "MX", string[]> = {
   BR: ["#009c3b", "#ffdf00", "#002776"], // Brazil
   IN: ["#ff9933", "#138808", "#ffffff"], // India
   EG: ["#ce1126", "#fefefe", "#000000"], // Egypt
-  MX: ["#006847", "#ce1126", "#ffffff"] // Mexico
+  MX: ["#006847", "#ce1126", "#ffffff"], // Mexico
 };
 
 // 🌟 Default shimmer if region missing
@@ -63,6 +70,9 @@ export function useConfettiTheme(): string[] {
     return palettes[region as keyof typeof palettes];
   }
   // Try language palette
-  const lang = (typeof navigator !== "undefined" ? navigator.language.split("-")[0] : "en") || "en";
+  const lang =
+    (typeof navigator !== "undefined"
+      ? navigator.language.split("-")[0]
+      : "en") || "en";
   return getConfettiTheme(lang);
 }

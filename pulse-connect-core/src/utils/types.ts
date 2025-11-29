@@ -8,7 +8,7 @@ export const UserRoleEnum = z.enum([
   "MODERATOR",
   "HOST",
   "ADMIN",
-  "SUPER_ADMIN"
+  "SUPER_ADMIN",
 ]);
 export type UserRole = z.infer<typeof UserRoleEnum>;
 
@@ -27,7 +27,7 @@ export const ResourceScopeEnum = z.enum([
   "api",
   "reports",
   "integrations",
-  "profile"
+  "profile",
 ]);
 export type ResourceScope = z.infer<typeof ResourceScopeEnum>;
 
@@ -41,12 +41,17 @@ export const ActionTypeEnum = z.enum([
   "publish",
   "approve",
   "assign",
-  "moderate"
+  "moderate",
 ]);
 export type ActionType = z.infer<typeof ActionTypeEnum>;
 
 // Subscription definitions
-export const SubscriptionTierEnum = z.enum(["FREE", "BASIC", "PRO", "ENTERPRISE"]);
+export const SubscriptionTierEnum = z.enum([
+  "FREE",
+  "BASIC",
+  "PRO",
+  "ENTERPRISE",
+]);
 export type SubscriptionTier = z.infer<typeof SubscriptionTierEnum>;
 
 // Permission scope type
@@ -55,10 +60,12 @@ export type PermissionScope = `${ResourceScope}:${ActionType}`;
 // Feature definitions
 export const FeatureSchema = z.object({
   name: z.string(),
-  requiredPermissions: z.array(z.string() as unknown as z.ZodType<PermissionScope>),
+  requiredPermissions: z.array(
+    z.string() as unknown as z.ZodType<PermissionScope>
+  ),
   requiredTier: SubscriptionTierEnum,
   isEnabled: z.boolean().optional(),
-  translationKey: z.string()
+  translationKey: z.string(),
 });
 export type Feature = z.infer<typeof FeatureSchema>;
 
@@ -71,9 +78,9 @@ export const UserSchema = z.object({
     .object({
       tier: SubscriptionTierEnum,
       status: z.enum(["active", "inactive", "cancelled"]),
-      expiresAt: z.string().datetime().optional()
+      expiresAt: z.string().datetime().optional(),
     })
     .optional(),
-  metadata: z.record(z.string(), z.any()).optional()
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 export type User = z.infer<typeof UserSchema>;

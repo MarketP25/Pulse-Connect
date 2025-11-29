@@ -15,7 +15,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID! // Optional
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!, // Optional
 };
 
 // 🔍 Confirm environment variables are being read
@@ -26,8 +26,10 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // 🛡️ Initialize App Check with reCAPTCHA v3
 initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider("6Lc8jolrAAAAAANNL4wOFkNvXg-0OUqCC9KZiGoiB"),
-  isTokenAutoRefreshEnabled: true
+  provider: new ReCaptchaV3Provider(
+    "6Lc8jolrAAAAAANNL4wOFkNvXg-0OUqCC9KZiGoiB"
+  ),
+  isTokenAutoRefreshEnabled: true,
 });
 
 // 📊 Initialize Performance Monitoring

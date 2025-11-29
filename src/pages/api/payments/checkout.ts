@@ -13,23 +13,26 @@ function getCurrencyForRegion(region: string | undefined): string {
     KE: "kes",
     US: "usd",
     EU: "eur",
-    NG: "ngn"
+    NG: "ngn",
   };
   return currencyMap[region ?? ""] || "usd";
 }
 
 function validateBody(body: any) {
   const supportedGateways = ["stripe", "paypal", "mpesa", "paystack", "alipay"];
-  if (!supportedGateways.includes(body.gateway)) throw new Error("Unsupported payment gateway.");
+  if (!supportedGateways.includes(body.gateway))
+    throw new Error("Unsupported payment gateway.");
   if (typeof body.amount !== "number" || body.amount <= 0)
     throw new Error("Invalid payment amount.");
-  if (typeof body.email !== "string") throw new Error("Missing or invalid email.");
+  if (typeof body.email !== "string")
+    throw new Error("Missing or invalid email.");
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { amount, currency, description, email, gateway, locale, region } = body;
+    const { amount, currency, description, email, gateway, locale, region } =
+      body;
     validateBody(body);
 
     const chosenCurrency = currency || getCurrencyForRegion(region);
@@ -40,7 +43,7 @@ export async function POST(req: Request) {
       gateway,
       region: region || "global",
       app: "pulse-connect",
-      description: description || "Pulse Connect Payment"
+      description: description || "Pulse Connect Payment",
     };
 
     // [CLEANED] Removed debug log
@@ -54,17 +57,17 @@ export async function POST(req: Request) {
             price_data: {
               currency: chosenCurrency,
               product_data: { name: metadata.description },
-              unit_amount: unitAmount
+              unit_amount: unitAmount,
             },
-            quantity: 1
-          }
+            quantity: 1,
+          },
         ],
         mode: "payment",
         customer_email: email,
         success_url: `${baseUrl}/success`,
         cancel_url: `${baseUrl}/cancel`,
         locale: locale || "auto",
-        metadata
+        metadata,
       });
       return NextResponse.json({ url: session.url });
     }
@@ -80,13 +83,22 @@ export async function POST(req: Request) {
       const res = await fetch(`${baseUrl}/api/mpesa/push`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, currency: chosenCurrency, description, email, region })
+        body: JSON.stringify({
+          amount,
+          currency: chosenCurrency,
+          description,
+          email,
+          region,
+        }),
       });
       const data = await res.json();
       if (data.url || data.status === "pending") {
         return NextResponse.json(data);
       } else {
-        return NextResponse.json({ error: "M-Pesa push failed.", details: data }, { status: 500 });
+        return NextResponse.json(
+          { error: "M-Pesa push failed.", details: data },
+          { status: 500 }
+        );
       }
     }
 
@@ -97,16 +109,19 @@ export async function POST(req: Request) {
         amount: unitAmount,
         currency: chosenCurrency,
         callback_url: `${baseUrl}/success`,
-        metadata
+        metadata,
       };
-      const res = await fetch("https://api.paystack.co/transaction/initialize", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${paystackSecretKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(paystackBody)
-      });
+      const res = await fetch(
+        "https://api.paystack.co/transaction/initialize",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${paystackSecretKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(paystackBody),
+        }
+      );
       const data = await res.json();
       if (data.status && data.data?.authorization_url) {
         return NextResponse.json({ url: data.data.authorization_url });

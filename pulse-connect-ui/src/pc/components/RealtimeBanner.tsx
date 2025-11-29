@@ -12,7 +12,7 @@ export default function RealtimeBanner() {
   const messages = getRealtimeMessages(realtime, {
     role: role ?? undefined,
     org: org ?? undefined,
-    language
+    language,
   });
 
   if (messages.length === 0) return null;

@@ -15,7 +15,7 @@ const announcementSchema = z.object({
     .string()
     .min(10, "Message must be at least 10 characters")
     .max(5000, "Message must not exceed 5000 characters"),
-  priority: z.enum(["low", "medium", "high"])
+  priority: z.enum(["low", "medium", "high"]),
 });
 
 type AnnouncementForm = z.infer<typeof announcementSchema>;
@@ -30,12 +30,12 @@ export default function CreateAnnouncementPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<AnnouncementForm>({
     resolver: zodResolver(announcementSchema),
     defaultValues: {
-      priority: "low"
-    }
+      priority: "low",
+    },
   });
 
   const onSubmit = async (data: AnnouncementForm) => {
@@ -47,7 +47,7 @@ export default function CreateAnnouncementPage() {
       const response = await fetch("/api/admin/announcements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       const result = await response.json();
@@ -71,9 +71,15 @@ export default function CreateAnnouncementPage() {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-center mb-6">Create New Announcement</h1>
+      <h1 className="text-2xl font-bold text-center mb-6">
+        Create New Announcement
+      </h1>
 
-      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
 
       {success && (
         <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-md">
@@ -83,7 +89,10 @@ export default function CreateAnnouncementPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700"
+          >
             Title
           </label>
           <input
@@ -93,11 +102,16 @@ export default function CreateAnnouncementPage() {
             placeholder="Enter announcement title"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-          {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
+          {errors.title && (
+            <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="message"
+            className="block text-sm font-medium text-gray-700"
+          >
             Message
           </label>
           <textarea
@@ -107,11 +121,18 @@ export default function CreateAnnouncementPage() {
             placeholder="Enter announcement message"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-          {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>}
+          {errors.message && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.message.message}
+            </p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="priority"
+            className="block text-sm font-medium text-gray-700"
+          >
             Priority
           </label>
           <select
@@ -124,7 +145,9 @@ export default function CreateAnnouncementPage() {
             <option value="high">High</option>
           </select>
           {errors.priority && (
-            <p className="mt-1 text-sm text-red-600">{errors.priority.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.priority.message}
+            </p>
           )}
         </div>
 

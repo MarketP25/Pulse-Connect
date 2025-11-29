@@ -19,7 +19,11 @@ interface UpgradeModalProps {
   onClose: () => void;
 }
 
-export default function UpgradeModal({ availablePlans, onConfirm, onClose }: UpgradeModalProps) {
+export default function UpgradeModal({
+  availablePlans,
+  onConfirm,
+  onClose,
+}: UpgradeModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<UpgradePlan | null>(null);
   const { language } = useRole();
 
@@ -29,7 +33,7 @@ export default function UpgradeModal({ availablePlans, onConfirm, onClose }: Upg
     yo: "🔓 Ṣí Awọn ẹya-ara àtọwọn",
     ar: "🔓 افتح الميزات المتميزة",
     hi: "🔓 प्रीमियम सुविधाएं अनलॉक करें",
-    pt: "🔓 Desbloqueie Recursos Premium"
+    pt: "🔓 Desbloqueie Recursos Premium",
   };
 
   const subtitle: Record<string, string> = {
@@ -38,7 +42,7 @@ export default function UpgradeModal({ availablePlans, onConfirm, onClose }: Upg
     yo: "Yan eto lati lo awọn ẹya àtọwọn.",
     ar: "اختر خطة لتمكين الميزات المتميزة.",
     hi: "प्रीमियम सुविधाएं सक्षम करने के लिए योजना चुनें।",
-    pt: "Escolha um plano para habilitar os recursos premium."
+    pt: "Escolha um plano para habilitar os recursos premium.",
   };
 
   const continueText: Record<string, string> = {
@@ -47,7 +51,7 @@ export default function UpgradeModal({ availablePlans, onConfirm, onClose }: Upg
     yo: "Tẹsiwaju si sisanwo",
     ar: "تابع إلى الدفع",
     hi: "भुगतान जारी रखें",
-    pt: "Continuar para o Pagamento"
+    pt: "Continuar para o Pagamento",
   };
 
   const cancelText: Record<string, string> = {
@@ -56,7 +60,7 @@ export default function UpgradeModal({ availablePlans, onConfirm, onClose }: Upg
     yo: "Fagilee",
     ar: "إلغاء",
     hi: "रद्द करें",
-    pt: "Cancelar"
+    pt: "Cancelar",
   };
 
   const via: Record<PaymentMethod, Record<string, string>> = {
@@ -66,7 +70,7 @@ export default function UpgradeModal({ availablePlans, onConfirm, onClose }: Upg
       yo: "M-Pesa 🇰🇪",
       ar: "M-Pesa 🇰🇪",
       hi: "M-Pesa 🇰🇪",
-      pt: "M-Pesa 🇰🇪"
+      pt: "M-Pesa 🇰🇪",
     },
     paystack: {
       en: "Paystack 🇳🇬",
@@ -74,15 +78,19 @@ export default function UpgradeModal({ availablePlans, onConfirm, onClose }: Upg
       yo: "Paystack 🇳🇬",
       ar: "Paystack 🇳🇬",
       hi: "Paystack 🇳🇬",
-      pt: "Paystack 🇳🇬"
-    }
+      pt: "Paystack 🇳🇬",
+    },
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
       <div className="bg-white w-full max-w-md p-6 rounded shadow-lg">
-        <h2 className="text-lg font-semibold mb-4">{heading[language] ?? heading.en}</h2>
-        <p className="mb-3 text-sm text-gray-700">{subtitle[language] ?? subtitle.en}</p>
+        <h2 className="text-lg font-semibold mb-4">
+          {heading[language] ?? heading.en}
+        </h2>
+        <p className="mb-3 text-sm text-gray-700">
+          {subtitle[language] ?? subtitle.en}
+        </p>
 
         <div className="space-y-3 mb-4">
           {availablePlans.map((plan) => (
@@ -90,24 +98,34 @@ export default function UpgradeModal({ availablePlans, onConfirm, onClose }: Upg
               key={plan.id}
               onClick={() => setSelectedPlan(plan)}
               className={`w-full text-left p-3 border rounded ${
-                selectedPlan?.id === plan.id ? "border-blue-600 bg-blue-50" : "border-gray-300"
+                selectedPlan?.id === plan.id
+                  ? "border-blue-600 bg-blue-50"
+                  : "border-gray-300"
               }`}
             >
               <div className="font-semibold">{plan.name}</div>
               <ul className="text-sm text-gray-600 list-disc pl-4 mt-1">
                 {plan.features.map((f) => (
-                  <li key={f}>{FeatureLabels[language]?.[f] ?? FeatureLabels["en"]?.[f] ?? f}</li>
+                  <li key={f}>
+                    {FeatureLabels[language]?.[f] ??
+                      FeatureLabels["en"]?.[f] ??
+                      f}
+                  </li>
                 ))}
               </ul>
               <div className="text-sm text-gray-500 mt-2">
-                {plan.price} – Pay via {via[plan.method]?.[language] ?? via[plan.method].en}
+                {plan.price} – Pay via{" "}
+                {via[plan.method]?.[language] ?? via[plan.method].en}
               </div>
             </button>
           ))}
         </div>
 
         <div className="flex justify-between mt-6">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:underline">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-600 hover:underline"
+          >
             {cancelText[language] ?? cancelText.en}
           </button>
           <button

@@ -24,10 +24,13 @@ export async function POST(req: Request) {
       success: true,
       sessionId: result.sessionId,
       url: result.url,
-      metadata: result.metadata
+      metadata: result.metadata,
     });
   } catch (error) {
     logger.error("Payment checkout failed:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

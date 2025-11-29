@@ -13,7 +13,7 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false
+    hasError: false,
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
     logger.error("React Error Boundary caught an error:", {
       error: error.message,
       stack: error.stack,
-      componentStack: errorInfo.componentStack
+      componentStack: errorInfo.componentStack,
     });
   }
 
@@ -45,7 +45,10 @@ export class ErrorBoundary extends Component<Props, State> {
               <pre>{this.state.error?.stack}</pre>
             </details>
           )}
-          <button onClick={() => this.setState({ hasError: false })} className="retry-button">
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="retry-button"
+          >
             Retry
           </button>
         </div>

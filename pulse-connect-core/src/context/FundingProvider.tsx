@@ -14,7 +14,11 @@ export function FundingProvider({ children }: { children: React.ReactNode }) {
     return "none";
   }, [org?.plan, user?.plan]);
 
-  return <FundingContext.Provider value={funding}>{children}</FundingContext.Provider>;
+  return (
+    <FundingContext.Provider value={funding}>
+      {children}
+    </FundingContext.Provider>
+  );
 }
 
 export function useFunding() {

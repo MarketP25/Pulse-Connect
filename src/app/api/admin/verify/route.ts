@@ -9,11 +9,11 @@ export async function GET(request: NextRequest) {
     if (!code) {
       return new Response(
         JSON.stringify({
-          error: "Verification code is required"
+          error: "Verification code is required",
         }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: `/admin/verification-success?email=${encodeURIComponent(email)}`
-      }
+        Location: `/admin/verification-success?email=${encodeURIComponent(email)}`,
+      },
     });
   } catch (error) {
     console.error("Admin verification error:", error);
@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: "/admin/verification-error"
-      }
+        Location: "/admin/verification-error",
+      },
     });
   }
 }

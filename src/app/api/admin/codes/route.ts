@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message: "Admin code created successfully",
-        adminCode
+        adminCode,
       },
       { status: 200 }
     );
@@ -48,7 +48,10 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -61,6 +64,9 @@ export async function GET() {
       { error: error instanceof Error ? error.message : String(error) },
       "Failed to list admin codes"
     );
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

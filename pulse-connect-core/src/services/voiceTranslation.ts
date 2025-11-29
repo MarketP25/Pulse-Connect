@@ -8,7 +8,8 @@ export class VoiceTranslationService {
   constructor() {
     if (typeof window !== "undefined") {
       // Initialize speech recognition
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = false;

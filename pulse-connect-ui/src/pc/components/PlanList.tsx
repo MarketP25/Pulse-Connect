@@ -15,13 +15,24 @@ const PlanList = () => {
     <div>
       {plans.map((plan: Plan) => (
         <div key={plan.id} className="plan-card">
-          <h2>{getLocalizedValue(plan.name, lang as "en" | "sw" | "yo" | "ar" | "pt" | "hi")}</h2>
+          <h2>
+            {getLocalizedValue(
+              plan.name,
+              lang as "en" | "sw" | "yo" | "ar" | "pt" | "hi"
+            )}
+          </h2>
           <p>
-            {getLocalizedValue(plan.description, lang as "en" | "sw" | "yo" | "ar" | "pt" | "hi")}
+            {getLocalizedValue(
+              plan.description,
+              lang as "en" | "sw" | "yo" | "ar" | "pt" | "hi"
+            )}
           </p>
           <p>
             Region: {plan.region} •{" "}
-            {getLocalizedValue(plan.currency, lang as "en" | "sw" | "yo" | "ar" | "pt" | "hi")}{" "}
+            {getLocalizedValue(
+              plan.currency,
+              lang as "en" | "sw" | "yo" | "ar" | "pt" | "hi"
+            )}{" "}
             {plan.price.toFixed(2)}
           </p>
         </div>

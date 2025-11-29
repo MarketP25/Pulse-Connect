@@ -17,7 +17,7 @@ interface ThemeProviderProps {
 
 export const ThemeContext = createContext<ThemeContextType>({
   theme: "light",
-  toggle: () => {}
+  toggle: () => {},
 });
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
@@ -43,5 +43,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ theme, toggle }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }

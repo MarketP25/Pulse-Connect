@@ -1,6 +1,10 @@
 import React from "react";
 import { useTranslations } from "next-intl";
-import { PermissionScope, ResourceScope, ActionType } from "@/lib/auth/permissions";
+import {
+  PermissionScope,
+  ResourceScope,
+  ActionType,
+} from "@/lib/auth/permissions";
 
 interface PermissionErrorFallbackProps {
   resource?: ResourceScope;
@@ -8,18 +12,28 @@ interface PermissionErrorFallbackProps {
   scope?: PermissionScope;
 }
 
-export function PermissionErrorFallback({ resource, action, scope }: PermissionErrorFallbackProps) {
+export function PermissionErrorFallback({
+  resource,
+  action,
+  scope,
+}: PermissionErrorFallbackProps) {
   const t = useTranslations("common");
 
   const message = scope
     ? t("errors.permissionDenied.scope", { scope })
     : t("errors.permissionDenied.resourceAction", {
-        resource: resource ? t(`resources.${resource}`) : t("resources.unknown"),
-        action: action ? t(`actions.${action}`) : t("actions.unknown")
+        resource: resource
+          ? t(`resources.${resource}`)
+          : t("resources.unknown"),
+        action: action ? t(`actions.${action}`) : t("actions.unknown"),
       });
 
   return (
-    <div className="rounded-lg bg-red-50 p-4 my-4" role="alert" aria-live="assertive">
+    <div
+      className="rounded-lg bg-red-50 p-4 my-4"
+      role="alert"
+      aria-live="assertive"
+    >
       <div className="flex">
         <div className="flex-shrink-0">
           <svg
@@ -36,7 +50,9 @@ export function PermissionErrorFallback({ resource, action, scope }: PermissionE
           </svg>
         </div>
         <div className="ml-3">
-          <h3 className="text-sm font-medium text-red-800">{t("errors.permissionDenied.title")}</h3>
+          <h3 className="text-sm font-medium text-red-800">
+            {t("errors.permissionDenied.title")}
+          </h3>
           <div className="mt-2 text-sm text-red-700">
             <p>{message}</p>
           </div>

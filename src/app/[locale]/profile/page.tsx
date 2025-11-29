@@ -19,11 +19,14 @@ const profileSchema = z.object({
     .object({
       country: z.string(),
       city: z.string().optional(),
-      timezone: z.string()
+      timezone: z.string(),
     })
     .optional(),
   phoneNumber: z.string().optional(),
-  preferredLanguage: z.enum([...SUPPORTED_LOCALES] as unknown as [string, ...string[]]),
+  preferredLanguage: z.enum([...SUPPORTED_LOCALES] as unknown as [
+    string,
+    ...string[],
+  ]),
   profession: z.string().optional(),
   company: z.string().optional(),
   interests: z.array(z.string()).optional(),
@@ -31,7 +34,7 @@ const profileSchema = z.object({
     .array(
       z.object({
         platform: z.enum(["twitter", "linkedin", "facebook", "instagram"]),
-        url: z.string().url()
+        url: z.string().url(),
       })
     )
     .optional(),
@@ -40,13 +43,13 @@ const profileSchema = z.object({
     profileVisibility: z.enum(["public", "private", "connections"]),
     showEmail: z.boolean(),
     showPhone: z.boolean(),
-    showLocation: z.boolean()
+    showLocation: z.boolean(),
   }),
   communicationPreferences: z.object({
     email: z.boolean(),
     sms: z.boolean(),
-    inApp: z.boolean()
-  })
+    inApp: z.boolean(),
+  }),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -64,7 +67,7 @@ export default function ProfilePage() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors }
+    formState: { errors },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: async () => {
@@ -89,13 +92,13 @@ export default function ProfilePage() {
             profileVisibility: "public",
             showEmail: true,
             showPhone: false,
-            showLocation: false
+            showLocation: false,
           },
           communicationPreferences: profile.communicationPreferences || {
             email: true,
             sms: false,
-            inApp: true
-          }
+            inApp: true,
+          },
         };
       } catch (err) {
         setError("Failed to load profile data");
@@ -115,16 +118,16 @@ export default function ProfilePage() {
             profileVisibility: "public",
             showEmail: true,
             showPhone: false,
-            showLocation: false
+            showLocation: false,
           },
           communicationPreferences: {
             email: true,
             sms: false,
-            inApp: true
-          }
+            inApp: true,
+          },
         };
       }
-    }
+    },
   });
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -135,7 +138,7 @@ export default function ProfilePage() {
       const response = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -173,7 +176,7 @@ export default function ProfilePage() {
     try {
       const response = await fetch("/api/user/avatar", {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -195,12 +198,18 @@ export default function ProfilePage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
 
-      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Avatar Section */}
         <div className="space-y-4">
-          <label className="block text-sm font-medium text-gray-700">{t("avatar")}</label>
+          <label className="block text-sm font-medium text-gray-700">
+            {t("avatar")}
+          </label>
           <div className="flex items-center space-x-6">
             <div className="relative h-24 w-24">
               <Image
@@ -227,7 +236,9 @@ export default function ProfilePage() {
         {/* Full Name and Display Name */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700">{t("fullName")}</label>
+            <label className="block text-sm font-medium text-gray-700">
+              {t("fullName")}
+            </label>
             <input
               type="text"
               placeholder={t("fullName")}
@@ -235,12 +246,16 @@ export default function ProfilePage() {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
             {errors.fullName && (
-              <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.fullName.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">{t("displayName")}</label>
+            <label className="block text-sm font-medium text-gray-700">
+              {t("displayName")}
+            </label>
             <input
               type="text"
               placeholder={t("displayName")}
@@ -269,19 +284,25 @@ export default function ProfilePage() {
 
         {/* Bio */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t("bio")}</label>
+          <label className="block text-sm font-medium text-gray-700">
+            {t("bio")}
+          </label>
           <textarea
             {...register("bio")}
             rows={4}
             placeholder={t("bio")}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-          {errors.bio && <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>}
+          {errors.bio && (
+            <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>
+          )}
         </div>
 
         {/* Privacy Settings */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">{t("privacySettings")}</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            {t("privacySettings")}
+          </h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -304,7 +325,9 @@ export default function ProfilePage() {
                   {...register("privacySettings.showEmail")}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <label className="ml-2 block text-sm text-gray-700">{t("showEmail")}</label>
+                <label className="ml-2 block text-sm text-gray-700">
+                  {t("showEmail")}
+                </label>
               </div>
 
               <div className="flex items-center">
@@ -313,7 +336,9 @@ export default function ProfilePage() {
                   {...register("privacySettings.showPhone")}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <label className="ml-2 block text-sm text-gray-700">{t("showPhone")}</label>
+                <label className="ml-2 block text-sm text-gray-700">
+                  {t("showPhone")}
+                </label>
               </div>
 
               <div className="flex items-center">
@@ -322,7 +347,9 @@ export default function ProfilePage() {
                   {...register("privacySettings.showLocation")}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <label className="ml-2 block text-sm text-gray-700">{t("showLocation")}</label>
+                <label className="ml-2 block text-sm text-gray-700">
+                  {t("showLocation")}
+                </label>
               </div>
             </div>
           </div>
@@ -340,7 +367,9 @@ export default function ProfilePage() {
                 {...register("communicationPreferences.email")}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <label className="ml-2 block text-sm text-gray-700">{t("email")}</label>
+              <label className="ml-2 block text-sm text-gray-700">
+                {t("email")}
+              </label>
             </div>
 
             <div className="flex items-center">
@@ -349,7 +378,9 @@ export default function ProfilePage() {
                 {...register("communicationPreferences.sms")}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <label className="ml-2 block text-sm text-gray-700">{t("sms")}</label>
+              <label className="ml-2 block text-sm text-gray-700">
+                {t("sms")}
+              </label>
             </div>
 
             <div className="flex items-center">
@@ -358,7 +389,9 @@ export default function ProfilePage() {
                 {...register("communicationPreferences.inApp")}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <label className="ml-2 block text-sm text-gray-700">{t("inApp")}</label>
+              <label className="ml-2 block text-sm text-gray-700">
+                {t("inApp")}
+              </label>
             </div>
           </div>
         </div>

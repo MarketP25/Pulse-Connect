@@ -16,7 +16,8 @@ class LocaleFormatter {
   constructor({ locale, timeZone, currency }: FormatOptions) {
     this.locale = locale;
     this.region = LOCALE_REGION_MAPPING[locale];
-    this.timeZone = timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    this.timeZone =
+      timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
     this.currency = currency || this.getDefaultCurrency();
   }
 
@@ -29,7 +30,7 @@ class LocaleFormatter {
       CN: "CNY",
       KR: "KRW",
       IN: "INR",
-      RU: "RUB"
+      RU: "RUB",
     };
     const region = this.region.split("-")[1];
     return regionToCurrency[region] || "USD";
@@ -38,7 +39,7 @@ class LocaleFormatter {
   formatDate(date: Date, options: Intl.DateTimeFormatOptions = {}): string {
     return new Intl.DateTimeFormat(this.region, {
       timeZone: this.timeZone,
-      ...options
+      ...options,
     }).format(date);
   }
 
@@ -46,7 +47,7 @@ class LocaleFormatter {
     return new Intl.DateTimeFormat(this.region, {
       timeStyle: "medium",
       timeZone: this.timeZone,
-      ...options
+      ...options,
     }).format(date);
   }
 
@@ -55,7 +56,7 @@ class LocaleFormatter {
       dateStyle: "medium",
       timeStyle: "medium",
       timeZone: this.timeZone,
-      ...options
+      ...options,
     }).format(date);
   }
 
@@ -63,32 +64,39 @@ class LocaleFormatter {
     return new Intl.NumberFormat(this.region, options).format(number);
   }
 
-  formatCurrency(amount: number, options: Intl.NumberFormatOptions = {}): string {
+  formatCurrency(
+    amount: number,
+    options: Intl.NumberFormatOptions = {}
+  ): string {
     return new Intl.NumberFormat(this.region, {
       style: "currency",
       currency: this.currency,
-      ...options
+      ...options,
     }).format(amount);
   }
 
   formatRelativeTime(value: number, unit: Intl.RelativeTimeFormatUnit): string {
     return new Intl.RelativeTimeFormat(this.region, {
-      numeric: "auto"
+      numeric: "auto",
     }).format(value, unit);
   }
 
   formatList(items: string[]): string {
     return new Intl.ListFormat(this.region, {
       style: "long",
-      type: "conjunction"
+      type: "conjunction",
     }).format(items);
   }
 
-  formatUnit(value: number, unit: string, options: Intl.NumberFormatOptions = {}): string {
+  formatUnit(
+    value: number,
+    unit: string,
+    options: Intl.NumberFormatOptions = {}
+  ): string {
     return new Intl.NumberFormat(this.region, {
       style: "unit",
       unit,
-      ...options
+      ...options,
     }).format(value);
   }
 }

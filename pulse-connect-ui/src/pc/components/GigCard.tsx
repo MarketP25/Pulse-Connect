@@ -16,7 +16,7 @@ export const GigCard: React.FC<GigCardProps> = ({
   price,
   currency,
   gateway,
-  onPurchase
+  onPurchase,
 }) => {
   return (
     <div className="gig-card border rounded-lg p-4 shadow-sm bg-white">

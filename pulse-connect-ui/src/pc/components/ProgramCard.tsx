@@ -18,16 +18,22 @@ export default function ProgramCard({
   onPromptChange,
   onExecute,
   isLoading,
-  isAccessible
+  isAccessible,
 }: ProgramCardProps) {
   return (
     <div className="border rounded p-4 bg-white shadow-sm w-full">
       <header className="mb-2">
-        <h3 className="text-md font-semibold text-indigo-700">{programLabel}</h3>
+        <h3 className="text-md font-semibold text-indigo-700">
+          {programLabel}
+        </h3>
       </header>
 
       {!isAccessible ? (
-        <p className="text-xs text-red-500 mt-1" role="alert" aria-live="assertive">
+        <p
+          className="text-xs text-red-500 mt-1"
+          role="alert"
+          aria-live="assertive"
+        >
           Upgrade required to use this assistant.
         </p>
       ) : (

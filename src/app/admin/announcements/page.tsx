@@ -70,7 +70,11 @@ export default function ViewAnnouncements() {
     <div className="max-w-4xl mx-auto mt-10 p-6">
       <h1 className="text-2xl font-bold text-center mb-6">Announcements</h1>
 
-      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
 
       {loading && page === 1 ? (
         <div className="animate-pulse space-y-4">
@@ -85,7 +89,10 @@ export default function ViewAnnouncements() {
       ) : (
         <div className="space-y-6">
           {announcements.map((announcement) => (
-            <div key={announcement.id} className="bg-white p-6 rounded-lg shadow-md">
+            <div
+              key={announcement.id}
+              className="bg-white p-6 rounded-lg shadow-md"
+            >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">{announcement.title}</h2>
                 <span
@@ -97,11 +104,15 @@ export default function ViewAnnouncements() {
                 </span>
               </div>
 
-              <p className="text-gray-600 whitespace-pre-wrap mb-4">{announcement.message}</p>
+              <p className="text-gray-600 whitespace-pre-wrap mb-4">
+                {announcement.message}
+              </p>
 
               <div className="flex items-center justify-between text-sm text-gray-500">
                 <span>By: {announcement.createdBy}</span>
-                <span>{new Date(announcement.createdAt).toLocaleDateString()}</span>
+                <span>
+                  {new Date(announcement.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
           ))}
@@ -119,11 +130,15 @@ export default function ViewAnnouncements() {
           )}
 
           {!hasMore && announcements.length > 0 && (
-            <p className="text-center text-gray-500">No more announcements to load.</p>
+            <p className="text-center text-gray-500">
+              No more announcements to load.
+            </p>
           )}
 
           {!loading && announcements.length === 0 && (
-            <div className="text-center text-gray-500">No announcements yet.</div>
+            <div className="text-center text-gray-500">
+              No announcements yet.
+            </div>
           )}
         </div>
       )}

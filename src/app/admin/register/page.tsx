@@ -17,8 +17,8 @@ const adminRegistrationSchema = z.object({
     .regex(/[0-9]/, "Must contain at least one number")
     .regex(/[^A-Za-z0-9]/, "Must contain at least one special character"),
   acceptTerms: z.literal(true, {
-    message: "You must accept the terms and conditions"
-  })
+    message: "You must accept the terms and conditions",
+  }),
 });
 
 type AdminRegistrationForm = z.infer<typeof adminRegistrationSchema>;
@@ -32,9 +32,9 @@ export default function AdminRegistration() {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<AdminRegistrationForm>({
-    resolver: zodResolver(adminRegistrationSchema)
+    resolver: zodResolver(adminRegistrationSchema),
   });
 
   const onSubmit = async (data: AdminRegistrationForm) => {
@@ -45,7 +45,7 @@ export default function AdminRegistration() {
       const response = await fetch("/api/admin/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       const result = await response.json();
@@ -69,8 +69,8 @@ export default function AdminRegistration() {
           ✉️ Verification Email Sent
         </h2>
         <p className="text-gray-600 text-center">
-          We've sent a verification email to your address. Please check your inbox and click the
-          verification link to complete your registration.
+          We've sent a verification email to your address. Please check your
+          inbox and click the verification link to complete your registration.
         </p>
         <div className="mt-6 text-center text-sm text-gray-500">
           Didn’t receive the email?{" "}
@@ -87,13 +87,22 @@ export default function AdminRegistration() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-center mb-6">Admin Registration</h1>
+      <h1 className="text-2xl font-bold text-center mb-6">
+        Admin Registration
+      </h1>
 
-      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
             Email Address
           </label>
           <input
@@ -102,11 +111,16 @@ export default function AdminRegistration() {
             {...register("email")}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-          {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="fullName"
+            className="block text-sm font-medium text-gray-700"
+          >
             Full Name
           </label>
           <input
@@ -116,12 +130,17 @@ export default function AdminRegistration() {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
           {errors.fullName && (
-            <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.fullName.message}
+            </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700"
+          >
             Password
           </label>
           <input
@@ -131,7 +150,9 @@ export default function AdminRegistration() {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
@@ -147,12 +168,18 @@ export default function AdminRegistration() {
           <div className="ml-3 text-sm">
             <label htmlFor="acceptTerms" className="font-medium text-gray-700">
               I accept the{" "}
-              <a href="/admin/terms" target="_blank" className="text-blue-600 hover:underline">
+              <a
+                href="/admin/terms"
+                target="_blank"
+                className="text-blue-600 hover:underline"
+              >
                 terms and conditions
               </a>
             </label>
             {errors.acceptTerms && (
-              <p className="mt-1 text-sm text-red-600">{errors.acceptTerms.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.acceptTerms.message}
+              </p>
             )}
           </div>
         </div>

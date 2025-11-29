@@ -1,8 +1,14 @@
-export default function PulseMoment({ type, user }: { type: string; user: string }) {
+export default function PulseMoment({
+  type,
+  user,
+}: {
+  type: string;
+  user: string;
+}) {
   const message = {
     booking: `${user} just booked a listing!`,
     referral: `${user} invited a friend 🎁`,
-    post: `${user} posted a new listing!`
+    post: `${user} posted a new listing!`,
   }[type];
 
   return (

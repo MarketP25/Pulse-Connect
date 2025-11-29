@@ -2,7 +2,9 @@ import { getRedisClient } from "@/lib/redis";
 import { UserProfile, UserProfileUpdate } from "@/types/UserProfile";
 import { nanoid } from "nanoid";
 
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+export async function getUserProfile(
+  userId: string
+): Promise<UserProfile | null> {
   const client = getRedisClient();
   const profile = await client.hgetall(`user:profile:${userId}`);
 
@@ -15,9 +17,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     ...profile,
     location: profile.location ? JSON.parse(profile.location) : undefined,
     communicationPreferences: JSON.parse(profile.communicationPreferences),
-    socialMedia: profile.socialMedia ? JSON.parse(profile.socialMedia) : undefined,
+    socialMedia: profile.socialMedia
+      ? JSON.parse(profile.socialMedia)
+      : undefined,
     interests: profile.interests ? JSON.parse(profile.interests) : undefined,
-    privacySettings: JSON.parse(profile.privacySettings)
+    privacySettings: JSON.parse(profile.privacySettings),
   } as UserProfile;
 }
 
@@ -39,10 +43,16 @@ export async function updateUserProfile(
     communicationPreferences: updates.communicationPreferences
       ? JSON.stringify(updates.communicationPreferences)
       : undefined,
-    socialMedia: updates.socialMedia ? JSON.stringify(updates.socialMedia) : undefined,
-    interests: updates.interests ? JSON.stringify(updates.interests) : undefined,
-    privacySettings: updates.privacySettings ? JSON.stringify(updates.privacySettings) : undefined,
-    updatedAt: new Date().toISOString()
+    socialMedia: updates.socialMedia
+      ? JSON.stringify(updates.socialMedia)
+      : undefined,
+    interests: updates.interests
+      ? JSON.stringify(updates.interests)
+      : undefined,
+    privacySettings: updates.privacySettings
+      ? JSON.stringify(updates.privacySettings)
+      : undefined,
+    updatedAt: new Date().toISOString(),
   };
 
   // Remove undefined values
@@ -73,23 +83,25 @@ export async function createUserProfile(
     communicationPreferences: {
       email: true,
       sms: false,
-      inApp: true
+      inApp: true,
     },
     privacySettings: {
       profileVisibility: "public",
       showEmail: false,
       showPhone: false,
-      showLocation: false
+      showLocation: false,
     },
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   // Prepare profile for Redis storage
   const profileToSave = {
     ...newProfile,
-    communicationPreferences: JSON.stringify(newProfile.communicationPreferences),
-    privacySettings: JSON.stringify(newProfile.privacySettings)
+    communicationPreferences: JSON.stringify(
+      newProfile.communicationPreferences
+    ),
+    privacySettings: JSON.stringify(newProfile.privacySettings),
   };
 
   // Save profile
@@ -119,7 +131,10 @@ export async function deleteUserProfile(userId: string): Promise<void> {
   await client.del(`user:email:${profile.email}`);
 }
 
-export async function updateUserLanguage(userId: string, language: string): Promise<void> {
+export async function updateUserLanguage(
+  userId: string,
+  language: string
+): Promise<void> {
   const client = getRedisClient();
   await client.hset(`user:profile:${userId}`, { preferredLanguage: language });
 }

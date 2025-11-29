@@ -1,6 +1,10 @@
 import { ComponentType } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
-import { ResourceScope, ActionType, PermissionScope } from "@/lib/auth/permissions";
+import {
+  ResourceScope,
+  ActionType,
+  PermissionScope,
+} from "@/lib/auth/permissions";
 import { PermissionErrorFallback } from "@/components/errors/PermissionErrorFallback";
 
 interface WithPermissionProps {
@@ -21,7 +25,9 @@ export function withPermission<P extends object>(
       const { hasAccess, fallback } = guardResource(
         resource,
         action,
-        customFallback || <PermissionErrorFallback resource={resource} action={action} />
+        customFallback || (
+          <PermissionErrorFallback resource={resource} action={action} />
+        )
       );
 
       if (!hasAccess) return fallback;

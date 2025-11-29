@@ -3,7 +3,7 @@ import { FeatureLabels } from "@/config/FeatureLabels";
 export function generateUpgradeToast({
   features,
   language,
-  fundingSource
+  fundingSource,
 }: {
   features: string[];
   language: string;
@@ -19,9 +19,17 @@ export function generateUpgradeToast({
         ? `Your org has unlocked: ${featureList}`
         : `You’ve unlocked: ${featureList}`,
     sw:
-      fundingSource === "org" ? `Shirika limefungua: ${featureList}` : `Umefungua: ${featureList}`,
-    yo: fundingSource === "org" ? `Ẹgbẹ rẹ ti ṣí: ${featureList}` : `O ti ṣí: ${featureList}`,
-    ar: fundingSource === "org" ? `منظمتك فتحت: ${featureList}` : `لقد فتحت: ${featureList}`,
+      fundingSource === "org"
+        ? `Shirika limefungua: ${featureList}`
+        : `Umefungua: ${featureList}`,
+    yo:
+      fundingSource === "org"
+        ? `Ẹgbẹ rẹ ti ṣí: ${featureList}`
+        : `O ti ṣí: ${featureList}`,
+    ar:
+      fundingSource === "org"
+        ? `منظمتك فتحت: ${featureList}`
+        : `لقد فتحت: ${featureList}`,
     hi:
       fundingSource === "org"
         ? `आपकी संस्था ने अनलॉक किया है: ${featureList}`
@@ -29,7 +37,7 @@ export function generateUpgradeToast({
     pt:
       fundingSource === "org"
         ? `Sua organização desbloqueou: ${featureList}`
-        : `Você desbloqueou: ${featureList}`
+        : `Você desbloqueou: ${featureList}`,
   };
 
   const message = copy[language] ?? copy["en"];

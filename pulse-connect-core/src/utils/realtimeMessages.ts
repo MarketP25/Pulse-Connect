@@ -31,7 +31,9 @@ export const getRealtimeMessages = (
 
   if (!state.camEnabled) {
     messages.push(
-      org === "Marketing" ? "Camera blocked. Video posts may not be available." : "Camera blocked."
+      org === "Marketing"
+        ? "Camera blocked. Video posts may not be available."
+        : "Camera blocked."
     );
   }
 

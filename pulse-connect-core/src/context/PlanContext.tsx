@@ -16,7 +16,7 @@ const PlanContext = createContext<PlanContextType>({
   tier: "free",
   source: "user",
   features: [],
-  canUse: () => false
+  canUse: () => false,
 });
 
 export const usePlan = () => useContext(PlanContext);
@@ -28,7 +28,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
     free: 0,
     pro: 1,
     team: 2,
-    enterprise: 3
+    enterprise: 3,
   };
 
   const canUse = (feature: string): boolean => {
@@ -47,7 +47,9 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <PlanContext.Provider value={{ tier: plan, source: fundingSource, features, canUse }}>
+    <PlanContext.Provider
+      value={{ tier: plan, source: fundingSource, features, canUse }}
+    >
       {children}
     </PlanContext.Provider>
   );

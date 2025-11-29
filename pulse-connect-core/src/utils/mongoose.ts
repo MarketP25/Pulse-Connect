@@ -14,7 +14,7 @@ export async function connectToDatabase() {
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
       dbName: "pulse_connect",
-      bufferCommands: false
+      bufferCommands: false,
     });
   }
 

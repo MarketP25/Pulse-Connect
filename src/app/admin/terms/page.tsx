@@ -3,16 +3,23 @@
 export default function AdminTerms() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold">Pulse Connect Admin Terms and Conditions</h1>
+      <h1 className="text-3xl font-bold">
+        Pulse Connect Admin Terms and Conditions
+      </h1>
 
       <div className="prose prose-blue max-w-none">
-        <h2 className="text-xl font-semibold text-red-600">🚨 Important Notice</h2>
+        <h2 className="text-xl font-semibold text-red-600">
+          🚨 Important Notice
+        </h2>
         <p className="text-gray-700">
-          As an administrator of Pulse Connect, you are being granted significant privileges and
-          responsibilities. Please read these terms carefully before accepting.
+          As an administrator of Pulse Connect, you are being granted
+          significant privileges and responsibilities. Please read these terms
+          carefully before accepting.
         </p>
 
-        <h3 className="font-semibold mt-6">1. Administrator Responsibilities</h3>
+        <h3 className="font-semibold mt-6">
+          1. Administrator Responsibilities
+        </h3>
         <ul className="list-disc pl-5 space-y-2">
           <li>Maintain the confidentiality of your admin access code</li>
           <li>Use admin privileges only for legitimate business purposes</li>
@@ -48,7 +55,9 @@ export default function AdminTerms() {
         <h3 className="font-semibold mt-6">5. Termination</h3>
         <ul className="list-disc pl-5 space-y-2">
           <li>Admin access can be revoked at any time</li>
-          <li>Violation of terms will result in immediate access termination</li>
+          <li>
+            Violation of terms will result in immediate access termination
+          </li>
           <li>Legal action may be taken for serious violations</li>
         </ul>
       </div>

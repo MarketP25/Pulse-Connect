@@ -5,7 +5,7 @@ import {
   getAnnouncements,
   getAllUserEmails,
   queueAnnouncementEmail,
-  processEmailQueue
+  processEmailQueue,
 } from "@/lib/services/announcements";
 import { getServerSession } from "next-auth";
 
@@ -18,7 +18,7 @@ const announcementSchema = z.object({
     .string()
     .min(10, "Message must be at least 10 characters")
     .max(5000, "Message must not exceed 5000 characters"),
-  priority: z.enum(["low", "medium", "high"])
+  priority: z.enum(["low", "medium", "high"]),
 });
 
 export async function POST(request: NextRequest) {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.email) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const announcement = await createAnnouncement({
       ...validatedData,
-      createdBy: session.user.email
+      createdBy: session.user.email,
     });
 
     const userEmails = await getAllUserEmails();
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         queueAnnouncementEmail({
           to: email,
           ...announcement,
-          announcementId: announcement.id
+          announcementId: announcement.id,
         })
       )
     );
@@ -58,11 +58,11 @@ export async function POST(request: NextRequest) {
     return new Response(
       JSON.stringify({
         message: "Announcement created and notifications sent",
-        announcement
+        announcement,
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (error: unknown) {
@@ -70,20 +70,23 @@ export async function POST(request: NextRequest) {
       return new Response(
         JSON.stringify({
           error: "Validation failed",
-          details: error.issues
+          details: error.issues,
         }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     console.error("Failed to create announcement:", error);
-    return new Response(JSON.stringify({ error: "Failed to create announcement" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response(
+      JSON.stringify({ error: "Failed to create announcement" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
 
@@ -93,7 +96,7 @@ export async function GET(request: NextRequest) {
     if (!session?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -105,13 +108,16 @@ export async function GET(request: NextRequest) {
 
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
     console.error("Failed to fetch announcements:", error);
-    return new Response(JSON.stringify({ error: "Failed to fetch announcements" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response(
+      JSON.stringify({ error: "Failed to fetch announcements" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }

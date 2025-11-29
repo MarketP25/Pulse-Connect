@@ -9,7 +9,11 @@ interface CelebrateParams {
   fundingSource: "user" | "org";
 }
 
-export function celebrateUpgrade({ features, language, fundingSource }: CelebrateParams): void {
+export function celebrateUpgrade({
+  features,
+  language,
+  fundingSource,
+}: CelebrateParams): void {
   // 🎊 Confetti burst with type-safe config
   const confettiConfig: Parameters<typeof confetti>[0] = {
     particleCount: 75,
@@ -18,7 +22,7 @@ export function celebrateUpgrade({ features, language, fundingSource }: Celebrat
     angle: 90,
     gravity: 0.9,
     scalar: 1.2,
-    ticks: 180
+    ticks: 180,
   };
 
   confetti(confettiConfig);
@@ -34,9 +38,17 @@ export function celebrateUpgrade({ features, language, fundingSource }: Celebrat
         ? `Your org has unlocked: ${featureList}`
         : `You’ve unlocked: ${featureList}`,
     sw:
-      fundingSource === "org" ? `Shirika limefungua: ${featureList}` : `Umefungua: ${featureList}`,
-    yo: fundingSource === "org" ? `Ẹgbẹ rẹ ti ṣí: ${featureList}` : `O ti ṣí: ${featureList}`,
-    ar: fundingSource === "org" ? `منظمتك فتحت: ${featureList}` : `لقد فتحت: ${featureList}`,
+      fundingSource === "org"
+        ? `Shirika limefungua: ${featureList}`
+        : `Umefungua: ${featureList}`,
+    yo:
+      fundingSource === "org"
+        ? `Ẹgbẹ rẹ ti ṣí: ${featureList}`
+        : `O ti ṣí: ${featureList}`,
+    ar:
+      fundingSource === "org"
+        ? `منظمتك فتحت: ${featureList}`
+        : `لقد فتحت: ${featureList}`,
     hi:
       fundingSource === "org"
         ? `आपकी संस्था ने अनलॉक किया है: ${featureList}`
@@ -44,7 +56,7 @@ export function celebrateUpgrade({ features, language, fundingSource }: Celebrat
     pt:
       fundingSource === "org"
         ? `Sua organização desbloqueou: ${featureList}`
-        : `Você desbloqueou: ${featureList}`
+        : `Você desbloqueou: ${featureList}`,
   };
 
   const message: string = copy[language] ?? copy["en"] ?? "Feature unlocked!";

@@ -13,14 +13,18 @@ const defaultState: RealtimeState = {
   micEnabled: false,
   camEnabled: false,
   canStartCall: false,
-  canPost: true
+  canPost: true,
 };
 
 const RealtimeContext = createContext<RealtimeState>(defaultState);
 
 export const useRealtime = () => useContext(RealtimeContext);
 
-export const RealtimeProvider = ({ children }: { children: React.ReactNode }) => {
+export const RealtimeProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [isOnline, setIsOnline] = useState(true);
   const [micEnabled, setMicEnabled] = useState(false);
   const [camEnabled, setCamEnabled] = useState(false);
@@ -41,7 +45,10 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
   useEffect(() => {
     const checkPermissions = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true,
+        });
         setMicEnabled(stream.getAudioTracks().length > 0);
         setCamEnabled(stream.getVideoTracks().length > 0);
         stream.getTracks().forEach((track) => track.stop());
@@ -59,8 +66,12 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
     micEnabled,
     camEnabled,
     canStartCall: isOnline && (micEnabled || camEnabled),
-    canPost: true
+    canPost: true,
   };
 
-  return <RealtimeContext.Provider value={realtimeState}>{children}</RealtimeContext.Provider>;
+  return (
+    <RealtimeContext.Provider value={realtimeState}>
+      {children}
+    </RealtimeContext.Provider>
+  );
 };

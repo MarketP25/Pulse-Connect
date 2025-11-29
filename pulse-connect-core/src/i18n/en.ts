@@ -12,6 +12,6 @@ export default {
   feedbackReceived: "Thank you!",
   unlockFeatures: "Unlock More Features",
   upgradeNow: "Upgrade Now",
-  remindMeLater: "Remind Me Later"
+  remindMeLater: "Remind Me Later",
   // ...add more as needed
 };

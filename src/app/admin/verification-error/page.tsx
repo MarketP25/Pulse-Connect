@@ -20,11 +20,13 @@ export default function VerificationError() {
           </div>
         </div>
 
-        <h2 className="mt-4 text-2xl font-bold text-gray-900">Verification Failed</h2>
+        <h2 className="mt-4 text-2xl font-bold text-gray-900">
+          Verification Failed
+        </h2>
 
         <p className="mt-2 text-gray-600">
-          We couldn't verify your admin account. The verification link may have expired or is
-          invalid.
+          We couldn't verify your admin account. The verification link may have
+          expired or is invalid.
         </p>
 
         <div className="mt-6 space-y-4">
@@ -36,7 +38,10 @@ export default function VerificationError() {
           </a>
 
           <div className="text-sm">
-            <a href="/contact" className="font-medium text-blue-600 hover:text-blue-500">
+            <a
+              href="/contact"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               Contact Support
             </a>
           </div>

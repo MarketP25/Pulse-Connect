@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAuth, signInAnonymously, onAuthStateChanged, User } from "firebase/auth";
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged,
+  User,
+} from "firebase/auth";
 import { app } from "@/firebase/config";
 
 export default function FirebaseTest() {
@@ -22,7 +27,9 @@ export default function FirebaseTest() {
     });
 
     // Authenticate anonymously (for testing only)
-    signInAnonymously(auth).catch((error) => setStatus(`❌ Firebase error: ${error.message}`));
+    signInAnonymously(auth).catch((error) =>
+      setStatus(`❌ Firebase error: ${error.message}`)
+    );
 
     return () => unsubscribe();
   }, []);
@@ -31,7 +38,11 @@ export default function FirebaseTest() {
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground font-mono text-lg px-4">
       <div className="p-6 rounded-lg border border-foreground/10 shadow-sm bg-white/5 backdrop-blur max-w-md w-full text-center">
         <p className="mb-2">{status}</p>
-        {user && <pre className="text-sm text-foreground/60 break-words">User UID: {user.uid}</pre>}
+        {user && (
+          <pre className="text-sm text-foreground/60 break-words">
+            User UID: {user.uid}
+          </pre>
+        )}
       </div>
     </div>
   );

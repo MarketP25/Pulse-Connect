@@ -11,7 +11,8 @@ export function ListingGrid({ listings }: { listings: Listing[] }) {
         <div key={item.id} className="card">
           <h3>{getLocalizedValue(item.name, locale)}</h3>
           <p>
-            {item.type} in {getLocalizedValue(item.location, locale)}, {item.region}
+            {item.type} in {getLocalizedValue(item.location, locale)},{" "}
+            {item.region}
           </p>
           <p>
             {getLocalizedValue(item.currency, locale)} {item.price}

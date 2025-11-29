@@ -1,7 +1,13 @@
 // pages/products/index.tsx
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { collection, query, orderBy, onSnapshot, DocumentData } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  DocumentData,
+} from "firebase/firestore";
 import { db } from "@/lib/firebaseClient";
 import styles from "@/styles/products.module.css";
 
@@ -31,7 +37,7 @@ export default function ProductsPage() {
             id: doc.id,
             name: d.name,
             price: d.price,
-            createdAt: d.createdAt
+            createdAt: d.createdAt,
           };
         });
         setProducts(items);

@@ -9,11 +9,16 @@ interface ProfileSettingsProps {
   username: string;
 }
 
-export default function ProfileSettings({ userEmail, username }: ProfileSettingsProps) {
+export default function ProfileSettings({
+  userEmail,
+  username,
+}: ProfileSettingsProps) {
   return (
     <FeatureGate permission="users:read">
       <div className="bg-white shadow-sm border rounded-lg p-5 mb-6">
-        <h2 className="text-lg font-semibold text-indigo-700 mb-2">Profile Settings</h2>
+        <h2 className="text-lg font-semibold text-indigo-700 mb-2">
+          Profile Settings
+        </h2>
         <p className="mb-1">
           Email: <span className="font-mono">{userEmail}</span>
         </p>

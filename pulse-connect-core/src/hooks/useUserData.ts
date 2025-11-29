@@ -3,6 +3,6 @@ export function useUserData() {
     name: "Charise",
     listings: ["Garage in Kirinyaga", "Airbnb in Nairobi"],
     credits: 120,
-    referrals: ["Amina", "Brian"]
+    referrals: ["Amina", "Brian"],
   };
 }

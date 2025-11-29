@@ -29,9 +29,13 @@ export default function VerificationSuccess() {
           </div>
         </div>
 
-        <h2 className="mt-4 text-2xl font-bold text-gray-900">Email Verified Successfully</h2>
+        <h2 className="mt-4 text-2xl font-bold text-gray-900">
+          Email Verified Successfully
+        </h2>
 
-        <p className="mt-2 text-gray-600">Your admin account has been verified successfully.</p>
+        <p className="mt-2 text-gray-600">
+          Your admin account has been verified successfully.
+        </p>
 
         {email && (
           <p className="mt-1 text-sm text-gray-500">

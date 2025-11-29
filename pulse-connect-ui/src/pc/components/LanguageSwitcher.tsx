@@ -9,7 +9,9 @@ interface LanguageSwitcherProps {
   className?: string;
 }
 
-export default function LanguageSwitcher({ className = "" }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({
+  className = "",
+}: LanguageSwitcherProps) {
   const t = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();

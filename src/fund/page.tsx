@@ -13,7 +13,7 @@ import {
   updateDoc,
   collection,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
 } from "firebase/firestore";
 import {
   PROGRAM_LABELS,
@@ -22,7 +22,7 @@ import {
   DONATION_TIERS,
   Currency,
   ProgramType,
-  SubscriptionPlan
+  SubscriptionPlan,
 } from "@/lib/upgradePlans";
 import { app } from "@/firebase/config";
 import { PaymentButton } from "@/components/PaymentButton";
@@ -40,13 +40,17 @@ function getUserCurrency(): Currency {
   const code = (region || "US").toUpperCase();
   return (["USD", "KES", "EUR"].includes(code) ? code : "USD") as Currency;
 }
-function formatPrice(amount: number, currency: Currency, suffix: "/mo" | "/yr") {
+function formatPrice(
+  amount: number,
+  currency: Currency,
+  suffix: "/mo" | "/yr"
+) {
   if (amount === 0) return "Free 7-day";
   return (
     new Intl.NumberFormat(navigator.language, {
       style: "currency",
       currency,
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount) + suffix
   );
 }
@@ -63,7 +67,7 @@ function SimpleForm({
   buttonLabel,
   sent,
   sentMessage,
-  buttonColor
+  buttonColor,
 }: {
   value: string;
   onChange(v: string): void;
@@ -112,8 +116,13 @@ export default function FundPage() {
 
   // subscription
   const [currentPlan, setCurrentPlan] = useState("");
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
-  const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly"
+  );
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
   // donation
@@ -153,7 +162,8 @@ export default function FundPage() {
   // 2) tip jar once
   useEffect(() => {
     // Only non-sensitive UI state is stored in localStorage
-    if (!loadingAuth && !localStorage.getItem("tipJarDismissed")) setShowTipJar(true);
+    if (!loadingAuth && !localStorage.getItem("tipJarDismissed"))
+      setShowTipJar(true);
   }, [loadingAuth]);
 
   // 3) upgrade popup every 30m
@@ -176,17 +186,21 @@ export default function FundPage() {
         userEmail,
         planId,
         billingCycle,
-        attemptedAt: serverTimestamp()
+        attemptedAt: serverTimestamp(),
       });
-      if (!emailVerified) throw new Error("Please verify your email before upgrading your plan.");
+      if (!emailVerified)
+        throw new Error("Please verify your email before upgrading your plan.");
       await updateDoc(doc(db, "users", userId), {
         role: planId,
         billingCycle,
-        upgradedAt: serverTimestamp()
+        upgradedAt: serverTimestamp(),
       });
       setCurrentPlan(planId);
       setShowUpgradePopup(false);
-      setStatus({ type: "success", message: `Successfully subscribed to the ${planId} plan!` });
+      setStatus({
+        type: "success",
+        message: `Successfully subscribed to the ${planId} plan!`,
+      });
       upgradeRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (e) {
       // Provide more detailed error feedback for debugging
@@ -212,15 +226,16 @@ export default function FundPage() {
         userId,
         userEmail,
         tierName,
-        fundedAt: serverTimestamp()
+        fundedAt: serverTimestamp(),
       });
       setStatus({
         type: "success",
-        message: `${tierName} donation recorded. Thank you for your support!`
+        message: `${tierName} donation recorded. Thank you for your support!`,
       });
     } catch (e) {
       // Provide more detailed error feedback for debugging
-      let msg = "An error occurred while processing your donation. Please try again.";
+      let msg =
+        "An error occurred while processing your donation. Please try again.";
       if (e instanceof Error) {
         msg = e.message;
       } else if (typeof e === "string") {
@@ -242,12 +257,13 @@ export default function FundPage() {
         userId,
         userEmail,
         complaint,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
       setComplaint("");
       setComplaintSent(true);
     } catch (e) {
-      let msg = "An error occurred while submitting your complaint. Please try again.";
+      let msg =
+        "An error occurred while submitting your complaint. Please try again.";
       if (e instanceof Error) msg = e.message;
       setStatus({ type: "error", message: msg });
     }
@@ -262,12 +278,13 @@ export default function FundPage() {
         userId,
         userEmail,
         feedback,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
       setFeedback("");
       setFeedbackSent(true);
     } catch (e) {
-      let msg = "An error occurred while submitting your feedback. Please try again.";
+      let msg =
+        "An error occurred while submitting your feedback. Please try again.";
       if (e instanceof Error) msg = e.message;
       setStatus({ type: "error", message: msg });
     }
@@ -282,7 +299,9 @@ export default function FundPage() {
       {/* Header */}
       <div className="flex flex-col items-center mb-8">
         <Image src="/logo.png" alt="Pulse Connect" width={96} height={96} />
-        <h1 className="text-3xl font-bold text-indigo-700 mt-4">Support Pulse Connect</h1>
+        <h1 className="text-3xl font-bold text-indigo-700 mt-4">
+          Support Pulse Connect
+        </h1>
         {currentPlan && (
           <p className="mt-2 text-gray-700">
             You’re on <strong>{currentPlan}</strong> ({billingCycle}).
@@ -294,7 +313,9 @@ export default function FundPage() {
       {status && (
         <div
           className={`max-w-md mx-auto px-4 py-2 mb-6 rounded text-center ${
-            status.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            status.type === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
           }`}
         >
           {status.message}
@@ -326,7 +347,9 @@ export default function FundPage() {
             key={cycle}
             onClick={() => setBillingCycle(cycle)}
             className={`px-4 py-2 rounded ${
-              billingCycle === cycle ? "bg-indigo-600 text-white" : "bg-gray-100"
+              billingCycle === cycle
+                ? "bg-indigo-600 text-white"
+                : "bg-gray-100"
             }`}
           >
             {cycle.charAt(0).toUpperCase() + cycle.slice(1)}
@@ -338,7 +361,9 @@ export default function FundPage() {
       <div ref={upgradeRef} />
 
       {/* Subscription Plans */}
-      <h2 className="text-xl font-semibold text-center mb-4">Subscription Plans</h2>
+      <h2 className="text-xl font-semibold text-center mb-4">
+        Subscription Plans
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const isCurrent = plan.id === currentPlan;
@@ -355,13 +380,17 @@ export default function FundPage() {
               <p className="text-2xl font-bold mb-4">{priceTxt}</p>
               <ul className="flex-1 mb-4">
                 {Object.entries(PROGRAM_LABELS).map(([k, label]) => {
-                  const ok = PLAN_REQUIREMENTS[k as ProgramType].includes(plan.id);
+                  const ok = PLAN_REQUIREMENTS[k as ProgramType].includes(
+                    plan.id
+                  );
                   return (
                     <li key={k} className="flex items-center">
                       <span className={ok ? "text-green-600" : "text-gray-300"}>
                         {ok ? "✔" : "✕"}
                       </span>
-                      <span className={`ml-2 ${!ok ? "text-gray-400" : ""}`}>{label}</span>
+                      <span className={`ml-2 ${!ok ? "text-gray-400" : ""}`}>
+                        {label}
+                      </span>
                     </li>
                   );
                 })}
@@ -392,7 +421,9 @@ export default function FundPage() {
             </p>
             <PaymentButton
               amount={Number(t.paypalAmt)}
-              onSuccess={() => setStatus({ type: "success", message: `${t.name} funded!` })}
+              onSuccess={() =>
+                setStatus({ type: "success", message: `${t.name} funded!` })
+              }
             />
           </article>
         ))}
@@ -425,14 +456,19 @@ export default function FundPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded">
             <h3 className="font-semibold mb-2">Unlock More Features</h3>
-            <p className="mb-4">Upgrade for AI tutorials, workouts, and more.</p>
+            <p className="mb-4">
+              Upgrade for AI tutorials, workouts, and more.
+            </p>
             <button
               onClick={() => handleUpgrade("plus")}
               className="bg-indigo-600 text-white px-4 py-2 rounded mr-2"
             >
               Upgrade Now
             </button>
-            <button onClick={() => setShowUpgradePopup(false)} className="underline">
+            <button
+              onClick={() => setShowUpgradePopup(false)}
+              className="underline"
+            >
               Remind Me Later
             </button>
           </div>

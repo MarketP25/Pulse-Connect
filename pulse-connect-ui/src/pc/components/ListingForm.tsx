@@ -7,7 +7,9 @@ export function ListingForm({ onAdd }: { onAdd?: (listing: Listing) => void }) {
   const [form, setForm] = useState<Record<string, string>>({});
   const locale = useLanguage().lang; // Use dynamic locale
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
@@ -21,9 +23,12 @@ export function ListingForm({ onAdd }: { onAdd?: (listing: Listing) => void }) {
       region: form["region"] || "",
       currency: { [locale]: form["currency"] || "" } as Record<string, string>,
       price: Number(form["price"]) || 0,
-      description: { [locale]: form["description"] || "" } as Record<string, string>,
+      description: { [locale]: form["description"] || "" } as Record<
+        string,
+        string
+      >,
       posterName: form["posterName"] || "",
-      postedAt: new Date().toISOString()
+      postedAt: new Date().toISOString(),
     };
     onAdd?.(newListing);
     setForm({});

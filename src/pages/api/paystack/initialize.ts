@@ -12,7 +12,10 @@ type PaystackInitResponse = {
   };
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { amount, email } = req.body;
 
   try {
@@ -21,12 +24,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       {
         amount: amount * 100,
         email: email || "no-reply@pulseconnect.com",
-        callback_url: `${process.env.BASE_URL}/api/paystack/callback`
+        callback_url: `${process.env.BASE_URL}/api/paystack/callback`,
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`
-        }
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`,
+        },
       }
     );
 
@@ -35,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // ...existing code...
     return res.status(500).json({
       status: false,
-      message: "Could not initialize Paystack transaction"
+      message: "Could not initialize Paystack transaction",
     });
   }
 }

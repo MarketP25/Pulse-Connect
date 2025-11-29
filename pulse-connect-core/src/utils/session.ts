@@ -13,6 +13,6 @@ export const getSessionUser = async () => {
     email: session.user.email,
     name: session.user.name,
     role: session.user.role || "guest",
-    region: session.user.region || "global"
+    region: session.user.region || "global",
   };
 };

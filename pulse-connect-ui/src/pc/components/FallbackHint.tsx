@@ -7,7 +7,11 @@ interface FallbackHintProps {
   language: string;
 }
 
-export default function FallbackHint({ role, funding, language }: FallbackHintProps) {
+export default function FallbackHint({
+  role,
+  funding,
+  language,
+}: FallbackHintProps) {
   const key = `${role}-${funding}-${language}` as string;
 
   const message =

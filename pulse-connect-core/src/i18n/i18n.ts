@@ -1,4 +1,13 @@
-export const SUPPORTED_LOCALES = ["en", "ko", "fr", "es", "de", "zh", "ja", "ar"] as const;
+export const SUPPORTED_LOCALES = [
+  "en",
+  "ko",
+  "fr",
+  "es",
+  "de",
+  "zh",
+  "ja",
+  "ar",
+] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE = "en";
 
@@ -10,7 +19,7 @@ export const LOCALE_NAMES: Record<Locale, string> = {
   de: "Deutsch",
   zh: "中文",
   ja: "日本語",
-  ar: "العربية"
+  ar: "العربية",
 };
 
 export const LOCALE_COUNTRIES: Record<Locale, string> = {
@@ -21,7 +30,7 @@ export const LOCALE_COUNTRIES: Record<Locale, string> = {
   de: "de",
   zh: "cn",
   ja: "jp",
-  ar: "sa"
+  ar: "sa",
 };
 
 // RTL languages
@@ -39,41 +48,41 @@ export const LOCALE_FORMATS: Record<
   en: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "USD" }
+    currency: { style: "currency", currency: "USD" },
   },
   ko: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "KRW" }
+    currency: { style: "currency", currency: "KRW" },
   },
   fr: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "EUR" }
+    currency: { style: "currency", currency: "EUR" },
   },
   es: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "EUR" }
+    currency: { style: "currency", currency: "EUR" },
   },
   de: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "EUR" }
+    currency: { style: "currency", currency: "EUR" },
   },
   zh: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "CNY" }
+    currency: { style: "currency", currency: "CNY" },
   },
   ja: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "JPY" }
+    currency: { style: "currency", currency: "JPY" },
   },
   ar: {
     date: { day: "numeric", month: "long", year: "numeric" },
     number: { style: "decimal" },
-    currency: { style: "currency", currency: "SAR" }
-  }
+    currency: { style: "currency", currency: "SAR" },
+  },
 };

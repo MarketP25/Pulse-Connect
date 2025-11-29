@@ -4,8 +4,12 @@ import BookingSuccess from "./BookingSuccess";
 
 const services = [
   { id: "graphic_design_course", name: "Graphic Design Course", price: 100 },
-  { id: "social_management_course", name: "Social Management Course", price: 150 },
-  { id: "web_hosting_service", name: "Web Hosting Service", price: 200 }
+  {
+    id: "social_management_course",
+    name: "Social Management Course",
+    price: 150,
+  },
+  { id: "web_hosting_service", name: "Web Hosting Service", price: 200 },
 ];
 
 export default function BookingForm({ listingId }: { listingId: string }) {
@@ -26,7 +30,7 @@ export default function BookingForm({ listingId }: { listingId: string }) {
         serviceId: selectedService,
         totalAmount: service.price,
         name,
-        message
+        message,
       });
       setSubmitted(true);
     } catch (error) {
@@ -94,7 +98,11 @@ export default function BookingForm({ listingId }: { listingId: string }) {
         </select>
       </div>
 
-      <button type="submit" aria-label="Send booking inquiry" disabled={loading}>
+      <button
+        type="submit"
+        aria-label="Send booking inquiry"
+        disabled={loading}
+      >
         {loading ? "Sending..." : "Send Booking"}
       </button>
     </form>

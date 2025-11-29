@@ -13,13 +13,17 @@ export class PlanService {
   static async getPlan(planId: string): Promise<PlanTier | null> {
     try {
       // Try to get from cache first
-      const cachedPlan = await redis.get<PlanTier>(`${PLAN_CACHE_PREFIX}${planId}`);
+      const cachedPlan = await redis.get<PlanTier>(
+        `${PLAN_CACHE_PREFIX}${planId}`
+      );
       if (cachedPlan) return cachedPlan;
 
       // If not in cache, get from constant and cache it
       const plan = PLAN_TIERS.find((p) => p.id === planId);
       if (plan) {
-        await redis.set(`${PLAN_CACHE_PREFIX}${planId}`, plan, { ex: PLAN_CACHE_TTL });
+        await redis.set(`${PLAN_CACHE_PREFIX}${planId}`, plan, {
+          ex: PLAN_CACHE_TTL,
+        });
       }
 
       return plan || null;
@@ -48,7 +52,10 @@ export class PlanService {
       const feature = plan.features.find((f) => f.id === featureId);
       return feature?.included || false;
     } catch (error) {
-      logger.error({ error, planId, featureId }, "Failed to check feature availability");
+      logger.error(
+        { error, planId, featureId },
+        "Failed to check feature availability"
+      );
       return false;
     }
   }
@@ -56,7 +63,10 @@ export class PlanService {
   /**
    * Get feature limit for a plan
    */
-  static async getFeatureLimit(planId: string, featureId: string): Promise<number | null> {
+  static async getFeatureLimit(
+    planId: string,
+    featureId: string
+  ): Promise<number | null> {
     try {
       const plan = await this.getPlan(planId);
       if (!plan) {
@@ -87,7 +97,7 @@ export class PlanService {
     try {
       const [currentPlan, newPlan] = await Promise.all([
         this.getPlan(currentPlanId),
-        this.getPlan(newPlanId)
+        this.getPlan(newPlanId),
       ]);
 
       if (!currentPlan || !newPlan) {
@@ -103,7 +113,10 @@ export class PlanService {
       if (currentPlan.price === newPlan.price) return "same";
       return newPlan.price > currentPlan.price ? "upgrade" : "downgrade";
     } catch (error) {
-      logger.error({ error, currentPlanId, newPlanId }, "Failed to compare plans");
+      logger.error(
+        { error, currentPlanId, newPlanId },
+        "Failed to compare plans"
+      );
       throw error;
     }
   }

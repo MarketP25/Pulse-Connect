@@ -9,10 +9,14 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "PulseConnect",
-  description: "AI-powered digital marketing platform"
+  description: "AI-powered digital marketing platform",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html>
       <body className={inter.className}>

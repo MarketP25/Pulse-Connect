@@ -9,7 +9,9 @@ interface Announcement {
   priority: "low" | "medium" | "high";
 }
 
-export async function createAnnouncement(announcement: Omit<Announcement, "id" | "createdAt">) {
+export async function createAnnouncement(
+  announcement: Omit<Announcement, "id" | "createdAt">
+) {
   const client = getRedisClient();
   const id = `announcement:${Date.now()}`;
   const createdAt = new Date().toISOString();
@@ -18,19 +20,19 @@ export async function createAnnouncement(announcement: Omit<Announcement, "id" |
   await client.hset(`announcements:${id}`, {
     ...announcement,
     id,
-    createdAt
+    createdAt,
   });
 
   // Add to the announcements set
   await client.zadd("announcements:list", {
     score: Date.now(),
-    member: id
+    member: id,
   });
 
   return {
     id,
     ...announcement,
-    createdAt
+    createdAt,
   };
 }
 
@@ -40,16 +42,21 @@ export async function getAnnouncements(page = 1, limit = 10) {
   const end = start + limit - 1;
 
   // Get announcement IDs sorted by creation time
-  const announcementIds = await client.zrange("announcements:list", start, end, {
-    rev: true // Reverse order (newest first)
-  });
+  const announcementIds = await client.zrange(
+    "announcements:list",
+    start,
+    end,
+    {
+      rev: true, // Reverse order (newest first)
+    }
+  );
 
   if (!announcementIds.length) {
     return {
       announcements: [],
       total: 0,
       page,
-      limit
+      limit,
     };
   }
 
@@ -68,7 +75,7 @@ export async function getAnnouncements(page = 1, limit = 10) {
     announcements: announcements.filter(Boolean),
     total,
     page,
-    limit
+    limit,
   };
 }
 
@@ -81,7 +88,7 @@ export async function getAllUserEmails() {
     // Scan user keys in batches to handle large datasets efficiently
     const [nextCursor, keys] = await client.scan(cursor, {
       match: "user:*@*",
-      count: 1000
+      count: 1000,
     });
     cursor = parseInt(nextCursor);
 
@@ -125,13 +132,13 @@ export async function queueAnnouncementEmail(data: {
     ...data,
     status: "pending",
     createdAt: Date.now().toString(),
-    retries: "0"
+    retries: "0",
   });
 
   // Add to email queue
   await client.zadd("email:queue", {
     score: Date.now(),
-    member: emailId
+    member: emailId,
   });
 
   return emailId;
@@ -155,11 +162,14 @@ export async function processEmailQueue(batchSize: number = 100) {
         title: emailData.title,
         message: emailData.message,
         priority: emailData.priority as "low" | "medium" | "high",
-        createdBy: emailData.createdBy
+        createdBy: emailData.createdBy,
       });
 
       // Mark as sent
-      await client.hset(emailId, { status: "sent", sentAt: Date.now().toString() });
+      await client.hset(emailId, {
+        status: "sent",
+        sentAt: Date.now().toString(),
+      });
       await client.zrem("email:queue", emailId);
       processed++;
     } catch (error) {
@@ -170,7 +180,7 @@ export async function processEmailQueue(batchSize: number = 100) {
         await client.hset(emailId, {
           status: "failed",
           error: error.message,
-          failedAt: Date.now().toString()
+          failedAt: Date.now().toString(),
         });
         await client.zrem("email:queue", emailId);
       } else {
@@ -178,7 +188,7 @@ export async function processEmailQueue(batchSize: number = 100) {
         await client.hset(emailId, { retries: (retries + 1).toString() });
         await client.zadd("email:queue", {
           score: Date.now() + (retries + 1) * 300000, // 5 minutes delay per retry
-          member: emailId
+          member: emailId,
         });
       }
       failed++;

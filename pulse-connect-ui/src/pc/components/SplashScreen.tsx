@@ -8,7 +8,10 @@ interface SplashScreenProps {
   onFinish?: () => void; // callback after fade-out completes
 }
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 2000, onFinish }) => {
+const SplashScreen: React.FC<SplashScreenProps> = ({
+  duration = 2000,
+  onFinish,
+}) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isFading, setIsFading] = useState(false);
 
@@ -35,7 +38,13 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 2000, onFinish }
       aria-live="polite"
     >
       <div className={styles.logoWrapper}>
-        <Image src={logo} alt="Pulse Connect Logo" fill style={{ objectFit: "contain" }} priority />
+        <Image
+          src={logo}
+          alt="Pulse Connect Logo"
+          fill
+          style={{ objectFit: "contain" }}
+          priority
+        />
       </div>
       <p className={styles.splashText}>Connecting your marketing pulse…</p>
     </div>

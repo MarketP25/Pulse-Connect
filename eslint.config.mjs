@@ -8,11 +8,7 @@ import tseslint from "typescript-eslint";
 export default [
   js.configs.recommended,
   {
-    ignores: [
-      "**/node_modules/**",
-      "**/.next/**",
-      "**/dist/**"
-    ]
+    ignores: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
   },
   {
     files: ["src/**/*.{ts,tsx}"],
@@ -22,23 +18,26 @@ export default [
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
-        project: "./tsconfig.json"
+        project: "./tsconfig.json",
       },
-      globals: globals.browser
+      globals: globals.browser,
     },
     plugins: {
       "@typescript-eslint": tseslint.plugin,
       react,
       "react-hooks": reactHooks,
-      jsxA11y
+      jsxA11y,
     },
     rules: {
       // ✅ Core Adjustments
       "react/react-in-jsx-scope": "off", // unnecessary in Next.js
-      "no-undef": "off",                 // handled by TypeScript
+      "no-undef": "off", // handled by TypeScript
       "jsx-a11y/autocomplete-valid": "off", // overly strict
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
 
@@ -49,7 +48,7 @@ export default [
       // ✅ Accessibility Enforcement
       "jsx-a11y/no-autofocus": "off",
       "jsx-a11y/no-redundant-roles": "warn",
-      "jsx-a11y/control-has-associated-label": "warn"
-    }
-  }
+      "jsx-a11y/control-has-associated-label": "warn",
+    },
+  },
 ];

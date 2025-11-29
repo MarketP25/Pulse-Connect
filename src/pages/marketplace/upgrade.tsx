@@ -37,7 +37,7 @@ const UpgradePage: NextPage = () => {
                 es: "Actualizar",
                 fr: "Mettre à niveau",
                 de: "Aktualisieren",
-                sw: "Sasisha"
+                sw: "Sasisha",
               },
               locale
             )}

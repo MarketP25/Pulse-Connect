@@ -30,7 +30,9 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         role="alert"
         aria-live="polite"
       >
-        <p className="text-indigo-600 text-lg font-medium animate-pulse">Checking credentials...</p>
+        <p className="text-indigo-600 text-lg font-medium animate-pulse">
+          Checking credentials...
+        </p>
       </div>
     );
   }

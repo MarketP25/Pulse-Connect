@@ -32,9 +32,9 @@ export class TranslationService {
         method: "POST",
         headers: {
           "Ocp-Apim-Subscription-Key": this.apiKey,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify([{ text }])
+        body: JSON.stringify([{ text }]),
       });
 
       if (!response.ok) {
@@ -45,7 +45,7 @@ export class TranslationService {
       return {
         translatedText: result.translations[0].text,
         detectedSourceLanguage: result.detectedLanguage?.language,
-        confidence: result.detectedLanguage?.score
+        confidence: result.detectedLanguage?.score,
       };
     } catch (error) {
       console.error("Translation error:", error);
@@ -62,9 +62,9 @@ export class TranslationService {
         method: "POST",
         headers: {
           "Ocp-Apim-Subscription-Key": this.apiKey,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify([{ text }])
+        body: JSON.stringify([{ text }]),
       });
 
       if (!response.ok) {

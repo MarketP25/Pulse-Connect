@@ -15,14 +15,21 @@ export async function POST(req: Request) {
 
     // 🔐 Stripe webhook handling
     if (stripeSignature) {
-      const event = await verifyStripeWebhook(Buffer.from(body), stripeSignature);
+      const event = await verifyStripeWebhook(
+        Buffer.from(body),
+        stripeSignature
+      );
 
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object;
           const bookingId = session.metadata?.bookingId;
           if (bookingId) {
-            await updateBookingStatus(bookingId, "confirmed", session.payment_intent as string);
+            await updateBookingStatus(
+              bookingId,
+              "confirmed",
+              session.payment_intent as string
+            );
           }
           break;
         }
@@ -46,12 +53,19 @@ export async function POST(req: Request) {
           webhookBody = JSON.parse(body);
         } catch (parseError) {
           logger.warn("Failed to parse Paystack webhook body:", parseError);
-          return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+          return NextResponse.json(
+            { error: "Invalid JSON payload" },
+            { status: 400 }
+          );
         }
 
         const bookingId = webhookBody?.data?.metadata?.bookingId;
         if (bookingId) {
-          await updateBookingStatus(bookingId, "confirmed", webhookBody.data.reference);
+          await updateBookingStatus(
+            bookingId,
+            "confirmed",
+            webhookBody.data.reference
+          );
         }
       }
     }
@@ -62,6 +76,9 @@ export async function POST(req: Request) {
       { error: error instanceof Error ? error.message : String(error) },
       "Webhook processing failed"
     );
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 400 }
+    );
   }
 }

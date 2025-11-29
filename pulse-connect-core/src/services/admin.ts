@@ -36,7 +36,9 @@ export async function createAdminUser(userData: AdminUser, role: UserRole) {
   // Check if email already exists
   const emailExists = await client.get<string>(`admin:email:${userData.email}`);
   if (emailExists) {
-    const error = new Error("An account with this email already exists") as Error & {
+    const error = new Error(
+      "An account with this email already exists"
+    ) as Error & {
       code: string;
     };
     error.code = "EMAIL_ALREADY_EXISTS";
@@ -55,11 +57,14 @@ export async function createAdminUser(userData: AdminUser, role: UserRole) {
     fullName: userData.fullName,
     password: hashedPassword,
     verified: "false",
-    createdAt: Date.now().toString()
+    createdAt: Date.now().toString(),
   };
 
   // Store the data
-  await client.set(`admin:pending:${verificationCode}`, JSON.stringify(adminData));
+  await client.set(
+    `admin:pending:${verificationCode}`,
+    JSON.stringify(adminData)
+  );
   await client.set(`admin:email:${userData.email}`, verificationCode);
   await client.expire(`admin:pending:${verificationCode}`, 24 * 60 * 60); // 24 hours expiry
   await client.expire(`admin:email:${userData.email}`, 24 * 60 * 60);
@@ -71,7 +76,9 @@ export async function verifyAdminUser(verificationCode: string) {
   const client = getRedisClient();
 
   // Get pending admin data
-  const pendingAdmin = await client.get<string>(`admin:pending:${verificationCode}`);
+  const pendingAdmin = await client.get<string>(
+    `admin:pending:${verificationCode}`
+  );
   if (!pendingAdmin) {
     throw new Error("Invalid or expired verification code");
   }
@@ -88,7 +95,7 @@ export async function verifyAdminUser(verificationCode: string) {
   await client.hset(`admin:${adminData.email}`, {
     ...adminData,
     verified: "true",
-    verifiedAt: Date.now().toString()
+    verifiedAt: Date.now().toString(),
   });
 
   // Increment admin count
@@ -111,7 +118,7 @@ export async function getAdminByEmail(email: string) {
 
   return {
     ...adminData,
-    verified: adminData.verified === "true"
+    verified: adminData.verified === "true",
   };
 }
 
@@ -139,7 +146,12 @@ export class AdminService {
       const currentCount = (await redis.get<number>(ADMIN_COUNT_KEY)) || 0;
 
       if (currentCount >= ADMIN_MAX_COUNT) {
-        throw new AppError("Maximum number of admins reached", "MAX_ADMINS_REACHED", 403, true);
+        throw new AppError(
+          "Maximum number of admins reached",
+          "MAX_ADMINS_REACHED",
+          403,
+          true
+        );
       }
 
       // Generate unique code
@@ -149,7 +161,7 @@ export class AdminService {
       await redis.set(`${ADMIN_KEY_PREFIX}${adminCode}`, {
         email,
         createdAt: new Date().toISOString(),
-        lastUsed: null
+        lastUsed: null,
       });
 
       // Increment admin count
@@ -163,8 +175,8 @@ export class AdminService {
         variables: {
           adminCode,
           validityPeriod: "∞ (Never expires)",
-          maxUses: "∞ (Unlimited uses)"
-        }
+          maxUses: "∞ (Unlimited uses)",
+        },
       });
 
       logger.info({ email }, "New admin code generated and sent");
@@ -190,7 +202,7 @@ export class AdminService {
       // Update last used timestamp
       await redis.set(`${ADMIN_KEY_PREFIX}${code}`, {
         ...adminDetails,
-        lastUsed: new Date().toISOString()
+        lastUsed: new Date().toISOString(),
       });
 
       return true;
@@ -204,7 +216,12 @@ export class AdminService {
    * List all admin codes
    */
   static async listAdminCodes(): Promise<
-    Array<{ code: string; email: string; createdAt: string; lastUsed: string | null }>
+    Array<{
+      code: string;
+      email: string;
+      createdAt: string;
+      lastUsed: string | null;
+    }>
   > {
     try {
       const keys = await redis.keys(`${ADMIN_KEY_PREFIX}*`);
@@ -213,7 +230,7 @@ export class AdminService {
           const details = await redis.get(key);
           return {
             code: key.replace(ADMIN_KEY_PREFIX, ""),
-            ...details
+            ...details,
           };
         })
       );

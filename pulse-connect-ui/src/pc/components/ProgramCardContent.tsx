@@ -15,11 +15,14 @@ export default function ProgramCardContent({
   promptValue,
   onPromptChange,
   onExecute,
-  isLoading
+  isLoading,
 }: ProgramCardContentProps) {
   return (
     <div className="mt-2 space-y-2">
-      <label htmlFor={`${programKey}-input`} className="text-sm font-medium text-gray-700">
+      <label
+        htmlFor={`${programKey}-input`}
+        className="text-sm font-medium text-gray-700"
+      >
         {`${programLabel} Input`}
       </label>
       <input

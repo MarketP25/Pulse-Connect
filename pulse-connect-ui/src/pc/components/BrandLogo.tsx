@@ -10,7 +10,7 @@ export default function BrandLogo({
   height = 100,
   className = "",
   animated = true,
-  "aria-label": ariaLabel = "Pulse Connect Logo"
+  "aria-label": ariaLabel = "Pulse Connect Logo",
 }: {
   width?: number;
   height?: number;
@@ -44,7 +44,7 @@ export default function BrandLogo({
         draggable={false}
         style={{
           filter: theme === "dark" ? "drop-shadow(0 0 2px #fff)" : undefined,
-          transition: "transform 0.3s cubic-bezier(.4,2,.6,1)"
+          transition: "transform 0.3s cubic-bezier(.4,2,.6,1)",
         }}
       />
     </span>

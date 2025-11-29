@@ -8,10 +8,18 @@ interface Props {
   sent: boolean;
 }
 
-export default function FeedbackForm({ value, onChange, onSubmit, disabled, sent }: Props) {
+export default function FeedbackForm({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+  sent,
+}: Props) {
   return (
     <section className="mt-8">
-      <h3 className="text-sm font-semibold mb-2 text-indigo-700">Your Feedback</h3>
+      <h3 className="text-sm font-semibold mb-2 text-indigo-700">
+        Your Feedback
+      </h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -37,7 +45,11 @@ export default function FeedbackForm({ value, onChange, onSubmit, disabled, sent
           Send
         </button>
       </form>
-      {sent && <div className="mt-2 text-green-600 text-xs">Thank you for your feedback!</div>}
+      {sent && (
+        <div className="mt-2 text-green-600 text-xs">
+          Thank you for your feedback!
+        </div>
+      )}
     </section>
   );
 }

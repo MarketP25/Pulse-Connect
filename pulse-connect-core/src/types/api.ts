@@ -3,7 +3,7 @@ import { z } from "zod";
 // Base API Response Schema
 const BaseResponseSchema = z.object({
   success: z.boolean(),
-  timestamp: z.string().datetime()
+  timestamp: z.string().datetime(),
 });
 
 // Error Response Schema
@@ -12,8 +12,8 @@ export const APIErrorSchema = BaseResponseSchema.extend({
   error: z.object({
     message: z.string(),
     code: z.string().optional(),
-    details: z.unknown().optional()
-  })
+    details: z.unknown().optional(),
+  }),
 });
 
 // Paginated Response Schema
@@ -27,15 +27,15 @@ export const PaginatedResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
       totalItems: z.number(),
       itemsPerPage: z.number(),
       hasNextPage: z.boolean(),
-      hasPreviousPage: z.boolean()
-    })
+      hasPreviousPage: z.boolean(),
+    }),
   });
 
 // Single Item Response Schema
 export const SingleResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
   BaseResponseSchema.extend({
     success: z.literal(true),
-    data: dataSchema
+    data: dataSchema,
   });
 
 // Types

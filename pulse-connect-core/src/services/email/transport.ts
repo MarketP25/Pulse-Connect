@@ -9,8 +9,8 @@ const transporter = nodemailer.createTransport({
   secure: env.SMTP_PORT === 465,
   auth: {
     user: env.SMTP_USER,
-    pass: env.SMTP_PASSWORD
-  }
+    pass: env.SMTP_PASSWORD,
+  },
 });
 
 // Verify connection configuration
@@ -39,7 +39,7 @@ export async function sendEmail({
   subject,
   template,
   context,
-  attachments = []
+  attachments = [],
 }: EmailOptions): Promise<boolean> {
   try {
     const info = await transporter.sendMail({
@@ -48,7 +48,7 @@ export async function sendEmail({
       subject,
       template,
       context,
-      attachments
+      attachments,
     });
 
     logger.info("Email sent:", { messageId: info.messageId, to, subject });

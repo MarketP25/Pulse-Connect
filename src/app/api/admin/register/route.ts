@@ -12,10 +12,13 @@ const adminRegistrationSchema = z.object({
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+    .regex(
+      /[^A-Za-z0-9]/,
+      "Password must contain at least one special character"
+    ),
   acceptTerms: z.literal(true, {
-    message: "You must accept the terms and conditions"
-  })
+    message: "You must accept the terms and conditions",
+  }),
 });
 
 export async function POST(request: NextRequest) {
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
       {
         email: validatedData.email,
         fullName: validatedData.fullName,
-        password: validatedData.password
+        password: validatedData.password,
       },
       "ADMIN" // ✅ Required second argument
     );
@@ -36,11 +39,12 @@ export async function POST(request: NextRequest) {
 
     return new Response(
       JSON.stringify({
-        message: "Registration successful. Please check your email for verification."
+        message:
+          "Registration successful. Please check your email for verification.",
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (error: unknown) {
@@ -48,11 +52,11 @@ export async function POST(request: NextRequest) {
       return new Response(
         JSON.stringify({
           error: "Validation failed",
-          details: error.issues
+          details: error.issues,
         }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -65,11 +69,11 @@ export async function POST(request: NextRequest) {
     ) {
       return new Response(
         JSON.stringify({
-          error: "Maximum number of admins reached"
+          error: "Maximum number of admins reached",
         }),
         {
           status: 403,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -82,11 +86,11 @@ export async function POST(request: NextRequest) {
     ) {
       return new Response(
         JSON.stringify({
-          error: "An account with this email already exists"
+          error: "An account with this email already exists",
         }),
         {
           status: 409,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -94,11 +98,11 @@ export async function POST(request: NextRequest) {
     console.error("Admin registration error:", error);
     return new Response(
       JSON.stringify({
-        error: "Registration failed. Please try again later."
+        error: "Registration failed. Please try again later.",
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       }
     );
   }

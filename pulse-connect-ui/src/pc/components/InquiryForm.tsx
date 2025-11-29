@@ -8,10 +8,18 @@ interface Props {
   sent: boolean;
 }
 
-export default function InquiryForm({ value, onChange, onSubmit, disabled, sent }: Props) {
+export default function InquiryForm({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+  sent,
+}: Props) {
   return (
     <section className="mt-6 mb-8">
-      <h3 className="text-sm font-semibold mb-2 text-indigo-700">General Inquiries</h3>
+      <h3 className="text-sm font-semibold mb-2 text-indigo-700">
+        General Inquiries
+      </h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();

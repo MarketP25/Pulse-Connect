@@ -18,7 +18,11 @@ interface FeatureGateProps {
   children: ReactNode;
 }
 
-export default function FeatureGate({ permission, fallback, children }: FeatureGateProps) {
+export default function FeatureGate({
+  permission,
+  fallback,
+  children,
+}: FeatureGateProps) {
   const { hasPermission, role } = useAuth();
   const t = useTranslations("common");
 
@@ -31,7 +35,7 @@ export default function FeatureGate({ permission, fallback, children }: FeatureG
       ⚠️{" "}
       {t("featureGate.noPermission", {
         role: role?.toLowerCase() ?? "user",
-        feature: t(`auth.permissions.${permission.split(":")[0]}`)
+        feature: t(`auth.permissions.${permission.split(":")[0]}`),
       })}
       {fallback && <div className="mt-2">{fallback}</div>}
     </div>

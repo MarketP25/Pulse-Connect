@@ -6,12 +6,19 @@ export async function POST(request: Request) {
     const { text, targetLanguage, sourceLanguage } = await request.json();
 
     if (!text || !targetLanguage) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     const translationService = new TranslationService();
 
-    const result = await translationService.translateMessage(text, targetLanguage, sourceLanguage);
+    const result = await translationService.translateMessage(
+      text,
+      targetLanguage,
+      sourceLanguage
+    );
 
     return NextResponse.json(result);
   } catch (error) {

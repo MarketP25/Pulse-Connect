@@ -12,7 +12,9 @@ export default function UserInteractions({ userRole }: UserInteractionsProps) {
 
   return (
     <div className="bg-white shadow-sm border rounded-lg p-5 mb-6">
-      <h2 className="text-lg font-semibold text-indigo-700 mb-2">User Interactions</h2>
+      <h2 className="text-lg font-semibold text-indigo-700 mb-2">
+        User Interactions
+      </h2>
       <div className="space-y-3">
         <div>
           <span className="font-semibold">Text Chat: </span>

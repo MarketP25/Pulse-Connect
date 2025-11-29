@@ -7,9 +7,15 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
 } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { app } from "@/firebase/config";
 import { getErrorMessage } from "@/lib/errorUtils";
 
@@ -54,7 +60,11 @@ export default function LoginPage() {
             }
           }
 
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
           const user = userCredential.user;
 
           await setDoc(doc(db, "users", user.uid), {
@@ -62,7 +72,7 @@ export default function LoginPage() {
             email: user.email,
             role: "basic",
             referredBy,
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
           });
 
           await sendEmailVerification(user);
@@ -70,7 +80,11 @@ export default function LoginPage() {
           setLoading(false);
           return;
         } else {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
           const user = userCredential.user;
 
           if (!user.emailVerified) {
@@ -139,8 +153,12 @@ export default function LoginPage() {
         aria-label={isSignUp ? "Sign up form" : "Login form"}
       >
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-extrabold text-indigo-700">Pulse Connect</h1>
-          <p className="text-gray-500 text-sm mt-1">Your digital marketing command center</p>
+          <h1 className="text-3xl font-extrabold text-indigo-700">
+            Pulse Connect
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Your digital marketing command center
+          </p>
         </div>
 
         <h2 className="text-2xl font-bold mb-6 text-center">
@@ -200,7 +218,10 @@ export default function LoginPage() {
         )}
 
         {(error || info) && (
-          <p className={`mb-4 text-sm ${error ? "text-red-500" : "text-green-600"}`} role="alert">
+          <p
+            className={`mb-4 text-sm ${error ? "text-red-500" : "text-green-600"}`}
+            role="alert"
+          >
             {error || info}
           </p>
         )}

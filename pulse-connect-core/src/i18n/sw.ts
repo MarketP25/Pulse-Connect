@@ -12,6 +12,6 @@ export default {
   feedbackReceived: "Asante!",
   unlockFeatures: "Fungua Vipengele Zaidi",
   upgradeNow: "Boresha Sasa",
-  remindMeLater: "Nikumbushe Baadaye"
+  remindMeLater: "Nikumbushe Baadaye",
   // ...add more as needed
 };

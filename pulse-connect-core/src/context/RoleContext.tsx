@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { app } from "@/firebase/config";
 
@@ -35,7 +41,7 @@ const RoleContext = createContext<RoleContextType>({
   loading: true,
   plan: "free",
   fundingSource: "user",
-  features: []
+  features: [],
 });
 
 export function RoleProvider({ children }: { children: ReactNode }) {
@@ -63,16 +69,23 @@ export function RoleProvider({ children }: { children: ReactNode }) {
           const claimFeatures = claims.features;
 
           const resolvedRole =
-            typeof claimRole === "string" ? (claimRole as PulseConnectRole) : "guest";
+            typeof claimRole === "string"
+              ? (claimRole as PulseConnectRole)
+              : "guest";
 
           const resolvedOrg = typeof claimOrg === "string" ? claimOrg : null;
 
-          const resolvedPlan = typeof claimPlan === "string" ? (claimPlan as PlanTier) : "free";
+          const resolvedPlan =
+            typeof claimPlan === "string" ? (claimPlan as PlanTier) : "free";
 
           const resolvedFunding =
-            typeof claimFundingSource === "string" ? (claimFundingSource as FundingSource) : "user";
+            typeof claimFundingSource === "string"
+              ? (claimFundingSource as FundingSource)
+              : "user";
 
-          const resolvedFeatures = Array.isArray(claimFeatures) ? claimFeatures : [];
+          const resolvedFeatures = Array.isArray(claimFeatures)
+            ? claimFeatures
+            : [];
 
           const browserLang = navigator.language.startsWith("sw") ? "sw" : "en";
 
@@ -114,7 +127,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
         loading,
         plan,
         fundingSource,
-        features
+        features,
       }}
     >
       {children}

@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-export const PaymentGateway = z.enum(["stripe", "paypal", "mpesa", "paystack", "alipay"]);
+export const PaymentGateway = z.enum([
+  "stripe",
+  "paypal",
+  "mpesa",
+  "paystack",
+  "alipay",
+]);
 export type PaymentGateway = z.infer<typeof PaymentGateway>;
 
 export const PaymentRequestSchema = z.object({
@@ -11,7 +17,7 @@ export const PaymentRequestSchema = z.object({
   description: z.string().optional(),
   metadata: z.record(z.string()).optional(),
   returnUrl: z.string().url(),
-  customerId: z.string().optional()
+  customerId: z.string().optional(),
 });
 
 export type PaymentRequest = z.infer<typeof PaymentRequestSchema>;
@@ -21,7 +27,7 @@ export const PaymentResponseSchema = z.object({
   sessionId: z.string().optional(),
   url: z.string().url().optional(),
   error: z.string().optional(),
-  metadata: z.record(z.string()).optional()
+  metadata: z.record(z.string()).optional(),
 });
 
 export type PaymentResponse = z.infer<typeof PaymentResponseSchema>;

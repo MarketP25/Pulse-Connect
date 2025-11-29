@@ -3,7 +3,11 @@ import { usePathname } from "next/navigation";
 import { Locale } from "@/types/i18n";
 import { LanguageLearningService } from "@/lib/services/languageLearning";
 import { VoiceTranslationService } from "@/lib/services/voiceTranslation";
-import { SpeakerWaveIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  SpeakerWaveIcon,
+  CheckIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import styles from "./LanguageSuggestion.module.css";
 
 interface LanguageSuggestionProps {
@@ -16,7 +20,7 @@ const voiceService = new VoiceTranslationService();
 
 export default function LanguageSuggestion({
   targetLocale,
-  className = ""
+  className = "",
 }: LanguageSuggestionProps) {
   const pathname = usePathname();
   const currentLocale = (pathname?.split("/")[1] as Locale) || "en";
@@ -33,7 +37,7 @@ export default function LanguageSuggestion({
   const updateSuggestions = () => {
     const phrases = learningService.getSuggestedPhrases({
       sourceLocale: currentLocale,
-      targetLocale
+      targetLocale,
     });
     setSuggestedPhrases(phrases);
   };
@@ -41,7 +45,7 @@ export default function LanguageSuggestion({
   const updateProgress = () => {
     const newProgress = learningService.getProgress({
       sourceLocale: currentLocale,
-      targetLocale
+      targetLocale,
     });
     setProgress(newProgress);
   };
@@ -49,7 +53,10 @@ export default function LanguageSuggestion({
   const playPhrase = async (phrase: string, isTranslation: boolean) => {
     try {
       setIsPlaying(phrase);
-      await voiceService.speak(phrase, isTranslation ? targetLocale : currentLocale);
+      await voiceService.speak(
+        phrase,
+        isTranslation ? targetLocale : currentLocale
+      );
     } catch (error) {
       console.error("Error playing phrase:", error);
     } finally {
@@ -81,7 +88,7 @@ export default function LanguageSuggestion({
           <div
             className={styles["language-progress-fill"]}
             style={{
-              width: `${(progress.mastered / progress.total) * 100}%`
+              width: `${(progress.mastered / progress.total) * 100}%`,
             }}
             role="progressbar"
             aria-label={`Language mastery progress: ${Math.round((progress.mastered / progress.total) * 100)}%`}
@@ -107,7 +114,9 @@ export default function LanguageSuggestion({
               <button
                 onClick={() => playPhrase(phrase.phrase, false)}
                 className={`ml-2 p-2 rounded-full hover:bg-gray-100 ${
-                  isPlaying === phrase.phrase ? "text-blue-500" : "text-gray-500"
+                  isPlaying === phrase.phrase
+                    ? "text-blue-500"
+                    : "text-gray-500"
                 }`}
                 aria-label={`Play original phrase in ${currentLocale}`}
               >
@@ -123,7 +132,9 @@ export default function LanguageSuggestion({
               <button
                 onClick={() => playPhrase(phrase.translation, true)}
                 className={`ml-2 p-2 rounded-full hover:bg-gray-100 ${
-                  isPlaying === phrase.translation ? "text-blue-500" : "text-gray-500"
+                  isPlaying === phrase.translation
+                    ? "text-blue-500"
+                    : "text-gray-500"
                 }`}
                 aria-label={`Play translated phrase in ${targetLocale}`}
               >
@@ -132,7 +143,9 @@ export default function LanguageSuggestion({
             </div>
 
             {/* Context */}
-            <p className="text-xs text-gray-500 mt-2">Context: {phrase.context}</p>
+            <p className="text-xs text-gray-500 mt-2">
+              Context: {phrase.context}
+            </p>
 
             {/* Review Buttons */}
             <div className="mt-3 flex justify-end space-x-2">

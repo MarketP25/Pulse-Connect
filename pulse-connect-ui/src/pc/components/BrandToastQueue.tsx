@@ -35,7 +35,7 @@ export default function BrandToastQueue({ queue }: ToastQueueProps) {
             yo: `Ẹgbẹ rẹ ti ṣí: ${featureList}`,
             ar: `منظمتك فتحت: ${featureList}`,
             hi: `आपकी संस्था ने अनलॉक किया है: ${featureList}`,
-            pt: `Sua organização desbloqueou: ${featureList}`
+            pt: `Sua organização desbloqueou: ${featureList}`,
           }[language] ?? `Your org unlocked: ${featureList}`)
         : ({
             en: `You unlocked: ${featureList}`,
@@ -43,7 +43,7 @@ export default function BrandToastQueue({ queue }: ToastQueueProps) {
             yo: `O ti ṣí: ${featureList}`,
             ar: `لقد فتحت: ${featureList}`,
             hi: `आपने अनलॉक किया है: ${featureList}`,
-            pt: `Você desbloqueou: ${featureList}`
+            pt: `Você desbloqueou: ${featureList}`,
           }[language] ?? `You unlocked: ${featureList}`);
 
     toast.success(
@@ -59,8 +59,8 @@ export default function BrandToastQueue({ queue }: ToastQueueProps) {
         style: {
           background: colors[1],
           borderColor: colors[0],
-          color: colors[2]
-        }
+          color: colors[2],
+        },
       }
     );
 

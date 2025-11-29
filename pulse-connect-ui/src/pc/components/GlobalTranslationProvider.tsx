@@ -13,24 +13,31 @@ const translationService = new TranslationService();
 
 export function GlobalTranslationProvider({
   children,
-  defaultLocale = "en"
+  defaultLocale = "en",
 }: GlobalTranslationProviderProps) {
   const pathname = usePathname();
   const currentLocale = (pathname?.split("/")[1] as Locale) || defaultLocale;
 
   useEffect(() => {
     // Set document direction based on locale
-    document.documentElement.dir = RTL_LOCALES.has(currentLocale) ? "rtl" : "ltr";
+    document.documentElement.dir = RTL_LOCALES.has(currentLocale)
+      ? "rtl"
+      : "ltr";
 
     // Set language attribute
     document.documentElement.lang = currentLocale;
 
     // Set date and number formatting
-    document.documentElement.setAttribute("data-locale", LOCALE_REGION_MAPPING[currentLocale]);
+    document.documentElement.setAttribute(
+      "data-locale",
+      LOCALE_REGION_MAPPING[currentLocale]
+    );
   }, [currentLocale]);
 
   return (
-    <div className={`root-wrapper ${RTL_LOCALES.has(currentLocale) ? "rtl" : "ltr"}`}>
+    <div
+      className={`root-wrapper ${RTL_LOCALES.has(currentLocale) ? "rtl" : "ltr"}`}
+    >
       {children}
     </div>
   );

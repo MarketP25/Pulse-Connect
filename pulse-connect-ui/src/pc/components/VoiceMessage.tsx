@@ -3,7 +3,12 @@ import { usePathname } from "next/navigation";
 import { Locale } from "@/types/i18n";
 import { VoiceTranslationService } from "@/lib/services/voiceTranslation";
 import { TranslationService } from "@/lib/services/translationService";
-import { MicrophoneIcon, StopIcon, PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
+import {
+  MicrophoneIcon,
+  StopIcon,
+  PlayIcon,
+  PauseIcon,
+} from "@heroicons/react/24/solid";
 
 interface VoiceMessageProps {
   onMessage?: (text: string, translation: string) => void;
@@ -19,7 +24,7 @@ export default function VoiceMessage({
   onMessage,
   className = "",
   maxDuration = 60,
-  showTranscript = true
+  showTranscript = true,
 }: VoiceMessageProps) {
   const pathname = usePathname();
   const currentLocale = (pathname?.split("/")[1] as Locale) || "en";
@@ -46,7 +51,10 @@ export default function VoiceMessage({
       setTranscript(text);
 
       // Translate the transcript
-      const { translatedText } = await translationService.translateMessage(text, currentLocale);
+      const { translatedText } = await translationService.translateMessage(
+        text,
+        currentLocale
+      );
       setTranslation(translatedText);
 
       onMessage?.(text, translatedText);
@@ -91,10 +99,16 @@ export default function VoiceMessage({
         <button
           onClick={isRecording ? stopRecording : startRecording}
           className={`p-3 rounded-full ${
-            isRecording ? "bg-red-500 hover:bg-red-600" : "bg-blue-500 hover:bg-blue-600"
+            isRecording
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-blue-500 hover:bg-blue-600"
           } text-white transition-colors`}
         >
-          {isRecording ? <StopIcon className="h-6 w-6" /> : <MicrophoneIcon className="h-6 w-6" />}
+          {isRecording ? (
+            <StopIcon className="h-6 w-6" />
+          ) : (
+            <MicrophoneIcon className="h-6 w-6" />
+          )}
         </button>
 
         {/* Playback button */}
@@ -104,7 +118,11 @@ export default function VoiceMessage({
             className="p-3 rounded-full bg-green-500 hover:bg-green-600 text-white transition-colors"
             disabled={isRecording}
           >
-            {isPlaying ? <PauseIcon className="h-6 w-6" /> : <PlayIcon className="h-6 w-6" />}
+            {isPlaying ? (
+              <PauseIcon className="h-6 w-6" />
+            ) : (
+              <PlayIcon className="h-6 w-6" />
+            )}
           </button>
         )}
       </div>

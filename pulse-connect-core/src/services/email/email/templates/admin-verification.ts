@@ -1,6 +1,9 @@
 import { sendEmail } from "@/lib/email/templates/send";
 
-export async function sendVerificationEmail(email: string, verificationCode: string) {
+export async function sendVerificationEmail(
+  email: string,
+  verificationCode: string
+) {
   const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/admin/verify?code=${verificationCode}`;
 
   const htmlContent = `
@@ -65,6 +68,6 @@ export async function sendVerificationEmail(email: string, verificationCode: str
   await sendEmail({
     to: email,
     subject: "Verify Your Pulse Connect Admin Account",
-    html: htmlContent
+    html: htmlContent,
   });
 }

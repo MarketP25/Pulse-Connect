@@ -10,6 +10,6 @@ export const fallbackCopy: Partial<Record<FallbackKey, string>> = {
   "admin-org-hi": "आपकी संस्था वीडियो पोस्टिंग सक्रिय कर सकती है।",
   "viewer-org-ar": "يمكن لمنظمتك تمكين هذه الميزة من خلال خطة متميزة.",
   "editor-user-pt": "Ative chamadas de vídeo com um plano Premium.",
-  "guest-org-en": "Your org can enable this feature on your behalf."
+  "guest-org-en": "Your org can enable this feature on your behalf.",
   // Add more as needed
 };

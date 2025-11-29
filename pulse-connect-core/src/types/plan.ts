@@ -25,14 +25,14 @@ export const PlanSchema = z.object({
     SupportedLocale,
     z.object({
       confettiColors: z.array(z.string()),
-      soundEffect: z.string()
+      soundEffect: z.string(),
     })
-  )
+  ),
 });
 export type Plan = z.infer<typeof PlanSchema>;
 
 /** Wrapper for your plans endpoint. */
 export const PlanResponseSchema = z.object({
-  plans: z.array(PlanSchema)
+  plans: z.array(PlanSchema),
 });
 export type PlanResponse = z.infer<typeof PlanResponseSchema>;

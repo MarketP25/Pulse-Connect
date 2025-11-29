@@ -21,7 +21,7 @@ export const LANGUAGE_NAMES: Record<Locale, string> = {
   tr: "Türkçe", // Turkish
   uk: "Українська", // Ukrainian
   vi: "Tiếng Việt", // Vietnamese
-  zh: "中文" // Chinese
+  zh: "中文", // Chinese
 };
 
 // RTL (Right-to-Left) languages
@@ -48,7 +48,7 @@ export const LOCALE_REGION_MAPPING: Record<Locale, string> = {
   tr: "tr-TR", // Turkish (Turkey)
   uk: "uk-UA", // Ukrainian (Ukraine)
   vi: "vi-VN", // Vietnamese (Vietnam)
-  zh: "zh-CN" // Chinese (China)
+  zh: "zh-CN", // Chinese (China)
 };
 
 // Time zones commonly associated with each locale
@@ -72,5 +72,5 @@ export const DEFAULT_TIMEZONES: Record<Locale, string> = {
   tr: "Europe/Istanbul",
   uk: "Europe/Kiev",
   vi: "Asia/Ho_Chi_Minh",
-  zh: "Asia/Shanghai"
+  zh: "Asia/Shanghai",
 };

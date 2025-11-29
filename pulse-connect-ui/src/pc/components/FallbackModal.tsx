@@ -16,7 +16,7 @@ export default function FallbackModal({
   language,
   tier,
   onConfirm,
-  onClose
+  onClose,
 }: FallbackModalProps) {
   const key = `${role}-${funding}-${language}` as string;
 
@@ -33,7 +33,7 @@ export default function FallbackModal({
           yo: `Imudojuiwọn si ${tier}`,
           ar: `الترقية إلى ${tier}`,
           hi: `${tier} के लिए अपग्रेड करें`,
-          pt: `Atualize para ${tier}`
+          pt: `Atualize para ${tier}`,
         }[language] ?? `Upgrade to ${tier}`)
       : ({
           en: `Request ${tier} from your organization`,
@@ -41,7 +41,7 @@ export default function FallbackModal({
           yo: `Beere ${tier} lọwọ ẹgbẹ rẹ`,
           ar: `اطلب ${tier} من منظمتك`,
           hi: `अपनी संस्था से ${tier} का अनुरोध करें`,
-          pt: `Solicite ${tier} à sua organização`
+          pt: `Solicite ${tier} à sua organização`,
         }[language] ?? `Request ${tier} from your organization`);
 
   return (
@@ -55,7 +55,11 @@ export default function FallbackModal({
         </button>
 
         <div className="flex items-center gap-2 mb-4">
-          <img src="/icon.png" alt="PulseConnect" className="w-6 h-6 animate-pulse" />
+          <img
+            src="/icon.png"
+            alt="PulseConnect"
+            className="w-6 h-6 animate-pulse"
+          />
           <h2 className="text-lg font-bold text-gray-800">{tier} Feature</h2>
         </div>
 

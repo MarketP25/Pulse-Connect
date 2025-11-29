@@ -5,7 +5,7 @@ export const copy = {
     yo: "Ṣí imudojuiwọn Premium",
     ar: "الترقية إلى بريميوم",
     pt: "Atualize para Premium",
-    hi: "प्रीमियम में अपग्रेड करें"
+    hi: "प्रीमियम में अपग्रेड करें",
   },
   fallback: {
     en: "This feature requires a higher tier.",
@@ -13,6 +13,6 @@ export const copy = {
     yo: "Ẹya yii nilo ipele to ga ju.",
     ar: "هذه الميزة تتطلب خطة أعلى.",
     pt: "Este recurso requer um plano superior.",
-    hi: "इस सुविधा के लिए उच्च स्तरीय योजना आवश्यक है।"
-  }
+    hi: "इस सुविधा के लिए उच्च स्तरीय योजना आवश्यक है।",
+  },
 };

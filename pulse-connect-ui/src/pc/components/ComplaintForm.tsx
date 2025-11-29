@@ -8,10 +8,18 @@ interface Props {
   sent: boolean;
 }
 
-export default function ComplaintForm({ value, onChange, onSubmit, disabled, sent }: Props) {
+export default function ComplaintForm({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+  sent,
+}: Props) {
   return (
     <section className="mt-6">
-      <h3 className="text-sm font-semibold mb-2 text-red-700">Submit a Complaint</h3>
+      <h3 className="text-sm font-semibold mb-2 text-red-700">
+        Submit a Complaint
+      </h3>
       <form
         onSubmit={(e) => {
           e.preventDefault();

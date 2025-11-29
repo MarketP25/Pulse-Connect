@@ -28,7 +28,9 @@ describe("ProductSchema", () => {
       region: "US",
       sellerId: "123e4567-e89b-12d3-a456-426614174001",
     };
-    expect(() => ProductSchema.parse(invalidProduct)).toThrow("Price must be zero or positive");
+    expect(() => ProductSchema.parse(invalidProduct)).toThrow(
+      "Price must be zero or positive"
+    );
   });
 
   it("should throw an error for an invalid URL", () => {
@@ -43,6 +45,8 @@ describe("ProductSchema", () => {
       region: "US",
       sellerId: "123e4567-e89b-12d3-a456-426614174001",
     };
-    expect(() => ProductSchema.parse(invalidProduct)).toThrow("Must be a valid URL");
+    expect(() => ProductSchema.parse(invalidProduct)).toThrow(
+      "Must be a valid URL"
+    );
   });
 });

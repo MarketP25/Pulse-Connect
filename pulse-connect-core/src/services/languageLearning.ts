@@ -47,17 +47,20 @@ export class LanguageLearningService {
         translation,
         context,
         frequency: 1,
-        lastUsed: new Date()
+        lastUsed: new Date(),
       });
     }
   }
 
-  getSuggestedPhrases(languagePair: LanguagePair, limit: number = 5): PhraseUsage[] {
+  getSuggestedPhrases(
+    languagePair: LanguagePair,
+    limit: number = 5
+  ): PhraseUsage[] {
     const pairKey = this.getLanguagePairKey(languagePair);
     const progress = this.userProgress.get(pairKey) || {
       knownPhrases: new Set(),
       masteredPhrases: new Set(),
-      reviewDue: new Map()
+      reviewDue: new Map(),
     };
 
     // Get all phrases for this language pair
@@ -76,7 +79,11 @@ export class LanguageLearningService {
     return relevantPhrases.slice(0, limit);
   }
 
-  markPhraseAsReviewed(phrase: string, languagePair: LanguagePair, known: boolean): void {
+  markPhraseAsReviewed(
+    phrase: string,
+    languagePair: LanguagePair,
+    known: boolean
+  ): void {
     const pairKey = this.getLanguagePairKey(languagePair);
     let progress = this.userProgress.get(pairKey);
 
@@ -84,7 +91,7 @@ export class LanguageLearningService {
       progress = {
         knownPhrases: new Set(),
         masteredPhrases: new Set(),
-        reviewDue: new Map()
+        reviewDue: new Map(),
       };
       this.userProgress.set(pairKey, progress);
     }
@@ -120,7 +127,10 @@ export class LanguageLearningService {
   }
 
   private calculateNextReview(reviewCount: number): Date {
-    const intervalIndex = Math.min(reviewCount, this.reviewIntervals.length - 1);
+    const intervalIndex = Math.min(
+      reviewCount,
+      this.reviewIntervals.length - 1
+    );
     const daysToAdd = this.reviewIntervals[intervalIndex];
 
     const nextReview = new Date();
@@ -169,7 +179,7 @@ export class LanguageLearningService {
     return {
       known: progress.knownPhrases.size,
       mastered: progress.masteredPhrases.size,
-      total
+      total,
     };
   }
 }

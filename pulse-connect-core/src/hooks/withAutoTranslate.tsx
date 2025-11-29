@@ -11,8 +11,16 @@ export function withAutoTranslate<P extends Record<string, any>>(
   options: WithAutoTranslateProps = {}
 ) {
   const {
-    translateProps = ["title", "description", "content", "text", "label", "placeholder", "message"],
-    excludeProps = ["id", "className", "style"]
+    translateProps = [
+      "title",
+      "description",
+      "content",
+      "text",
+      "label",
+      "placeholder",
+      "message",
+    ],
+    excludeProps = ["id", "className", "style"],
   } = options;
 
   return function TranslatedComponent(props: P) {

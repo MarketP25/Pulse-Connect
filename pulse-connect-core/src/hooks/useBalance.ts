@@ -1,5 +1,5 @@
 // src/hooks/useBalance.ts
-import useSWR from 'swr';
+import useSWR from "swr";
 
 interface BalanceResponse {
   balance: number;
@@ -8,13 +8,13 @@ interface BalanceResponse {
 // Define a typed fetcher
 const fetcher = (url: string): Promise<BalanceResponse> =>
   fetch(url).then((res) => {
-    if (!res.ok) throw new Error('Network response was not ok');
+    if (!res.ok) throw new Error("Network response was not ok");
     return res.json();
   });
 
 export function useBalance() {
   const { data, error } = useSWR<BalanceResponse>(
-    '/api/wallet/balance',
+    "/api/wallet/balance",
     fetcher
   );
 

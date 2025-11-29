@@ -2,12 +2,16 @@ import { withPermission } from "@/lib/auth/withPermission";
 import { useLanguage } from "../context/LanguageProvider";
 
 const bundles = [
-  { name: "Starter", price: 500, features: ["5 listings", "2 boosts", "analytics"] },
+  {
+    name: "Starter",
+    price: 500,
+    features: ["5 listings", "2 boosts", "analytics"],
+  },
   {
     name: "Pro",
     price: 1500,
-    features: ["Unlimited listings", "Priority support", "Custom branding"]
-  }
+    features: ["Unlimited listings", "Priority support", "Custom branding"],
+  },
 ];
 
 const AdminBundlesComponent: React.FC = () => {
@@ -20,7 +24,9 @@ const AdminBundlesComponent: React.FC = () => {
         <div key={bundle.name}>
           <h3>
             {bundle.name}
-            {locale === "sw" ? `KES ${bundle.price}/mwezi` : `KES ${bundle.price}/month`}
+            {locale === "sw"
+              ? `KES ${bundle.price}/mwezi`
+              : `KES ${bundle.price}/month`}
           </h3>
           <ul>
             {bundle.features.map((f) => (
@@ -35,5 +41,5 @@ const AdminBundlesComponent: React.FC = () => {
 
 export const AdminBundles = withPermission(AdminBundlesComponent, {
   resource: "admin",
-  action: "manage"
+  action: "manage",
 });

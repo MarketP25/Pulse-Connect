@@ -21,7 +21,7 @@ export default function ProgramItem({
   onPromptChange,
   onGenerate,
   loading,
-  hasAccess
+  hasAccess,
 }: Props) {
   return (
     <li>

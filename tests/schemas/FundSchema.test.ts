@@ -8,7 +8,9 @@ describe("FundSchema", () => {
 
   it("should throw an error for a negative amount", () => {
     const invalidFund = { amount: -50, currency: "USD" };
-    expect(() => FundSchema.parse(invalidFund)).toThrow("Amount must be positive");
+    expect(() => FundSchema.parse(invalidFund)).toThrow(
+      "Amount must be positive"
+    );
   });
 
   it("should throw an error for an invalid currency code", () => {

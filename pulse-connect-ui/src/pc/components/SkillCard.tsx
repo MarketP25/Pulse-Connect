@@ -30,7 +30,7 @@ export const SkillCard: React.FC<Props> = ({ skill, region }) => {
       amount: skill.price,
       currency: skill.currency,
       timestamp: new Date().toISOString(),
-      milestone: `Purchased ${skill.title}`
+      milestone: `Purchased ${skill.title}`,
     };
 
     const result = await processPayment(metadata);
@@ -58,7 +58,9 @@ export const SkillCard: React.FC<Props> = ({ skill, region }) => {
         <span>
           {skill.price} {skill.currency}
         </span>
-        <button onClick={handlePurchase}>Hire via {gateway.toUpperCase()} 💼</button>
+        <button onClick={handlePurchase}>
+          Hire via {gateway.toUpperCase()} 💼
+        </button>
       </div>
     </div>
   );

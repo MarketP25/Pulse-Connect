@@ -12,6 +12,6 @@ export default {
   feedbackReceived: "Ngiyabonga!",
   unlockFeatures: "Vula Izici Eziningi",
   upgradeNow: "Thuthukisa Manje",
-  remindMeLater: "Ngikhumbuze Kamuva"
+  remindMeLater: "Ngikhumbuze Kamuva",
   // ...add more as needed
 };

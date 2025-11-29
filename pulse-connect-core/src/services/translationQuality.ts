@@ -88,13 +88,16 @@ export class TranslationQualityService {
     const adequacy = this.calculateAdequacyScore(sourceText, translatedText);
 
     // Calculate consistency with existing translations
-    const consistency = this.calculateConsistencyScore(translatedText, existingTranslations);
+    const consistency = this.calculateConsistencyScore(
+      translatedText,
+      existingTranslations
+    );
 
     return {
       confidence,
       fluency,
       adequacy,
-      consistency
+      consistency,
     };
   }
 
@@ -134,7 +137,11 @@ export class TranslationQualityService {
       (entry) => entry.locale === locale
     );
 
-    const quality = this.evaluateTranslationQuality(sourceText, targetText, existingEntries);
+    const quality = this.evaluateTranslationQuality(
+      sourceText,
+      targetText,
+      existingEntries
+    );
 
     if (quality.confidence >= this.minConfidenceThreshold) {
       const entry: TranslationMemoryEntry = {
@@ -144,7 +151,7 @@ export class TranslationQualityService {
         context,
         usage: 1,
         lastUsed: new Date(),
-        quality
+        quality,
       };
 
       this.memoryStore.set(key, entry);
@@ -156,7 +163,10 @@ export class TranslationQualityService {
     }
   }
 
-  findInMemory(sourceText: string, targetLocale: string): TranslationMemoryEntry | null {
+  findInMemory(
+    sourceText: string,
+    targetLocale: string
+  ): TranslationMemoryEntry | null {
     const key = this.calculateMemoryKey(sourceText, targetLocale);
     const entry = this.memoryStore.get(key);
 
@@ -170,13 +180,15 @@ export class TranslationQualityService {
   }
 
   private cleanupOldEntries(): void {
-    const entries = Array.from(this.memoryStore.entries()).sort(([, a], [, b]) => {
-      // Sort by usage and last used date
-      if (a.usage !== b.usage) {
-        return a.usage - b.usage;
+    const entries = Array.from(this.memoryStore.entries()).sort(
+      ([, a], [, b]) => {
+        // Sort by usage and last used date
+        if (a.usage !== b.usage) {
+          return a.usage - b.usage;
+        }
+        return a.lastUsed.getTime() - b.lastUsed.getTime();
       }
-      return a.lastUsed.getTime() - b.lastUsed.getTime();
-    });
+    );
 
     // Remove oldest, least used entries
     const entriesToRemove = Math.floor(this.maxMemoryEntries * 0.2); // Remove 20%
@@ -185,7 +197,10 @@ export class TranslationQualityService {
     });
   }
 
-  getQualityMetrics(sourceText: string, targetLocale: string): TranslationQualityMetrics | null {
+  getQualityMetrics(
+    sourceText: string,
+    targetLocale: string
+  ): TranslationQualityMetrics | null {
     const entry = this.findInMemory(sourceText, targetLocale);
     return entry ? entry.quality : null;
   }

@@ -17,7 +17,7 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
 } from "firebase/firestore";
 import { app } from "@/firebase/config";
 import { useRole } from "@/context/RoleContext";
@@ -60,7 +60,13 @@ function UpgradeReminder({ onClose }: { onClose: () => void }) {
 }
 
 // --- Welcome Popup for New Users ---
-function WelcomePopup({ username, onClose }: { username: string; onClose: () => void }) {
+function WelcomePopup({
+  username,
+  onClose,
+}: {
+  username: string;
+  onClose: () => void;
+}) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
@@ -81,7 +87,8 @@ function WelcomePopup({ username, onClose }: { username: string; onClose: () => 
         <p className="text-gray-700 mb-4">
           🚀 We’re thrilled to have you join our creative community.
           <br />
-          Explore AI-powered tools, connect with others, and grow your campaigns.
+          Explore AI-powered tools, connect with others, and grow your
+          campaigns.
           <br />
           <span className="font-semibold text-indigo-600">
             Your journey to smarter marketing starts now!
@@ -122,7 +129,12 @@ export default function DashboardPage() {
   const auth = getAuth(app);
   const db = getFirestore(app);
   const router = useRouter();
-  const { role: contextualRole, org, language, loading: contextLoading } = useRole();
+  const {
+    role: contextualRole,
+    org,
+    language,
+    loading: contextLoading,
+  } = useRole();
 
   // local state
   const [userEmail, setUserEmail] = useState("");
@@ -139,7 +151,9 @@ export default function DashboardPage() {
 
   // AI flags & state
   const hasChatAccess = true;
-  const hasCampaignAccess = ["plus", "pro", "patron", "patronTrial"].includes(userRole);
+  const hasCampaignAccess = ["plus", "pro", "patron", "patronTrial"].includes(
+    userRole
+  );
   const hasContentAccess = ["pro", "patron", "patronTrial"].includes(userRole);
 
   const [chatPrompt, setChatPrompt] = useState("");
@@ -159,7 +173,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/ai-chat/AIChatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: chatPrompt })
+        body: JSON.stringify({ message: chatPrompt }),
       });
       const data = await res.json();
       setChatResponse(data.response || "No response received.");
@@ -175,7 +189,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/campaign-recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: campaignPrompt })
+        body: JSON.stringify({ message: campaignPrompt }),
       });
       const data = await res.json();
       setCampaignResponse(data.response || "No recommendations.");
@@ -191,7 +205,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/generate-content", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: contentPrompt })
+        body: JSON.stringify({ message: contentPrompt }),
       });
       const data = await res.json();
       setContentResponse(data.response || "No content generated.");
@@ -245,12 +259,18 @@ export default function DashboardPage() {
           setReferralCode(data.referralCode || uname);
           setUserRole(data.role || "basic");
 
-          const q = query(collection(db, "users"), where("referredBy", "==", uname));
+          const q = query(
+            collection(db, "users"),
+            where("referredBy", "==", uname)
+          );
           const r = await getDocs(q);
           setReferralCount(r.size);
 
           const createdAt = data.createdAt?.toDate?.() || data.createdAt;
-          if (createdAt && Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000) {
+          if (
+            createdAt &&
+            Date.now() - new Date(createdAt).getTime() < 24 * 60 * 60 * 1000
+          ) {
             setShowWelcome(true);
             if (!data.welcomeEmailSent) {
               await sendWelcomeEmail(user.email || "", uname);
@@ -261,11 +281,16 @@ export default function DashboardPage() {
           // referral upgrades
           if (["basic", "spark", "boostTrial"].includes(data.role)) {
             let newRole: string | null = null;
-            if (r.size >= 10 && data.role !== "patronTrial") newRole = "patronTrial";
-            else if (r.size >= 5 && data.role === "basic") newRole = "boostTrial";
+            if (r.size >= 10 && data.role !== "patronTrial")
+              newRole = "patronTrial";
+            else if (r.size >= 5 && data.role === "basic")
+              newRole = "boostTrial";
             else if (r.size >= 3 && data.role === "basic") newRole = "spark";
             if (newRole) {
-              await updateDoc(userRef, { role: newRole, upgradedByReferral: true });
+              await updateDoc(userRef, {
+                role: newRole,
+                upgradedByReferral: true,
+              });
               setUserRole(newRole);
               setShowUpgradeSuccess(true);
             }
@@ -288,8 +313,12 @@ export default function DashboardPage() {
   // --- New Services Section ---
   const services = [
     { id: "graphic_design_course", name: "Graphic Design Course", price: 1500 },
-    { id: "social_management_course", name: "Social Management Course", price: 1500 },
-    { id: "web_hosting_service", name: "Web Hosting Service", price: 20000 }
+    {
+      id: "social_management_course",
+      name: "Social Management Course",
+      price: 1500,
+    },
+    { id: "web_hosting_service", name: "Web Hosting Service", price: 20000 },
   ];
 
   const [bookedService, setBookedService] = useState<string | null>(null);
@@ -313,9 +342,18 @@ export default function DashboardPage() {
       className="min-h-screen w-full bg-gradient-to-br from-indigo-100 via-white to-indigo-200
                     px-2 sm:px-4 md:px-6 py-6 sm:py-10 flex flex-col items-center"
     >
-      {showUpgradeReminder && <UpgradeReminder onClose={() => setShowUpgradeReminder(false)} />}
-      {showWelcome && <WelcomePopup username={username} onClose={() => setShowWelcome(false)} />}
-      {showUpgradeSuccess && <UpgradeSuccessToast onClose={() => setShowUpgradeSuccess(false)} />}
+      {showUpgradeReminder && (
+        <UpgradeReminder onClose={() => setShowUpgradeReminder(false)} />
+      )}
+      {showWelcome && (
+        <WelcomePopup
+          username={username}
+          onClose={() => setShowWelcome(false)}
+        />
+      )}
+      {showUpgradeSuccess && (
+        <UpgradeSuccessToast onClose={() => setShowUpgradeSuccess(false)} />
+      )}
       {error && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow z-50">
           {error}
@@ -374,7 +412,8 @@ export default function DashboardPage() {
             Referral Progress
           </h2>
           <p className="text-xs sm:text-sm text-gray-600 mb-1">
-            Referred <strong>{referralCount}</strong> user{referralCount !== 1 && "s"}
+            Referred <strong>{referralCount}</strong> user
+            {referralCount !== 1 && "s"}
           </p>
           <p className="text-xs text-gray-500 mb-2">Your link:</p>
           <code className="block text-indigo-700 bg-indigo-50 px-2 py-1 sm:px-3 sm:py-1 rounded text-xs break-all">
@@ -382,7 +421,8 @@ export default function DashboardPage() {
           </code>
           {referralCount < 3 && (
             <p className="mt-2 text-gray-500 text-xs sm:text-sm italic">
-              Refer {3 - referralCount} more to unlock the <strong>Spark</strong> tier
+              Refer {3 - referralCount} more to unlock the{" "}
+              <strong>Spark</strong> tier
             </p>
           )}
           {referralCount >= 3 && (
@@ -391,10 +431,14 @@ export default function DashboardPage() {
             </p>
           )}
           {referralCount >= 5 && userRole === "boostTrial" && (
-            <p className="mt-1 text-blue-700 text-xs sm:text-sm">🚀 Boost trial unlocked</p>
+            <p className="mt-1 text-blue-700 text-xs sm:text-sm">
+              🚀 Boost trial unlocked
+            </p>
           )}
           {referralCount >= 10 && userRole === "patronTrial" && (
-            <p className="mt-1 text-purple-700 text-xs sm:text-sm">👑 Patron badge unlocked!</p>
+            <p className="mt-1 text-purple-700 text-xs sm:text-sm">
+              👑 Patron badge unlocked!
+            </p>
           )}
         </div>
 
@@ -448,11 +492,18 @@ export default function DashboardPage() {
 
         {/* New Services Section */}
         <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 mt-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Available Services</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">
+            Available Services
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((service) => (
-              <div key={service.id} className="bg-indigo-50 p-4 rounded-lg shadow">
-                <h3 className="text-lg font-bold text-indigo-700">{service.name}</h3>
+              <div
+                key={service.id}
+                className="bg-indigo-50 p-4 rounded-lg shadow"
+              >
+                <h3 className="text-lg font-bold text-indigo-700">
+                  {service.name}
+                </h3>
                 <p className="text-gray-600 mb-2">Price: ${service.price}</p>
                 <button
                   className="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"

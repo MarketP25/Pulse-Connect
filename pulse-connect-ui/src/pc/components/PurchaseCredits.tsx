@@ -11,7 +11,9 @@ export const PurchaseCredits: React.FC = () => {
     <div>
       <h3>Buy Pulse Credits</h3>
       <button onClick={() => handlePurchase("mpesa")}>Buy with M-Pesa</button>
-      <button onClick={() => handlePurchase("paystack")}>Buy with Paystack</button>
+      <button onClick={() => handlePurchase("paystack")}>
+        Buy with Paystack
+      </button>
       <button onClick={() => handlePurchase("stripe")}>Buy with Stripe</button>
     </div>
   );

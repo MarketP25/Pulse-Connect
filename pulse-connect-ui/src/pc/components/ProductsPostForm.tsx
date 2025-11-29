@@ -8,9 +8,9 @@ export function ProductPostForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<Product>({
-    resolver: zodResolver(ProductSchema) // Ensure consistent validation
+    resolver: zodResolver(ProductSchema), // Ensure consistent validation
   });
   const { createProduct, loading: submitting, error } = useCreateProduct();
 

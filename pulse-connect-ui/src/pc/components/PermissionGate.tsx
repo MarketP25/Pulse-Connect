@@ -16,9 +16,10 @@ export function PermissionGate({
   permissions,
   requireAll = true,
   fallback,
-  onPermissionDenied
+  onPermissionDenied,
 }: PermissionGateProps) {
-  const { checkPermission, checkAllPermissions, checkAnyPermission } = usePermissions();
+  const { checkPermission, checkAllPermissions, checkAnyPermission } =
+    usePermissions();
 
   const hasAccess = Array.isArray(permissions)
     ? requireAll

@@ -53,7 +53,7 @@ export default function AdminPage() {
       const response = await fetch("/api/admin/codes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
@@ -77,7 +77,7 @@ export default function AdminPage() {
 
     try {
       const response = await fetch(`/api/admin/codes/${code}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (!response.ok) {
@@ -100,7 +100,10 @@ export default function AdminPage() {
         <h2 className="text-xl font-semibold mb-4">Create New Admin</h2>
         <form onSubmit={handleCreateAdmin} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Admin Email
             </label>
             <input
@@ -123,8 +126,16 @@ export default function AdminPage() {
       </div>
 
       {/* Status Messages */}
-      {error && <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4">{error}</div>}
-      {success && <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4">{success}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4">
+          {success}
+        </div>
+      )}
 
       {/* Admin Codes List */}
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -133,14 +144,16 @@ export default function AdminPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                {["Email", "Code", "Created At", "Last Used", ""].map((header) => (
-                  <th
-                    key={header}
-                    className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {header}
-                  </th>
-                ))}
+                {["Email", "Code", "Created At", "Last Used", ""].map(
+                  (header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {header}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -156,7 +169,9 @@ export default function AdminPage() {
                     {new Date(admin.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {admin.lastUsed ? new Date(admin.lastUsed).toLocaleDateString() : "Never"}
+                    {admin.lastUsed
+                      ? new Date(admin.lastUsed).toLocaleDateString()
+                      : "Never"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -170,7 +185,10 @@ export default function AdminPage() {
               ))}
               {adminCodes.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
                     No admin codes available.
                   </td>
                 </tr>

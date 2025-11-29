@@ -4,7 +4,15 @@ import { useAuthForm } from "@/hooks/useAuthForm";
 import FeatureGate from "@/components/FeatureGate";
 
 export default function LoginForm() {
-  const { email, password, error, loading, setEmail, setPassword, handleLogin } = useAuthForm();
+  const {
+    email,
+    password,
+    error,
+    loading,
+    setEmail,
+    setPassword,
+    handleLogin,
+  } = useAuthForm();
 
   return (
     <FeatureGate permission="users:read">

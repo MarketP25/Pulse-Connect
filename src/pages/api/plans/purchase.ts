@@ -4,7 +4,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { PlanSchema } from "@/types/plan"; // ← import from your Zod types
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   // only allow POST
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -27,5 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // [CLEANED] TODO removed: integrate payment gateway, record order, grant entitlement
   // e.g. await chargeCustomer(session.user.id, planId)
 
-  return res.status(200).json({ message: `Plan ${planId} purchased successfully` });
+  return res
+    .status(200)
+    .json({ message: `Plan ${planId} purchased successfully` });
 }

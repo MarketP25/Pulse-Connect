@@ -9,21 +9,21 @@ const ENDPOINTS: Record<ProgramType, string> = {
   marketing: "/api/ai/marketing",
   workout: "/api/ai/workout",
   tutorial: "/api/ai/tutorial",
-  forex: "/api/ai/forex"
+  forex: "/api/ai/forex",
 };
 
 const PLAN_REQUIREMENTS: Record<ProgramType, string[]> = {
   marketing: ["basic", "plus", "pro", "patron", "patronTrial"],
   workout: ["plus", "pro", "patron", "patronTrial"],
   tutorial: ["pro", "patron", "patronTrial"],
-  forex: ["pro", "patron", "patronTrial"]
+  forex: ["pro", "patron", "patronTrial"],
 };
 
 const PLAN_LABELS: Record<ProgramType, string> = {
   marketing: "Basic",
   workout: "Plus",
   tutorial: "Pro",
-  forex: "Pro"
+  forex: "Pro",
 };
 
 interface AIResult {
@@ -38,7 +38,11 @@ interface LastUsed {
   time: number;
 }
 
-export default function AIAssistantPrograms({ userRole }: { userRole: string }) {
+export default function AIAssistantPrograms({
+  userRole,
+}: {
+  userRole: string;
+}) {
   const [loading, setLoading] = useState<ProgramType | null>(null);
   const [result, setResult] = useState<AIResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +53,7 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
     marketing: "",
     workout: "",
     tutorial: "",
-    forex: ""
+    forex: "",
   });
   const [lastUsed, setLastUsed] = useState<LastUsed | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -151,11 +155,15 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
       const res = await fetch(ENDPOINTS[type], {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt }),
       });
       if (!res.ok) throw new Error();
       const data: { result?: AIResult } = await res.json();
-      const aiResult = data.result || { type: "text", content: "No result returned.", prompt };
+      const aiResult = data.result || {
+        type: "text",
+        content: "No result returned.",
+        prompt,
+      };
       setResult(aiResult);
       setHistory((prev) => [{ ...aiResult, prompt }, ...prev]);
 
@@ -206,13 +214,16 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
         </div>
       )}
 
-      <h2 className="text-2xl font-semibold text-indigo-700 mb-4">AI Productivity Programs</h2>
+      <h2 className="text-2xl font-semibold text-indigo-700 mb-4">
+        AI Productivity Programs
+      </h2>
 
       {/* Last Used */}
       {lastUsed && (
         <div className="mb-4 flex justify-between items-center text-sm text-gray-700">
           <div>
-            Last used <strong>{lastUsed.program}</strong> at {formatTime(lastUsed.time)}.
+            Last used <strong>{lastUsed.program}</strong> at{" "}
+            {formatTime(lastUsed.time)}.
           </div>
           <button
             type="button"
@@ -240,13 +251,17 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
                     ? "Forex AI Powered Classes"
                     : `AI ${type.charAt(0).toUpperCase() + type.slice(1)}`}
                 </strong>{" "}
-                <span className="text-xs text-gray-500">(Requires {PLAN_LABELS[type]})</span>
+                <span className="text-xs text-gray-500">
+                  (Requires {PLAN_LABELS[type]})
+                </span>
               </div>
               <div className="flex gap-2 items-center">
                 <input
                   type="text"
                   value={prompts[type]}
-                  onChange={(e) => setPrompts((prev) => ({ ...prev, [type]: e.target.value }))}
+                  onChange={(e) =>
+                    setPrompts((prev) => ({ ...prev, [type]: e.target.value }))
+                  }
                   placeholder={`e.g. ${
                     type === "workout"
                       ? "Home HIIT"
@@ -305,14 +320,19 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
         >
           <ul className="flex flex-col gap-2">
             <li>
-              <label htmlFor="deep-dive-mode" className="inline-flex items-center">
+              <label
+                htmlFor="deep-dive-mode"
+                className="inline-flex items-center"
+              >
                 <input
                   id="deep-dive-mode"
                   type="checkbox"
                   className="form-checkbox"
                   aria-label="Enable deep-dive tutorial mode"
                 />
-                <span className="ml-2">Enable deep-dive tutorial mode (Pro+)</span>
+                <span className="ml-2">
+                  Enable deep-dive tutorial mode (Pro+)
+                </span>
               </label>
             </li>
             {/* …add more <li> items here */}
@@ -343,11 +363,15 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
       {/* History */}
       {history.length > 0 && (
         <div className="mt-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Previous Results</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-2">
+            Previous Results
+          </h3>
           <ul className="space-y-1 max-h-40 overflow-y-auto text-xs">
             {history.map((h, i) => (
               <li key={i} className="bg-gray-50 border rounded p-2">
-                {h.prompt && <div className="italic text-gray-500">Prompt: {h.prompt}</div>}
+                {h.prompt && (
+                  <div className="italic text-gray-500">Prompt: {h.prompt}</div>
+                )}
                 {renderResultBlock(h)}
                 <button
                   type="button"
@@ -364,7 +388,9 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
 
       {/* Feedback Form */}
       <section className="mt-8">
-        <h3 className="text-sm font-semibold mb-2 text-indigo-700">Your Feedback</h3>
+        <h3 className="text-sm font-semibold mb-2 text-indigo-700">
+          Your Feedback
+        </h3>
         <form onSubmit={handleFeedbackSubmit} className="flex gap-2">
           <input
             type="text"
@@ -385,13 +411,17 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
           </button>
         </form>
         {feedbackSent && (
-          <div className="mt-2 text-green-600 text-xs">Thank you for your feedback!</div>
+          <div className="mt-2 text-green-600 text-xs">
+            Thank you for your feedback!
+          </div>
         )}
       </section>
 
       {/* Complaint Form */}
       <section className="mt-6">
-        <h3 className="text-sm font-semibold mb-2 text-red-700">Submit a Complaint</h3>
+        <h3 className="text-sm font-semibold mb-2 text-red-700">
+          Submit a Complaint
+        </h3>
         <form onSubmit={handleComplaintSubmit} className="flex gap-2">
           <input
             type="text"
@@ -420,7 +450,9 @@ export default function AIAssistantPrograms({ userRole }: { userRole: string }) 
 
       {/* Inquiry Form */}
       <section className="mt-6 mb-8">
-        <h3 className="text-sm font-semibold mb-2 text-indigo-700">General Inquiries</h3>
+        <h3 className="text-sm font-semibold mb-2 text-indigo-700">
+          General Inquiries
+        </h3>
         <form onSubmit={handleInquirySubmit} className="flex gap-2">
           <input
             type="text"

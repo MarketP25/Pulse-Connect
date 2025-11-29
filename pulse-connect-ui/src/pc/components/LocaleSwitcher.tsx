@@ -4,7 +4,10 @@ export default function LocaleSwitcher() {
   const { lang, setLang } = useLanguage();
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor="locale-select" className="text-sm font-medium text-gray-700">
+      <label
+        htmlFor="locale-select"
+        className="text-sm font-medium text-gray-700"
+      >
         🌐 Language
       </label>
       <select
