@@ -1,56 +1,43 @@
-<<<<<<< HEAD
-# Pulse Connect
+# Pulse Connect 🌐
 
-**Pulse Connect** is a full-stack digital marketing and communication platform built with Next.js, Firebase, and Tailwind CSS. Designed for modern businesses and creators, it delivers intuitive user experiences, real-time client engagement, and scalable backend services.
+**Pulse Connect** is a full‑stack digital marketing and communication platform built with Next.js, Firebase, and Tailwind CSS. Designed for modern businesses and creators, it delivers intuitive user experiences, real‑time client engagement, and scalable backend services.
 
 ---
 
 ## 🔥 Features
 
 - 🔐 Firebase Authentication for secure user access  
-- ⚡ High-performance frontend built with Next.js 15 and Turbopack  
+- ⚡ High‑performance frontend built with Next.js and Turbopack  
 - 🎨 Responsive UI powered by Tailwind CSS  
-- 🔌 Real-time database integration with Firestore  
+- 🔌 Real‑time database integration with Firestore  
 - 🚀 Instant deployment using Vercel and Firebase Hosting  
 - 🧠 Modular codebase for efficient feature expansion  
-
----
-
-## 🚀 Getting Started (for developers)
-
-This guide is intended for **developers** who want to run Pulse Connect locally for development, testing, or contribution.
-
-1. Clone the repository  
-   `git clone https://github.com/MarketP25/Pulse-Connect.git`
-
-2. Navigate to the project folder  
-   `cd Pulse-Connect`
-
-3. Install dependencies  
-   `npm install`
-
-4. Start the development server  
-   `npm run dev`
-
-Then open [`http://localhost:3000`](http://localhost:3000) in your browser to view the platform.
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](./LICENSE). You’re welcome to explore, use, and build upon it—with proper attribution.
-=======
-# Pulse Connect 🌐
-
-Pulse Connect is a Next.js–powered digital marketing platform, thoughtfully architected for scalability, accessibility, and seamless branding consistency. This project was scaffolded using `create-next-app`, setting the stage for a modular, accessible, and user-centered Next.js experience.
+- ♿ Accessibility and responsive design baked into components
 
 ---
 
 ## 🚀 Getting Started
 
-To launch the development server, run:
+These instructions are for developers who want to run Pulse Connect locally for development, testing, or contribution.
 
-```bash
+1. Clone the repository  
+   ```bash
+   git clone https://github.com/MarketP25/Pulse-Connect.git
+Navigate to the project folder
+
+bash
+cd Pulse-Connect
+Install dependencies
+
+bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+Start the development server
+
+bash
 npm run dev
 # or
 yarn dev
@@ -58,25 +45,41 @@ yarn dev
 pnpm dev
 # or
 bun dev
-Then visit http://localhost:3000 in your browser to preview the application.
-Start iterating by modifying the app/page.tsx file. Updates will reflect instantly.
+Then open http://localhost:3000 in your browser to view the platform. Start iterating by modifying app/page.tsx or the relevant pages; updates will reflect instantly in development.
 
-🎨 Design & Branding
-Pulse Connect integrates the Pulse Connect logo across headers, splash screens, and meta tags. Font optimization is handled via , featuring the Geist font family from Vercel.
-Our design system is:
-- ✳️ Modular: built with reusable, scalable components
-- 🔁 Responsive: optimized across devices and screen sizes
-- ♿ Accessible: designed to meet global accessibility standards
-- 🎯 Brand-consistent: every detail echoes Pulse Connect’s identity
+🎨 Design and Branding
+Pulse Connect integrates the Pulse Connect logo across headers, splash screens, and meta tags. The design system is:
+
+✳️ Modular: built with reusable, scalable components
+
+🔁 Responsive: optimized across devices and screen sizes
+
+♿ Accessible: designed to meet accessibility standards
+
+🎯 Brand consistent: every detail echoes Pulse Connect’s identity
 
 📚 Learn More
-- Next.js Documentation – explore features and API
-- Learn Next.js – an interactive tutorial to master the framework
-- Next.js GitHub – contribute feedback and improvements
+Next.js Documentation for framework features and APIs
+
+Learn Next.js interactive tutorial for hands‑on guidance
+
+Next.js GitHub for community contributions and issues
 
 🌍 Deployment
-Deploy Pulse Connect seamlessly using Vercel, the creators of Next.js.
-For more details and best practices, see the Next.js Deployment Guide.
+Deploy Pulse Connect seamlessly using Vercel or Firebase Hosting. For production best practices, consult the Next.js Deployment Guide and your CI/CD configuration.
 
+📄 License
+This project is licensed under the MIT License. You’re welcome to explore, use, and build upon it with proper attribution.
 
->>>>>>> origin/feat/login-ui
+Code
+
+---
+
+### Optional cleanup before merging other branches
+- The feature branch contains IDE and build artifacts (`.idea`, `.vs`, `.vscode`, `.next`, `node_modules`, etc.). If you don’t want those in history, create a cleaned branch from the feature branch, remove those files, commit, and merge the cleaned branch instead. Example:
+```powershell
+git checkout -b feat/login-ui-clean origin/feat/login-ui
+git rm -r --cached --ignore-unmatch .idea .vs .vscode node_modules .next coverage
+git commit -m "chore: remove IDE and build artifacts from branch before merge"
+git push origin feat/login-ui-clean
+# then merge feat/login-ui-clean into main
