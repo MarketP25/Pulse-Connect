@@ -1,0 +1,5 @@
+
+# ignore terraform providers and caches
+**/.terraform/**
+**/node_modules/**
+
