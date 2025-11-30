@@ -1,8 +1,9 @@
-﻿module.exports = {
+// babel.config.cjs
+module.exports = {
   presets: [
     "@babel/preset-env",
     "@babel/preset-typescript",
-    "@babel/preset-react",
+    "@babel/preset-react"
   ],
-  plugins: [],
+  plugins: ["@babel/plugin-transform-runtime"]
 };
