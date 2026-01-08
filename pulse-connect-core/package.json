@@ -1,15 +1,27 @@
 {
   "name": "pulse-connect-core",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:test": "node ./scripts/db-test.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "dependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "next": "14.0.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "^5",
+    "pg": "^8.11.3",
+    "uuid": "^9.0.1"
+  },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4"
   }
 }

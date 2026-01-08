@@ -1,0 +1,248 @@
+{
+  "version": "1.0.0",
+  "description": "Default MARP Firewall Rules - Safe Defaults for Planetary Governance",
+  "lastUpdated": "2024-01-01T00:00:00Z",
+  "rules": {
+    "outbound": {
+      "description": "Rules for traffic flowing from CSI through MARP to Edge",
+      "allow": [
+        {
+          "name": "MARP_Signed_Bundles",
+          "description": "Allow all bundles signed by MARP governance core",
+          "pattern": "signature.signer == 'marp-governance-core'",
+          "conditions": {
+            "signatureValid": true,
+            "hashChainValid": true,
+            "notStale": true
+          },
+          "priority": 100
+        },
+        {
+          "name": "CSI_Intelligence_Insights",
+          "description": "Allow CSI-powered insights through MARP firewall channels",
+          "pattern": "source == 'marp-governance-core' && type == 'intelligence'",
+          "conditions": {
+            "csiProtected": true,
+            "noRawData": true,
+            "processedOnly": true
+          },
+          "priority": 90
+        }
+      ],
+      "block": [
+        {
+          "name": "Unsigned_Bundles",
+          "description": "Block any bundles without valid MARP signatures",
+          "pattern": "signature.signer != 'marp-governance-core' || signatureValid == false",
+          "conditions": {
+            "signatureRequired": true
+          },
+          "priority": 200
+        },
+        {
+          "name": "Stale_Bundles",
+          "description": "Block bundles older than 24 hours",
+          "pattern": "age > 24h",
+          "conditions": {
+            "freshnessRequired": true
+          },
+          "priority": 190
+        },
+        {
+          "name": "CSI_Direct_Access",
+          "description": "Block any direct access attempts to CSI",
+          "pattern": "destination contains 'csi' || destination contains 'central.super.intelligence'",
+          "conditions": {
+            "csiProtected": true
+          },
+          "priority": 1000
+        }
+      ],
+      "quarantine": [
+        {
+          "name": "High_Risk_Deltas",
+          "description": "Quarantine high-risk policy changes for manual review",
+          "pattern": "type == 'policy' && riskLevel == 'high'",
+          "conditions": {
+            "requiresReview": true,
+            "councilApproval": true
+          },
+          "priority": 150
+        },
+        {
+          "name": "Unusual_Patterns",
+          "description": "Quarantine traffic with unusual patterns for analysis",
+          "pattern": "anomalyScore > 0.8",
+          "conditions": {
+            "patternAnalysis": true
+          },
+          "priority": 140
+        }
+      ],
+      "escalate": [
+        {
+          "name": "Compliance_Critical_Changes",
+          "description": "Escalate compliance-critical changes to founder arbitration",
+          "pattern": "type == 'policy' && complianceImpact == 'critical'",
+          "conditions": {
+            "founderApproval": true,
+            "dualControl": true
+          },
+          "priority": 120
+        },
+        {
+          "name": "Security_Breaches",
+          "description": "Escalate potential security breaches immediately",
+          "pattern": "securityAlert == true || tamperDetected == true",
+          "conditions": {
+            "immediateAction": true,
+            "founderNotification": true
+          },
+          "priority": 110
+        }
+      ]
+    },
+    "inbound": {
+      "description": "Rules for traffic flowing from Edge through MARP to CSI",
+      "allow": [
+        {
+          "name": "Valid_Telemetry",
+          "description": "Allow validated telemetry data from Edge nodes",
+          "pattern": "type == 'telemetry' && validated == true",
+          "conditions": {
+            "anonymized": true,
+            "rateLimited": true
+          },
+          "priority": 100
+        },
+        {
+          "name": "Compliance_Reports",
+          "description": "Allow compliance reports from Edge systems",
+          "pattern": "type == 'compliance' && source == 'edge'",
+          "conditions": {
+            "auditTrail": true
+          },
+          "priority": 90
+        }
+      ],
+      "block": [
+        {
+          "name": "Malformed_Data",
+          "description": "Block malformed or corrupted data",
+          "pattern": "valid == false || corrupted == true",
+          "conditions": {
+            "structureCheck": true
+          },
+          "priority": 200
+        },
+        {
+          "name": "Unsigned_Data",
+          "description": "Block data without proper Edge signatures",
+          "pattern": "signatureValid == false",
+          "conditions": {
+            "signatureRequired": true
+          },
+          "priority": 190
+        }
+      ],
+      "quarantine": [
+        {
+          "name": "Anomalies",
+          "description": "Quarantine anomalous data for analysis",
+          "pattern": "anomalyDetected == true",
+          "conditions": {
+            "csiAnalysis": true
+          },
+          "priority": 150
+        },
+        {
+          "name": "High_Volume_Spikes",
+          "description": "Quarantine unusual traffic spikes",
+          "pattern": "volume > normal * 2",
+          "conditions": {
+            "rateAnalysis": true
+          },
+          "priority": 140
+        }
+      ],
+      "escalate": [
+        {
+          "name": "Tampering_Suspicion",
+          "description": "Escalate suspected data tampering",
+          "pattern": "tamperIndicators > 0",
+          "conditions": {
+            "forensicAnalysis": true,
+            "founderAlert": true
+          },
+          "priority": 120
+        }
+      ]
+    },
+    "subsystem": {
+      "description": "Rules governing subsystem-to-subsystem communication",
+      "allow": [
+        {
+          "name": "Registered_Subsystems",
+          "description": "Allow communication between registered subsystems",
+          "pattern": "source.registered == true && destination.registered == true",
+          "conditions": {
+            "routingRules": true
+          },
+          "priority": 100
+        }
+      ],
+      "block": [
+        {
+          "name": "Unregistered_Subsystems",
+          "description": "Block communication from unregistered subsystems",
+          "pattern": "source.registered == false",
+          "conditions": {
+            "registrationRequired": true
+          },
+          "priority": 200
+        }
+      ],
+      "quarantine": [
+        {
+          "name": "Subsystem_Conflicts",
+          "description": "Quarantine conflicting subsystem operations",
+          "pattern": "conflictDetected == true",
+          "conditions": {
+            "arbitrationRequired": true
+          },
+          "priority": 150
+        }
+      ],
+      "escalate": [
+        {
+          "name": "Account_Payment_Impact",
+          "description": "Escalate operations affecting accounts or payments",
+          "pattern": "subsystem in ['payments', 'accounts'] && operation == 'destructive'",
+          "conditions": {
+            "founderApproval": true,
+            "dualControl": true
+          },
+          "priority": 120
+        }
+      ]
+    }
+  },
+  "globalSettings": {
+    "defaultAction": "quarantine",
+    "logAllTraffic": true,
+    "csiProtectionEnabled": true,
+    "realTimeMonitoring": true,
+    "autoEscalationThreshold": "high",
+    "quarantineRetentionDays": 30,
+    "auditRetentionYears": 7
+  },
+  "complianceRefs": {
+    "gdpr": "https://gdpr-info.eu/",
+    "ccpa": "https://oag.ca.gov/privacy/ccpa",
+    "regional": {
+      "eu": "GDPR Article 25",
+      "us": "CCPA Section 1798.100",
+      "ca": "PIPEDA Section 5"
+    }
+  }
+}

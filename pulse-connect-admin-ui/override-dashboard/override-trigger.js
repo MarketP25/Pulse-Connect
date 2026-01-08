@@ -7,4 +7,4 @@ module.exports = function triggerOverride(actionId, reason) {
   };
   appendToJSON("pulse-agent-protocol/audit/override-history.json", overrideEntry);
   return "Override logged and executed.";
-}
+};

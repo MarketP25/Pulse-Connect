@@ -7,10 +7,7 @@ export default {
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
   transform: {
-    "^.+\\.(ts|tsx|js|jsx)$": [
-      "babel-jest",
-      { configFile: "./babel.config.cjs" }
-    ]
+    "^.+\\.(ts|tsx|js|jsx)$": ["babel-jest", { configFile: "./babel.config.cjs" }]
   },
   extensionsToTreatAsEsm: [".ts", ".tsx"]
 };

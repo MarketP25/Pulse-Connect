@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: expire-kyc-cron
+  namespace: pulsco
+spec:
+  schedule: "0 2 * * *" # daily at 02:00 UTC
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: expire-kyc
+              image: curlimages/curl:8.2.1
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: API_HOST
+                  value: "http://pulse-hosting-backend.kube.svc.cluster.local:3000"
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  echo "Calling /api/admin/kyc/expire"
+                  curl -sS -X POST "$API_HOST/api/admin/kyc/expire" -H "Content-Type: application/json" || true
+          restartPolicy: OnFailure

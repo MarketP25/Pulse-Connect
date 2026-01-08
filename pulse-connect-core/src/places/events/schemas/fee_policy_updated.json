@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fee Policy Updated Event",
+  "description": "Event emitted when the fee policy registry is updated",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp",
+    "policy_version",
+    "effective_at",
+    "posting_fee_percent",
+    "booking_fee_percent",
+    "transaction_fee_percent",
+    "trace_id"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique event identifier"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["fee_policy_updated"],
+      "description": "Type of event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp in ISO 8601 format"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Version of the updated fee policy"
+    },
+    "effective_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the policy becomes effective"
+    },
+    "posting_fee_percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Posting fee percentage (4% for v2.0.0)"
+    },
+    "booking_fee_percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Booking fee percentage (3% for v2.0.0)"
+    },
+    "transaction_fee_percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Total transaction fee percentage (7% for v2.0.0)"
+    },
+    "tiers": {
+      "type": "array",
+      "description": "Subscription tiers configuration",
+      "items": {
+        "type": "object",
+        "required": ["name", "max_listings", "weekly_fee_usd"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["starter", "growth", "enterprise"]
+          },
+          "max_listings": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "weekly_fee_usd": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "region_overrides": {
+      "type": "object",
+      "description": "Optional regional fee overrides",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Policy update notes"
+    },
+    "signature_hash": {
+      "type": "string",
+      "description": "Cryptographic signature hash for policy integrity"
+    },
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Trace ID for request tracking"
+    }
+  }
+}

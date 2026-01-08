@@ -1,5 +1,0 @@
-{
-  "override_authority": ["Founder", "Council_Admin"],
-  "required_for": ["financial_flows", "emotional_rituals", "Council_decisions"],
-  "log_every_override": true
-}

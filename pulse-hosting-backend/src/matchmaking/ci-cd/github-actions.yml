@@ -1,0 +1,169 @@
+name: Matchmaking Service CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "pulse-connect/core/matchmaking/**"
+      - "pulse-connect/ui/matchmaking/**"
+      - "pulse-connect/admin-ui/matchmaking/**"
+      - "pulse-connect/hosting/matchmaking/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "pulse-connect/core/matchmaking/**"
+      - "pulse-connect/ui/matchmaking/**"
+      - "pulse-connect/admin-ui/matchmaking/**"
+      - "pulse-connect/hosting/matchmaking/**"
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          cd pulse-connect/core
+          npm ci
+
+      - name: Run PAP dependency check
+        run: |
+          cd pulse-connect/core
+          npm run lint:pap-check
+
+      - name: Run ESLint
+        run: |
+          cd pulse-connect/core
+          npm run lint
+
+      - name: Run TypeScript check
+        run: |
+          cd pulse-connect/core
+          npm run type-check
+
+      - name: Run tests
+        run: |
+          cd pulse-connect/core
+          npm run test:ci
+
+      - name: Run integration tests
+        run: |
+          cd pulse-connect/core
+          npm run test:integration
+
+  build-and-deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: pulse-connect/matchmaking-service
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build the image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            -f pulse-connect/hosting/matchmaking/Dockerfile .
+
+          # Push the images
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name pulse-connect-cluster --region us-east-1
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Update the deployment image
+          kubectl set image deployment/matchmaking-service \
+            matchmaking-api=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -n pulse-connect
+
+          # Wait for rollout to complete
+          kubectl rollout status deployment/matchmaking-service -n pulse-connect
+
+      - name: Run database migrations
+        run: |
+          # Run migrations in a job
+          kubectl create job matchmaking-migration-${{ github.sha }} \
+            --from=cronjob/matchmaking-migration \
+            -n pulse-connect
+
+          # Wait for migration to complete
+          kubectl wait --for=condition=complete job/matchmaking-migration-${{ github.sha }} \
+            --timeout=300s \
+            -n pulse-connect
+
+      - name: Run smoke tests
+        run: |
+          # Run smoke tests against the deployed service
+          npm run test:smoke
+
+  staging-deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment"
+          # Add staging deployment steps here
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run security scan
+        uses: securecodewarrior/github-action-security-scan@v1
+        with:
+          language: typescript
+          path: pulse-connect/core/matchmaking
+
+      - name: Dependency vulnerability scan
+        run: |
+          cd pulse-connect/core
+          npm audit --audit-level high
+
+  performance-test:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run performance tests
+        run: |
+          # Run k6 performance tests
+          k6 run pulse-connect/hosting/matchmaking/tests/performance/matchmaking-load-test.js
+
+      - name: Generate performance report
+        run: |
+          # Generate and upload performance report
+          echo "Performance test completed"

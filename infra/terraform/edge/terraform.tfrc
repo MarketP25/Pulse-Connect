@@ -1,0 +1,4 @@
+# Terraform CLI config to bypass local provider mirror and download directly from the Terraform Registry
+provider_installation {
+  direct {}
+}

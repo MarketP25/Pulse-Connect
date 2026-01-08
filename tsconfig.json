@@ -46,11 +46,7 @@
     /* Include custom type roots so our NextAuth augmentation is picked up */
     "typeRoots": ["./src/types", "./node_modules/@types"]
   },
-  "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "src/**/*"
-  ],
+  "include": ["next-env.d.ts", ".next/types/**/*.ts", "src/**/*"],
   "exclude": [
     "node_modules",
     ".next",

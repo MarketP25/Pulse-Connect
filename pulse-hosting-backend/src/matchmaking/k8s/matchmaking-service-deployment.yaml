@@ -1,0 +1,233 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matchmaking-service
+  namespace: pulsco
+  labels:
+    app: matchmaking-service
+    component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: matchmaking-service
+  template:
+    metadata:
+      labels:
+        app: matchmaking-service
+        component: backend
+    spec:
+      containers:
+        - name: matchmaking-api
+          image: pulsco/matchmaking-service:latest
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: matchmaking-db-secret
+                  key: database_url
+            - name: KAFKA_BROKERS
+              value: "matchmaking-kafka:9092"
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: matchmaking-redis-secret
+                  key: redis_url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: matchmaking-jwt-secret
+                  key: jwt_secret
+            - name: OTEL_SERVICE_NAME
+              value: "matchmaking-service"
+            - name: OTEL_TRACES_EXPORTER
+              value: "otlp"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://opentelemetry-collector:4318/v1/traces"
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matchmaking-service
+  namespace: pulsco
+  labels:
+    app: matchmaking-service
+    component: backend
+spec:
+  selector:
+    app: matchmaking-service
+  ports:
+    - port: 80
+      targetPort: 3001
+      name: http
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: matchmaking-service-ingress
+  namespace: pulsco
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.matchmaking.pulsco.com
+      secretName: matchmaking-tls
+  rules:
+    - host: api.matchmaking.pulsco.com
+      http:
+        paths:
+          - path: /api/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: matchmaking-service
+                port:
+                  number: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matchmaking-service-config
+  namespace: pulsco
+data:
+  config.yaml: |
+    server:
+      port: 3001
+      host: 0.0.0.0
+
+    database:
+      maxConnections: 20
+      idleTimeoutMillis: 30000
+      connectionTimeoutMillis: 2000
+
+    kafka:
+      clientId: matchmaking-service
+      groupId: matchmaking-service-group
+      retry:
+        initialRetryTime: 100
+        retries: 8
+
+    redis:
+      ttl: 3600
+      maxRetriesPerRequest: 3
+
+    observability:
+      metrics:
+        enabled: true
+        path: /metrics
+      tracing:
+        enabled: true
+        sampleRate: 0.1
+
+    security:
+      rateLimit:
+        windowMs: 900000
+        max: 100
+      cors:
+        origin: ["https://app.pulsco.com", "https://admin.pulsco.com"]
+        credentials: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: matchmaking-db-secret
+  namespace: pulsco
+type: Opaque
+data:
+  database_url: <BASE64_ENCODED_DATABASE_URL>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: matchmaking-redis-secret
+  namespace: pulsco
+type: Opaque
+data:
+  redis_url: <BASE64_ENCODED_REDIS_URL>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: matchmaking-jwt-secret
+  namespace: pulsco
+type: Opaque
+data:
+  jwt_secret: <BASE64_ENCODED_JWT_SECRET>
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: matchmaking-service-pdb
+  namespace: pulsco
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: matchmaking-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: matchmaking-service-hpa
+  namespace: pulsco
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: matchmaking-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

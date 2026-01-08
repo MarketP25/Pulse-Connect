@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Posting Fee Charged Event",
+  "description": "Event emitted when a 4% posting fee is charged for place listing",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp",
+    "place_id",
+    "host_id",
+    "posting_fee_usd",
+    "policy_version",
+    "trace_id"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique event identifier"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["posting_fee_charged"],
+      "description": "Type of event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp in ISO 8601 format"
+    },
+    "place_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the place being listed"
+    },
+    "host_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the place host"
+    },
+    "posting_fee_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Posting fee amount in USD (4% of reference price)"
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["starter", "growth", "enterprise"],
+      "description": "Host subscription tier"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Fee policy version used for calculation"
+    },
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Trace ID for request tracking"
+    },
+    "reference_price_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Reference price used for fee calculation (weekly tier fee)"
+    }
+  }
+}

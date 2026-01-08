@@ -1,0 +1,186 @@
+groups:
+  - name: edge_gateway_critical
+    rules:
+      - alert: EdgeGatewayDown
+        expr: up{job="edge-gateway"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: edge-gateway
+        annotations:
+          summary: "Edge Gateway is down"
+          description: "Edge Gateway has been down for more than 5 minutes in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayHighErrorRate
+        expr: rate(edge_gateway_requests_total{status="error"}[5m]) / rate(edge_gateway_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: edge-gateway
+        annotations:
+          summary: "High error rate in Edge Gateway"
+          description: "Error rate > 5% for 5 minutes in region {{ $labels.region }}"
+
+      - alert: EdgeGatewaySignatureVerificationFailure
+        expr: rate(edge_gateway_signature_verifications_total{result="failure"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: edge-gateway
+        annotations:
+          summary: "MARP signature verification failure"
+          description: "Edge Gateway failed to verify MARP signatures in region {{ $labels.region }}"
+
+  - name: edge_gateway_warning
+    rules:
+      - alert: EdgeGatewayHighLatency
+        expr: histogram_quantile(0.95, rate(edge_gateway_execution_duration_bucket[5m])) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: edge-gateway
+        annotations:
+          summary: "High latency in Edge Gateway"
+          description: "P95 execution time > 1000ms for 10 minutes in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayLowCacheHitRate
+        expr: rate(edge_gateway_policy_cache_hits[5m]) / (rate(edge_gateway_policy_cache_hits[5m]) + rate(edge_gateway_policy_cache_misses[5m])) < 0.9
+        for: 15m
+        labels:
+          severity: warning
+          service: edge-gateway
+        annotations:
+          summary: "Low policy cache hit rate"
+          description: "Policy cache hit rate < 90% for 15 minutes in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayHighRiskDecisions
+        expr: rate(edge_gateway_decisions_total{decision="quarantine"}[5m]) / rate(edge_gateway_requests_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: edge-gateway
+        annotations:
+          summary: "High rate of quarantined decisions"
+          description: "Quarantine rate > 10% for 10 minutes in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayAdapterFailure
+        expr: edge_gateway_adapter_health == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: edge-gateway
+        annotations:
+          summary: "Subsystem adapter failure"
+          description: "Adapter {{ $labels.adapter }} is unhealthy in region {{ $labels.region }}"
+
+  - name: edge_gateway_info
+    rules:
+      - alert: EdgeGatewayPolicyUpdate
+        expr: increase(edge_gateway_policy_updates_total[1h]) > 0
+        labels:
+          severity: info
+          service: edge-gateway
+        annotations:
+          summary: "Policy bundle updated"
+          description: "New policy bundle deployed to Edge Gateway in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayAnomalyDetected
+        expr: increase(edge_gateway_anomalies_detected[5m]) > 0
+        labels:
+          severity: info
+          service: edge-gateway
+        annotations:
+          summary: "Anomaly detected"
+          description: "Anomaly type {{ $labels.anomaly_type }} detected in region {{ $labels.region }}"
+
+  - name: edge_gateway_slo
+    rules:
+      - alert: EdgeGatewaySLOMissed
+        expr: |
+          (
+            histogram_quantile(0.95, rate(edge_gateway_execution_duration_bucket[5m])) > 50
+            or
+            rate(edge_gateway_requests_total{status="error"}[5m]) / rate(edge_gateway_requests_total[5m]) > 0.001
+          )
+          and on(region) (
+            up{job="edge-gateway"} == 1
+          )
+        for: 5m
+        labels:
+          severity: warning
+          service: edge-gateway
+          slo: "99.9% availability, P95 < 50ms"
+        annotations:
+          summary: "Edge Gateway SLO violation"
+          description: "Service Level Objective violated in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayRegionalImbalance
+        expr: |
+          abs(
+            rate(edge_gateway_requests_total{region=~"$region"}[5m])
+            -
+            avg(rate(edge_gateway_requests_total[5m]))
+          ) / avg(rate(edge_gateway_requests_total[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: info
+          service: edge-gateway
+        annotations:
+          summary: "Regional load imbalance detected"
+          description: "Request rate imbalance > 50% across regions"
+
+  - name: edge_gateway_security
+    rules:
+      - alert: EdgeGatewaySuspiciousActivity
+        expr: rate(edge_gateway_suspicious_requests_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: edge-gateway
+          security: true
+        annotations:
+          summary: "Suspicious activity detected"
+          description: "High rate of suspicious requests (>10/min) in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayBlockedRequests
+        expr: rate(edge_gateway_decisions_total{decision="block"}[5m]) / rate(edge_gateway_requests_total[5m]) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          service: edge-gateway
+          security: true
+        annotations:
+          summary: "High block rate detected"
+          description: "Block rate > 20% for 10 minutes in region {{ $labels.region }}"
+
+  - name: edge_gateway_performance
+    rules:
+      - alert: EdgeGatewayMemoryPressure
+        expr: edge_gateway_memory_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: edge-gateway
+        annotations:
+          summary: "Memory pressure detected"
+          description: "Memory usage > 85% in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayCPUThrottling
+        expr: rate(edge_gateway_cpu_throttled_seconds_total[5m]) > 60
+        for: 5m
+        labels:
+          severity: warning
+          service: edge-gateway
+        annotations:
+          summary: "CPU throttling detected"
+          description: "CPU throttling > 60 seconds in last 5 minutes in region {{ $labels.region }}"
+
+      - alert: EdgeGatewayQueueBacklog
+        expr: edge_gateway_request_queue_length > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: edge-gateway
+        annotations:
+          summary: "Request queue backlog"
+          description: "Request queue length > 1000 in region {{ $labels.region }}"

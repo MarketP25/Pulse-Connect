@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Subscription Charged Event",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["subscription_charged"],
+      "description": "Type of event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event occurred"
+    },
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Trace ID for request correlation"
+    },
+    "subscription_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the subscription being charged"
+    },
+    "seller_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the seller being charged"
+    },
+    "tier_name": {
+      "type": "string",
+      "enum": ["starter", "growth", "enterprise"],
+      "description": "Subscription tier"
+    },
+    "amount_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Amount charged in USD"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Version of the fee policy used"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of the billing period"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "End of the billing period"
+    }
+  },
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp",
+    "trace_id",
+    "subscription_id",
+    "seller_id",
+    "tier_name",
+    "amount_usd",
+    "policy_version",
+    "period_start",
+    "period_end"
+  ]
+}

@@ -8,11 +8,7 @@ import tseslint from "typescript-eslint";
 export default [
   js.configs.recommended,
   {
-    ignores: [
-      "**/node_modules/**",
-      "**/.next/**",
-      "**/dist/**"
-    ]
+    ignores: ["**/node_modules/**", "**/.next/**", "**/dist/**"]
   },
   {
     files: ["src/**/*.{ts,tsx}"],
@@ -35,7 +31,7 @@ export default [
     rules: {
       // ✅ Core Adjustments
       "react/react-in-jsx-scope": "off", // unnecessary in Next.js
-      "no-undef": "off",                 // handled by TypeScript
+      "no-undef": "off", // handled by TypeScript
       "jsx-a11y/autocomplete-valid": "off", // overly strict
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],

@@ -1,6 +1,6 @@
 // hooks/usePulseCredits.ts
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export const usePulseCredits = (userId: string) => {
   const [balance, setBalance] = useState<number>(0);

@@ -1,0 +1,40 @@
+{
+  "name": "pulse-agent-protocol",
+  "version": "1.0.0",
+  "description": "PAP v1 - Global Marketing Automation Subsystem",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "marketing",
+    "automation",
+    "compliance",
+    "gdpr",
+    "ccpa"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "@types/express": "^4.17.0",
+    "prisma": "^5.0.0",
+    "@prisma/client": "^5.0.0"
+  }
+}

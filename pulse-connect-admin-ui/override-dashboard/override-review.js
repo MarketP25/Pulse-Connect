@@ -5,9 +5,9 @@ module.exports = function runOverrideReview() {
   const summary = {
     totalOverrides: overrides.length,
     flaggedActions: flagged.length,
-    unresolvedFlags: flagged.filter(f => !f.resolved).length,
+    unresolvedFlags: flagged.filter((f) => !f.resolved).length,
     lastOverride: overrides[overrides.length - 1] || "None"
   };
 
   return summary;
-}
+};

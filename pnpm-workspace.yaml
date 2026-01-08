@@ -1,0 +1,8 @@
+packages:
+  - "apps/*"
+  - "services/*"
+  - "packages/*"
+  - "modules/*"
+  - "integrations/*"
+  - "pulse-connect-core"
+  - "shared/*"

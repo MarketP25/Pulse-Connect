@@ -1,6 +1,6 @@
 // src/commands/temp.ts
-import { writeFileSync, mkdirSync } from "fs";
-import path from "path";
+import { writeFileSync, mkdirSync } from 'fs';
+import path from 'path';
 
 // Either import your real context type, e.g.
 // import { CommandContext } from "./index";
@@ -11,7 +11,7 @@ interface TempCommandContext {
 
 export async function temp(ctx: TempCommandContext) {
   // 1. ensure ./tmp folder exists
-  const tmpDir = path.join(process.cwd(), "tmp");
+  const tmpDir = path.join(process.cwd(), 'tmp');
   mkdirSync(tmpDir, { recursive: true });
 
   // 2. build filename & full path
