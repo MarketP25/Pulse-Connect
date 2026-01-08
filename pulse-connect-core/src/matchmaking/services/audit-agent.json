@@ -1,0 +1,5 @@
+{
+  "role": "Audit Agent",
+  "permissions": ["read_logs", "flag_anomalies", "recommend_overrides"],
+  "forbidden_zones": ["trigger_flows", "send_messages"]
+}

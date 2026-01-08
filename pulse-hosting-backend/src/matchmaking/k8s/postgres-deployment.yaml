@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matchmaking-postgres
+  namespace: pulse-connect
+  labels:
+    app: matchmaking-postgres
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: matchmaking-postgres
+  template:
+    metadata:
+      labels:
+        app: matchmaking-postgres
+        component: database
+    spec:
+      containers:
+        - name: postgres
+          image: postgis/postgis:15-3.3
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: "matchmaking"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: matchmaking-postgres-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: matchmaking-postgres-secret
+                  key: password
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-init
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+                - -d
+                - $(POSTGRES_DB)
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+                - -d
+                - $(POSTGRES_DB)
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: matchmaking-postgres-pvc
+        - name: postgres-init
+          configMap:
+            name: matchmaking-postgres-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matchmaking-postgres
+  namespace: pulse-connect
+  labels:
+    app: matchmaking-postgres
+    component: database
+spec:
+  selector:
+    app: matchmaking-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+  clusterIP: None # Headless service for stateful access
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matchmaking-postgres-pvc
+  namespace: pulse-connect
+  labels:
+    app: matchmaking-postgres
+    component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard # Adjust based on your cluster
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matchmaking-postgres-init
+  namespace: pulse-connect
+data:
+  01-init-matchmaking.sql: |
+    -- Enable required extensions
+    CREATE EXTENSION IF NOT EXISTS postgis;
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
+    -- Create database if it doesn't exist
+    SELECT 'CREATE DATABASE matchmaking OWNER matchmaking_user'
+    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'matchmaking')\gexec
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: matchmaking-postgres-secret
+  namespace: pulse-connect
+type: Opaque
+data:
+  # Base64 encoded values - replace with actual secrets
+  username: bWF0Y2htYWtpbmdfdXNlcg== # matchmaking_user
+  password: <BASE64_ENCODED_PASSWORD> # Replace with actual password

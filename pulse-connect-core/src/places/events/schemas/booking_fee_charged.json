@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Booking Fee Charged Event",
+  "description": "Event emitted when a 3% booking fee is charged at checkout",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp",
+    "booking_id",
+    "place_id",
+    "booker_id",
+    "host_id",
+    "booking_fee_usd",
+    "total_usd",
+    "policy_version",
+    "trace_id"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique event identifier"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["booking_fee_charged"],
+      "description": "Type of event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp in ISO 8601 format"
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the booking"
+    },
+    "place_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the booked place"
+    },
+    "booker_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the booker"
+    },
+    "host_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the place host"
+    },
+    "booking_fee_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Booking fee amount in USD (3% of booking amount)"
+    },
+    "total_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total booking amount including fees"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Fee policy version used for calculation"
+    },
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Trace ID for request tracking"
+    },
+    "slot_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Booking start time"
+    },
+    "slot_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Booking end time"
+    }
+  }
+}

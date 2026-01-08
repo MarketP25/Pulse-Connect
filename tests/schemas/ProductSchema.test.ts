@@ -11,7 +11,7 @@ describe("ProductSchema", () => {
       imageUrl: "https://example.com/image.jpg",
       category: "Electronics",
       region: "US",
-      sellerId: "123e4567-e89b-12d3-a456-426614174001",
+      sellerId: "123e4567-e89b-12d3-a456-426614174001"
     };
     expect(() => ProductSchema.parse(validProduct)).not.toThrow();
   });
@@ -26,7 +26,7 @@ describe("ProductSchema", () => {
       imageUrl: "https://example.com/image.jpg",
       category: "Electronics",
       region: "US",
-      sellerId: "123e4567-e89b-12d3-a456-426614174001",
+      sellerId: "123e4567-e89b-12d3-a456-426614174001"
     };
     expect(() => ProductSchema.parse(invalidProduct)).toThrow("Price must be zero or positive");
   });
@@ -41,7 +41,7 @@ describe("ProductSchema", () => {
       imageUrl: "invalid-url",
       category: "Electronics",
       region: "US",
-      sellerId: "123e4567-e89b-12d3-a456-426614174001",
+      sellerId: "123e4567-e89b-12d3-a456-426614174001"
     };
     expect(() => ProductSchema.parse(invalidProduct)).toThrow("Must be a valid URL");
   });

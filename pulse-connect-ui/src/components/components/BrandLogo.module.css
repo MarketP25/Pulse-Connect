@@ -1,9 +1,10 @@
 .animate-logo-bounce {
-  animation: logo-bounce 1.8s cubic-bezier(.4,2,.6,1) infinite;
+  animation: logo-bounce 1.8s cubic-bezier(0.4, 2, 0.6, 1) infinite;
 }
 
 @keyframes logo-bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) scale(1);
   }
   10% {

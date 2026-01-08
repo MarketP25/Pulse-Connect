@@ -1,16 +1,16 @@
 // src/hooks/useAuthForm.ts
-'use client';
+"use client";
 
-import React, { useState, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail,
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '@/firebase/config';
+  sendPasswordResetEmail
+} from "firebase/auth";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/firebase/config";
 
 interface UseAuthForm {
   email: string;
@@ -39,51 +39,47 @@ export function useAuthForm(): UseAuthForm {
     return searchParams;
   }, [searchParams]);
 
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [error, setError] = useState<string>('');
-  const [info, setInfo] = useState<string>('');
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [info, setInfo] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
   function getErrorMessage(code: string): string {
     switch (code) {
-      case 'auth/email-already-in-use':
-        return 'This email is already in use.';
-      case 'auth/invalid-email':
-        return 'Invalid email address.';
-      case 'auth/weak-password':
-        return 'Password should be at least 6 characters.';
-      case 'auth/user-not-found':
-        return 'No user found with this email.';
-      case 'auth/wrong-password':
-        return 'Incorrect password.';
+      case "auth/email-already-in-use":
+        return "This email is already in use.";
+      case "auth/invalid-email":
+        return "Invalid email address.";
+      case "auth/weak-password":
+        return "Password should be at least 6 characters.";
+      case "auth/user-not-found":
+        return "No user found with this email.";
+      case "auth/wrong-password":
+        return "Incorrect password.";
       default:
-        return 'Authentication error. Please try again.';
+        return "Authentication error. Please try again.";
     }
   }
 
   const handleLogin = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setError('');
-    setInfo('');
+    setError("");
+    setInfo("");
     setLoading(true);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       if (!user.emailVerified) {
-        setError('Please verify your email before logging in.');
+        setError("Please verify your email before logging in.");
         return;
       }
 
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err: unknown) {
-      const code = (err as { code?: string }).code || '';
+      const code = (err as { code?: string }).code || "";
       setError(getErrorMessage(code));
     } finally {
       setLoading(false);
@@ -92,48 +88,44 @@ export function useAuthForm(): UseAuthForm {
 
   const handleSignup = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setError('');
-    setInfo('');
+    setError("");
+    setInfo("");
     setLoading(true);
 
     try {
-      const referrer = validSearchParams.get('ref');
+      const referrer = validSearchParams.get("ref");
 
       if (referrer?.toLowerCase() === email.toLowerCase()) {
-        setError('You cannot refer yourself.');
+        setError("You cannot refer yourself.");
         return;
       }
 
       let referredBy: string | null = null;
       if (referrer) {
-        const refSnap = await getDoc(doc(db, 'users', referrer));
+        const refSnap = await getDoc(doc(db, "users", referrer));
         if (refSnap.exists()) {
           referredBy = referrer;
         } else {
-          setError('Referral code is invalid.');
+          setError("Referral code is invalid.");
           return;
         }
       }
 
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: user.email,
-        role: 'basic',
+        role: "basic",
         referredBy,
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp()
       });
 
       await sendEmailVerification(user);
-      router.push('/verify-email');
+      router.push("/verify-email");
     } catch (err: unknown) {
-      const code = (err as { code?: string }).code || '';
+      const code = (err as { code?: string }).code || "";
       setError(getErrorMessage(code));
     } finally {
       setLoading(false);
@@ -142,20 +134,20 @@ export function useAuthForm(): UseAuthForm {
 
   const handleResetPassword = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setError('');
-    setInfo('');
+    setError("");
+    setInfo("");
     setLoading(true);
 
     try {
       if (!email) {
-        setError('Please enter your email to reset password.');
+        setError("Please enter your email to reset password.");
         return;
       }
 
       await sendPasswordResetEmail(auth, email);
-      setInfo('Password reset email sent. Check your inbox.');
+      setInfo("Password reset email sent. Check your inbox.");
     } catch (err: unknown) {
-      const code = (err as { code?: string }).code || '';
+      const code = (err as { code?: string }).code || "";
       setError(getErrorMessage(code));
     } finally {
       setLoading(false);
@@ -174,6 +166,6 @@ export function useAuthForm(): UseAuthForm {
     setInfo,
     handleLogin,
     handleSignup,
-    handleResetPassword,
+    handleResetPassword
   };
 }

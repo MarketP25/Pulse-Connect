@@ -1,0 +1,161 @@
+# CI/CD Pipeline Skeleton for Central Super Intelligence Centre
+# GitHub Actions example - adapt for your CI platform
+
+name: Central Super Intelligence Centre CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Pre-merge checks
+  pre-merge:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Lint
+      run: pnpm lint
+
+    - name: Type check
+      run: pnpm typecheck
+
+    - name: Test
+      run: pnpm test
+
+    - name: Security scan
+      run: |
+        # Block PC365-like values in code
+        if grep -r "PC_365_MASTER_TOKEN\|FOUNDER_EMAIL\|SERVICE_DEVICE_FINGERPRINT" --exclude-dir=node_modules --exclude-dir=.git .; then
+          echo "❌ Security violation: Sensitive environment variables found in code"
+          exit 1
+        fi
+
+    - name: Build shared library
+      run: cd shared/lib && npm run build
+
+  # Database migration dry-run
+  db-migration-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run migration dry-run
+      run: |
+        # TODO: Implement migration dry-run script
+        echo "Migration dry-run placeholder"
+        # psql $DATABASE_URL -f infra/db-migrations/001_initial_schema.sql --dry-run
+
+  # Deploy to staging
+  deploy-staging:
+    needs: [pre-merge, db-migration-check]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build services
+      run: pnpm build
+
+    - name: Build and push Docker images
+      run: |
+        docker build -t pulsco/pulse-intelligence-core:staging .
+        docker push pulsco/pulse-intelligence-core:staging
+
+    - name: Deploy to staging
+      run: |
+        # TODO: Implement deployment script
+        echo "Deploy to staging placeholder"
+        # kubectl apply -f infra/k8s/ --namespace staging
+
+  # Smoke tests on staging
+  smoke-test-staging:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - name: Run smoke tests
+      run: |
+        # Test critical endpoints
+        curl -f http://staging.pulsco.com/api/v1/policies/active
+        curl -f http://staging.pulsco.com/api/v1/decisions/evaluate -X POST -H "Content-Type: application/json" -d '{"test": "data"}'
+        # TODO: Add more smoke tests
+
+  # Deploy to production
+  deploy-production:
+    needs: smoke-test-staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build and push production images
+      run: |
+        docker build -t pulsco/pulse-intelligence-core:latest .
+        docker push pulsco/pulse-intelligence-core:latest
+
+    - name: Deploy to production
+      run: |
+        # TODO: Implement production deployment
+        echo "Deploy to production placeholder"
+        # kubectl apply -f infra/k8s/ --namespace production
+
+  # Post-deploy monitoring
+  post-deploy-monitoring:
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Monitor SLOs
+      run: |
+        # TODO: Implement SLO monitoring
+        echo "Monitor SLOs placeholder"
+        # Check p95 latency < 200ms
+        # Check availability > 99.9%
+        # Check audit completeness = 100%

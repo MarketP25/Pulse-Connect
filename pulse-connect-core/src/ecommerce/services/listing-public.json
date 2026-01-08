@@ -1,0 +1,26 @@
+[
+  {
+    "listingId": "LIST003",
+    "title": "Custom Logo Design – Fast Turnaround",
+    "description": "Professional logo design for startups and small businesses. Delivered in 48 hours.",
+    "type": "service",
+    "category": "Tech & Design",
+    "tags": ["logo", "branding", "design", "startup"],
+    "price": "KES 1500",
+    "currency": "KES",
+    "language": "en",
+    "status": "active"
+  },
+  {
+    "listingId": "LIST004",
+    "title": "Online Tutoring – Math & Physics",
+    "description": "One-on-one tutoring sessions for high school and college students. Flexible scheduling.",
+    "type": "service",
+    "category": "Education",
+    "tags": ["tutoring", "math", "physics", "online"],
+    "price": "KES 800",
+    "currency": "KES",
+    "language": "en",
+    "status": "active"
+  }
+]

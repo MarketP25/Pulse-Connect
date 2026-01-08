@@ -16,7 +16,7 @@ export async function sendAnnouncementEmail(
   const priorityColors = {
     low: "#4CAF50",
     medium: "#FFC107",
-    high: "#F44336",
+    high: "#F44336"
   } as const;
 
   const priorityBadge = `<span style="
@@ -86,6 +86,6 @@ export async function sendAnnouncementEmail(
   await sendEmail({
     to,
     subject: `[Pulse Connect] ${data.priority.toUpperCase()}: ${data.title}`,
-    html: htmlContent,
+    html: htmlContent
   });
 }

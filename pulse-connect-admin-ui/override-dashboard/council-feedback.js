@@ -7,4 +7,4 @@ module.exports = function submitFeedback(actionId, comment) {
   };
   appendToJSON("pulse-agent-protocol/audit/flagged-actions.json", feedback);
   return "Feedback submitted.";
-}
+};

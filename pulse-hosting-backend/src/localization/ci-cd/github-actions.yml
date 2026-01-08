@@ -1,0 +1,189 @@
+name: Localization Service CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'pulse-connect/core/localization/**'
+      - 'pulse-connect/hosting/localization/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'pulse-connect/core/localization/**'
+      - 'pulse-connect/hosting/localization/**'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/localization-service
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        cd pulse-connect/core/localization
+        npm ci
+
+    - name: Run tests
+      run: |
+        cd pulse-connect/core/localization
+        npm test -- --coverage --watchAll=false
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./pulse-connect/core/localization/coverage
+        flags: localization
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: './pulse-connect/core/localization'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  build-and-push:
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        region: [us-east-1, eu-west-1, af-south-1]
+    environment: production
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: ./pulse-connect/core/localization
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          BUILD_REGION=${{ matrix.region }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-staging:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.ref == 'refs/heads/develop'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Update staging deployment
+      run: |
+        aws eks update-kubeconfig --region us-east-1 --name pulse-connect-staging
+        kubectl set image deployment/localization-service localization-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop
+        kubectl rollout status deployment/localization-service
+
+  deploy-production:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        region: [us-east-1, eu-west-1, af-south-1]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ matrix.region }}
+
+    - name: Update production deployment
+      run: |
+        aws eks update-kubeconfig --region ${{ matrix.region }} --name pulse-connect-prod-${{ matrix.region }}
+        kubectl set image deployment/localization-service-${{ matrix.region }} localization-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+        kubectl rollout status deployment/localization-service-${{ matrix.region }}
+
+    - name: Run post-deployment tests
+      run: |
+        # Wait for rollout to complete
+        kubectl wait --for=condition=available --timeout=300s deployment/localization-service-${{ matrix.region }}
+
+        # Run smoke tests
+        npm run test:smoke -- --region ${{ matrix.region }}
+
+  rollback:
+    runs-on: ubuntu-latest
+    environment: production
+    if: failure() && github.ref == 'refs/heads/main'
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Rollback deployment
+      run: |
+        aws eks update-kubeconfig --region us-east-1 --name pulse-connect-prod-us-east-1
+        kubectl rollout undo deployment/localization-service-us-east-1
+        kubectl rollout status deployment/localization-service-us-east-1
+
+    - name: Notify team
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: "Localization service deployment failed and was rolled back"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

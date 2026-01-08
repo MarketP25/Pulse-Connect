@@ -1,0 +1,18 @@
+[
+  {
+    "overrideId": "OVR001",
+    "timestamp": "2025-09-26T10:15:00",
+    "action": "access_financial_flow",
+    "agent": "admin-agent",
+    "initiator": "user_123",
+    "userTier": "basic",
+    "flowType": "financial",
+    "emotionalFlag": true,
+    "overrideRequired": true,
+    "overrideTriggered": true,
+    "overrideBy": "Founder",
+    "reason": "Emergency payout verification",
+    "feeRate": "3%",
+    "feeSource": "monetization-model.md"
+  }
+]

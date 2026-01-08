@@ -18,7 +18,7 @@ const ResultChart = ({ metrics }) => {
       {
         label: "Campaign Metrics",
         data: Object.values(metrics),
-        backgroundColor: "rgba(54, 162, 235, 0.6)",
+        backgroundColor: "rgba(54, 162, 235, 0.6)"
       }
     ]
   };

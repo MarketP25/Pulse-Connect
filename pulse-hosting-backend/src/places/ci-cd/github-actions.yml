@@ -1,0 +1,238 @@
+name: Places Service CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "pulse-connect/core/places/**"
+      - "pulse-connect/ui/places/**"
+      - "pulse-connect/admin-ui/places/**"
+      - "pulse-connect/hosting/places/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "pulse-connect/core/places/**"
+      - "pulse-connect/ui/places/**"
+      - "pulse-connect/admin-ui/places/**"
+      - "pulse-connect/hosting/places/**"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/places-service
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      kafka:
+        image: confluentinc/cp-kafka:7.4.0
+        env:
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        options: >-
+          --health-cmd /bin/bash -c 'kafka-broker-api-versions.sh --bootstrap-server localhost:9092'
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      zookeeper:
+        image: confluentinc/cp-zookeeper:7.4.0
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: pulse-connect/core/places/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd pulse-connect/core/places
+          npm ci
+
+      - name: Run database migrations
+        run: |
+          cd pulse-connect/core/places
+          npm run migrate:test
+
+      - name: Run tests
+        run: |
+          cd pulse-connect/core/places
+          npm run test:ci
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/places_test
+          KAFKA_BROKERS: localhost:9092
+
+      - name: Run security scan
+        run: |
+          cd pulse-connect/core/places
+          npm audit --audit-level high
+
+      - name: Check for PAP imports
+        run: |
+          if grep -r "pulse-agent-protocol\|pap" pulse-connect/core/places/; then
+            echo "ERROR: Found references to pulse-agent-protocol in places service"
+            exit 1
+          fi
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: pulse-connect/core/places/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd pulse-connect/core/places
+          npm ci
+
+      - name: Run ESLint
+        run: |
+          cd pulse-connect/core/places
+          npm run lint
+
+  build:
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: pulse-connect/core/places/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd pulse-connect/core/places
+          npm ci
+
+      - name: Build application
+        run: |
+          cd pulse-connect/core/places
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: places-service-build
+          path: pulse-connect/core/places/dist/
+
+  docker-build:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: places-service-build
+          path: dist/
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: pulse-connect/hosting/places/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-staging:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Deploy to staging
+        run: |
+          kubectl apply -f pulse-connect/hosting/places/k8s/ -n places-staging
+          kubectl rollout status deployment/places-service -n places-staging --timeout=300s
+
+      - name: Run staging tests
+        run: |
+          cd pulse-connect/core/places
+          npm run test:e2e:staging
+
+  deploy-production:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Deploy to production (canary)
+        run: |
+          kubectl apply -f pulse-connect/hosting/places/k8s/ -n places-prod
+          kubectl set image deployment/places-service places-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n places-prod
+          kubectl rollout status deployment/places-service -n places-prod --timeout=300s
+
+      - name: Run production smoke tests
+        run: |
+          cd pulse-connect/core/places
+          npm run test:smoke:prod
+
+      - name: Scale to full deployment
+        if: success()
+        run: |
+          kubectl scale deployment places-service --replicas=10 -n places-prod

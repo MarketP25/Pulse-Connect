@@ -1,0 +1,160 @@
+# Pulsco E-Commerce Platform Alerting Rules
+
+groups:
+  - name: ecommerce_platform_alerts
+    rules:
+      # Financial Alerts
+      - alert: PayoutReconciliationFailure
+        expr: rate(payout_reconciliation_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: finance
+        annotations:
+          summary: "Payout reconciliation failures detected"
+          description: "Payout reconciliation has failed {{ $value }} times in the last 5 minutes"
+
+      - alert: ReserveBalanceLow
+        expr: payout_reserve_balance_usd < 50000
+        for: 10m
+        labels:
+          severity: warning
+          team: finance
+        annotations:
+          summary: "Payout reserve balance is low"
+          description: "Payout reserve balance is {{ $value }} USD, below the 50k threshold"
+
+      - alert: ReserveBalanceCritical
+        expr: payout_reserve_balance_usd < 10000
+        for: 5m
+        labels:
+          severity: critical
+          team: finance
+        annotations:
+          summary: "Payout reserve balance critically low"
+          description: "Payout reserve balance is {{ $value }} USD, below the 10k critical threshold"
+
+      # Fraud Alerts
+      - alert: FraudSpikeDetected
+        expr: rate(fraud_blocked_total[5m]) / rate(payment_attempted_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Fraud detection rate spike"
+          description: "Fraud detection rate is {{ $value | humanizePercentage }}, above 5% threshold"
+
+      - alert: FraudRateCritical
+        expr: rate(fraud_blocked_total[5m]) / rate(payment_attempted_total[5m]) > 0.10
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "Critical fraud detection rate"
+          description: "Fraud detection rate is {{ $value | humanizePercentage }}, above 10% critical threshold"
+
+      # Performance Alerts
+      - alert: HighAPIErrorRate
+        expr: rate(http_requests_total{status=~"[5][0-9][0-9]"}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is {{ $value | humanizePercentage }}, above 5% threshold"
+
+      - alert: APILatencyHigh
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile API response time is {{ $value }}s, above 2s threshold"
+
+      # Business Alerts
+      - alert: LowOrderFulfillmentRate
+        expr: (sum(rate(order_delivered_total[1h])) / sum(rate(order_created_total[1h]))) < 0.8
+        for: 15m
+        labels:
+          severity: warning
+          team: operations
+        annotations:
+          summary: "Low order fulfillment rate"
+          description: "Order fulfillment rate is {{ $value | humanizePercentage }}, below 80% threshold"
+
+      - alert: HighDisputeRate
+        expr: (sum(rate(dispute_created_total[1h])) / sum(rate(order_completed_total[1h]))) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+          team: operations
+        annotations:
+          summary: "High dispute rate detected"
+          description: "Dispute rate is {{ $value | humanizePercentage }}, above 5% threshold"
+
+      - alert: SellerOnboardingLow
+        expr: (sum(rate(seller_kyc_approved_total[24h])) / sum(rate(seller_registered_total[24h]))) < 0.6
+        for: 1h
+        labels:
+          severity: warning
+          team: growth
+        annotations:
+          summary: "Low seller onboarding success rate"
+          description: "Seller onboarding success rate is {{ $value | humanizePercentage }}, below 60% threshold"
+
+      # System Health Alerts
+      - alert: DatabaseConnectionHigh
+        expr: rate(database_connection_errors_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High database connection errors"
+          description: "Database connection errors: {{ $value }} in the last 5 minutes"
+
+      - alert: KafkaConsumerLagHigh
+        expr: kafka_consumergroup_lag > 10000
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High Kafka consumer lag"
+          description: "Kafka consumer lag is {{ $value }}, above 10k threshold"
+
+      - alert: ServiceDown
+        expr: up{job=~"ecommerce-.*"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} service is down"
+
+      # FX and Currency Alerts
+      - alert: FXRateUpdateFailed
+        expr: rate(fx_rate_update_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: finance
+        annotations:
+          summary: "FX rate update failures"
+          description: "FX rate update has failed {{ $value }} times in the last 5 minutes"
+
+      - alert: FXVolatilityHigh
+        expr: stddev(rate(fx_rate[1h])) > 0.02
+        for: 10m
+        labels:
+          severity: warning
+          team: finance
+        annotations:
+          summary: "High FX volatility detected"
+          description: "FX rate volatility is {{ $value }}, above 2% threshold"

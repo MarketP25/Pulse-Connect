@@ -17,7 +17,7 @@ export default function LoginPage() {
           <p className="text-gray-500 text-sm mt-1">Your digital marketing command center</p>
         </div>
 
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign In to Pulse Connect</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">Sign In to Pulse Connect(PULSCO)</h2>
 
         <input
           id="email"
