@@ -114,7 +114,6 @@
     "@types/cors": "^2.8.16",
     "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.2",
-    "@types/ipaddr.js": "^2.0.3",
     "@types/uuid": "^9.0.7",
     "@types/crypto-js": "^4.2.1",
     "@types/qrcode": "^1.5.5",
