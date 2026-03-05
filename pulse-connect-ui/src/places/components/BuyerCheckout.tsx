@@ -198,7 +198,7 @@ export const BuyerCheckout: React.FC<BuyerCheckoutProps> = ({
               <span className="flex items-center gap-1">
                 Platform Service Fee
                 <Badge variant="secondary" className="text-xs">
-                  3% non-refundable
+                  Policy-driven
                 </Badge>
               </span>
               <span>{formatCurrency(calculation.breakdown.platform_service_fee)}</span>
@@ -240,9 +240,8 @@ export const BuyerCheckout: React.FC<BuyerCheckoutProps> = ({
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>Important:</strong> The Platform Service Fee (3%) is non-refundable and charged
-          immediately upon booking confirmation. Cancellations may be subject to additional fees
-          based on timing.
+          <strong>Important:</strong> Platform fees are determined by active billing policy and are
+          charged at booking confirmation. Cancellation outcomes depend on policy and timing.
         </AlertDescription>
       </Alert>
 

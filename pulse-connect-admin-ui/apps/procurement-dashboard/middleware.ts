@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { AdminAuthClient } from '@pulsco/admin-auth-client'
 
@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    if (session.role !== 'procurement') {
+    if (session.role !== 'procurement-partnerships') {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
 
@@ -47,3 +47,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }
+

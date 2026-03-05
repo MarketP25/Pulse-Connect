@@ -1,0 +1,10 @@
+{
+  "name": "@pulsco/admin-gateway",
+  "version": "0.2.0",
+  "main": "src/index.ts",
+  "private": true,
+  "dependencies": {
+    "@pulsco/admin-shared-types": "workspace:*",
+    "@pulsco/admin-marp-client": "workspace:*"
+  }
+}

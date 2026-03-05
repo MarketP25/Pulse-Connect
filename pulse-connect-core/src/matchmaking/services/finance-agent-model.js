@@ -1,5 +1,5 @@
 module.exports = {
-  executeTrade(data) {
+  async executeTrade(data) {
     const { userId, amount, flowType, userTier } = data;
 
     if (userTier === "basic" && flowType === "financial") {
@@ -11,7 +11,7 @@ module.exports = {
     }
 
     logAction("trade_execution", userId);
-    chargeFee(data.tradeId, amount, flowType);
+    await chargeFee(data.tradeId, amount, flowType);
 
     return "Trade executed";
   }

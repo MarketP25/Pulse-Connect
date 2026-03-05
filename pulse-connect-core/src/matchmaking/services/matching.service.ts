@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Pool } from 'pg';
+import { emitMatchmakingEvent } from '../../csi/instrumentation';
 
 export interface Brief {
   id: number;
@@ -75,10 +76,39 @@ export class MatchingService {
         processingTime: result.processing_time_ms,
       });
 
+      emitMatchmakingEvent(
+        'matching.generated',
+        'GLOBAL',
+        {
+          briefId: brief.id,
+          totalCandidates: candidates.length,
+          matchedCandidates: matches.length,
+          processingTimeMs: result.processing_time_ms,
+          traceId,
+        },
+        {
+          riskScore: matches.length === 0 ? 48 : 22,
+          performanceScore: result.processing_time_ms > 3000 ? 55 : 87,
+        },
+      );
+
       return result;
 
     } catch (error) {
       this.logger.error(`Match generation failed for brief ${brief.id}`, error, { traceId });
+      emitMatchmakingEvent(
+        'matching.failed',
+        'GLOBAL',
+        {
+          briefId: brief.id,
+          traceId,
+          reason: error instanceof Error ? error.message : 'unknown_error',
+        },
+        {
+          riskScore: 72,
+          performanceScore: 28,
+        },
+      );
       throw error;
     }
   }

@@ -22,3 +22,12 @@ docker compose -f infra/dev/docker-compose.yml exec -T db psql -U postgres -d po
 Notes
 - The compose file mounts `infra/db-migrations` into the container at `/migrations`.
 - If `docker compose` fails, ensure Docker Desktop is running and that your user has access to the Docker socket.
+
+Unified-origin gateway (optional)
+
+```powershell
+docker compose -f infra/dev/docker-compose.yml --profile gateway up -d unified-gateway
+```
+
+- Open `http://localhost:8080`.
+- This simulates single-origin routing (`/`, `/connect`, `/admin`, `/billing`, `/wallet`, `/auth`, `/edge`, `/marp`).

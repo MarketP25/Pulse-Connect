@@ -258,6 +258,49 @@ export const GOVERNANCE_INTENTS: GovernanceIntent[] = [
     },
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
+  },
+
+  // DPO (Data Protection Officer) Intents
+  {
+    id: 'data-protection',
+    name: 'Data Protection and Privacy Compliance',
+    description: 'Monitor data protection metrics and privacy compliance across the platform',
+    purpose: 'Ensure GDPR compliance, data privacy, and protection of user data',
+    responsibleAdmin: 'dpo',
+    escalationRules: [
+      {
+        id: 'data-breach-detected',
+        condition: 'data_breach_count > 0',
+        targetRole: 'superadmin',
+        timeoutMinutes: 5,
+        action: 'freeze'
+      },
+      {
+        id: 'gdpr-compliance-low',
+        condition: 'gdpr_compliance < 0.95',
+        targetRole: 'legal-finance',
+        timeoutMinutes: 30,
+        action: 'escalate'
+      },
+      {
+        id: 'dsar-overdue',
+        condition: 'dsar_requests_pending > 10',
+        targetRole: 'legal-finance',
+        timeoutMinutes: 60,
+        action: 'notify'
+      }
+    ],
+    metrics: ['gdpr_compliance', 'data_breach_count', 'privacy_policy_violations', 'data_retention_compliance', 'dsar_requests', 'dsar_requests_pending', 'data_anonymization_rate'],
+    thresholds: {
+      gdpr_compliance: 0.98,
+      data_breach_count: 0,
+      privacy_policy_violations: 0,
+      data_retention_compliance: 0.95,
+      dsar_requests_pending: 5,
+      data_anonymization_rate: 0.90
+    },
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01')
   }
 ];
 

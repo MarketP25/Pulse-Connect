@@ -1,5 +1,5 @@
 module.exports = {
-  executeTrade(data) {
+  async executeTrade(data) {
     const { userId, amount, flowType, userTier } = data;
 
     // 🔐 Tier check for override-sensitive flows
@@ -14,7 +14,7 @@ module.exports = {
 
     // 🧾 Log and charge fee
     logAction("trade_execution", userId);
-    chargeFee(data.tradeId, amount, flowType);
+    await chargeFee(data.tradeId, amount, flowType);
 
     return "Trade executed";
   }

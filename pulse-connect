@@ -1,0 +1,39 @@
+// Admin Intelligence API Route - People Risk Dashboard
+import { NextRequest, NextResponse } from "next/server";
+
+async function validatePC365Guard(req: NextRequest): Promise<boolean> {
+  const pc365Token = req.headers.get("x-pc365-attestation");
+  const adminRole = req.headers.get("x-admin-role");
+  return !!(pc365Token && adminRole);
+}
+
+export async function GET(req: NextRequest) {
+  const isAuthorized = await validatePC365Guard(req);
+  if (!isAuthorized) return new NextResponse("Unauthorized", { status: 401 });
+  const adminRole = req.headers.get("x-admin-role") || "people-risk";
+  try {
+    const gatewayUrl = process.env.ADMIN_GATEWAY_URL || "http://localhost:3001";
+    const url = new URL(req.url);
+    const action = url.searchParams.get("action") || "metrics";
+    const response = await fetch(`${gatewayUrl}/api/admin/intelligence?role=${adminRole}&action=${action}`, {
+      headers: { "x-admin-role": adminRole, "x-pc365-attestation": req.headers.get("x-pc365-attestation") || "" }
+    });
+    return NextResponse.json(await response.json());
+  } catch { return new NextResponse("Error", { status: 500 }); }
+}
+
+export async function POST(req: NextRequest) {
+  const isAuthorized = await validatePC365Guard(req);
+  if (!isAuthorized) return new NextResponse("Unauthorized", { status: 401 });
+  const adminRole = req.headers.get("x-admin-role") || "people-risk";
+  try {
+    const gatewayUrl = process.env.ADMIN_GATEWAY_URL || "http://localhost:3001";
+    const body = await req.json();
+    const response = await fetch(`${gatewayUrl}/api/admin/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-role": adminRole },
+      body: JSON.stringify({ ...body, source: "people-risk-dashboard", timestamp: new Date().toISOString() })
+    });
+    return NextResponse.json(await response.json());
+  } catch { return new NextResponse("Error", { status: 500 }); }
+}

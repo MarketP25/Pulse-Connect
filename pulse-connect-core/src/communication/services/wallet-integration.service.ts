@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
 import Stripe from "stripe";
+import { calculateBillingActivityQuote, chargeBillingActivity } from "../../billing/billing-engine.client";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2024-12-18.acacia", // Ensure this matches your Stripe API version
@@ -155,7 +156,8 @@ export class WalletIntegrationService {
   async checkBalanceForCall(
     userId: string,
     callType: "voice" | "video",
-    estimatedMinutes: number = 1
+    estimatedMinutes: number = 1,
+    regionCode: string = "US"
   ): Promise<{
     has_balance: boolean;
     available_minutes: number;
@@ -172,10 +174,20 @@ export class WalletIntegrationService {
       };
     }
 
-    const policy = await this.getCurrentFeePolicy();
-    const ratePerMinute =
-      callType === "voice" ? policy.voice_per_minute_usd : policy.video_per_minute_usd;
-    const estimatedCost = ratePerMinute * estimatedMinutes;
+    const quote = await calculateBillingActivityQuote({
+      engine: "communication",
+      units: estimatedMinutes,
+      eventId: `${userId}-${callType}-estimate-${Date.now()}`,
+      details: {
+        mode: "call_estimate",
+        serviceType: callType,
+      },
+      region: regionCode,
+    });
+    if (!quote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const estimatedCost = quote.total;
 
     // Require enough available minutes for the estimated duration
     const canProceed = balance.available_minutes >= estimatedMinutes;
@@ -202,12 +214,24 @@ export class WalletIntegrationService {
     rate_per_minute_usd: number;
     available_minutes: number;
   }> {
-    const policy = await this.getCurrentFeePolicy();
-    const ratePerMinute =
-      callType === "voice" ? policy.voice_per_minute_usd : policy.video_per_minute_usd;
+    const unitQuote = await calculateBillingActivityQuote({
+      engine: "communication",
+      units: 1,
+      eventId: `${traceId}-unit-rate`,
+      details: {
+        mode: "rate_preview",
+        serviceType: callType,
+        callId,
+      },
+      region: regionCode,
+    });
+    if (!unitQuote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const ratePerMinute = unitQuote.total;
 
     // Check balance
-    const balanceCheck = await this.checkBalanceForCall(userId, callType);
+    const balanceCheck = await this.checkBalanceForCall(userId, callType, 1, regionCode);
     if (!balanceCheck.can_proceed) {
       throw new Error("Insufficient balance for call");
     }
@@ -252,12 +276,23 @@ export class WalletIntegrationService {
     }
 
     const billing = billingResult.rows[0];
-    const policy = await this.getCurrentFeePolicy();
-
-    // Calculate cost
-    const ratePerMinute =
-      billing.service_type === "voice" ? policy.voice_per_minute_usd : policy.video_per_minute_usd;
-    const totalCostUsd = ratePerMinute * actualMinutes;
+    const billingCharge = await chargeBillingActivity({
+      accountId: billing.user_id,
+      engine: "communication",
+      units: actualMinutes,
+      eventId: `${billingId}-finalize`,
+      details: {
+        mode: "call_finalize",
+        serviceType: billing.service_type,
+        callId: billing.call_id,
+      },
+      region: regionCode,
+      idempotencyKey: traceId,
+    });
+    if (!billingCharge) {
+      throw new Error("billing_engine_charge_failed");
+    }
+    const totalCostUsd = billingCharge.amount;
 
     // Apply regional pricing
     const regionalPricing = await this.calculateRegionalPricing(totalCostUsd, regionCode);
@@ -320,17 +355,22 @@ export class WalletIntegrationService {
     minutes_added: number;
     amount_paid_usd: number;
   }> {
-    const policy = await this.getCurrentFeePolicy();
-
-    // Find appropriate bundle or calculate per-minute cost
-    let costPerMinute = policy.voice_per_minute_usd; // Base rate
-    let totalCost = costPerMinute * request.minutes_to_add;
-
-    // Check for bundle pricing
-    const bundle = policy.bundles.find((b) => b.minutes === request.minutes_to_add);
-    if (bundle) {
-      totalCost = bundle.price_usd;
+    const balance = await this.getWalletBalance(request.user_id);
+    const regionCode = balance?.region_code || "US";
+    const quote = await calculateBillingActivityQuote({
+      engine: "communication",
+      units: request.minutes_to_add,
+      eventId: `${request.trace_id}-topup`,
+      details: {
+        mode: "top_up",
+        minutesToAdd: request.minutes_to_add,
+      },
+      region: regionCode,
+    });
+    if (!quote) {
+      throw new Error("billing_engine_quote_failed");
     }
+    const totalCost = quote.total;
 
     // Process payment (this would integrate with payment service)
     const paymentResult = await this.processPayment(
@@ -343,6 +383,22 @@ export class WalletIntegrationService {
     if (!paymentResult.success) {
       throw new Error("Payment failed");
     }
+    const billingCharge = await chargeBillingActivity({
+      accountId: request.user_id,
+      engine: "communication",
+      units: request.minutes_to_add,
+      eventId: `${request.trace_id}-topup-charge`,
+      details: {
+        mode: "top_up",
+        minutesToAdd: request.minutes_to_add,
+      },
+      region: regionCode,
+      idempotencyKey: request.trace_id,
+    });
+    if (!billingCharge) {
+      throw new Error("billing_engine_charge_failed");
+    }
+    const chargedAmount = billingCharge.amount;
 
     // Add minutes to wallet
     await this.pool.query(
@@ -358,7 +414,7 @@ export class WalletIntegrationService {
     );
 
     // Record transaction
-    const transactionId = uuidv4();
+    let transactionId = uuidv4();
     // Idempotent insert on trace_id: if exists, do nothing
     try {
       await this.pool.query(
@@ -367,7 +423,7 @@ export class WalletIntegrationService {
           id, user_id, service_type, amount_usd, status, trace_id
         ) VALUES ($1, $2, $3, $4, $5, $6)
       `,
-        [transactionId, request.user_id, "top_up", totalCost, "completed", request.trace_id]
+        [transactionId, request.user_id, "top_up", chargedAmount, "completed", request.trace_id]
       );
     } catch (e) {
       // If unique constraint on trace_id exists and we hit a conflict, fetch existing
@@ -385,7 +441,7 @@ export class WalletIntegrationService {
     // Record in ledger
     await this.recordLedgerTransaction({
       user_id: request.user_id,
-      amount_usd: totalCost,
+      amount_usd: chargedAmount,
       description: "Communication wallet top-up",
       reference_id: transactionId,
       trace_id: request.trace_id
@@ -394,7 +450,7 @@ export class WalletIntegrationService {
     return {
       transaction_id: transactionId,
       minutes_added: request.minutes_to_add,
-      amount_paid_usd: totalCost
+      amount_paid_usd: chargedAmount
     };
   }
 
@@ -413,11 +469,20 @@ export class WalletIntegrationService {
 
     // Auto top-up with default amount (100 minutes)
     const defaultTopUpMinutes = 100;
-    const policy = await this.getCurrentFeePolicy();
-
-    // Find 100-minute bundle or calculate cost
-    const bundle = policy.bundles.find((b) => b.minutes === defaultTopUpMinutes);
-    const cost = bundle ? bundle.price_usd : policy.voice_per_minute_usd * defaultTopUpMinutes;
+    const quote = await calculateBillingActivityQuote({
+      engine: "communication",
+      units: defaultTopUpMinutes,
+      eventId: `${userId}-auto-topup-${Date.now()}`,
+      details: {
+        mode: "auto_top_up",
+        minutesToAdd: defaultTopUpMinutes,
+      },
+      region: balance.region_code,
+    });
+    if (!quote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const cost = quote.total;
 
     // This would integrate with saved payment method
     // For now, assume auto top-up succeeds

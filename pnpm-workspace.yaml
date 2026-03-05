@@ -5,6 +5,7 @@ packages:
   # Core user interfaces
   - "pulse-connect-ui"
   - "pulse-connect-admin-ui"
+  - "pulse-connect-admin-ui/apps/*"      # Include all admin dashboards in unified workspace
   - "pulse-connect-admin-ui/packages/*"   # Include nested packages like admin-admin-lifecycle
 
   # Core platform engine

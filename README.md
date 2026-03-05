@@ -61,12 +61,30 @@ Concentric design implemented across these major layers:
     - shared/lib/src/hashChain.ts
 
 
+- CSI (Central Super Intelligence)
+  - Event-driven advisory intelligence package with ingestion, analysis, scoring, recommendations, governance, VAULT, and simulation.
+    - packages/csi/events.ts
+    - packages/csi/engine/*
+    - packages/csi/vault.ts
+    - packages/csi/governance.ts
+    - packages/csi/simulate.ts
+  - Admin backend endpoint that returns summaries/recommendations/insights and drives governance workflows.
+    - pulse-connect-admin-ui/src/app/api/admin/csi/route.ts
+
+- Identity and KYC Onboarding (security-first, CSI-aware)
+  - Identity authority service for account creation, verification, consent immutability, session rotation, trust initialization, and Admin Gateway event feeds.
+    - packages/pulse-identity-service/*
+  - Isolated KYC workflow service (required for paid tiers and high-assurance roles).
+    - packages/pulse-kyc-service/*
+  - User onboarding API routes (no direct CSI access; service-layer mediated).
+    - pulse-connect-ui/src/app/api/identity/*
 ## Monorepo structure (selected)
 
 - pulse-connect-core: Core services including communication wallet billing and proximity integrations.
 - pulse-connect-ui, pulse-connect-admin-ui: Next.js UIs (user/admin) with localization support.
 - services/*: Intelligence core, edge gateway, governance, observability, firewall, reporting, proximity powerhouse.
 - pap_v1: Pulse Agent Protocol v1, with proximity-aware marketing integration.
+- packages/csi: Central Super Intelligence package (event standardization, VAULT, governance approvals, simulation).
 - infra/*: DB migrations, K8s manifests, monitoring, CI/CD, and operational runbooks.
 - shared/lib: Security/audit primitives and shared types.
 
@@ -163,3 +181,4 @@ ISC (see LICENSE if present in this repository).
 ## Acknowledgments
 
 This repository implements a governance-first, planetary architecture for Pulse Connect (PULSCO). Claims in this README are aligned with the current codebase; integration points (payments, FX, Redis caching, model-backed NLP) are intentionally marked for implementation.
+

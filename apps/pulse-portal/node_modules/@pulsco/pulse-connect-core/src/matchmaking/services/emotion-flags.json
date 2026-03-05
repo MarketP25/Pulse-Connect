@@ -1,8 +1,0 @@
-{
-  "flags": {
-    "silence": "pause",
-    "distress": "pause",
-    "confusion": "pause",
-    "relationship_trigger": "override_required"
-  }
-}

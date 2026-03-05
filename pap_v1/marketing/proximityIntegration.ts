@@ -2,6 +2,9 @@ import { ProximityMarketingService, MarketingCampaign, MarketingRecipient } from
 import { ProximityService } from '../../pulse-connect-core/src/proximity/service';
 import { RegionIntelligence } from '../../pulse-connect-core/src/proximity/service/regionIntelligence';
 import { AuditEngine } from '../../pulse-connect-core/src/proximity/service/audit';
+import { createSubsystemEmitter } from '../../packages/csi/events';
+
+const emitMarketingEvent = createSubsystemEmitter('marketing');
 
 export interface PAPMarketingCampaign extends MarketingCampaign {
   papSpecific: {
@@ -58,6 +61,21 @@ export class PAPProximityIntegration {
 
     // Generate proximity insights
     const proximityInsights = await this.generateProximityInsights(campaign, recipients, actorId);
+
+    emitMarketingEvent(
+      'marketing.campaign.executed',
+      'GLOBAL',
+      {
+        campaignId: campaign.id,
+        actorId,
+        recipientCount: recipients.length,
+        triggerCount: campaign.papSpecific.triggerEvents.length,
+      },
+      {
+        riskScore: recipients.length === 0 ? 42 : 18,
+        performanceScore: 85,
+      }
+    );
 
     return {
       campaignId: campaign.id,
@@ -296,6 +314,20 @@ export class PAPProximityIntegration {
       },
       result: 'success'
     });
+
+    emitMarketingEvent(
+      'marketing.proximity.triggered',
+      metadata.region || 'GLOBAL',
+      {
+        eventType,
+        userId,
+        actorId,
+      },
+      {
+        riskScore: eventType === 'proximity_alert' ? 55 : 20,
+        performanceScore: 82,
+      }
+    );
   }
 
   /**

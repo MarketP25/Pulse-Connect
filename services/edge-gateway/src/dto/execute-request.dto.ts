@@ -36,6 +36,10 @@ export class ExecuteRequestDto {
   @IsString()
   @IsOptional()
   policyVersion?: string;
+
+  @IsString()
+  @IsOptional()
+  reasonCode?: string;
 }
 
 export class ExecuteResponseDto {
@@ -79,6 +83,13 @@ export class TelemetryData {
 
   @IsString()
   hash: string;
+
+  @IsString()
+  reasonCode: string;
+
+  @IsString()
+  @IsOptional()
+  sourceApp?: string;
 }
 
 export class QuarantineData {

@@ -26,6 +26,49 @@ interface HRAlert {
   affectedEmployees: number
 }
 
+const FALLBACK_METRICS: PeopleRiskMetrics = {
+  employeeSatisfactionScore: 4.1,
+  turnoverRate: 2.1,
+  absenteeismRate: 3.2,
+  trainingCompletionRate: 87,
+  diversityInclusionScore: 8.2,
+  complianceTrainingRate: 94,
+  riskIncidents: 3,
+  harassmentReports: 0,
+  performanceReviewCompletion: 92,
+  talentAcquisitionTime: 28
+}
+
+const FALLBACK_ALERTS: HRAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Employee Turnover Rate Increasing',
+    description: 'Turnover rate exceeded 2% threshold in engineering department',
+    source: 'HR Analytics',
+    timestamp: '2 hours ago',
+    affectedEmployees: 12
+  },
+  {
+    id: '2',
+    type: 'medium',
+    title: 'Compliance Training Due',
+    description: 'GDPR training expires for 156 employees in 7 days',
+    source: 'Compliance System',
+    timestamp: '4 hours ago',
+    affectedEmployees: 156
+  },
+  {
+    id: '3',
+    type: 'low',
+    title: 'Performance Reviews Pending',
+    description: '8% of quarterly performance reviews are overdue',
+    source: 'Performance Management',
+    timestamp: '1 day ago',
+    affectedEmployees: 24
+  }
+]
+
 export default function PeopleRiskDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<PeopleRiskMetrics | null>(null)
@@ -33,54 +76,53 @@ export default function PeopleRiskDashboard() {
   const [activeView, setActiveView] = useState('overview')
 
   useEffect(() => {
-    // Simulate loading people and risk metrics from CSI
     const loadPeopleData = async () => {
-      setTimeout(() => {
-        setMetrics({
-          employeeSatisfactionScore: 4.1,
-          turnoverRate: 2.1,
-          absenteeismRate: 3.2,
-          trainingCompletionRate: 87,
-          diversityInclusionScore: 8.2,
-          complianceTrainingRate: 94,
-          riskIncidents: 3,
-          harassmentReports: 0,
-          performanceReviewCompletion: 92,
-          talentAcquisitionTime: 28
-        })
-
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Employee Turnover Rate Increasing',
-            description: 'Turnover rate exceeded 2% threshold in engineering department',
-            source: 'HR Analytics',
-            timestamp: '2 hours ago',
-            affectedEmployees: 12
-          },
-          {
-            id: '2',
-            type: 'medium',
-            title: 'Compliance Training Due',
-            description: 'GDPR training expires for 156 employees in 7 days',
-            source: 'Compliance System',
-            timestamp: '4 hours ago',
-            affectedEmployees: 156
-          },
-          {
-            id: '3',
-            type: 'low',
-            title: 'Performance Reviews Pending',
-            description: '8% of quarterly performance reviews are overdue',
-            source: 'Performance Management',
-            timestamp: '1 day ago',
-            affectedEmployees: 24
-          }
+      try {
+        const headers = { 'x-admin-role': 'people-risk' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
         ])
 
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
+
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        setMetrics({
+          ...FALLBACK_METRICS,
+          ...rawMetrics
+        })
+
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'medium',
+                title: anomaly.title || `People-risk anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected an HR/risk anomaly.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                affectedEmployees: Number(anomaly.affectedEmployees || anomaly.impactCount || 0)
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
+          }
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load people-risk intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
+      } finally {
         setIsLoading(false)
-      }, 2000)
+      }
     }
 
     loadPeopleData()

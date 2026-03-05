@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
 import { FeeService } from "./fee.service";
+import { calculateBillingActivityQuote } from "../../billing/billing-engine.client";
 
 export interface Booking {
   id: string;
@@ -56,7 +57,7 @@ export class BookingService {
   ) {}
 
   /**
-   * Calculate booking costs including 3% platform fee
+   * Calculate booking costs using billing-engine policy
    */
   async calculateBooking(
     bookingRequest: BookingRequest,
@@ -78,37 +79,43 @@ export class BookingService {
     const hourlyRate = place.pricing.hourly_usd || place.pricing.daily_usd / 24;
     const basePriceUsd = Math.round(hourlyRate * durationHours * 100) / 100;
 
-    // Calculate booking fee (3%)
-    const feeCalculation = await this.feeService.calculateBookingFee(basePriceUsd, finalTraceId);
-
-    // Calculate taxes (example: 8% tax rate)
-    const taxRate = 0.08;
-    const taxesUsd =
-      Math.round((basePriceUsd + feeCalculation.booking_fee_usd) * taxRate * 100) / 100;
+    const billingQuote = await calculateBillingActivityQuote({
+      engine: "places",
+      amount: basePriceUsd,
+      eventId: finalTraceId,
+      details: {
+        mode: "booking",
+        durationHours,
+        guestCount: bookingRequest.guest_count,
+        placeId: bookingRequest.place_id,
+      },
+      region: "global",
+    });
+    if (!billingQuote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const bookingFeeUsd = Math.round(billingQuote.fees * 100) / 100;
+    const taxesUsd = Math.round(billingQuote.tax * 100) / 100;
+    const totalUsd = Math.round(billingQuote.total * 100) / 100;
 
     // Calculate deposit (20% of total)
     const depositRate = 0.2;
-    const depositUsd =
-      Math.round((basePriceUsd + feeCalculation.booking_fee_usd + taxesUsd) * depositRate * 100) /
-      100;
-
-    // Total calculation
-    const totalUsd = basePriceUsd + feeCalculation.booking_fee_usd + taxesUsd;
+    const depositUsd = Math.round(totalUsd * depositRate * 100) / 100;
 
     return {
       base_price_usd: basePriceUsd,
-      booking_fee_usd: feeCalculation.booking_fee_usd,
+      booking_fee_usd: bookingFeeUsd,
       taxes_usd: taxesUsd,
       deposit_usd: depositUsd,
       total_usd: totalUsd,
       breakdown: {
         slot_price: basePriceUsd,
-        platform_service_fee: feeCalculation.booking_fee_usd,
+        platform_service_fee: bookingFeeUsd,
         taxes: taxesUsd,
         deposit: depositUsd,
         total: totalUsd
       },
-      policy_version: feeCalculation.policy_version,
+      policy_version: billingQuote.policyVersion || "billing-engine-unversioned",
       trace_id: finalTraceId
     };
   }

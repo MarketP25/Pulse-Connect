@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
-import { TechSecurityCSIService } from '../services/csi'
 
 interface SecurityMetrics {
   threatLevel: string
@@ -23,65 +22,89 @@ interface SecurityAlert {
   priority: string
 }
 
+const FALLBACK_METRICS: SecurityMetrics = {
+  threatLevel: 'medium',
+  activeIncidents: 3,
+  vulnerabilityCount: 47,
+  patchCompliance: 89.2,
+  securityScore: 87.5,
+  failedLogins: 23
+}
+
+const FALLBACK_ALERTS: SecurityAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Multiple Security Threats Detected',
+    description: 'High-severity security anomalies require immediate attention',
+    source: 'CSI Intelligence',
+    timestamp: '30 seconds ago',
+    priority: 'High'
+  }
+]
+
 export default function TechSecurityDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<SecurityMetrics | null>(null)
   const [alerts, setAlerts] = useState<SecurityAlert[]>([])
-  const [csiService] = useState(() => new TechSecurityCSIService(null as any)) // TODO: Inject proper CSI client
 
   useEffect(() => {
     const loadSecurityData = async () => {
       try {
-        // Load metrics from CSI
-        const csiMetrics = await csiService.fetchSecurityMetrics()
+        const headers = { 'x-admin-role': 'tech-security' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
+        ])
 
-        // Load anomalies from CSI
-        const csiAnomalies = await csiService.getSecurityAnomalies()
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
 
-        setMetrics(csiMetrics)
-
-        // Convert CSI anomalies to dashboard alerts
-        const dashboardAlerts = csiAnomalies.slice(0, 3).map((anomaly, index) => ({
-          id: (index + 1).toString(),
-          type: anomaly.severity as 'critical' | 'high' | 'medium' | 'low',
-          title: `Security Anomaly: ${anomaly.metric}`,
-          description: anomaly.description,
-          source: 'CSI Intelligence',
-          timestamp: anomaly.timestamp.toLocaleString(),
-          priority: anomaly.securityImpact > 500000 ? 'High' : anomaly.securityImpact > 250000 ? 'Medium' : 'Low'
-        }))
-
-        setAlerts(dashboardAlerts)
-      } catch (error) {
-        console.error('Failed to load CSI data:', error)
-        // Fallback to mock data if CSI fails
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
         setMetrics({
-          threatLevel: 'medium',
-          activeIncidents: 3,
-          vulnerabilityCount: 47,
-          patchCompliance: 89.2,
-          securityScore: 87.5,
-          failedLogins: 23
+          ...FALLBACK_METRICS,
+          ...rawMetrics
         })
 
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Multiple Security Threats Detected',
-            description: 'High-severity security anomalies require immediate attention',
-            source: 'CSI Intelligence',
-            timestamp: '30 seconds ago',
-            priority: 'High'
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'medium',
+                title: anomaly.title || `Security anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected a security anomaly.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                priority:
+                  Number(anomaly.securityImpact || anomaly.impactAmount || 0) > 500000
+                    ? 'High'
+                    : Number(anomaly.securityImpact || anomaly.impactAmount || 0) > 250000
+                      ? 'Medium'
+                      : 'Low'
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
           }
-        ])
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load tech-security intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadSecurityData()
-  }, [csiService])
+  }, [])
 
   if (isLoading) {
     return (

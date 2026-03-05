@@ -91,13 +91,13 @@ export default function PayoutSummary({ contractId, milestoneId }: PayoutSummary
         {/* Fees Breakdown */}
         <div className="border-t pt-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Upfront Fee (5%):</span>
+            <span className="text-gray-600">Upfront Fee (policy):</span>
             <span className="text-red-600">
               -${invoice.fees.upfront.toLocaleString()} {invoice.currency}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Completion Fee (15%):</span>
+            <span className="text-gray-600">Completion Fee (policy):</span>
             <span className="text-red-600">
               -${invoice.fees.completion.toLocaleString()} {invoice.currency}
             </span>
@@ -112,7 +112,7 @@ export default function PayoutSummary({ contractId, milestoneId }: PayoutSummary
 
         {/* Estimated Tax */}
         <div className="flex justify-between text-sm border-t pt-3">
-          <span className="text-gray-600">Estimated Tax (20%):</span>
+          <span className="text-gray-600">Estimated Tax (policy/region):</span>
           <span className="text-red-600">
             -${invoice.estimated_tax.toLocaleString()} {invoice.currency}
           </span>
@@ -133,7 +133,7 @@ export default function PayoutSummary({ contractId, milestoneId }: PayoutSummary
           <strong>Fee Policy:</strong> {invoice.policy_version}
         </p>
         <p className="text-xs text-blue-600 mt-1">
-          5% upfront fee charged at publication, 15% completion fee at payout.
+          Fees are applied from the active billing policy version at charge time.
         </p>
       </div>
 

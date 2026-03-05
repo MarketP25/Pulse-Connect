@@ -1,0 +1,14 @@
+{
+  "name": "@pulsco/admin-governance-intent",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "@pulsco/admin-shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}
+

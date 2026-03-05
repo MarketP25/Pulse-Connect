@@ -9,6 +9,7 @@ import { SpeechTranslationService } from './speech-translation.service';
 import { SignLanguageService } from './sign-language.service';
 import { GeoRouterService } from './geo-router.service';
 import { WalletFeesService } from './wallet-fees.service';
+import { emitLocalizationEvent } from '../../csi/instrumentation';
 
 export interface TranslationRequest {
   userId: string;
@@ -136,6 +137,25 @@ export class LocalizationEngineService {
       // 5. Update wallet balance
       await this.walletFeesService.deductCredits(request.userId, finalCost, traceId);
 
+      emitLocalizationEvent(
+        'translation.completed',
+        context.region || 'GLOBAL',
+        {
+          traceId,
+          userId: request.userId,
+          sourceLanguage: request.sourceLanguage,
+          targetLanguage: request.targetLanguage,
+          contentType: request.contentType,
+          processingTimeMs: processingTime,
+          costUsd: finalCost,
+          provider: translationResult.metadata.provider,
+        },
+        {
+          riskScore: 18,
+          performanceScore: translationResult.quality.score,
+        },
+      );
+
       return {
         ...translationResult,
         metadata: {
@@ -149,6 +169,23 @@ export class LocalizationEngineService {
     } catch (error) {
       this.logger.error(`Translation failed: ${traceId}`, error);
 
+      emitLocalizationEvent(
+        'translation.failed',
+        request.targetLanguage.toUpperCase(),
+        {
+          traceId,
+          userId: request.userId,
+          sourceLanguage: request.sourceLanguage,
+          targetLanguage: request.targetLanguage,
+          contentType: request.contentType,
+          reason: error instanceof Error ? error.message : 'unknown_error',
+        },
+        {
+          riskScore: 74,
+          performanceScore: 28,
+        },
+      );
+
       // Log failed translation event
       await this.logTranslationEvent({
         traceId,
@@ -157,6 +194,7 @@ export class LocalizationEngineService {
         targetLanguage: request.targetLanguage,
         contentType: request.contentType,
         processingTime: Date.now() - startTime,
+        cost: 0,
         error: error.message,
       });
 

@@ -1,0 +1,16 @@
+{
+  "name": "@pulsco/csi",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "test": "jest --runInBand packages/csi/__tests__"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "jest": "^29.0.0"
+  }
+}

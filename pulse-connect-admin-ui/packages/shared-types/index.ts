@@ -23,7 +23,8 @@ export type AdminRoleType =
   | 'commercial-outreach'
   | 'tech-security'
   | 'customer-experience'
-  | 'governance-registrar';
+  | 'governance-registrar'
+  | 'dpo';
 
 export const ADMIN_EMAILS: Record<AdminRoleType, string> = {
   'superadmin': 'superadmin@pulsco.com',
@@ -35,10 +36,11 @@ export const ADMIN_EMAILS: Record<AdminRoleType, string> = {
   'commercial-outreach': 'commercial-outreach@pulsco.com',
   'tech-security': 'tech-security@pulsco.com',
   'customer-experience': 'customer-experience@pulsco.com',
-  'governance-registrar': 'governance-registrar@pulsco.com'
+  'governance-registrar': 'governance-registrar@pulsco.com',
+  'dpo': 'dpo@pulsco.com'
 };
 
-export const MAX_ADMIN_COUNT = 10;
+export const MAX_ADMIN_COUNT = 11;
 
 export interface AuthSession {
   id: string;

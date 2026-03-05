@@ -1,1 +1,1 @@
-<img src="/Pulse-Connect-logo.png" alt="Pulse Connect Logo" className="logo" />;
+<img src="/icons/brand-1024x1024.jpeg" alt="Pulse Connect Logo" className="logo" />;

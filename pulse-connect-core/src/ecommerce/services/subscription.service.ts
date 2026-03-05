@@ -1,6 +1,10 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
 import { FeeService } from "./fee.service";
+import {
+  chargeBillingSubscription,
+  fetchBillingSubscriptionPlans,
+} from "../../billing/billing-engine.client";
 
 export interface ListingSubscription {
   id: string;
@@ -31,6 +35,20 @@ export class SubscriptionService {
     private feeService: FeeService
   ) {}
 
+  private async resolveWeeklyTierPriceUsd(tierName: string): Promise<number> {
+    const plans = await fetchBillingSubscriptionPlans();
+    if (!plans) {
+      throw new Error("billing_engine_subscription_plans_unavailable");
+    }
+
+    const target = tierName.toLowerCase();
+    const plan = plans.find((entry) => entry.planId.toLowerCase() === target);
+    if (!plan) {
+      throw new Error(`billing_engine_plan_not_found:${tierName}`);
+    }
+    return plan.priceUsd;
+  }
+
   async createSubscription(
     sellerId: string,
     tierName: string,
@@ -49,6 +67,7 @@ export class SubscriptionService {
       if (!tier) {
         throw new Error(`Tier '${tierName}' not found in current policy`);
       }
+      const weeklyFeeUsd = await this.resolveWeeklyTierPriceUsd(tier.name);
 
       // Check if seller already has an active subscription
       const existingSub = await client.query(
@@ -83,7 +102,7 @@ export class SubscriptionService {
           sellerId,
           tier.name,
           tier.max_listings,
-          tier.weekly_fee_usd,
+          weeklyFeeUsd,
           periodStart.toISOString(),
           periodEnd.toISOString(),
           "active"
@@ -164,7 +183,19 @@ export class SubscriptionService {
         try {
           // Create charge record
           const chargeId = uuidv4();
-          const policy = await this.feeService.getCurrentPolicy();
+          const currentPlanPrice = await this.resolveWeeklyTierPriceUsd(subscription.tier_name);
+          const billingCharge = await chargeBillingSubscription({
+            accountId: subscription.seller_id,
+            planId: subscription.tier_name,
+            price: currentPlanPrice,
+            region: "global",
+            idempotencyKey: traceId,
+          });
+          if (!billingCharge) {
+            throw new Error("billing_engine_subscription_charge_failed");
+          }
+          const chargedAmount = Math.round(billingCharge.amount * 100) / 100;
+          const policyVersion = billingCharge.policyVersion || "billing-engine-unversioned";
 
           await client.query(
             `
@@ -172,23 +203,23 @@ export class SubscriptionService {
               id, subscription_id, amount_usd, policy_version, trace_id, charged_at, status
             ) VALUES ($1, $2, $3, $4, $5, NOW(), 'completed')
           `,
-            [chargeId, subscription.id, subscription.weekly_fee_usd, policy.version, traceId]
+            [chargeId, subscription.id, chargedAmount, policyVersion, traceId]
           );
 
           // Create ledger entries for the charge
           await this.createLedgerEntriesForCharge(
             client,
             chargeId,
-            subscription.weekly_fee_usd,
-            policy.version,
+            chargedAmount,
+            policyVersion,
             traceId
           );
 
           charges.push({
             id: chargeId,
             subscription_id: subscription.id,
-            amount_usd: subscription.weekly_fee_usd,
-            policy_version: policy.version,
+            amount_usd: chargedAmount,
+            policy_version: policyVersion,
             trace_id: traceId,
             charged_at: new Date(),
             status: "completed"

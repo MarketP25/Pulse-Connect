@@ -1,4 +1,4 @@
-import { AdminRoleType } from '@pulsco/admin-shared-types'
+﻿import { AdminRoleType } from '@pulsco/admin-shared-types'
 
 export interface RoleGuardConfig {
   requiredRole: AdminRoleType
@@ -62,3 +62,5 @@ export const cooRoleGuard = new RoleGuard({
   allowedScopes: ['operations', 'efficiency', 'resources', 'performance'],
   requireActiveSession: true
 })
+
+

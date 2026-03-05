@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
+import { calculateBillingActivityQuote } from "../../billing/billing-engine.client";
 
 export interface Transaction {
   id: number;
@@ -77,8 +78,20 @@ export class PaymentsService {
     }
 
     const gig = gigResult.rows[0];
-    const policy = await this.getCurrentFeePolicy();
-    const feeAmount = Math.round(gig.base_price * (policy.upfront_percent / 100) * 100) / 100; // Round to 2 decimal places
+    const quote = await calculateBillingActivityQuote({
+      engine: "matchmaking",
+      amount: gig.base_price,
+      eventId: traceId,
+      details: {
+        mode: "upfront",
+      },
+      region: "global",
+    });
+    if (!quote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const feeAmount = Math.round(quote.fees * 100) / 100;
+    const policyVersion = quote.policyVersion || "billing-engine-unversioned";
 
     // Create transaction
     const transactionQuery = `
@@ -90,7 +103,7 @@ export class PaymentsService {
     const transactionResult = await this.db.query(transactionQuery, [
       feeAmount,
       gig.currency,
-      policy.version,
+      policyVersion,
       traceId
     ]);
 
@@ -101,7 +114,7 @@ export class PaymentsService {
       transaction.id,
       feeAmount,
       gig.currency,
-      policy.version,
+      policyVersion,
       traceId,
       "upfront_fee"
     );
@@ -181,12 +194,23 @@ export class PaymentsService {
     }
 
     const milestone = milestoneResult.rows[0];
-    const policy = await this.getCurrentFeePolicy();
+    const completionQuote = await calculateBillingActivityQuote({
+      engine: "matchmaking",
+      amount: milestone.amount,
+      eventId: traceId,
+      details: {
+        mode: "completion",
+      },
+      region: "global",
+    });
+    if (!completionQuote) {
+      throw new Error("billing_engine_quote_failed");
+    }
 
     // Calculate completion fee
-    const completionFee =
-      Math.round(milestone.amount * (policy.completion_percent / 100) * 100) / 100;
+    const completionFee = Math.round(completionQuote.fees * 100) / 100;
     const netPayment = milestone.amount - completionFee;
+    const completionPolicyVersion = completionQuote.policyVersion || "billing-engine-unversioned";
 
     // Create release transaction
     const releaseQuery = `
@@ -200,7 +224,7 @@ export class PaymentsService {
       milestoneId,
       netPayment,
       milestone.currency,
-      policy.version,
+      completionPolicyVersion,
       traceId
     ]);
 
@@ -218,7 +242,7 @@ export class PaymentsService {
       milestoneId,
       completionFee,
       milestone.currency,
-      policy.version,
+      completionPolicyVersion,
       traceId + "_fee"
     ]);
 
@@ -229,7 +253,7 @@ export class PaymentsService {
       releaseTransaction.id,
       netPayment,
       milestone.currency,
-      policy.version,
+      completionPolicyVersion,
       traceId,
       "release_milestone"
     );
@@ -237,7 +261,7 @@ export class PaymentsService {
       feeTransaction.id,
       completionFee,
       milestone.currency,
-      policy.version,
+      completionPolicyVersion,
       traceId + "_fee",
       "completion_fee"
     );
@@ -329,8 +353,6 @@ export class PaymentsService {
    * Generate invoice for contract/milestone
    */
   async generateInvoice(contractId: number, milestoneId?: number): Promise<Invoice> {
-    const policy = await this.getCurrentFeePolicy();
-
     let query: string;
     let params: any[];
 
@@ -358,13 +380,32 @@ export class PaymentsService {
     const record = result.rows[0];
     const grossAmount = record.gross_amount;
 
-    // Calculate fees (simplified - in production would check actual transactions)
-    const upfrontFee = Math.round(grossAmount * (policy.upfront_percent / 100) * 100) / 100;
-    const completionFee = Math.round(grossAmount * (policy.completion_percent / 100) * 100) / 100;
+    // Calculate fees from billing engine when available, fallback to local policy percentages
+    const [upfrontQuote, completionQuote] = await Promise.all([
+      calculateBillingActivityQuote({
+        engine: "matchmaking",
+        amount: grossAmount,
+        eventId: `${contractId}-${milestoneId || "contract"}-upfront`,
+        details: { mode: "upfront" },
+        region: "global",
+      }),
+      calculateBillingActivityQuote({
+        engine: "matchmaking",
+        amount: grossAmount,
+        eventId: `${contractId}-${milestoneId || "contract"}-completion`,
+        details: { mode: "completion" },
+        region: "global",
+      }),
+    ]);
+    if (!upfrontQuote || !completionQuote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const upfrontFee = Math.round(upfrontQuote.fees * 100) / 100;
+    const completionFee = Math.round(completionQuote.fees * 100) / 100;
 
-    // Estimate tax (simplified - 20% of net)
+    // Reuse billing-engine tax outputs for invoice estimates.
+    const estimatedTax = Math.round((upfrontQuote.tax + completionQuote.tax) * 100) / 100;
     const netBeforeTax = grossAmount - upfrontFee - completionFee;
-    const estimatedTax = Math.round(netBeforeTax * 0.2 * 100) / 100;
     const finalNet = netBeforeTax - estimatedTax;
 
     return {
@@ -378,7 +419,7 @@ export class PaymentsService {
       estimated_tax: estimatedTax,
       net_amount: finalNet,
       currency: record.currency,
-      policy_version: policy.version
+      policy_version: completionQuote.policyVersion || upfrontQuote.policyVersion || "billing-engine-unversioned"
     };
   }
 

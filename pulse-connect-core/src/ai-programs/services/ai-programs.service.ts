@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
 import { createHash } from "crypto";
+import { emitAIProgramsEvent } from "../../csi/instrumentation";
 
 export interface AIProgramRun {
   id: string;
@@ -87,6 +88,20 @@ export class AIProgramsService {
     const inputHash = this.generateInputHash(request.input);
     const cachedResult = await this.checkCache(inputHash, request.program_type);
     if (cachedResult) {
+      emitAIProgramsEvent(
+        "ai-program.cache-hit",
+        regionCode,
+        {
+          userId: request.user_id,
+          programType: request.program_type,
+          traceId,
+          cacheHit: true,
+        },
+        {
+          riskScore: 8,
+          performanceScore: 94,
+        },
+      );
       return this.processCachedResult(cachedResult, request, traceId, regionCode);
     }
 
@@ -131,6 +146,23 @@ export class AIProgramsService {
         programRun.id
       );
 
+      emitAIProgramsEvent(
+        "ai-program.execution-completed",
+        regionCode,
+        {
+          runId: programRun.id,
+          userId: request.user_id,
+          programType: request.program_type,
+          tokensUsed: executionResult.total_tokens,
+          provider: executionResult.provider,
+          traceId,
+        },
+        {
+          riskScore: 20,
+          performanceScore: 88,
+        },
+      );
+
       return {
         run_id: programRun.id,
         output: executionResult.output,
@@ -154,6 +186,22 @@ export class AIProgramsService {
 
       // Audit log the failure
       await this.auditLogger.logProgramFailure(programRun, error.message, traceId);
+
+      emitAIProgramsEvent(
+        "ai-program.execution-failed",
+        regionCode,
+        {
+          runId: programRun.id,
+          userId: request.user_id,
+          programType: request.program_type,
+          traceId,
+          reason: error instanceof Error ? error.message : "unknown_error",
+        },
+        {
+          riskScore: 76,
+          performanceScore: 25,
+        },
+      );
 
       throw error;
     }
@@ -284,7 +332,23 @@ export class AIProgramsService {
       [runId, userId]
     );
 
-    return result.rows.length > 0;
+    const cancelled = result.rows.length > 0;
+    if (cancelled) {
+      emitAIProgramsEvent(
+        "ai-program.execution-cancelled",
+        "GLOBAL",
+        {
+          runId,
+          userId,
+        },
+        {
+          riskScore: 32,
+          performanceScore: 64,
+        },
+      );
+    }
+
+    return cancelled;
   }
 
   private async validatePAPWorkflow(

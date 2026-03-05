@@ -1,0 +1,250 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulse-portal-service
+  namespace: planetary-pulse
+  labels:
+    app: pulse-portal
+    component: unified-origin
+spec:
+  selector:
+    app: pulse-portal
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulse-connect-ui-service
+  namespace: planetary-pulse
+  labels:
+    app: pulse-connect-ui
+    component: unified-origin
+spec:
+  selector:
+    app: pulse-connect-ui
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pulse-connect-admin-ui-service
+  namespace: planetary-pulse
+  labels:
+    app: pulse-connect-admin-ui
+    component: unified-origin
+spec:
+  selector:
+    app: pulse-connect-admin-ui
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: business-ops-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: business-ops-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: business-ops-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commercial-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: commercial-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: commercial-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coo-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: coo-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: coo-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-experience-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: customer-experience-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: customer-experience-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: governance-registrar-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: governance-registrar-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: governance-registrar-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: legal-finance-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: legal-finance-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: legal-finance-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: people-risk-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: people-risk-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: people-risk-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: procurement-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: procurement-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: procurement-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superadmin-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: superadmin-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: superadmin-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tech-security-dashboard-service
+  namespace: planetary-pulse
+  labels:
+    app: tech-security-dashboard
+    component: unified-origin
+spec:
+  selector:
+    app: tech-security-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marp-firewall-gateway-service
+  namespace: planetary-pulse
+  labels:
+    app: marp-firewall-gateway
+    component: unified-origin
+spec:
+  selector:
+    app: marp-firewall-gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

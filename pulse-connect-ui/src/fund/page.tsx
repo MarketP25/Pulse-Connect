@@ -281,7 +281,7 @@ export default function FundPage() {
     <div className="relative min-h-screen bg-white px-4 py-10">
       {/* Header */}
       <div className="flex flex-col items-center mb-8">
-        <Image src="/logo.png" alt="Pulse Connect" width={96} height={96} />
+        <Image src="/icons/brand-1024x1024.jpeg" alt="Pulse Connect" width={96} height={96} />
         <h1 className="text-3xl font-bold text-indigo-700 mt-4">Support Pulse Connect</h1>
         {currentPlan && (
           <p className="mt-2 text-gray-700">
@@ -441,3 +441,4 @@ export default function FundPage() {
     </div>
   );
 }
+

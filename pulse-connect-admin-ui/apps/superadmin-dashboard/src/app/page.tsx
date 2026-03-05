@@ -25,6 +25,48 @@ interface DashboardSnapshot {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
 
+const FALLBACK_METRICS: SystemMetrics = {
+  totalAdmins: 10,
+  activeSessions: 8,
+  systemHealth: 98.5,
+  marpSignatures: 1247,
+  csiAnomalies: 3,
+  governanceAlerts: 2,
+  crossDomainCorrelations: 15
+}
+
+const FALLBACK_SNAPSHOTS: DashboardSnapshot[] = [
+  { role: 'COO', status: 'healthy', lastUpdate: '2 min ago', activeUsers: 1, alerts: 0 },
+  { role: 'Business Ops', status: 'healthy', lastUpdate: '5 min ago', activeUsers: 1, alerts: 1 },
+  { role: 'People & Risk', status: 'warning', lastUpdate: '1 min ago', activeUsers: 1, alerts: 2 },
+  { role: 'Procurement', status: 'healthy', lastUpdate: '3 min ago', activeUsers: 1, alerts: 0 },
+  { role: 'Legal & Finance', status: 'healthy', lastUpdate: '7 min ago', activeUsers: 1, alerts: 0 },
+  { role: 'Commercial', status: 'healthy', lastUpdate: '4 min ago', activeUsers: 1, alerts: 1 },
+  { role: 'Tech Security', status: 'critical', lastUpdate: '30 sec ago', activeUsers: 1, alerts: 3 },
+  { role: 'Customer Exp', status: 'healthy', lastUpdate: '6 min ago', activeUsers: 1, alerts: 0 },
+  { role: 'Governance', status: 'healthy', lastUpdate: '2 min ago', activeUsers: 1, alerts: 0 },
+  { role: 'DPO', status: 'healthy', lastUpdate: 'n/a', activeUsers: 1, alerts: 0 }
+]
+
+const FALLBACK_ALERTS = [
+  {
+    id: '1',
+    type: 'critical',
+    title: 'Tech Security Dashboard - Multiple Threats Detected',
+    description: 'High-severity security anomalies requiring immediate attention',
+    source: 'CSI Intelligence',
+    timestamp: '30 seconds ago'
+  },
+  {
+    id: '2',
+    type: 'warning',
+    title: 'People & Risk - Compliance Threshold Breach',
+    description: 'Employee turnover rate exceeded governance threshold',
+    source: 'MARP Governance',
+    timestamp: '1 minute ago'
+  }
+]
+
 export default function SuperAdminDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null)
@@ -33,52 +75,80 @@ export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
-    // Simulate loading comprehensive system metrics
     const loadSystemData = async () => {
-      setTimeout(() => {
+      try {
+        const headers = { 'x-admin-role': 'superadmin' }
+        const [metricsRes, anomaliesRes, intelligenceRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=intelligence', { headers, cache: 'no-store' })
+        ])
+
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
+
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+
+        let anomalyList: any[] = []
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          anomalyList = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+        }
+
+        let inferredSnapshots = FALLBACK_SNAPSHOTS
+        if (intelligenceRes.ok) {
+          const intelligencePayload = await intelligenceRes.json()
+          const snapshots =
+            intelligencePayload.dashboardSnapshots ||
+            intelligencePayload.data?.dashboardSnapshots ||
+            intelligencePayload.intelligence?.dashboardSnapshots
+          if (Array.isArray(snapshots) && snapshots.length > 0) {
+            inferredSnapshots = snapshots
+          }
+        }
+
         setMetrics({
-          totalAdmins: 10,
-          activeSessions: 8,
-          systemHealth: 98.5,
-          marpSignatures: 1247,
-          csiAnomalies: 3,
-          governanceAlerts: 2,
-          crossDomainCorrelations: 15
+          totalAdmins: Number(rawMetrics.totalAdmins || rawMetrics.total_admins || FALLBACK_METRICS.totalAdmins),
+          activeSessions: Number(rawMetrics.activeSessions || rawMetrics.active_sessions || FALLBACK_METRICS.activeSessions),
+          systemHealth: Number(rawMetrics.systemHealth || rawMetrics.system_health || FALLBACK_METRICS.systemHealth),
+          marpSignatures: Number(rawMetrics.marpSignatures || rawMetrics.marp_signatures || FALLBACK_METRICS.marpSignatures),
+          csiAnomalies: Array.isArray(anomalyList)
+            ? anomalyList.length
+            : Number(rawMetrics.csiAnomalies || rawMetrics.csi_anomalies || FALLBACK_METRICS.csiAnomalies),
+          governanceAlerts: Number(rawMetrics.governanceAlerts || rawMetrics.governance_alerts || FALLBACK_METRICS.governanceAlerts),
+          crossDomainCorrelations: Number(
+            rawMetrics.crossDomainCorrelations ||
+            rawMetrics.cross_domain_correlations ||
+            FALLBACK_METRICS.crossDomainCorrelations
+          )
         })
 
-        setDashboardSnapshots([
-          { role: 'COO', status: 'healthy', lastUpdate: '2 min ago', activeUsers: 1, alerts: 0 },
-          { role: 'Business Ops', status: 'healthy', lastUpdate: '5 min ago', activeUsers: 1, alerts: 1 },
-          { role: 'People & Risk', status: 'warning', lastUpdate: '1 min ago', activeUsers: 1, alerts: 2 },
-          { role: 'Procurement', status: 'healthy', lastUpdate: '3 min ago', activeUsers: 1, alerts: 0 },
-          { role: 'Legal & Finance', status: 'healthy', lastUpdate: '7 min ago', activeUsers: 1, alerts: 0 },
-          { role: 'Commercial', status: 'healthy', lastUpdate: '4 min ago', activeUsers: 1, alerts: 1 },
-          { role: 'Tech Security', status: 'critical', lastUpdate: '30 sec ago', activeUsers: 1, alerts: 3 },
-          { role: 'Customer Exp', status: 'healthy', lastUpdate: '6 min ago', activeUsers: 1, alerts: 0 },
-          { role: 'Governance', status: 'healthy', lastUpdate: '2 min ago', activeUsers: 1, alerts: 0 }
-        ])
+        setDashboardSnapshots(inferredSnapshots)
 
-        setSystemAlerts([
-          {
-            id: '1',
-            type: 'critical',
-            title: 'Tech Security Dashboard - Multiple Threats Detected',
-            description: 'High-severity security anomalies requiring immediate attention',
-            source: 'CSI Intelligence',
-            timestamp: '30 seconds ago'
-          },
-          {
-            id: '2',
-            type: 'warning',
-            title: 'People & Risk - Compliance Threshold Breach',
-            description: 'Employee turnover rate exceeded governance threshold',
-            source: 'MARP Governance',
-            timestamp: '1 minute ago'
-          }
-        ])
-
+        if (Array.isArray(anomalyList) && anomalyList.length > 0) {
+          setSystemAlerts(
+            anomalyList.slice(0, 3).map((anomaly: any, index: number) => ({
+              id: String(index + 1),
+              type: anomaly.severity || 'warning',
+              title: anomaly.title || `System anomaly in ${anomaly.metric || 'signal'}`,
+              description: anomaly.description || 'CSI detected a cross-domain anomaly.',
+              source: anomaly.source || 'CSI Intelligence',
+              timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now'
+            }))
+          )
+        } else {
+          setSystemAlerts(FALLBACK_ALERTS)
+        }
+      } catch (err) {
+        console.error('Failed to load superadmin system intelligence', err)
+        setMetrics(FALLBACK_METRICS)
+        setDashboardSnapshots(FALLBACK_SNAPSHOTS)
+        setSystemAlerts(FALLBACK_ALERTS)
+      } finally {
         setIsLoading(false)
-      }, 2000)
+      }
     }
 
     loadSystemData()

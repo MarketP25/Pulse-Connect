@@ -2,19 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
-import { ProcurementCSIService } from '../services/csi'
 
 interface ProcurementMetrics {
-  vendorPerformance: number
-  contractCompliance: number
   costSavings: number
   supplierDiversity: number
-  procurementCycleTime: number
   vendorSLACompliance: number
-  riskAssessment: number
-  negotiationSuccess: number
-  supplyChainStability: number
-  procurementEfficiency: number
+  partnershipRevenue: number
+  procurementCosts: number
+  vendorResponseTime: number
+  contractRenewals: number
 }
 
 interface ProcurementAlert {
@@ -27,69 +23,90 @@ interface ProcurementAlert {
   priority: string
 }
 
+const FALLBACK_METRICS: ProcurementMetrics = {
+  costSavings: 125000,
+  supplierDiversity: 67,
+  vendorSLACompliance: 96.8,
+  partnershipRevenue: 2150000,
+  procurementCosts: 874000,
+  vendorResponseTime: 3.4,
+  contractRenewals: 18
+}
+
+const FALLBACK_ALERTS: ProcurementAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Contract Renewal Due',
+    description: 'Major cloud services contract expires in 30 days',
+    source: 'Contract Management',
+    timestamp: '5 days ago',
+    priority: 'High'
+  }
+]
+
 export default function ProcurementDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<ProcurementMetrics | null>(null)
   const [alerts, setAlerts] = useState<ProcurementAlert[]>([])
-  const [csiService] = useState(() => new ProcurementCSIService(null as any)) // TODO: Inject proper CSI client
 
   useEffect(() => {
     const loadProcurementData = async () => {
       try {
-        // Load metrics from CSI
-        const csiMetrics = await csiService.fetchProcurementMetrics()
+        const headers = { 'x-admin-role': 'procurement-partnerships' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
+        ])
 
-        // Load anomalies from CSI
-        const csiAnomalies = await csiService.getProcurementAnomalies()
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
 
-        setMetrics(csiMetrics)
-
-        // Convert CSI anomalies to dashboard alerts
-        const dashboardAlerts = csiAnomalies.slice(0, 3).map((anomaly, index) => ({
-          id: (index + 1).toString(),
-          type: anomaly.severity as 'critical' | 'high' | 'medium' | 'low',
-          title: `Procurement Anomaly: ${anomaly.metric}`,
-          description: anomaly.description,
-          source: 'CSI Intelligence',
-          timestamp: anomaly.timestamp.toLocaleString(),
-          priority: anomaly.procurementImpact > 50000 ? 'High' : anomaly.procurementImpact > 25000 ? 'Medium' : 'Low'
-        }))
-
-        setAlerts(dashboardAlerts)
-      } catch (error) {
-        console.error('Failed to load CSI data:', error)
-        // Fallback to mock data if CSI fails
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
         setMetrics({
-          vendorPerformance: 94.2,
-          contractCompliance: 98.5,
-          costSavings: 125000,
-          supplierDiversity: 67,
-          procurementCycleTime: 2.1,
-          vendorSLACompliance: 96.8,
-          riskAssessment: 2.3,
-          negotiationSuccess: 88.9,
-          supplyChainStability: 92.4,
-          procurementEfficiency: 87.6
+          ...FALLBACK_METRICS,
+          ...rawMetrics
         })
 
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Contract Renewal Due',
-            description: 'Major cloud services contract expires in 30 days',
-            source: 'Contract Management',
-            timestamp: '5 days ago',
-            priority: 'High'
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'medium',
+                title: anomaly.title || `Procurement anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected an unusual procurement signal.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                priority:
+                  Number(anomaly.procurementImpact || anomaly.impactAmount || 0) > 50000
+                    ? 'High'
+                    : Number(anomaly.procurementImpact || anomaly.impactAmount || 0) > 25000
+                      ? 'Medium'
+                      : 'Low'
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
           }
-        ])
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load procurement intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadProcurementData()
-  }, [csiService])
+  }, [])
 
   if (isLoading) {
     return (

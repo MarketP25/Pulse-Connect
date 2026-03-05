@@ -1,13 +1,36 @@
-module.exports = function chargeFee(tradeId, amount, flowType) {
-  const feeRates = {
-    basic: 0.0,
-    negotiation: 0.05,
-    financial: 0.03,
-    relationship: 0.08,
-    councilApproved: 0.06
-  };
+module.exports = async function chargeFee(tradeId, amount, flowType) {
+  const baseUrl = (process.env.PULSCO_BILLING_API_URL || process.env.BILLING_ENGINE_URL || "").replace(/\/+$/, "");
+  if (!baseUrl) {
+    throw new Error("billing_engine_not_configured");
+  }
 
-  const fee = amount * (feeRates[flowType] || 0.02);
+  const response = await fetch(`${baseUrl}/marp/activity/calculate`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      region: "Europe West 1",
+      event: {
+        engine: "ecommerce",
+        amount,
+        eventId: String(tradeId || Date.now()),
+        details: {
+          mode: "legacy_fee",
+          flowType,
+          tradeId,
+        },
+      },
+      at: new Date().toISOString(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("billing_engine_quote_failed");
+  }
+
+  const quote = await response.json();
+  const fee = Math.max(0, Number(quote.total) - Number(quote.base));
   logAction("fee_charged", tradeId);
   return fee;
 };

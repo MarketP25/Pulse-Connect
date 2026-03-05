@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { calculateBillingActivityQuote, chargeBillingActivity } from '../../billing/billing-engine.client';
 
 export interface TranslationBillingRequest {
   userId: string;
@@ -24,6 +25,7 @@ export interface BillingResult {
   walletBalance: number;
   sufficientFunds: boolean;
   estimatedProcessingTime: number;
+  policyVersion?: string;
 }
 
 export interface WalletTransaction {
@@ -109,46 +111,40 @@ export class WalletFeesService {
       if (freeTierUsage.remaining > request.contentLength) {
         return this.createFreeBillingResult(request);
       }
+      const billingQuote = await calculateBillingActivityQuote({
+        engine: 'localization',
+        amount: request.contentLength,
+        units: request.contentLength,
+        eventId: `${request.userId}-${request.serviceType}-${Date.now()}`,
+        details: {
+          chars: request.contentLength,
+          serviceType: request.serviceType,
+          quality: request.quality,
+          sourceLanguage: request.sourceLanguage,
+          targetLanguage: request.targetLanguage,
+          additionalFeatures: request.additionalFeatures || [],
+        },
+        region: request.region,
+      });
+      if (!billingQuote) {
+        throw new Error('billing_engine_quote_failed');
+      }
 
-      // Calculate base cost
-      const baseRate = this.planetaryBilling.baseRates[request.serviceType][request.quality];
-      const baseCost = baseRate * request.contentLength;
-
-      // Apply regional multiplier
-      const regionalMultiplier = this.planetaryBilling.regionalMultipliers[request.region as keyof typeof this.planetaryBilling.regionalMultipliers] || 1.0;
-      const regionalAdjustment = baseCost * (regionalMultiplier - 1.0);
-
-      // Calculate feature costs
-      const featureCosts = this.calculateFeatureCosts(request.additionalFeatures || [], request.contentLength);
-
-      // Calculate taxes
-      const taxRate = this.getTaxRate(request.region);
-      const subtotal = baseCost + regionalAdjustment + featureCosts;
-      const taxes = subtotal * taxRate;
-
-      // Total cost
-      const totalCost = subtotal + taxes;
-
-      // Check wallet balance
       const walletBalance = await this.getWalletBalance(request.userId);
-      const sufficientFunds = walletBalance >= totalCost;
-
-      // Estimate processing time based on quality
-      const estimatedProcessingTime = this.estimateProcessingTime(request.quality, request.contentLength);
-
       return {
-        totalCost,
+        totalCost: billingQuote.total,
         breakdown: {
-          baseCost,
-          qualityMultiplier: 0, // Already included in base rate
-          regionalAdjustment,
-          featureCosts,
-          taxes,
+          baseCost: billingQuote.base,
+          qualityMultiplier: 0,
+          regionalAdjustment: 0,
+          featureCosts: billingQuote.fees,
+          taxes: billingQuote.tax,
         },
         currency: this.planetaryBilling.currency,
         walletBalance,
-        sufficientFunds,
-        estimatedProcessingTime,
+        sufficientFunds: walletBalance >= billingQuote.total,
+        estimatedProcessingTime: this.estimateProcessingTime(request.quality, request.contentLength),
+        policyVersion: billingQuote.policyVersion || 'billing-engine-unversioned',
       };
 
     } catch (error) {
@@ -180,13 +176,39 @@ export class WalletFeesService {
         complianceFlags: this.getComplianceFlags(request.region),
       };
 
+      let authoritativeAmount = billing.totalCost;
+      if (billing.totalCost > 0) {
+        const billingCharge = await chargeBillingActivity({
+          accountId: request.userId,
+          engine: 'localization',
+          amount: request.contentLength,
+          units: request.contentLength,
+          eventId: `${transaction.transactionId}-charge`,
+          details: {
+            serviceType: request.serviceType,
+            quality: request.quality,
+            sourceLanguage: request.sourceLanguage,
+            targetLanguage: request.targetLanguage,
+            additionalFeatures: request.additionalFeatures || [],
+          },
+          region: request.region,
+          idempotencyKey: transaction.transactionId,
+        });
+        if (!billingCharge) {
+          throw new Error('billing_engine_charge_failed');
+        }
+        authoritativeAmount = billingCharge.amount;
+      }
+
+      transaction.amount = authoritativeAmount;
+
       // Deduct from wallet
-      await this.deductFromWallet(request.userId, billing.totalCost);
+      await this.deductFromWallet(request.userId, authoritativeAmount);
 
       // Update transaction status
       transaction.status = 'completed';
 
-      this.logger.log(`Payment processed: ${transaction.transactionId} for ${billing.totalCost} ${billing.currency}`);
+      this.logger.log(`Payment processed: ${transaction.transactionId} for ${authoritativeAmount} ${billing.currency}`);
 
       return transaction;
 

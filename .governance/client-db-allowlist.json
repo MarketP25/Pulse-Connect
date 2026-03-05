@@ -1,0 +1,7 @@
+[
+  "pulse-connect-ui/src/app/dashboard/layout.tsx",
+  "pulse-connect-ui/src/app/dashboard/page.tsx",
+  "pulse-connect-ui/src/fund/page.tsx",
+  "pulse-connect-ui/src/pages/products/index.tsx",
+  "pulse-connect-ui/src/pc/components/AuthGate.tsx"
+]

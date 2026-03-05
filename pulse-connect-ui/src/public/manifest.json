@@ -8,9 +8,42 @@
   "description": "Pulse Connect – A global digital marketing platform built for accessibility, scalability, and user-centered design.",
   "icons": [
     {
-      "src": "assets/Pulse-Connect-logo.png",
-      "sizes": "512x512",
+      "src": "/icons/icon-16x16.png",
+      "sizes": "16x16",
       "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-152x152.jpeg",
+      "sizes": "152x152",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/icons/icon-192x192.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/icons/icon-512x512.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/icons/icon-152x152-maskable.jpeg",
+      "sizes": "152x152",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512x512-maskable.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
     }
   ]
 }
+

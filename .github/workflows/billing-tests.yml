@@ -3,10 +3,10 @@ name: Billing Engine Unit Tests
 on:
   push:
     paths:
-      - 'packages/billing-engine/**'
+      - 'services/billing-engine/**'
   pull_request:
     paths:
-      - 'packages/billing-engine/**'
+      - 'services/billing-engine/**'
 
 jobs:
   tests:
@@ -31,7 +31,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run billing-engine tests (coverage)
-        working-directory: packages/billing-engine
+        working-directory: services/billing-engine
         run: |
           pnpm run test -- --coverage
 
@@ -39,5 +39,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: billing-coverage-node-${{ matrix.node-version }}
-          path: packages/billing-engine/coverage/**
-
+          path: services/billing-engine/coverage/**

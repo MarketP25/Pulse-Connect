@@ -2,6 +2,23 @@
 
 Next.js application for Pulse Connect (PULSCO). This UI consumes backend services (Edge, Intelligence Core, Proximity) and includes localization scaffolding as reflected in the repository tests and components.
 
+## Universal User Dashboard
+
+- Implementation documentation: `docs/universal-user-dashboard.md`
+- Demo routes:
+  - `/dashboard?userId=demo-basic`
+  - `/dashboard?userId=demo-premium`
+  - `/dashboard?userId=demo-enterprise`
+- Includes modular API routes under `src/app/api/dashboard/*` for onboarding, profile, KYC, subscriptions, ecommerce, insights, places, communication, marketing, security, interactions, and ops.
+- Expanded module routes now include:
+  - `reporting`, `fraud`, `identity`, `billing`, `places-ops`, `matchmaking-ops`, `governance`, `localization-advanced`, `proximity-advanced`
+- Localization and geocoding are subsystem-backed:
+  - Localization dictionary translation via `PULSCO_LOCALIZATION_API_URL` (or Azure translator fallback).
+  - Places distance ranking via proximity geocoding (`PULSCO_PROXIMITY_API_URL`).
+- PULSCO AI chatbot is available in the dashboard:
+  - Live mode via `PULSCO_AI_API_URL` (or `AI_COORDINATOR_URL`)
+  - Automatic fallback mode if live endpoint is unavailable
+
 ## Getting Started
 
 From the repository root:
@@ -25,6 +42,19 @@ Open http://localhost:3000 in your browser when the dev server is running.
 - Main entry: src/app/page.tsx (or app/page.tsx depending on structure)
 - Localization support is present (see tests/context/LanguageProvider.test.tsx in the repo for patterns). Ensure your components subscribe to the shared localization provider and switch languages via UI controls.
 - Environment variables (examples): NEXTAUTH_URL, NEXTAUTH_SECRET (if authentication is enabled in this UI). Configure per your deployment.
+- Dashboard integration variables (set as needed for live service mode):
+  - `PULSCO_CSI_GATEWAY_URL`
+  - `PULSCO_LOCALIZATION_API_URL`
+  - `PULSCO_PROXIMITY_API_URL`
+  - `PULSCO_AI_API_URL` or `AI_COORDINATOR_URL`
+  - `PULSCO_REPORTING_API_URL`
+  - `PULSCO_IDENTITY_API_URL`
+  - `PULSCO_BILLING_API_URL`
+  - `PULSCO_PLACES_API_URL`
+  - `PULSCO_MATCHMAKING_API_URL`
+  - `PULSCO_MARP_OBSERVABILITY_API_URL`
+  - `PULSCO_MARP_GOVERNANCE_API_URL`
+  - `PULSCO_MARP_ARBITRATION_API_URL`
 
 ## Scripts (examples)
 

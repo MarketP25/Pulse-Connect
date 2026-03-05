@@ -1,0 +1,78 @@
+[
+  {
+    "entryId": "sub-signup-1772647718067",
+    "timestamp": "2026-03-04T18:08:38.065Z",
+    "accountId": "acct-test",
+    "walletId": "wallet-test",
+    "type": "subscription_signup",
+    "amount": 100,
+    "currency": "USD",
+    "balanceAfter": 4900,
+    "region": "us",
+    "taxBreakdown": [
+      {
+        "region": "us",
+        "rate": 0,
+        "amount": 0
+      }
+    ],
+    "userExplanation": "Signup charge for basic",
+    "idempotencyKey": "k1",
+    "prevHash": null,
+    "entryHash": "92f88ea9dbf36ec0cd8bf8402a1f2c2021cbe2ff4717ef72743a23ede319ad20"
+  },
+  {
+    "entryId": "sub-renew-1772647718130",
+    "timestamp": "2026-03-04T18:08:38.130Z",
+    "accountId": "acct-test",
+    "walletId": "wallet-test",
+    "type": "subscription_renewal",
+    "amount": 100,
+    "currency": "USD",
+    "balanceAfter": 4800,
+    "region": "us",
+    "taxBreakdown": [
+      {
+        "region": "us",
+        "rate": 0,
+        "amount": 0
+      }
+    ],
+    "userExplanation": "Renewal charge for basic",
+    "idempotencyKey": "r1",
+    "prevHash": "92f88ea9dbf36ec0cd8bf8402a1f2c2021cbe2ff4717ef72743a23ede319ad20",
+    "entryHash": "46d63813bad5ba86be19882e25c368abbf39032cc6eebd28a66a3afb6ecc01e1"
+  },
+  {
+    "entryId": "activity-ecommerce-1772647719392",
+    "timestamp": "2026-03-04T18:08:39.357Z",
+    "accountId": "acct-act",
+    "walletId": "w-activity",
+    "type": "activity_ecommerce",
+    "amount": 20.8,
+    "currency": "USD",
+    "balanceAfter": 79.2,
+    "sourceEngine": "ecommerce",
+    "sourceEventId": "evt-1",
+    "userExplanation": "E-commerce transaction fee",
+    "idempotencyKey": "act1",
+    "prevHash": null,
+    "entryHash": "ec4c5245882dd393c7d4547618bd4d8fe7d77a22f96896e06600f779f8778279"
+  },
+  {
+    "entryId": "activity-ecommerce-1772647893014",
+    "timestamp": "2026-03-04T18:11:33.013Z",
+    "accountId": "acct-it-1",
+    "walletId": "wallet-it-1",
+    "type": "activity_ecommerce",
+    "amount": 20.8,
+    "currency": "USD",
+    "balanceAfter": 79.2,
+    "sourceEngine": "ecommerce",
+    "sourceEventId": "evt-it-charge-1",
+    "userExplanation": "E-commerce transaction fee",
+    "idempotencyKey": "act-charge-1",
+    "prevHash": null,
+    "entryHash": "176d8f8c6151170ee7b44fc79cd253160a405fff3a0e4f9f61a39438aceabadc"
+  }
+]

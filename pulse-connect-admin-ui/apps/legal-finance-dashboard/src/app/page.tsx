@@ -2,19 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
-import { LegalFinanceCSIService } from '../services/csi'
 
 interface LegalFinanceMetrics {
-  revenueGrowth: number
-  expenseRatio: number
-  profitMargin: number
-  cashFlowStability: number
+  totalRevenue: number
+  netProfitMargin: number
   complianceScore: number
-  legalCaseResolution: number
-  regulatoryFilings: number
-  contractValue: number
-  auditFindings: number
-  riskExposure: number
+  legalCases: number
+  operatingExpenses: number
+  cashFlow: number
+  taxLiability: number
+  accountsReceivable: number
+  accountsPayable: number
+  activeContracts: number
+  auditStatus: string
 }
 
 interface LegalFinanceAlert {
@@ -27,70 +27,95 @@ interface LegalFinanceAlert {
   impact: string
 }
 
+const FALLBACK_METRICS: LegalFinanceMetrics = {
+  totalRevenue: 45200000,
+  netProfitMargin: 18.5,
+  complianceScore: 96.2,
+  legalCases: 4,
+  operatingExpenses: 32100000,
+  cashFlow: 7300000,
+  taxLiability: 1260000,
+  accountsReceivable: 5400000,
+  accountsPayable: 2900000,
+  activeContracts: 184,
+  auditStatus: 'In Progress'
+}
+
+const FALLBACK_ALERTS: LegalFinanceAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Q4 Tax Filing Deadline Approaching',
+    description: 'Corporate tax return due in 7 days - requires CFO approval',
+    source: 'Tax Compliance',
+    timestamp: '2 hours ago',
+    impact: 'High'
+  }
+]
+
 export default function LegalFinanceDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<LegalFinanceMetrics | null>(null)
   const [alerts, setAlerts] = useState<LegalFinanceAlert[]>([])
   const [activeView, setActiveView] = useState('overview')
-  const [csiService] = useState(() => new LegalFinanceCSIService(null as any)) // TODO: Inject proper CSI client
 
   useEffect(() => {
     const loadLegalFinanceData = async () => {
       try {
-        // Load metrics from CSI
-        const csiMetrics = await csiService.fetchFinancialMetrics()
+        const headers = { 'x-admin-role': 'legal-finance' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
+        ])
 
-        // Load anomalies from CSI
-        const csiAnomalies = await csiService.getFinancialAnomalies()
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
 
-        setMetrics(csiMetrics)
-
-        // Convert CSI anomalies to dashboard alerts
-        const dashboardAlerts = csiAnomalies.slice(0, 3).map((anomaly, index) => ({
-          id: (index + 1).toString(),
-          type: anomaly.severity as 'critical' | 'high' | 'medium' | 'low',
-          title: `Financial Anomaly: ${anomaly.metric}`,
-          description: anomaly.description,
-          source: 'CSI Intelligence',
-          timestamp: anomaly.timestamp.toLocaleString(),
-          impact: anomaly.financialImpact > 100000 ? 'High' : anomaly.financialImpact > 50000 ? 'Medium' : 'Low'
-        }))
-
-        setAlerts(dashboardAlerts)
-      } catch (error) {
-        console.error('Failed to load CSI data:', error)
-        // Fallback to mock data if CSI fails
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
         setMetrics({
-          revenueGrowth: 12.3,
-          expenseRatio: 71.0,
-          profitMargin: 18.5,
-          cashFlowStability: 89.0,
-          complianceScore: 96.2,
-          legalCaseResolution: 85.0,
-          regulatoryFilings: 12,
-          contractValue: 45200000,
-          auditFindings: 0,
-          riskExposure: 2.1
+          ...FALLBACK_METRICS,
+          ...rawMetrics
         })
 
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Q4 Tax Filing Deadline Approaching',
-            description: 'Corporate tax return due in 7 days - requires CFO approval',
-            source: 'Tax Compliance',
-            timestamp: '2 hours ago',
-            impact: 'High'
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'medium',
+                title: anomaly.title || `Financial anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected an unusual legal/finance signal.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                impact:
+                  Number(anomaly.financialImpact || anomaly.impactAmount || 0) > 100000
+                    ? 'High'
+                    : Number(anomaly.financialImpact || anomaly.impactAmount || 0) > 50000
+                      ? 'Medium'
+                      : 'Low'
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
           }
-        ])
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load legal-finance intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadLegalFinanceData()
-  }, [csiService])
+  }, [])
 
   if (isLoading) {
     return (

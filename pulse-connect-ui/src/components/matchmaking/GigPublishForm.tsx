@@ -35,7 +35,7 @@ export default function GigPublishForm() {
   const [result, setResult] = useState<GigPublishResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const upfrontFee = Math.round(formData.base_price * 0.05 * 100) / 100; // 5% upfront fee
+  const upfrontFee = Math.round(formData.base_price * 0.05 * 100) / 100; // Fallback estimate for preview only.
   const netAmount = formData.base_price - upfrontFee;
 
   const handleInputChange = (
@@ -139,7 +139,7 @@ export default function GigPublishForm() {
               </span>
             </div>
             <div className="flex justify-between text-red-600">
-              <span>Upfront Fee (5%):</span>
+              <span>Upfront Fee (policy):</span>
               <span>
                 -${upfrontFee.toLocaleString()} {result.gig.currency}
               </span>
@@ -153,8 +153,8 @@ export default function GigPublishForm() {
           </div>
           <div className="mt-4 bg-yellow-50 p-3 rounded">
             <p className="text-xs text-yellow-800">
-              <strong>Fee Policy:</strong> 5% upfront fee charged at publication. 15% completion fee
-              charged when work is released.
+              <strong>Fee Policy:</strong> Fees are charged using the active billing-engine policy at
+              publication and release time.
             </p>
           </div>
           <div className="mt-2 text-xs text-blue-600">
@@ -179,8 +179,8 @@ export default function GigPublishForm() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Publish a Gig</h2>
         <p className="text-gray-600 mt-2">
-          Create a gig to find providers for your project. A 5% upfront fee will be charged to
-          ensure quality submissions.
+          Create a gig to find providers for your project. Final platform fees are determined by
+          the active billing policy.
         </p>
       </div>
 
@@ -265,7 +265,7 @@ export default function GigPublishForm() {
                 </span>
               </div>
               <div className="flex justify-between text-red-600">
-                <span>Upfront Fee (5%):</span>
+                <span>Estimated Upfront Fee:</span>
                 <span>
                   -${upfrontFee.toLocaleString()} {formData.currency}
                 </span>
@@ -278,7 +278,7 @@ export default function GigPublishForm() {
               </div>
             </div>
             <p className="text-xs text-gray-600 mt-2">
-              The upfront fee ensures quality proposals and covers platform costs.
+              Final fees are policy-driven and may vary by tier, region, and offer configuration.
             </p>
           </div>
         )}

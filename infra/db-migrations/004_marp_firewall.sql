@@ -126,7 +126,7 @@ INSERT INTO subsystem_registry (subsystem_name, subsystem_type, api_endpoints, r
 ('Proximity Services', 'proximity', '["/api/proximity/*"]', '["read_location", "write_geocodes"]', '{"validate_regional_compliance": true}'),
 ('Communication Platform', 'communication', '["/api/communication/*"]', '["send_messages", "read_contacts"]', '{"enforce_consent": true, "cap_limits": true}'),
 ('Payment Processing', 'payments', '["/api/payments/*"]', '["process_payments", "read_accounts"]', '{"founder_approval_required": true}'),
-('Marketing Engine', 'marketing', '["/api/marketing/*"]', '["send_campaigns", "read_analytics"]', '{"consent_required": true, "opt_out_respected": true}'),
+('Marketing Engine(pap_v1)', 'marketing', '["/api/marketing/*"]', '["send_campaigns", "read_analytics"]', '{"consent_required": true, "opt_out_respected": true}'),
 ('Reporting & Analytics', 'reporting', '["/api/reporting/*"]', '["read_reports", "export_data"]', '{"anonymize_sensitive": true}'),
 ('AI Engine', 'ai', '["/api/ai/*"]', '["run_models", "read_insights"]', '{"ethical_constraints": true}'),
 ('Global Speed Layer', 'speed', '["/api/speed/*"]', '["read_cache", "write_cache"]', '{"performance_optimized": true}'),

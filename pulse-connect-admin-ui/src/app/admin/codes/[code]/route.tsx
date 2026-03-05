@@ -2,8 +2,15 @@ import { NextResponse } from "next/server";
 import { AdminService } from "@/lib/services/admin";
 import { logger } from "@/lib/logger";
 import { getServerSession } from "next-auth";
+import { assertCriticalActionAllowed } from "@pulsco/pwa";
 
 export async function DELETE(request: Request, { params }: { params: { code: string } }) {
+  const guard = assertCriticalActionAllowed({
+    endpoint: `/admin/codes/${params.code}`,
+    action: "admin.code.revoke"
+  });
+  if (guard) return guard;
+
   try {
     const session = await getServerSession();
     const role = session?.user?.role || "GUEST";

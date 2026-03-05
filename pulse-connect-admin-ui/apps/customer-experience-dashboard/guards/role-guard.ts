@@ -1,4 +1,4 @@
-import { ADMIN_EMAILS } from '@pulsco/admin-shared-types'
+﻿import { ADMIN_EMAILS } from '@pulsco/admin-shared-types'
 
 /**
  * Role guard for Customer Experience Dashboard
@@ -16,3 +16,5 @@ export function getCustomerExperienceRole(): string {
 export function canAccessCustomerExperienceDashboard(email: string): boolean {
   return validateCustomerExperienceAccess(email)
 }
+
+

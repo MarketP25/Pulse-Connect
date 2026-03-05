@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { emitCommunicationEvent } from '../../csi/instrumentation';
 
 export interface Message {
   messageId: string;
@@ -114,6 +115,22 @@ export class RealTimeMessagingService {
         timestamp,
       });
 
+      emitCommunicationEvent(
+        'message.sent',
+        message.region || 'GLOBAL',
+        {
+          messageId: fullMessage.messageId,
+          conversationId: message.conversationId,
+          senderId: message.senderId,
+          recipientId: message.recipientId,
+          contentType: message.content.type,
+        },
+        {
+          riskScore: 14,
+          performanceScore: 89,
+        },
+      );
+
       return fullMessage;
 
     } catch (error) {
@@ -157,6 +174,21 @@ export class RealTimeMessagingService {
 
       // Notify participants
       await this.notifyConversationCreation(conversation);
+
+      emitCommunicationEvent(
+        'conversation.created',
+        'GLOBAL',
+        {
+          conversationId,
+          creatorId,
+          participantCount: conversation.participants.length,
+          type,
+        },
+        {
+          riskScore: 16,
+          performanceScore: 86,
+        },
+      );
 
       return conversation;
 
@@ -238,6 +270,20 @@ export class RealTimeMessagingService {
         data: { status, region },
         timestamp: new Date(),
       });
+
+      emitCommunicationEvent(
+        'presence.updated',
+        region,
+        {
+          userId,
+          status,
+          region,
+        },
+        {
+          riskScore: 10,
+          performanceScore: 92,
+        },
+      );
 
     } catch (error) {
       this.logger.error('Presence update failed:', error);

@@ -29,20 +29,27 @@
     "monorepo",
     "pnpm-workspace"
   ],
-  "author": "Market Pulse pro(MARP) Founders",
+  "author": "CHARISE MURIMI MAINA",
   "license": "ISC",
   "engines": {
     "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=10.30.3"
   },
   "scripts": {
+    "predev": "node scripts/pwa/sync.mjs --all",
     "dev": "pnpm -r --parallel dev",
+    "predev:ui": "node scripts/pwa/sync.mjs --all",
     "dev:ui": "pnpm --filter pulse-connect-ui dev",
+    "predev:admin": "node scripts/pwa/sync.mjs --all",
     "dev:admin": "pnpm --filter pulse-connect-admin-ui dev",
     "dev:core": "pnpm --filter pulse-connect-core dev",
     "dev:pap": "pnpm --filter pap_v1 dev",
+    "prebuild": "node scripts/pwa/sync.mjs --all",
     "build": "pnpm -r build",
+    "postbuild": "node scripts/pwa/generate-precache.mjs --all && node scripts/pwa/validate.mjs && node scripts/governance/validate.mjs",
+    "prebuild:ui": "node scripts/pwa/sync.mjs --all",
     "build:ui": "pnpm --filter pulse-connect-ui build",
+    "prebuild:admin": "node scripts/pwa/sync.mjs --all",
     "build:admin": "pnpm --filter pulse-connect-admin-ui build",
     "build:core": "pnpm --filter pulse-connect-core build",
     "build:pap": "pnpm --filter pap_v1 build",
@@ -66,7 +73,7 @@
     "install:all": "pnpm install",
     "postinstall": "husky install",
     "prepare": "husky install",
-    "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm governance:validate && pnpm test && pnpm build",
     "deploy": "pnpm build && pnpm -r deploy",
     "deploy:staging": "pnpm build && pnpm -r deploy:staging",
     "deploy:production": "pnpm build && pnpm -r deploy:production",
@@ -81,6 +88,10 @@
     "monitoring": "pnpm --filter pulse-connect-core monitoring:start",
     "logs": "pnpm -r logs",
     "backup": "pnpm -r backup",
+    "pwa:sync": "node scripts/pwa/sync.mjs --all",
+    "pwa:precache": "node scripts/pwa/generate-precache.mjs --all",
+    "pwa:validate": "node scripts/pwa/validate.mjs",
+    "governance:validate": "node scripts/governance/validate.mjs",
     "celebrate": "node scripts/triggerCelebration.js"
   },
   "pnpm": {
@@ -201,10 +212,10 @@
     "react-dom": "^18.3.1",
     "typescript": "^5.6.2"
   },
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@10.30.3",
   "volta": {
-    "node": "18.19.0",
-    "pnpm": "8.15.0"
+    "node": "18.19.3",
+    "pnpm": "10.30.3"
   },
   "metadata": {
     "platform": "Pulsco",

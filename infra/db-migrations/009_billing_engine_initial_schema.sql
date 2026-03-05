@@ -33,6 +33,7 @@ CREATE TYPE billing_activity_type AS ENUM (
     'PLACES_VENUE',
     'PLACES_BOOKER',
     'INFRASTRUCTURE'
+    'PAP_V1'
 );
 
 -- Billing Ledger Table (Append-Only)

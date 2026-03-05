@@ -1,0 +1,32 @@
+{
+  "name": "Pulsco - Digital Marketing Command Centre",
+  "short_name": "Pulsco",
+  "description": "Super-Intelligence Grade Location Intelligence Platform",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#7c3aed",
+  "id": "/",
+  "icons": [
+    { "src": "/icons/icon-16x16.png", "sizes": "16x16", "type": "image/png" },
+    { "src": "/icons/icon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/icons/icon-152x152.jpeg", "sizes": "152x152", "type": "image/jpeg" },
+    { "src": "/icons/icon-192x192.jpeg", "sizes": "192x192", "type": "image/jpeg" },
+    { "src": "/icons/icon-512x512.jpeg", "sizes": "512x512", "type": "image/jpeg" },
+    {
+      "src": "/icons/icon-152x152-maskable.jpeg",
+      "sizes": "152x152",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512-maskable.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
+

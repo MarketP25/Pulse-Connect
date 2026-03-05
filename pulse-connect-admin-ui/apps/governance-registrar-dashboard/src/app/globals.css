@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+﻿@import "tailwindcss";
 
 @layer base {
   html {
@@ -37,3 +35,4 @@
     @apply bg-red-100 text-red-800;
   }
 }
+

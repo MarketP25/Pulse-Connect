@@ -192,7 +192,7 @@ INSERT INTO edge_adapter_registry (subsystem, adapter_name, version, capabilitie
 ('ai-engine-chatbot', 'chatbot-adapter', '1.0.0', '{"intent-filtering": true, "safety": true, "throttling": true}'),
 ('proximity-geocoding', 'geocoding-adapter', '1.0.0', '{"polygon": true, "boundary": true, "caching": true}'),
 ('communication', 'communication-adapter', '1.0.0', '{"consent": true, "quiet-hours": true, "throttling": true}'),
-('automated-marketing', 'marketing-adapter', '1.0.0', '{"consent": true, "frequency": true, "segmentation": true}'),
+('automated-marketing(pap_v1)', 'marketing-adapter', '1.0.0', '{"consent": true, "frequency": true, "segmentation": true}'),
 ('places-venues', 'places-adapter', '1.0.0', '{"geofencing": true, "hours": true, "classification": true}');
 
 -- Insert initial policy snapshot

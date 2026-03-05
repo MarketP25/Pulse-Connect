@@ -1,8 +1,8 @@
-// Business Operations Dashboard Role Guard
+﻿// Business Operations Dashboard Role Guard
 // Ensures only Business Ops role can access the Business Operations dashboard
 
 import { AdminRoleType } from '@pulsco/admin-shared-types'
-import { MARPClient } from '@pulsco/marp-client'
+import { MARPClient } from '@pulsco/admin-marp-client'
 
 export interface RoleGuardConfig {
   requiredRole: AdminRoleType
@@ -137,7 +137,7 @@ export class BusinessOpsRoleGuard {
     try {
       // This would integrate with device fingerprinting service
       // For now, basic validation
-      return fingerprint && fingerprint.length > 10
+      return Boolean(fingerprint) && fingerprint.length > 10
     } catch (error) {
       console.error('Device fingerprint validation failed:', error)
       return false
@@ -196,3 +196,6 @@ export class BusinessOpsRoleGuard {
 }
 
 export default BusinessOpsRoleGuard
+
+
+

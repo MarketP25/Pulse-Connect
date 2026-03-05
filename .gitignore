@@ -25,6 +25,9 @@ coverage/
 .next/
 out/
 
+# PWA build artifacts
+**/public/pwa-precache.json
+
 # Production builds
 build/
 dist/
@@ -59,3 +62,4 @@ next-env.d.ts
 .vscode/
 .idea/
 *.swp
+PULSCO+CSI ARCHITECTURAL DIAGRAM(CONCEPT).md

@@ -20,6 +20,7 @@ import { ReviewEntity } from '../entities/review.entity';
 import { PlaceManagerEntity } from '../entities/place-manager.entity';
 import { ProximityService } from '../../proximity/proximity.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { emitPlacesEvent } from '../../csi/instrumentation';
 
 @Injectable()
 export class PlacesService {
@@ -75,6 +76,20 @@ export class PlacesService {
       await queryRunner.commitTransaction();
 
       this.eventEmitter.emit('place.created', { place: savedPlace, ownerId });
+      emitPlacesEvent(
+        'place.created',
+        String(savedPlace.location?.country || savedPlace.location?.region || 'GLOBAL'),
+        {
+          placeId: savedPlace.id,
+          ownerId,
+          category: savedPlace.category,
+          type: savedPlace.type,
+        },
+        {
+          riskScore: 16,
+          performanceScore: 82,
+        },
+      );
 
       return this.mapPlaceEntityToPlace(savedPlace);
     } catch (error) {
@@ -110,6 +125,19 @@ export class PlacesService {
     const updatedPlace = await this.placeRepository.save(place);
 
     this.eventEmitter.emit('place.updated', { place: updatedPlace, updatedBy: userId });
+    emitPlacesEvent(
+      'place.updated',
+      String(updatedPlace.location?.country || updatedPlace.location?.region || 'GLOBAL'),
+      {
+        placeId: updatedPlace.id,
+        updatedBy: userId,
+        status: updatedPlace.status,
+      },
+      {
+        riskScore: 22,
+        performanceScore: 80,
+      },
+    );
 
     return this.mapPlaceEntityToPlace(updatedPlace);
   }
@@ -226,6 +254,21 @@ export class PlacesService {
     // Generate suggestions
     const suggestions = await this.generateSearchSuggestions(query.query);
 
+    emitPlacesEvent(
+      'place.search.executed',
+      query.location ? 'LOCAL' : 'GLOBAL',
+      {
+        resultCount: total,
+        limit,
+        offset,
+        query: query.query || null,
+      },
+      {
+        riskScore: 8,
+        performanceScore: 90,
+      },
+    );
+
     return {
       places: places.map(p => this.mapPlaceEntityToPlace(p)),
       total,
@@ -272,6 +315,20 @@ export class PlacesService {
       placeId: request.placeId,
       userId,
     });
+    emitPlacesEvent(
+      'reservation.created',
+      String(place.location?.country || place.location?.region || 'GLOBAL'),
+      {
+        reservationId: savedReservation.id,
+        placeId: request.placeId,
+        userId,
+        partySize: request.partySize,
+      },
+      {
+        riskScore: 20,
+        performanceScore: 86,
+      },
+    );
 
     return {
       reservation: this.mapReservationEntityToReservation(savedReservation),
@@ -315,6 +372,20 @@ export class PlacesService {
     await this.updatePlaceRating(placeId);
 
     this.eventEmitter.emit('review.added', { review: savedReview, placeId, userId });
+    emitPlacesEvent(
+      'review.added',
+      String(place.location?.country || place.location?.region || 'GLOBAL'),
+      {
+        reviewId: savedReview.id,
+        placeId,
+        userId,
+        rating,
+      },
+      {
+        riskScore: 12,
+        performanceScore: 88,
+      },
+    );
 
     return this.mapReviewEntityToReview(savedReview);
   }
@@ -328,6 +399,19 @@ export class PlacesService {
     const metrics = await this.aggregatePlaceMetrics(placeId, period);
     const trends = await this.generateTrendsData(placeId, period);
     const insights = await this.generateInsights(placeId, metrics);
+    emitPlacesEvent(
+      'place.analytics.generated',
+      'GLOBAL',
+      {
+        placeId,
+        periodStart: period.start.toISOString(),
+        periodEnd: period.end.toISOString(),
+      },
+      {
+        riskScore: 10,
+        performanceScore: 91,
+      },
+    );
 
     return {
       placeId,

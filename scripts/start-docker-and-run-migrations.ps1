@@ -7,7 +7,7 @@ Usage: Run from repository root (requires PowerShell elevated if Docker Desktop 
 
 param(
   [string]$ComposeFile = 'infra/dev/docker-compose.yml',
-  [string]$MigrationPath = 'infra/db-migrations/001_initial_schema.sql',
+  [string]$MigrationDir = 'infra/db-migrations',
   [int]$WaitSeconds = 60
 )
 
@@ -62,8 +62,26 @@ for ($i = 0; $i -lt 30; $i++) {
 }
 if (-not $ready) { Write-Error "Postgres did not become ready."; exit 1 }
 
-# Apply migration
-Write-Host "Applying migration $MigrationPath inside container"
-Exec "docker compose -f $ComposeFile exec -T db psql -U postgres -d postgres -f /migrations/001_initial_schema.sql"
+# Apply all migrations in filename order
+if (-not (Test-Path $MigrationDir)) {
+  Write-Error "Migration directory not found: $MigrationDir"
+  exit 1
+}
 
-Write-Host "Migration script executed. Verify with: docker compose -f $ComposeFile exec -T db psql -U postgres -d postgres -c \"\dt\""
+$migrationFiles = Get-ChildItem -Path $MigrationDir -Filter '*.sql' | Sort-Object Name
+if (-not $migrationFiles -or $migrationFiles.Count -eq 0) {
+  Write-Error "No migration files found in $MigrationDir"
+  exit 1
+}
+
+Write-Host "Applying $($migrationFiles.Count) migration(s) from $MigrationDir"
+foreach ($migration in $migrationFiles) {
+  Write-Host "Applying migration $($migration.Name)"
+  $result = Exec "docker compose -f $ComposeFile exec -T db psql -U postgres -d postgres -f /migrations/$($migration.Name)"
+  if ($result -ne 0) {
+    Write-Error "Migration failed: $($migration.Name)"
+    exit 1
+  }
+}
+
+Write-Host "All migrations executed. Verify with: docker compose -f $ComposeFile exec -T db psql -U postgres -d postgres -c \"\dt\""

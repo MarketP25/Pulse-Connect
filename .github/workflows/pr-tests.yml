@@ -26,3 +26,7 @@ jobs:
           pnpm -w -r test
         env:
           CI: true
+
+      - name: Governance validation
+        run: |
+          pnpm governance:validate

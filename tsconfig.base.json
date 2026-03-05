@@ -8,7 +8,21 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@pulsco/pwa": ["packages/pulsco-pwa"],
+      "@pulsco/pwa/*": ["packages/pulsco-pwa/*"],
+      "@pulsco/shared-lib": ["shared/lib/src"],
+      "@pulsco/shared-lib/*": ["shared/lib/src/*"],
+      "@pulsco/pap-v1": ["packages/pap_v1"],
+      "@pulsco/pap-v1/*": ["packages/pap_v1/*"],
+      "@pulsco/billing-engine": ["services/billing-engine/src"],
+      "@pulsco/billing-engine/*": ["services/billing-engine/src/*"],
+      "@pulsco/pulsco-ai-widget": ["packages/pulsco-ai-widget"],
+      "@pulsco/pulsco-ai-widget/*": ["packages/pulsco-ai-widget/*"],
+      "@pulsco/admin-auth-client": ["pulse-connect-admin-ui/packages/auth-client"],
+      "@pulsco/admin-auth-client/*": ["pulse-connect-admin-ui/packages/auth-client/*"],
+      "@pulsco/admin-shared-types": ["pulse-connect-admin-ui/packages/shared-types"],
+      "@pulsco/admin-shared-types/*": ["pulse-connect-admin-ui/packages/shared-types/*"]
     },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,

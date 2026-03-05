@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
+import { calculateBillingActivityQuote } from "../../billing/billing-engine.client";
 
 export interface FeePolicy {
   version: string;
@@ -106,21 +107,30 @@ export class FeeService {
   }
 
   /**
-   * Calculate posting fee (4% of reference price)
+   * Calculate posting fee using billing-engine policy.
    */
   async calculatePostingFee(referencePriceUsd: number, traceId?: string): Promise<FeeCalculation> {
-    const policy = await this.getCurrentPolicy();
     const finalTraceId = traceId || uuidv4();
-
-    const posting_fee_usd =
-      Math.round(((referencePriceUsd * policy.posting_fee_percent) / 100) * 100) / 100;
+    const billingQuote = await calculateBillingActivityQuote({
+      engine: "places",
+      amount: referencePriceUsd,
+      eventId: finalTraceId,
+      details: {
+        mode: "posting",
+      },
+      region: "global",
+    });
+    if (!billingQuote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const posting_fee_usd = Math.round(billingQuote.fees * 100) / 100;
 
     return {
       base_amount_usd: referencePriceUsd,
       posting_fee_usd,
       booking_fee_usd: 0,
       total_fee_usd: posting_fee_usd,
-      policy_version: policy.version,
+      policy_version: billingQuote.policyVersion || "billing-engine-unversioned",
       trace_id: finalTraceId,
       fx_rate: 1.0,
       currency: "USD"
@@ -128,21 +138,30 @@ export class FeeService {
   }
 
   /**
-   * Calculate booking fee (3% of booking amount)
+   * Calculate booking fee using billing-engine policy.
    */
   async calculateBookingFee(bookingAmountUsd: number, traceId?: string): Promise<FeeCalculation> {
-    const policy = await this.getCurrentPolicy();
     const finalTraceId = traceId || uuidv4();
-
-    const booking_fee_usd =
-      Math.round(((bookingAmountUsd * policy.booking_fee_percent) / 100) * 100) / 100;
+    const billingQuote = await calculateBillingActivityQuote({
+      engine: "places",
+      amount: bookingAmountUsd,
+      eventId: finalTraceId,
+      details: {
+        mode: "booking",
+      },
+      region: "global",
+    });
+    if (!billingQuote) {
+      throw new Error("billing_engine_quote_failed");
+    }
+    const booking_fee_usd = Math.round(billingQuote.fees * 100) / 100;
 
     return {
       base_amount_usd: bookingAmountUsd,
       posting_fee_usd: 0,
       booking_fee_usd,
       total_fee_usd: booking_fee_usd,
-      policy_version: policy.version,
+      policy_version: billingQuote.policyVersion || "billing-engine-unversioned",
       trace_id: finalTraceId,
       fx_rate: 1.0,
       currency: "USD"

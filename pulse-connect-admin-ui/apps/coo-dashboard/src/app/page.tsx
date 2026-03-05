@@ -25,6 +25,47 @@ interface OperationalAlert {
   affectedSystems: string[]
 }
 
+const FALLBACK_METRICS: COOMetrics = {
+  systemAvailability: 99.7,
+  resourceUtilization: 78.5,
+  operationalEfficiency: 92.3,
+  costOptimization: 15.2,
+  performanceLatency: 245,
+  infrastructureHealth: 96.8,
+  scalingEfficiency: 88.9,
+  serviceLevelCompliance: 98.4
+}
+
+const FALLBACK_ALERTS: OperationalAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Resource Utilization Spike',
+    description: 'CPU utilization exceeded 85% threshold for 15 minutes',
+    source: 'Infrastructure Monitoring',
+    timestamp: '45 minutes ago',
+    affectedSystems: ['Web Servers', 'Database Cluster']
+  },
+  {
+    id: '2',
+    type: 'medium',
+    title: 'Performance Latency Increase',
+    description: 'Average response time increased by 22% in last hour',
+    source: 'Application Performance',
+    timestamp: '1 hour ago',
+    affectedSystems: ['API Gateway', 'User Services']
+  },
+  {
+    id: '3',
+    type: 'low',
+    title: 'Cost Optimization Opportunity',
+    description: 'Identified $12K monthly savings through resource optimization',
+    source: 'Cost Analytics',
+    timestamp: '2 hours ago',
+    affectedSystems: ['Cloud Infrastructure']
+  }
+]
+
 export default function COODashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<COOMetrics | null>(null)
@@ -32,52 +73,53 @@ export default function COODashboard() {
   const [activeView, setActiveView] = useState('overview')
 
   useEffect(() => {
-    // Simulate loading COO operational metrics from CSI
     const loadOperationalData = async () => {
-      setTimeout(() => {
-        setMetrics({
-          systemAvailability: 99.7,
-          resourceUtilization: 78.5,
-          operationalEfficiency: 92.3,
-          costOptimization: 15.2,
-          performanceLatency: 245,
-          infrastructureHealth: 96.8,
-          scalingEfficiency: 88.9,
-          serviceLevelCompliance: 98.4
-        })
-
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Resource Utilization Spike',
-            description: 'CPU utilization exceeded 85% threshold for 15 minutes',
-            source: 'Infrastructure Monitoring',
-            timestamp: '45 minutes ago',
-            affectedSystems: ['Web Servers', 'Database Cluster']
-          },
-          {
-            id: '2',
-            type: 'medium',
-            title: 'Performance Latency Increase',
-            description: 'Average response time increased by 22% in last hour',
-            source: 'Application Performance',
-            timestamp: '1 hour ago',
-            affectedSystems: ['API Gateway', 'User Services']
-          },
-          {
-            id: '3',
-            type: 'low',
-            title: 'Cost Optimization Opportunity',
-            description: 'Identified $12K monthly savings through resource optimization',
-            source: 'Cost Analytics',
-            timestamp: '2 hours ago',
-            affectedSystems: ['Cloud Infrastructure']
-          }
+      try {
+        const headers = { 'x-admin-role': 'coo' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
         ])
 
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
+
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        setMetrics({
+          ...FALLBACK_METRICS,
+          ...rawMetrics
+        })
+
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'medium',
+                title: anomaly.title || `Operational anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected an operational variance.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                affectedSystems: Array.isArray(anomaly.affectedSystems) ? anomaly.affectedSystems : []
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
+          }
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load COO intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
+      } finally {
         setIsLoading(false)
-      }, 2000)
+      }
     }
 
     loadOperationalData()

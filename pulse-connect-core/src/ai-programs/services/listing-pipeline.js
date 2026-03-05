@@ -29,4 +29,4 @@ fs.writeFileSync(flaggedPath, JSON.stringify(flaggedListings, null, 2));
 fs.writeFileSync(reviewedPath, JSON.stringify(reviewedListings, null, 2));
 fs.writeFileSync(publicPath, JSON.stringify(publicListings, null, 2));
 
-console.log("✅ Pulse Connect listing pipeline complete.");
+console.log("✅ Pulsco listing pipeline complete.");

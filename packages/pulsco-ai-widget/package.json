@@ -1,0 +1,26 @@
+{
+  "name": "@pulsco/pulsco-ai-widget",
+  "version": "1.0.0",
+  "description": "Pulsco AI - Global AI Assistant Widget for PULSCO Platform",
+  "main": "index.ts",
+  "types": "index.ts",
+  "module": "index.ts",
+  "scripts": {
+    "test": "echo \"no tests\"",
+    "build": "tsc"
+  },
+  "keywords": ["pulsco", "ai", "chatbot", "assistant", "widget"],
+  "author": "Pulsco Team",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
+  }
+}

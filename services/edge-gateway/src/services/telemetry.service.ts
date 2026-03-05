@@ -11,6 +11,8 @@ export interface TelemetryEvent {
   policyVersion: string;
   executionTime: number;
   hash: string;
+  reasonCode: string;
+  sourceApp?: string;
   originalRequest?: any;
   policySnapshot?: string;
   regionCode?: string;
@@ -81,9 +83,9 @@ export class TelemetryService {
     const query = `
       INSERT INTO edge_telemetry (
         request_id, subsystem, action, decision, risk_score,
-        policy_version, execution_time, hash, original_request,
+        policy_version, execution_time, hash, reason_code, source_app, original_request,
         policy_snapshot, region_code, instance_id, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
     `;
 
     await this.db.query(query, [
@@ -95,6 +97,8 @@ export class TelemetryService {
       event.policyVersion,
       event.executionTime,
       event.hash,
+      event.reasonCode,
+      event.sourceApp || 'unknown',
       JSON.stringify(event.originalRequest || {}),
       event.policySnapshot || null,
       event.regionCode || null,

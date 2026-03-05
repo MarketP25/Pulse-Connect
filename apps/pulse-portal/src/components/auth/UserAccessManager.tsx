@@ -54,8 +54,8 @@ export function UserAccessManager({ user, onAccessGranted, onAccessDenied }: Use
     }
   }
 
-  const getRequiredScopes = (subsystemId: string, userRole: string): string[] => {
-    const scopeMatrix = {
+  const getRequiredScopes = (subsystemId: string, userRole: UserProfile['role']): string[] => {
+    const scopeMatrix: Record<string, Partial<Record<UserProfile['role'], string[]>>> = {
       'places-venues': {
         'user': ['read:places', 'write:reservations'],
         'business': ['read:places', 'write:places', 'manage:reservations'],
@@ -78,7 +78,7 @@ export function UserAccessManager({ user, onAccessGranted, onAccessDenied }: Use
       }
     }
 
-    return scopeMatrix[subsystemId]?.[userRole] || []
+    return scopeMatrix[subsystemId]?.[userRole] ?? []
   }
 
   const getAccessStatus = (subsystemId: string) => {

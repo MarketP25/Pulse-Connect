@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { calculateBillingActivityQuote } from '../../billing/billing-engine.client';
 
 export interface OrderRequest {
   userId: string;
@@ -83,24 +84,42 @@ export class OrderManagementService {
       const pricing = await this.calculatePricing(request);
 
       // Process tax calculation
-      const taxAmount = await this.calculateTax(request, pricing.subtotal);
+      const billingQuote = await calculateBillingActivityQuote({
+        engine: 'ecommerce',
+        amount: pricing.subtotal,
+        eventId: `${request.userId}-${Date.now()}-order-management`,
+        details: {
+          mode: 'order_management',
+          shippingUsd: pricing.shipping,
+          itemCount: request.items.length,
+        },
+        region: request.region,
+      });
+      if (!billingQuote) {
+        throw new Error('billing_engine_quote_failed');
+      }
+      const taxAmount = billingQuote.tax;
+
+      const orderItems = await Promise.all(
+        request.items.map(async (item) => ({
+          productId: item.productId,
+          name: await this.getProductName(item.productId),
+          quantity: item.quantity,
+          price: item.price,
+          total: item.quantity * item.price,
+        }))
+      );
 
       // Create order record
       const order: Order = {
         orderId: this.generateOrderId(),
         userId: request.userId,
         status: 'pending',
-        items: request.items.map(item => ({
-          productId: item.productId,
-          name: await this.getProductName(item.productId),
-          quantity: item.quantity,
-          price: item.price,
-          total: item.quantity * item.price,
-        })),
+        items: orderItems,
         subtotal: pricing.subtotal,
         tax: taxAmount,
         shipping: pricing.shipping,
-        total: pricing.subtotal + taxAmount + pricing.shipping,
+        total: billingQuote.total + pricing.shipping,
         currency: request.currency,
         shippingAddress: request.shippingAddress,
         billingAddress: request.billingAddress || request.shippingAddress,
@@ -283,9 +302,20 @@ export class OrderManagementService {
   }
 
   private async calculateTax(request: OrderRequest, subtotal: number): Promise<number> {
-    // Use planetary tax calculation service
-    const taxRate = await this.getTaxRate(request.shippingAddress, request.region);
-    return subtotal * taxRate;
+    const quote = await calculateBillingActivityQuote({
+      engine: 'ecommerce',
+      amount: subtotal,
+      eventId: `${request.userId}-${Date.now()}-tax-only`,
+      details: {
+        mode: 'tax_only',
+        shippingAddress: request.shippingAddress,
+      },
+      region: request.region,
+    });
+    if (!quote) {
+      throw new Error('billing_engine_quote_failed');
+    }
+    return quote.tax;
   }
 
   private generateOrderId(): string {
@@ -348,17 +378,6 @@ export class OrderManagementService {
     const baseShipping = 10;
     const regionalMultiplier = request.region === 'africa-south1' ? 0.8 : 1.0;
     return baseShipping * regionalMultiplier;
-  }
-
-  private async getTaxRate(address: any, region: string): Promise<number> {
-    // Mock tax rate lookup
-    const taxRates = {
-      'us-central1': 0.08,
-      'europe-west1': 0.20,
-      'africa-south1': 0.15,
-      'asia-east1': 0.10,
-    };
-    return taxRates[region as keyof typeof taxRates] || 0.10;
   }
 
   private async getUpdatedTracking(trackingNumber: string): Promise<string> {

@@ -26,6 +26,49 @@ interface SupportAlert {
   affectedUsers: number
 }
 
+const FALLBACK_METRICS: CustomerExperienceMetrics = {
+  customerSatisfactionScore: 4.3,
+  netPromoterScore: 42,
+  supportTicketResolutionTime: 7200,
+  firstResponseTime: 900,
+  customerRetentionRate: 0.87,
+  userEngagementRate: 0.73,
+  supportTicketVolume: 1247,
+  selfServiceResolutionRate: 0.68,
+  mobileAppCrashRate: 0.015,
+  pageLoadTime: 1850
+}
+
+const FALLBACK_ALERTS: SupportAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Support Ticket Backlog Increasing',
+    description: 'Ticket volume exceeded normal threshold by 35%',
+    source: 'Support System',
+    timestamp: '1 hour ago',
+    affectedUsers: 247
+  },
+  {
+    id: '2',
+    type: 'medium',
+    title: 'Mobile App Performance Degradation',
+    description: 'Page load times increased by 22% in last 24 hours',
+    source: 'Mobile Analytics',
+    timestamp: '3 hours ago',
+    affectedUsers: 1250
+  },
+  {
+    id: '3',
+    type: 'low',
+    title: 'Customer Satisfaction Score Trending Down',
+    description: 'CSAT decreased by 0.3 points over the past week',
+    source: 'CSI Analytics',
+    timestamp: '6 hours ago',
+    affectedUsers: 0
+  }
+]
+
 export default function CustomerExperienceDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<CustomerExperienceMetrics | null>(null)
@@ -33,54 +76,53 @@ export default function CustomerExperienceDashboard() {
   const [activeView, setActiveView] = useState('overview')
 
   useEffect(() => {
-    // Simulate loading customer experience metrics from CSI
     const loadCustomerData = async () => {
-      setTimeout(() => {
-        setMetrics({
-          customerSatisfactionScore: 4.3,
-          netPromoterScore: 42,
-          supportTicketResolutionTime: 7200, // 2 hours
-          firstResponseTime: 900, // 15 minutes
-          customerRetentionRate: 0.87,
-          userEngagementRate: 0.73,
-          supportTicketVolume: 1247,
-          selfServiceResolutionRate: 0.68,
-          mobileAppCrashRate: 0.015,
-          pageLoadTime: 1850 // 1.85 seconds
-        })
-
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Support Ticket Backlog Increasing',
-            description: 'Ticket volume exceeded normal threshold by 35%',
-            source: 'Support System',
-            timestamp: '1 hour ago',
-            affectedUsers: 247
-          },
-          {
-            id: '2',
-            type: 'medium',
-            title: 'Mobile App Performance Degradation',
-            description: 'Page load times increased by 22% in last 24 hours',
-            source: 'Mobile Analytics',
-            timestamp: '3 hours ago',
-            affectedUsers: 1250
-          },
-          {
-            id: '3',
-            type: 'low',
-            title: 'Customer Satisfaction Score Trending Down',
-            description: 'CSAT decreased by 0.3 points over the past week',
-            source: 'CSI Analytics',
-            timestamp: '6 hours ago',
-            affectedUsers: 0
-          }
+      try {
+        const headers = { 'x-admin-role': 'customer-experience' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
         ])
 
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
+
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        setMetrics({
+          ...FALLBACK_METRICS,
+          ...rawMetrics
+        })
+
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'low',
+                title: anomaly.title || `Customer experience anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected an unusual customer experience pattern.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                affectedUsers: Number(anomaly.affectedUsers || anomaly.impactCount || 0)
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
+          }
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load customer experience intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
+      } finally {
         setIsLoading(false)
-      }, 2000)
+      }
     }
 
     loadCustomerData()

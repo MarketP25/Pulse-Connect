@@ -26,6 +26,49 @@ interface BusinessAlert {
   impact: string
 }
 
+const FALLBACK_METRICS: BusinessOpsMetrics = {
+  dailyRevenue: 124750,
+  activeUsers: 45280,
+  transactionVolume: 12847,
+  conversionRate: 3.2,
+  churnRate: 2.1,
+  customerAcquisitionCost: 45,
+  lifetimeValue: 285,
+  monthlyRecurringRevenue: 892340,
+  userEngagement: 73.5,
+  retentionRate: 87.2
+}
+
+const FALLBACK_ALERTS: BusinessAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Revenue Growth Slowing',
+    description: 'Daily revenue decreased by 8.5% compared to last week',
+    source: 'Revenue Analytics',
+    timestamp: '2 hours ago',
+    impact: 'High'
+  },
+  {
+    id: '2',
+    type: 'medium',
+    title: 'Churn Rate Increase',
+    description: 'Customer churn rate increased by 0.7% this month',
+    source: 'Customer Analytics',
+    timestamp: '4 hours ago',
+    impact: 'Medium'
+  },
+  {
+    id: '3',
+    type: 'low',
+    title: 'CAC Optimization Opportunity',
+    description: 'Identified $12K monthly savings in customer acquisition costs',
+    source: 'Marketing Analytics',
+    timestamp: '6 hours ago',
+    impact: 'Low'
+  }
+]
+
 export default function BusinessOpsDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<BusinessOpsMetrics | null>(null)
@@ -33,52 +76,52 @@ export default function BusinessOpsDashboard() {
 
   useEffect(() => {
     const loadBusinessData = async () => {
-      setTimeout(() => {
-        setMetrics({
-          dailyRevenue: 124750,
-          activeUsers: 45280,
-          transactionVolume: 12847,
-          conversionRate: 3.2,
-          churnRate: 2.1,
-          customerAcquisitionCost: 45,
-          lifetimeValue: 285,
-          monthlyRecurringRevenue: 892340,
-          userEngagement: 73.5,
-          retentionRate: 87.2
-        })
-
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Revenue Growth Slowing',
-            description: 'Daily revenue decreased by 8.5% compared to last week',
-            source: 'Revenue Analytics',
-            timestamp: '2 hours ago',
-            impact: 'High'
-          },
-          {
-            id: '2',
-            type: 'medium',
-            title: 'Churn Rate Increase',
-            description: 'Customer churn rate increased by 0.7% this month',
-            source: 'Customer Analytics',
-            timestamp: '4 hours ago',
-            impact: 'Medium'
-          },
-          {
-            id: '3',
-            type: 'low',
-            title: 'CAC Optimization Opportunity',
-            description: 'Identified $12K monthly savings in customer acquisition costs',
-            source: 'Marketing Analytics',
-            timestamp: '6 hours ago',
-            impact: 'Low'
-          }
+      try {
+        const headers = { 'x-admin-role': 'business-ops' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
         ])
 
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
+
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        setMetrics({
+          ...FALLBACK_METRICS,
+          ...rawMetrics
+        })
+
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'medium',
+                title: anomaly.title || `Business ops anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected an unusual operations pattern.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                impact: anomaly.impact || String(anomaly.severity || 'Medium')
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
+          }
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load business operations intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
+      } finally {
         setIsLoading(false)
-      }, 2000)
+      }
     }
 
     loadBusinessData()

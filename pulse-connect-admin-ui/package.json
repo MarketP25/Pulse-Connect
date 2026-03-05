@@ -23,6 +23,7 @@
     "@pulsco/admin-metric-lineage": "workspace:*",
     "@pulsco/admin-shared-types": "workspace:*",
     "@pulsco/admin-ui-core": "workspace:*",
+    "@pulsco/pwa": "workspace:*",
     "eventsource": "^2.0.2",
     "next": "15.5.2",
     "react": "^18.3.1",

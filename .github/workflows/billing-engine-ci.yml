@@ -3,10 +3,10 @@ name: Billing Engine CI
 on:
   push:
     paths:
-      - 'packages/billing-engine/**'
+      - 'services/billing-engine/**'
   pull_request:
     paths:
-      - 'packages/billing-engine/**'
+      - 'services/billing-engine/**'
 
 jobs:
   test:
@@ -19,9 +19,9 @@ jobs:
           node-version: '18'
       - name: Install
         run: |
-          cd packages/billing-engine
+          cd services/billing-engine
           npm install
       - name: Run tests
         run: |
-          cd packages/billing-engine
+          cd services/billing-engine
           npm test

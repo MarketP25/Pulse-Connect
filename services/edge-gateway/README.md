@@ -74,6 +74,33 @@ Response:
 GET /edge/policy/version?subsystem=ecommerce&regionCode=US-EAST
 ```
 
+### Brand Config
+```http
+GET /edge/brand/config?sourceApp=@pulsco/pulse-portal&regionCode=US-EAST
+```
+Returns backend-managed icon policy, universal/maskable assets, universal-maskable set (`purpose: "any maskable"`), and load-balanced origin selection.
+
+### Brand Manifest
+```http
+GET /edge/brand/manifest?sourceApp=@pulsco/pulse-portal&regionCode=US-EAST
+```
+Returns manifest-ready icon payload from backend-owned branding profile.
+
+### Brand Support (Firewall-Gated)
+```http
+POST /edge/brand/support
+Content-Type: application/json
+X-CSI-Reason-Code: CSI_GATEWAY_ACCESS
+{
+  "sourceApp": "@pulsco/pulse-portal",
+  "regionCode": "US-EAST",
+  "events": [
+    { "event": "icon_loaded", "ts": 1735689600000, "path": "/home" }
+  ]
+}
+```
+Support events are persisted in Edge tables and can only be forwarded through MARP firewall endpoints.
+
 ### Health
 ```http
 GET /edge/health
@@ -99,6 +126,12 @@ KAFKA_URL=localhost:9092
 
 # Redis (rate limiting / token bucket)
 REDIS_URL=redis://localhost:6379
+
+# Planetary icon routing (optional comma-separated CDN origins)
+PULSCO_BRAND_ICON_ORIGINS=https://icons-us.pulsco.com,https://icons-eu.pulsco.com
+
+# Firewall endpoint for CSI-bound support telemetry (required for forwarding)
+PULSCO_MARP_FIREWALL_URL=https://marp-firewall.pulsco.com/marp/enforcement/enforce
 ```
 
 ### Planetary Deployment

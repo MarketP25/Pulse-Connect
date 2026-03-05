@@ -175,6 +175,51 @@ export class AdminAuthClient {
   }
 
   /**
+   * Validate current session in server/client contexts.
+   * Falls back to in-memory session when remote validation is unavailable.
+   */
+  async validateSession(): Promise<AuthSession | null> {
+    const localSession = this.getCurrentSession();
+    if (localSession) {
+      return localSession;
+    }
+
+    try {
+      const response = await fetch(`${this.config.apiBaseUrl}/auth/session`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const sessionData = await response.json();
+      if (!sessionData?.sessionId || !sessionData?.role || !sessionData?.email) {
+        return null;
+      }
+
+      const session: AuthSession = {
+        id: sessionData.sessionId,
+        adminId: sessionData.adminId || sessionData.sessionId,
+        email: sessionData.email,
+        role: sessionData.role as AdminRoleType,
+        deviceFingerprint: sessionData.deviceFingerprint || 'server',
+        issuedAt: new Date(sessionData.issuedAt || Date.now()),
+        expiresAt: new Date(sessionData.expiresAt || Date.now()),
+        isActive: sessionData.isActive !== false
+      };
+
+      this.currentSession = session;
+      return session;
+    } catch (error) {
+      console.error('Session validation failed:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get admin role by email address
    */
   private getAdminRoleByEmail(email: string): AdminRoleType | null {

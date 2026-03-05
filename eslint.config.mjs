@@ -4,6 +4,10 @@ import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import tseslint from "typescript-eslint";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default [
   js.configs.recommended,
@@ -18,7 +22,8 @@ export default [
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
-        project: "./tsconfig.json"
+        project: "./tsconfig.eslint.json",
+        tsconfigRootDir: __dirname
       },
       globals: globals.browser
     },

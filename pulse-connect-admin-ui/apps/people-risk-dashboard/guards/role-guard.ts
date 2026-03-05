@@ -1,8 +1,8 @@
-// People Risk Dashboard Role Guard
+﻿// People Risk Dashboard Role Guard
 // Ensures only People Risk role can access the People Risk dashboard
 
 import { AdminRoleType } from '@pulsco/admin-shared-types'
-import { MARPClient } from '@pulsco/marp-client'
+import { MARPClient } from '@pulsco/admin-marp-client'
 
 export interface RoleGuardConfig {
   requiredRole: AdminRoleType
@@ -71,7 +71,7 @@ export class PeopleRiskRoleGuard {
   }
 
   private async validateDeviceFingerprint(fingerprint: string): Promise<boolean> {
-    return fingerprint && fingerprint.length > 10
+    return Boolean(fingerprint) && fingerprint.length > 10
   }
 
   private async logAccessAttempt(session: UserSession, success: boolean, error?: any): Promise<void> {
@@ -98,3 +98,6 @@ export class PeopleRiskRoleGuard {
 }
 
 export default PeopleRiskRoleGuard
+
+
+

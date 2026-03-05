@@ -58,6 +58,12 @@ export interface MARPClientConfig {
   authToken: string;
 }
 
+export interface GovernanceApproval {
+  active: boolean;
+  approvalId?: string;
+  expiresAt?: Date;
+}
+
 export class MARPClient {
   private config: MARPClientConfig;
 
@@ -114,6 +120,77 @@ export class MARPClient {
         auditRequired: true,
         escalationRequired: false
       };
+    }
+  }
+
+  /**
+   * Validate PC365 attestation token.
+   * Fails closed in production and permissive in local development fallback.
+   */
+  async validatePC365Token(pc365Token: string): Promise<boolean> {
+    if (!pc365Token || pc365Token.trim().length < 8) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${this.config.apiBaseUrl}/marp/pc365/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.authToken}`
+        },
+        body: JSON.stringify({ token: pc365Token })
+      });
+
+      if (!response.ok) {
+        throw new Error(`PC365 validation API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return Boolean(result.valid);
+    } catch (error) {
+      console.error('PC365 validation failed:', error);
+      return process.env.NODE_ENV !== 'production' && pc365Token.length >= 12;
+    }
+  }
+
+  /**
+   * Resolve governance approval for an operation scoped to a dashboard/resource.
+   */
+  async getGovernanceApproval(input: {
+    userId: string;
+    resource: string;
+    action: string;
+  }): Promise<GovernanceApproval> {
+    try {
+      const response = await fetch(`${this.config.apiBaseUrl}/marp/governance/approval`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.authToken}`
+        },
+        body: JSON.stringify(input)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Governance approval API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        active: Boolean(data.active),
+        approvalId: data.approvalId,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined
+      };
+    } catch (error) {
+      console.error('Governance approval lookup failed:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        return {
+          active: true,
+          expiresAt: new Date(Date.now() + 15 * 60 * 1000)
+        };
+      }
+      return { active: false };
     }
   }
 
@@ -233,7 +310,7 @@ export class MARPClient {
   /**
    * Log audit event
    */
-  async logAuditEvent(event: Partial<AuditEvent>): Promise<void> {
+  async logAuditEvent(event: Partial<AuditEvent> | Record<string, unknown>): Promise<void> {
     try {
       await fetch(`${this.config.apiBaseUrl}/marp/audit/events`, {
         method: 'POST',

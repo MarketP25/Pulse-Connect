@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ExecuteRequestDto } from '../dto/execute-request.dto';
-import { HashChain } from '../../../shared/lib/src/hashChain';
+import { HashChain } from '@pulsco/shared-lib';
 
 @Injectable()
 export class SignatureVerifierService {
   private readonly logger = new Logger(SignatureVerifierService.name);
-  private readonly hashChain = new HashChain();
 
   /**
    * Verify MARP signature on incoming request
@@ -61,7 +60,7 @@ export class SignatureVerifierService {
     try {
       // In production: Use crypto.verify() with MARP public key
       // For now: Simple hash comparison (placeholder)
-      const expectedSignature = this.hashChain.hash(canonicalData);
+      const expectedSignature = HashChain.hash(canonicalData);
 
       // Compare signatures (in production would use proper crypto)
       return signature === expectedSignature;

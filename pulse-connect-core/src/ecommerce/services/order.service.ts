@@ -1,6 +1,8 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
 import { FeeService } from "./fee.service";
+import { emitEcommerceEvent } from "../../csi/instrumentation";
+import { calculateBillingActivityQuote } from "../../billing/billing-engine.client";
 
 export interface Order {
   id: string;
@@ -177,7 +179,23 @@ export class OrderService {
       }
 
       await client.query("COMMIT");
-      return this.mapOrderRow(orderResult.rows[0]);
+      const createdOrder = this.mapOrderRow(orderResult.rows[0]);
+      emitEcommerceEvent(
+        "order.created",
+        String(request.shipping_address?.country || "GLOBAL"),
+        {
+          orderId: createdOrder.id,
+          totalUsd: createdOrder.total_usd,
+          itemCount: request.items.length,
+          traceId: request.trace_id,
+        },
+        {
+          riskScore: 12,
+          performanceScore: 84,
+        },
+      );
+
+      return createdOrder;
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -232,12 +250,26 @@ export class OrderService {
 
       const orderData = this.mapOrderRow(order.rows[0]);
 
-      // Get current fee policy
-      const policy = await this.feeService.getCurrentPolicy();
+      const billingQuote = await calculateBillingActivityQuote({
+        engine: "ecommerce",
+        amount: orderData.total_usd,
+        eventId: request.trace_id,
+        details: {
+          orderId: orderData.id,
+        },
+        region: String(orderData.shipping_address?.country || "global"),
+      });
+      if (!billingQuote) {
+        throw new Error("billing_engine_quote_failed");
+      }
 
-      // Calculate transaction fee
-      const transactionFee = orderData.total_usd * (policy.transaction_fee_percent / 100);
+      // Billing-engine defines all non-base deductions (fees + taxes).
+      const transactionFee = Math.max(
+        0,
+        Math.round((billingQuote.total - billingQuote.base) * 100) / 100
+      );
       const sellerNet = orderData.total_usd - transactionFee;
+      const policyVersion = billingQuote.policyVersion || "billing-engine-unversioned";
 
       // Create transaction record
       const transactionId = uuidv4();
@@ -255,7 +287,7 @@ export class OrderService {
           transactionFee,
           sellerNet,
           orderData.fx_rate,
-          policy.version,
+          policyVersion,
           request.trace_id,
           "sale",
           "completed",
@@ -270,7 +302,7 @@ export class OrderService {
         orderData.total_usd,
         transactionFee,
         sellerNet,
-        policy.version,
+        policyVersion,
         request.trace_id
       );
 
@@ -286,7 +318,24 @@ export class OrderService {
       );
 
       await client.query("COMMIT");
-      return this.mapOrderRow(updatedOrder.rows[0]);
+      const paidOrder = this.mapOrderRow(updatedOrder.rows[0]);
+      emitEcommerceEvent(
+        "order.paid",
+        paidOrder.shipping_address?.country || "GLOBAL",
+        {
+          orderId: paidOrder.id,
+          transactionFeeUsd: transactionFee,
+          grossUsd: orderData.total_usd,
+          paymentMethodId: request.payment_method_id,
+          traceId: request.trace_id,
+        },
+        {
+          riskScore: 18,
+          performanceScore: 88,
+        },
+      );
+
+      return paidOrder;
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -345,7 +394,22 @@ export class OrderService {
       );
 
       await client.query("COMMIT");
-      return this.mapOrderRow(result.rows[0]);
+      const cancelledOrder = this.mapOrderRow(result.rows[0]);
+      emitEcommerceEvent(
+        "order.cancelled",
+        cancelledOrder.shipping_address?.country || "GLOBAL",
+        {
+          orderId: cancelledOrder.id,
+          buyerEmail,
+          traceId: cancelledOrder.trace_id,
+        },
+        {
+          riskScore: 35,
+          performanceScore: 60,
+        },
+      );
+
+      return cancelledOrder;
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -373,7 +437,22 @@ export class OrderService {
       throw new Error("Order not found");
     }
 
-    return this.mapOrderRow(result.rows[0]);
+    const updatedOrder = this.mapOrderRow(result.rows[0]);
+    emitEcommerceEvent(
+      "order.status.updated",
+      updatedOrder.shipping_address?.country || "GLOBAL",
+      {
+        orderId: updatedOrder.id,
+        status,
+        traceId,
+      },
+      {
+        riskScore: status === "refunded" || status === "cancelled" ? 42 : 20,
+        performanceScore: status === "delivered" ? 94 : 75,
+      },
+    );
+
+    return updatedOrder;
   }
 
   private async createLedgerEntriesForTransaction(

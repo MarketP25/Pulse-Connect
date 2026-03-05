@@ -1,0 +1,44 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "incremental": false,
+    "composite": false,
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "*.ts",
+    "*.tsx",
+    "*.mts",
+    "*.cts",
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "services/**/*.ts",
+    "services/**/*.tsx",
+    "pulse-connect-ui/**/*.ts",
+    "pulse-connect-ui/**/*.tsx",
+    "pulse-connect-admin-ui/**/*.ts",
+    "pulse-connect-admin-ui/**/*.tsx",
+    "pulse-connect-core/**/*.ts",
+    "pulse-connect-core/**/*.tsx",
+    "pap_v1/**/*.ts",
+    "pap_v1/**/*.tsx",
+    "shared/**/*.ts",
+    "shared/**/*.tsx",
+    "scripts/**/*.ts",
+    "scripts/**/*.tsx",
+    "scripts/**/*.mts",
+    "scripts/**/*.cts"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/out/**",
+    "**/coverage/**",
+    "**/build/**"
+  ]
+}

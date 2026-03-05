@@ -17,52 +17,97 @@ interface CommercialMetrics {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
 
+const FALLBACK_METRICS: CommercialMetrics = {
+  marketPenetration: 12.5,
+  userAcquisition: 2847,
+  conversionRate: 3.2,
+  customerLifetimeValue: 1250,
+  churnRate: 2.1,
+  regionalGrowth: [
+    { region: 'North America', growth: 15.2 },
+    { region: 'Europe', growth: 8.7 },
+    { region: 'Asia Pacific', growth: 22.1 },
+    { region: 'Latin America', growth: 12.8 }
+  ],
+  channelPerformance: [
+    { channel: 'Organic Search', conversions: 1250 },
+    { channel: 'Paid Ads', conversions: 890 },
+    { channel: 'Social Media', conversions: 567 },
+    { channel: 'Email', conversions: 340 }
+  ],
+  campaignROI: [
+    { campaign: 'Q4 Launch', roi: 3.2 },
+    { campaign: 'Holiday Promo', roi: 2.8 },
+    { campaign: 'Partnership Drive', roi: 4.1 },
+    { campaign: 'Retention Campaign', roi: 1.9 }
+  ]
+}
+
+const FALLBACK_ALERTS = [
+  {
+    id: '1',
+    type: 'warning',
+    title: 'Low Conversion Rate',
+    description: 'Conversion rate below target threshold',
+    severity: 'medium'
+  }
+]
+
 export default function CommercialDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<CommercialMetrics | null>(null)
   const [alerts, setAlerts] = useState<any[]>([])
 
   useEffect(() => {
-    // Simulate loading metrics from CSI
     const loadMetrics = async () => {
-      // In real implementation, this would call CSI client
-      setTimeout(() => {
-        setMetrics({
-          marketPenetration: 12.5,
-          userAcquisition: 2847,
-          conversionRate: 3.2,
-          customerLifetimeValue: 1250,
-          churnRate: 2.1,
-          regionalGrowth: [
-            { region: 'North America', growth: 15.2 },
-            { region: 'Europe', growth: 8.7 },
-            { region: 'Asia Pacific', growth: 22.1 },
-            { region: 'Latin America', growth: 12.8 }
-          ],
-          channelPerformance: [
-            { channel: 'Organic Search', conversions: 1250 },
-            { channel: 'Paid Ads', conversions: 890 },
-            { channel: 'Social Media', conversions: 567 },
-            { channel: 'Email', conversions: 340 }
-          ],
-          campaignROI: [
-            { campaign: 'Q4 Launch', roi: 3.2 },
-            { campaign: 'Holiday Promo', roi: 2.8 },
-            { campaign: 'Partnership Drive', roi: 4.1 },
-            { campaign: 'Retention Campaign', roi: 1.9 }
-          ]
-        })
-        setAlerts([
-          {
-            id: '1',
-            type: 'warning',
-            title: 'Low Conversion Rate',
-            description: 'Conversion rate below target threshold',
-            severity: 'medium'
-          }
+      try {
+        const headers = { 'x-admin-role': 'commercial-outreach' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
         ])
+
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
+
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+
+        setMetrics({
+          ...FALLBACK_METRICS,
+          ...rawMetrics,
+          regionalGrowth: Array.isArray(rawMetrics.regionalGrowth) ? rawMetrics.regionalGrowth : FALLBACK_METRICS.regionalGrowth,
+          channelPerformance: Array.isArray(rawMetrics.channelPerformance) ? rawMetrics.channelPerformance : FALLBACK_METRICS.channelPerformance,
+          campaignROI: Array.isArray(rawMetrics.campaignROI) ? rawMetrics.campaignROI : FALLBACK_METRICS.campaignROI
+        })
+
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity === 'critical' ? 'error' : anomaly.severity === 'high' ? 'warning' : 'warning',
+                title: anomaly.title || `Commercial anomaly in ${anomaly.metric || 'metric'}`,
+                description: anomaly.description || 'CSI reported an unexpected commercial signal.',
+                severity: anomaly.severity || 'medium'
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
+          }
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load commercial intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
+      } finally {
         setIsLoading(false)
-      }, 1500)
+      }
     }
 
     loadMetrics()

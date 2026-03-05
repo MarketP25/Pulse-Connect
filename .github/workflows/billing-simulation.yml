@@ -35,7 +35,7 @@ jobs:
 
       - name: Build billing package
         run: |
-          cd packages/billing-engine
+          cd services/billing-engine
           pnpm run build
 
       - name: Wait for Postgres
@@ -46,13 +46,13 @@ jobs:
 
       - name: Run migrations
         run: |
-          cd packages/billing-engine
+          cd services/billing-engine
           export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:5432/billing_test"
           pnpm run migrate
 
       - name: Run simulation
         run: |
-          cd packages/billing-engine
+          cd services/billing-engine
           export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:5432/billing_test"
           export SIMULATE_FAST=1
           pnpm run simulate
@@ -61,10 +61,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: billing-simulation-outputs
-          path: packages/billing-engine/outputs/**
+          path: services/billing-engine/outputs/**
 
       - name: Upload ledger artifacts
         uses: actions/upload-artifact@v4
         with:
           name: billing-simulation-ledger
-          path: packages/billing-engine/outputs/**
+          path: services/billing-engine/outputs/**

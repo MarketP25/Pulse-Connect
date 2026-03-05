@@ -4,7 +4,8 @@
     "outDir": "dist",
     "rootDir": ".",
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["index.ts"],
   "exclude": ["node_modules", "dist"]

@@ -453,6 +453,23 @@ export class DashboardRouter {
         }
       },
 
+      // DPO routes
+      {
+        path: '/dpo',
+        component: 'dpo-dashboard',
+        roles: ['dpo'],
+        permissions: ['privacy:read', 'audit:read', 'compliance:read'],
+        guards: [],
+        metadata: {
+          title: 'Data Protection Officer Dashboard',
+          description: 'Data privacy, compliance, and user rights management',
+          category: 'governance',
+          priority: 38,
+          requiresAuth: true,
+          cacheable: false
+        }
+      },
+
       // Commercial routes
       {
         path: '/commercial',

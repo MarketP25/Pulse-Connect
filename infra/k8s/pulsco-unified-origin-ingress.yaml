@@ -1,0 +1,165 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pulsco-unified-origin
+  namespace: planetary-pulse
+  annotations:
+    kubernetes.io/ingress.class: "planetary-gateway"
+    cert-manager.io/cluster-issuer: "planetary-issuer"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  tls:
+    - hosts:
+        - pulsco.com
+        - www.pulsco.com
+      secretName: pulsco-unified-origin-tls
+  rules:
+    - host: pulsco.com
+      http:
+        paths:
+          # Sensitive routes: governed only
+          - path: /billing
+            pathType: Prefix
+            backend:
+              service:
+                name: edge-gateway-service
+                port:
+                  number: 80
+          - path: /wallet
+            pathType: Prefix
+            backend:
+              service:
+                name: edge-gateway-service
+                port:
+                  number: 80
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: edge-gateway-service
+                port:
+                  number: 80
+          - path: /edge
+            pathType: Prefix
+            backend:
+              service:
+                name: edge-gateway-service
+                port:
+                  number: 80
+          - path: /marp
+            pathType: Prefix
+            backend:
+              service:
+                name: marp-firewall-gateway-service
+                port:
+                  number: 80
+
+          # Admin route tree
+          - path: /admin/business-ops
+            pathType: Prefix
+            backend:
+              service:
+                name: business-ops-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/commercial
+            pathType: Prefix
+            backend:
+              service:
+                name: commercial-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/coo
+            pathType: Prefix
+            backend:
+              service:
+                name: coo-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/customer-experience
+            pathType: Prefix
+            backend:
+              service:
+                name: customer-experience-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/governance-registrar
+            pathType: Prefix
+            backend:
+              service:
+                name: governance-registrar-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/legal-finance
+            pathType: Prefix
+            backend:
+              service:
+                name: legal-finance-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/people-risk
+            pathType: Prefix
+            backend:
+              service:
+                name: people-risk-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/procurement
+            pathType: Prefix
+            backend:
+              service:
+                name: procurement-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/superadmin
+            pathType: Prefix
+            backend:
+              service:
+                name: superadmin-dashboard-service
+                port:
+                  number: 80
+          - path: /admin/tech-security
+            pathType: Prefix
+            backend:
+              service:
+                name: tech-security-dashboard-service
+                port:
+                  number: 80
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: pulse-connect-admin-ui-service
+                port:
+                  number: 80
+
+          # Public apps
+          - path: /connect
+            pathType: Prefix
+            backend:
+              service:
+                name: pulse-connect-ui-service
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pulse-portal-service
+                port:
+                  number: 80
+
+    # Redirect WWW to canonical root origin
+    - host: www.pulsco.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pulse-portal-service
+                port:
+                  number: 80

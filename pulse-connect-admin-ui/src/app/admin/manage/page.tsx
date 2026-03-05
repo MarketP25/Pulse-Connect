@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PermissionErrorFallback } from "@/components/errors/PermissionErrorFallback";
+import CSIDecisionFlowPanel from "../../../components/csi/CSIDecisionFlowPanel";
 
 interface AdminCode {
   email: string;
@@ -179,6 +180,8 @@ export default function AdminPage() {
           </table>
         </div>
       </div>
+
+      <CSIDecisionFlowPanel />
     </div>
   );
 }

@@ -24,6 +24,47 @@ interface GovernanceAlert {
   priority: string
 }
 
+const FALLBACK_METRICS: GovernanceMetrics = {
+  activePolicies: 1247,
+  councilMembers: 89,
+  marpSignatures: 45231,
+  governanceAlerts: 3,
+  policyCompliance: 98.7,
+  registrarActivity: 156,
+  crossDomainCorrelations: 23,
+  decisionEngineStatus: 'Active'
+}
+
+const FALLBACK_ALERTS: GovernanceAlert[] = [
+  {
+    id: '1',
+    type: 'high',
+    title: 'Policy Review Required',
+    description: 'Annual policy review due in 7 days for 12 active policies',
+    source: 'Policy Management',
+    timestamp: '2 hours ago',
+    priority: 'High'
+  },
+  {
+    id: '2',
+    type: 'medium',
+    title: 'Council Member Onboarding',
+    description: '3 new council members require MARP signature verification',
+    source: 'Council Registrar',
+    timestamp: '1 day ago',
+    priority: 'Medium'
+  },
+  {
+    id: '3',
+    type: 'low',
+    title: 'Cross-Domain Correlation Detected',
+    description: 'New correlation pattern identified between governance and operations',
+    source: 'CSI Intelligence',
+    timestamp: '3 days ago',
+    priority: 'Low'
+  }
+]
+
 export default function GovernanceRegistrarDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState<GovernanceMetrics | null>(null)
@@ -31,52 +72,53 @@ export default function GovernanceRegistrarDashboard() {
   const [activeView, setActiveView] = useState('overview')
 
   useEffect(() => {
-    // Simulate loading governance metrics from CSI
     const loadGovernanceData = async () => {
-      setTimeout(() => {
-        setMetrics({
-          activePolicies: 1247,
-          councilMembers: 89,
-          marpSignatures: 45231,
-          governanceAlerts: 3,
-          policyCompliance: 98.7,
-          registrarActivity: 156,
-          crossDomainCorrelations: 23,
-          decisionEngineStatus: 'Active'
-        })
-
-        setAlerts([
-          {
-            id: '1',
-            type: 'high',
-            title: 'Policy Review Required',
-            description: 'Annual policy review due in 7 days for 12 active policies',
-            source: 'Policy Management',
-            timestamp: '2 hours ago',
-            priority: 'High'
-          },
-          {
-            id: '2',
-            type: 'medium',
-            title: 'Council Member Onboarding',
-            description: '3 new council members require MARP signature verification',
-            source: 'Council Registrar',
-            timestamp: '1 day ago',
-            priority: 'Medium'
-          },
-          {
-            id: '3',
-            type: 'low',
-            title: 'Cross-Domain Correlation Detected',
-            description: 'New correlation pattern identified between governance and operations',
-            source: 'CSI Intelligence',
-            timestamp: '3 days ago',
-            priority: 'Low'
-          }
+      try {
+        const headers = { 'x-admin-role': 'governance-registrar' }
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
+          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
         ])
 
+        if (!metricsRes.ok) {
+          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+        }
+
+        const metricsPayload = await metricsRes.json()
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        setMetrics({
+          ...FALLBACK_METRICS,
+          ...rawMetrics
+        })
+
+        if (anomaliesRes.ok) {
+          const anomaliesPayload = await anomaliesRes.json()
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          if (Array.isArray(anomalies) && anomalies.length > 0) {
+            setAlerts(
+              anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
+                id: String(index + 1),
+                type: anomaly.severity || 'low',
+                title: anomaly.title || `Governance anomaly in ${anomaly.metric || 'signal'}`,
+                description: anomaly.description || 'CSI detected an unusual governance pattern.',
+                source: anomaly.source || 'CSI Intelligence',
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                priority: anomaly.severity ? String(anomaly.severity).toUpperCase() : 'LOW'
+              }))
+            )
+          } else {
+            setAlerts(FALLBACK_ALERTS)
+          }
+        } else {
+          setAlerts(FALLBACK_ALERTS)
+        }
+      } catch (error) {
+        console.error('Failed to load governance intelligence', error)
+        setMetrics(FALLBACK_METRICS)
+        setAlerts(FALLBACK_ALERTS)
+      } finally {
         setIsLoading(false)
-      }, 2000)
+      }
     }
 
     loadGovernanceData()

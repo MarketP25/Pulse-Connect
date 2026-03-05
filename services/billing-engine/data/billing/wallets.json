@@ -1,0 +1,23 @@
+[
+  {
+    "walletId": "wallet-test",
+    "accountId": "acct-test",
+    "currency": "USD",
+    "balance": 4800,
+    "status": "active"
+  },
+  {
+    "walletId": "w-activity",
+    "accountId": "acct-act",
+    "currency": "USD",
+    "balance": 79.2,
+    "status": "active"
+  },
+  {
+    "walletId": "wallet-it-1",
+    "accountId": "acct-it-1",
+    "currency": "USD",
+    "balance": 79.2,
+    "status": "active"
+  }
+]
