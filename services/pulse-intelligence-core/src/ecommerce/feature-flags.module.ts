@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { FeatureFlagsController } from './feature-flags.controller';
+import { Module } from "@nestjs/common";
+import { FeatureFlagsController } from "./feature-flags.controller";
 
 @Module({
   controllers: [FeatureFlagsController],

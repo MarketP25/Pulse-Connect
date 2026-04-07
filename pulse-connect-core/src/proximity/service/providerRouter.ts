@@ -1,6 +1,6 @@
-import { GeocodeProvider, GeocodeResult } from './geocodeProvider';
-import { GoogleGeocoder } from './googleGeocoder';
-import { OSMGeocoder } from './osmGeocoder';
+import { GeocodeProvider, GeocodeResult } from "./geocodeProvider";
+import { GoogleGeocoder } from "./googleGeocoder";
+import { OSMGeocoder } from "./osmGeocoder";
 
 export class ProviderRouter implements GeocodeProvider {
   private primary: GoogleGeocoder;
@@ -16,11 +16,11 @@ export class ProviderRouter implements GeocodeProvider {
   async forwardGeocode(params: { address: string; countryCode?: string }): Promise<GeocodeResult> {
     try {
       const result = await this.primary.forwardGeocode(params);
-      this.updateHealthScore('google', true);
+      this.updateHealthScore("google", true);
       return result;
     } catch (error) {
-      console.warn('Google geocoding failed, falling back to OSM:', error);
-      this.updateHealthScore('google', false);
+      console.warn("Google geocoding failed, falling back to OSM:", error);
+      this.updateHealthScore("google", false);
       return await this.fallback.forwardGeocode(params);
     }
   }
@@ -28,11 +28,11 @@ export class ProviderRouter implements GeocodeProvider {
   async reverseGeocode(params: { lat: number; lng: number }): Promise<GeocodeResult> {
     try {
       const result = await this.primary.reverseGeocode(params);
-      this.updateHealthScore('google', true);
+      this.updateHealthScore("google", true);
       return result;
     } catch (error) {
-      console.warn('Google reverse geocoding failed, falling back to OSM:', error);
-      this.updateHealthScore('google', false);
+      console.warn("Google reverse geocoding failed, falling back to OSM:", error);
+      this.updateHealthScore("google", false);
       return await this.fallback.reverseGeocode(params);
     }
   }

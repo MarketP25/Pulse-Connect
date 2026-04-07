@@ -6,7 +6,7 @@ export interface GeocodeResult {
   region?: string;
   locality?: string;
   postalCode?: string;
-  precision: 'exact' | 'approximate' | 'rooftop' | 'geometric_center';
+  precision: "exact" | "approximate" | "rooftop" | "geometric_center";
 }
 
 export interface GeocodeProvider {

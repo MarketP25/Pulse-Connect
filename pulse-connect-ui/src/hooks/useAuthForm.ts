@@ -30,7 +30,7 @@ export function useAuthForm() {
         email,
         password,
         csrfToken,
-        deviceFingerprint,
+        deviceFingerprint
       });
       router.push("/dashboard");
     } catch (loginError) {
@@ -47,6 +47,6 @@ export function useAuthForm() {
     loading,
     setEmail,
     setPassword,
-    handleLogin,
+    handleLogin
   };
 }

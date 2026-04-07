@@ -1,10 +1,13 @@
 import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
 import Stripe from "stripe";
-import { calculateBillingActivityQuote, chargeBillingActivity } from "../../billing/billing-engine.client";
+import {
+  calculateBillingActivityQuote,
+  chargeBillingActivity
+} from "../../billing/billing-engine.client";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-12-18.acacia", // Ensure this matches your Stripe API version
+  apiVersion: "2024-12-18.acacia" // Ensure this matches your Stripe API version
 });
 
 export interface CommunicationFeePolicy {
@@ -130,7 +133,6 @@ export class WalletIntegrationService {
     regionCode: string = "US",
     initialMinutes: number = 0
   ): Promise<WalletBalance> {
-
     await this.pool.query(
       `
       INSERT INTO communication_wallet_balances (
@@ -180,9 +182,9 @@ export class WalletIntegrationService {
       eventId: `${userId}-${callType}-estimate-${Date.now()}`,
       details: {
         mode: "call_estimate",
-        serviceType: callType,
+        serviceType: callType
       },
-      region: regionCode,
+      region: regionCode
     });
     if (!quote) {
       throw new Error("billing_engine_quote_failed");
@@ -221,9 +223,9 @@ export class WalletIntegrationService {
       details: {
         mode: "rate_preview",
         serviceType: callType,
-        callId,
+        callId
       },
-      region: regionCode,
+      region: regionCode
     });
     if (!unitQuote) {
       throw new Error("billing_engine_quote_failed");
@@ -284,10 +286,10 @@ export class WalletIntegrationService {
       details: {
         mode: "call_finalize",
         serviceType: billing.service_type,
-        callId: billing.call_id,
+        callId: billing.call_id
       },
       region: regionCode,
-      idempotencyKey: traceId,
+      idempotencyKey: traceId
     });
     if (!billingCharge) {
       throw new Error("billing_engine_charge_failed");
@@ -363,9 +365,9 @@ export class WalletIntegrationService {
       eventId: `${request.trace_id}-topup`,
       details: {
         mode: "top_up",
-        minutesToAdd: request.minutes_to_add,
+        minutesToAdd: request.minutes_to_add
       },
-      region: regionCode,
+      region: regionCode
     });
     if (!quote) {
       throw new Error("billing_engine_quote_failed");
@@ -390,10 +392,10 @@ export class WalletIntegrationService {
       eventId: `${request.trace_id}-topup-charge`,
       details: {
         mode: "top_up",
-        minutesToAdd: request.minutes_to_add,
+        minutesToAdd: request.minutes_to_add
       },
       region: regionCode,
-      idempotencyKey: request.trace_id,
+      idempotencyKey: request.trace_id
     });
     if (!billingCharge) {
       throw new Error("billing_engine_charge_failed");
@@ -475,9 +477,9 @@ export class WalletIntegrationService {
       eventId: `${userId}-auto-topup-${Date.now()}`,
       details: {
         mode: "auto_top_up",
-        minutesToAdd: defaultTopUpMinutes,
+        minutesToAdd: defaultTopUpMinutes
       },
-      region: balance.region_code,
+      region: balance.region_code
     });
     if (!quote) {
       throw new Error("billing_engine_quote_failed");
@@ -620,10 +622,10 @@ export class WalletIntegrationService {
           payment_method: paymentMethodId,
           confirm: true,
           metadata: { userId, traceId },
-          return_url: "https://pulsco.com/payment/callback", // Required for certain payment methods
+          return_url: "https://pulsco.global/payment/callback" // Required for certain payment methods
         },
         {
-          idempotencyKey: traceId, // Enforce idempotency at the gateway level
+          idempotencyKey: traceId // Enforce idempotency at the gateway level
         }
       );
 

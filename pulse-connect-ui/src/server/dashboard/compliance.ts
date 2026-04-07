@@ -1,6 +1,37 @@
 ﻿import { ComplianceProfile, ConsentSettings } from "@/types/dashboard";
 
-const GDPR_COUNTRIES = new Set(["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "IS", "LI", "NO"]);
+const GDPR_COUNTRIES = new Set([
+  "AT",
+  "BE",
+  "BG",
+  "HR",
+  "CY",
+  "CZ",
+  "DK",
+  "EE",
+  "FI",
+  "FR",
+  "DE",
+  "GR",
+  "HU",
+  "IE",
+  "IT",
+  "LV",
+  "LT",
+  "LU",
+  "MT",
+  "NL",
+  "PL",
+  "PT",
+  "RO",
+  "SK",
+  "SI",
+  "ES",
+  "SE",
+  "IS",
+  "LI",
+  "NO"
+]);
 
 export function resolveComplianceProfile(country: string): ComplianceProfile {
   const code = country.trim().toUpperCase();
@@ -20,7 +51,7 @@ export function defaultConsents(): ConsentSettings {
     dataProcessing: true,
     marketing: false,
     locationServices: true,
-    profiling: false,
+    profiling: false
   };
 }
 

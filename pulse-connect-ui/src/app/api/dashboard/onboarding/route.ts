@@ -6,18 +6,25 @@ export async function POST(req: NextRequest) {
   try {
     const userId = getDashboardUserId(req);
     const body = await parseJsonBody<{
-      role?: "individual" | "business" | "creator" | "partner" | "developer" | "enterprise" | "government";
-      preferredLanguage?: "en" | "sw" | "fr" | "es";
+      role?: "admin" | "individual" | "business" | "investor" | "partner" | "organisation";
+      preferredLanguage?: string;
       referralCode?: string;
     }>(req);
 
     const result = await updateOnboarding(userId, {
       role: body.role,
       preferredLanguage: body.preferredLanguage,
-      referralCode: body.referralCode,
+      referralCode: body.referralCode
     });
 
-    return noStoreJson(result);
+    const response = noStoreJson(result);
+    if (body.preferredLanguage) {
+      response.cookies.set("preferred_language", body.preferredLanguage, {
+        path: "/",
+        sameSite: "lax"
+      });
+    }
+    return response;
   } catch (error) {
     return mapDashboardError(error);
   }

@@ -1,21 +1,29 @@
-import { IsString, IsObject, IsOptional, IsNumber, IsBoolean, IsEnum, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsObject,
+  IsOptional,
+  IsNumber,
+  IsBoolean,
+  IsEnum,
+  IsUUID
+} from "class-validator";
 
 /**
  * Enum for firewall rule types
  */
 export enum FirewallRuleType {
-  ALLOW = 'allow',
-  BLOCK = 'block',
-  QUARANTINE = 'quarantine',
-  ESCALATE = 'escalate',
+  ALLOW = "allow",
+  BLOCK = "block",
+  QUARANTINE = "quarantine",
+  ESCALATE = "escalate"
 }
 
 /**
  * Enum for firewall directions
  */
 export enum FirewallDirection {
-  INBOUND = 'inbound',
-  OUTBOUND = 'outbound',
+  INBOUND = "inbound",
+  OUTBOUND = "outbound"
 }
 
 /**

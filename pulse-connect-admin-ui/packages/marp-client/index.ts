@@ -1,7 +1,7 @@
 // MARP Client for Pulsco Admin Governance System
 // Handles policy enforcement, cryptographic signing, and audit trails
 
-import { SignedMetricBundle, AdminRoleType, AuditEvent } from '@pulsco/admin-shared-types';
+import { SignedMetricBundle, AdminRoleType, AuditEvent } from "@pulsco/admin-shared-types";
 
 export interface MARPPolicy {
   id: string;
@@ -17,7 +17,7 @@ export interface MARPPolicy {
 export interface PolicyRule {
   id: string;
   condition: string;
-  action: 'allow' | 'deny' | 'audit' | 'escalate';
+  action: "allow" | "deny" | "audit" | "escalate";
   parameters?: Record<string, any>;
 }
 
@@ -27,15 +27,15 @@ export interface MARPFirewallRule {
   description: string;
   source: string;
   destination: string;
-  action: 'allow' | 'deny' | 'audit';
+  action: "allow" | "deny" | "audit";
   conditions: FirewallCondition[];
   active: boolean;
   priority: number;
 }
 
 export interface FirewallCondition {
-  type: 'ip' | 'role' | 'metric' | 'time' | 'signature';
-  operator: 'eq' | 'neq' | 'in' | 'nin' | 'gt' | 'lt' | 'contains';
+  type: "ip" | "role" | "metric" | "time" | "signature";
+  operator: "eq" | "neq" | "in" | "nin" | "gt" | "lt" | "contains";
   value: any;
 }
 
@@ -46,7 +46,7 @@ export interface MARPAuditLog {
   adminRole: AdminRoleType;
   action: string;
   resource: string;
-  result: 'success' | 'failure' | 'blocked';
+  result: "success" | "failure" | "blocked";
   reason?: string;
   metadata: Record<string, any>;
   hashChain: string;
@@ -87,10 +87,10 @@ export class MARPClient {
   }> {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/marp/policies/validate`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.authToken}`
         },
         body: JSON.stringify({
           adminRole,
@@ -112,11 +112,11 @@ export class MARPClient {
         escalationRequired: result.escalationRequired
       };
     } catch (error) {
-      console.error('Policy validation failed:', error);
+      console.error("Policy validation failed:", error);
       // Default to deny on error
       return {
         allowed: false,
-        reason: 'Policy validation service unavailable',
+        reason: "Policy validation service unavailable",
         auditRequired: true,
         escalationRequired: false
       };
@@ -134,10 +134,10 @@ export class MARPClient {
 
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/marp/pc365/validate`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.authToken}`
         },
         body: JSON.stringify({ token: pc365Token })
       });
@@ -149,8 +149,8 @@ export class MARPClient {
       const result = await response.json();
       return Boolean(result.valid);
     } catch (error) {
-      console.error('PC365 validation failed:', error);
-      return process.env.NODE_ENV !== 'production' && pc365Token.length >= 12;
+      console.error("PC365 validation failed:", error);
+      return process.env.NODE_ENV !== "production" && pc365Token.length >= 12;
     }
   }
 
@@ -164,10 +164,10 @@ export class MARPClient {
   }): Promise<GovernanceApproval> {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/marp/governance/approval`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.authToken}`
         },
         body: JSON.stringify(input)
       });
@@ -183,8 +183,8 @@ export class MARPClient {
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined
       };
     } catch (error) {
-      console.error('Governance approval lookup failed:', error);
-      if (process.env.NODE_ENV !== 'production') {
+      console.error("Governance approval lookup failed:", error);
+      if (process.env.NODE_ENV !== "production") {
         return {
           active: true,
           expiresAt: new Date(Date.now() + 15 * 60 * 1000)
@@ -203,10 +203,10 @@ export class MARPClient {
   ): Promise<SignedMetricBundle> {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/marp/bundles/sign`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.authToken}`
         },
         body: JSON.stringify({
           metrics,
@@ -231,7 +231,7 @@ export class MARPClient {
         hashChain: signedBundle.hashChain
       };
     } catch (error) {
-      console.error('Bundle signing failed:', error);
+      console.error("Bundle signing failed:", error);
       throw error;
     }
   }
@@ -248,7 +248,7 @@ export class MARPClient {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/marp/bundles/${bundleId}/verify`, {
         headers: {
-          'Authorization': `Bearer ${this.config.authToken}`
+          Authorization: `Bearer ${this.config.authToken}`
         }
       });
 
@@ -264,12 +264,12 @@ export class MARPClient {
         reason: result.reason
       };
     } catch (error) {
-      console.error('Bundle verification failed:', error);
+      console.error("Bundle verification failed:", error);
       return {
         valid: false,
-        signer: 'unknown',
+        signer: "unknown",
         timestamp: new Date(),
-        reason: 'Verification service unavailable'
+        reason: "Verification service unavailable"
       };
     }
   }
@@ -281,7 +281,7 @@ export class MARPClient {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/marp/firewall/rules`, {
         headers: {
-          'Authorization': `Bearer ${this.config.authToken}`
+          Authorization: `Bearer ${this.config.authToken}`
         }
       });
 
@@ -302,7 +302,7 @@ export class MARPClient {
         priority: rule.priority
       }));
     } catch (error) {
-      console.error('Failed to get firewall rules:', error);
+      console.error("Failed to get firewall rules:", error);
       return [];
     }
   }
@@ -313,15 +313,15 @@ export class MARPClient {
   async logAuditEvent(event: Partial<AuditEvent> | Record<string, unknown>): Promise<void> {
     try {
       await fetch(`${this.config.apiBaseUrl}/marp/audit/events`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.authToken}`
         },
         body: JSON.stringify(event)
       });
     } catch (error) {
-      console.error('Audit logging failed:', error);
+      console.error("Audit logging failed:", error);
       // Don't throw - audit failures shouldn't break operations
     }
   }
@@ -333,7 +333,7 @@ export class MARPClient {
     filters?: {
       adminId?: string;
       action?: string;
-      result?: 'success' | 'failure' | 'blocked';
+      result?: "success" | "failure" | "blocked";
       startDate?: Date;
       endDate?: Date;
     },
@@ -362,7 +362,7 @@ export class MARPClient {
 
       const response = await fetch(`${this.config.apiBaseUrl}/marp/audit/logs?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${this.config.authToken}`
+          Authorization: `Bearer ${this.config.authToken}`
         }
       });
 
@@ -391,7 +391,7 @@ export class MARPClient {
         hashChainValid: data.hashChainValid
       };
     } catch (error) {
-      console.error('Failed to get audit logs:', error);
+      console.error("Failed to get audit logs:", error);
       return {
         logs: [],
         total: 0,
@@ -406,8 +406,8 @@ export class MARPClient {
    * Get MARP health status
    */
   async getHealthStatus(): Promise<{
-    status: 'healthy' | 'degraded' | 'critical';
-    components: Record<string, 'healthy' | 'degraded' | 'critical'>;
+    status: "healthy" | "degraded" | "critical";
+    components: Record<string, "healthy" | "degraded" | "critical">;
     lastCheck: Date;
     policyCount: number;
     activeRules: number;
@@ -415,7 +415,7 @@ export class MARPClient {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/marp/health`, {
         headers: {
-          'Authorization': `Bearer ${this.config.authToken}`
+          Authorization: `Bearer ${this.config.authToken}`
         }
       });
 
@@ -432,9 +432,9 @@ export class MARPClient {
         activeRules: data.activeRules
       };
     } catch (error) {
-      console.error('Failed to get MARP health:', error);
+      console.error("Failed to get MARP health:", error);
       return {
-        status: 'critical',
+        status: "critical",
         components: {},
         lastCheck: new Date(),
         policyCount: 0,

@@ -8,7 +8,10 @@ type Props = {
   disabledReason?: string;
   loading: boolean;
   onRequestArbitration: () => Promise<void>;
-  onReviewRecommendation: (recommendationId: string, decision: "approved" | "rejected") => Promise<void>;
+  onReviewRecommendation: (
+    recommendationId: string,
+    decision: "approved" | "rejected"
+  ) => Promise<void>;
 };
 
 export function GovernancePanel({
@@ -18,12 +21,17 @@ export function GovernancePanel({
   disabledReason,
   loading,
   onRequestArbitration,
-  onReviewRecommendation,
+  onReviewRecommendation
 }: Props) {
   return (
-    <SectionCard title={title} subtitle="CSI recommendation approvals, MARP policy posture, firewall coverage, and arbitration.">
+    <SectionCard
+      title={title}
+      subtitle="CSI recommendation approvals, MARP policy posture, firewall coverage, and arbitration."
+    >
       {!enabled ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">{disabledReason || "Governance features are restricted."}</p>
+        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">
+          {disabledReason || "Governance features are restricted."}
+        </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-2 text-sm text-slate-700">
@@ -84,4 +92,3 @@ export function GovernancePanel({
     </SectionCard>
   );
 }
-

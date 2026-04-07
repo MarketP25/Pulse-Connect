@@ -10,27 +10,22 @@ export interface PAPSubscription {
   expiresAt?: Date;
 }
 
-export type SubscriptionStatus =
-  | 'pending'
-  | 'active'
-  | 'suspended'
-  | 'cancelled'
-  | 'expired';
+export type SubscriptionStatus = "pending" | "active" | "suspended" | "cancelled" | "expired";
 
 export interface Entitlement {
   type: EntitlementType;
   limit: number;
   used: number;
   resetDate?: Date;
-  resetPeriod?: 'daily' | 'weekly' | 'monthly';
+  resetPeriod?: "daily" | "weekly" | "monthly";
 }
 
 export type EntitlementType =
-  | 'emails_per_month'
-  | 'sms_per_month'
-  | 'social_posts_per_month'
-  | 'campaigns_per_month'
-  | 'audiences_per_month';
+  | "emails_per_month"
+  | "sms_per_month"
+  | "social_posts_per_month"
+  | "campaigns_per_month"
+  | "audiences_per_month";
 
 export interface ConsentRecord {
   id: string;
@@ -46,35 +41,35 @@ export interface ConsentRecord {
 }
 
 export type MarketingChannel =
-  | 'email'
-  | 'sms'
-  | 'push'
-  | 'social_facebook'
-  | 'social_twitter'
-  | 'social_instagram'
-  | 'social_linkedin';
+  | "email"
+  | "sms"
+  | "push"
+  | "social_facebook"
+  | "social_twitter"
+  | "social_instagram"
+  | "social_linkedin";
 
 export type MarketingPurpose =
-  | 'promotional'
-  | 'transactional'
-  | 'educational'
-  | 'survey'
-  | 'event_invitation'
-  | 'product_update';
+  | "promotional"
+  | "transactional"
+  | "educational"
+  | "survey"
+  | "event_invitation"
+  | "product_update";
 
 export type ConsentScope =
-  | 'contact_info'
-  | 'location_data'
-  | 'behavioral_data'
-  | 'purchase_history'
-  | 'communication_preferences';
+  | "contact_info"
+  | "location_data"
+  | "behavioral_data"
+  | "purchase_history"
+  | "communication_preferences";
 
 export type ConsentSource =
-  | 'user_opt_in'
-  | 'user_opt_out'
-  | 'admin_grant'
-  | 'legal_requirement'
-  | 'system_default';
+  | "user_opt_in"
+  | "user_opt_out"
+  | "admin_grant"
+  | "legal_requirement"
+  | "system_default";
 
 export interface PAPCampaign {
   id: string;
@@ -97,24 +92,24 @@ export interface PAPCampaign {
 }
 
 export type CampaignType =
-  | 'promotional'
-  | 'transactional'
-  | 'educational'
-  | 'survey'
-  | 'event'
-  | 'product_launch';
+  | "promotional"
+  | "transactional"
+  | "educational"
+  | "survey"
+  | "event"
+  | "product_launch";
 
 export type CampaignStatus =
-  | 'draft'
-  | 'scheduled'
-  | 'running'
-  | 'paused'
-  | 'completed'
-  | 'cancelled'
-  | 'failed';
+  | "draft"
+  | "scheduled"
+  | "running"
+  | "paused"
+  | "completed"
+  | "cancelled"
+  | "failed";
 
 export interface AudienceDefinition {
-  type: 'static' | 'dynamic' | 'segment';
+  type: "static" | "dynamic" | "segment";
   criteria: AudienceCriteria;
   size?: number;
   estimatedReach?: number;
@@ -165,7 +160,7 @@ export interface LocationCriteria {
 export interface PurchaseCriteria {
   categories?: string[];
   priceRange?: [number, number];
-  frequency?: 'first_time' | 'repeat' | 'frequent';
+  frequency?: "first_time" | "repeat" | "frequent";
   recency?: number; // days since last purchase
 }
 
@@ -185,7 +180,7 @@ export interface ActivityCriteria {
 export interface GeofenceCriteria {
   center: { lat: number; lng: number };
   radius: number; // in meters
-  trigger: 'enter' | 'exit' | 'dwell';
+  trigger: "enter" | "exit" | "dwell";
 }
 
 export interface CampaignContent {
@@ -212,7 +207,7 @@ export interface ContentLocalization {
 }
 
 export interface CampaignSchedule {
-  type: 'immediate' | 'scheduled' | 'recurring';
+  type: "immediate" | "scheduled" | "recurring";
   startDate?: Date;
   endDate?: Date;
   timezone: string;
@@ -222,7 +217,7 @@ export interface CampaignSchedule {
 }
 
 export interface RecurrenceRule {
-  frequency: 'daily' | 'weekly' | 'monthly';
+  frequency: "daily" | "weekly" | "monthly";
   interval: number;
   daysOfWeek?: number[];
   daysOfMonth?: number[];
@@ -243,7 +238,7 @@ export interface CampaignGoals {
 }
 
 export interface CampaignGoal {
-  type: 'awareness' | 'engagement' | 'conversion' | 'revenue';
+  type: "awareness" | "engagement" | "conversion" | "revenue";
   target: number;
   metric: string;
 }
@@ -259,7 +254,7 @@ export interface CampaignBudget {
   amount: number;
   currency: string;
   spent: number;
-  pacing: 'even' | 'accelerated' | 'conservative';
+  pacing: "even" | "accelerated" | "conservative";
   costPerAction?: number;
   maxCostPerAction?: number;
 }
@@ -296,12 +291,7 @@ export interface PAPAction {
   updatedAt: Date;
 }
 
-export type ActionType =
-  | 'email_send'
-  | 'sms_send'
-  | 'push_send'
-  | 'social_post'
-  | 'webhook_call';
+export type ActionType = "email_send" | "sms_send" | "push_send" | "social_post" | "webhook_call";
 
 export interface ActionRecipient {
   userId: string;
@@ -341,22 +331,18 @@ export interface TrackingSettings {
 }
 
 export type ActionStatus =
-  | 'queued'
-  | 'scheduled'
-  | 'sending'
-  | 'sent'
-  | 'delivered'
-  | 'opened'
-  | 'clicked'
-  | 'converted'
-  | 'failed'
-  | 'cancelled';
+  | "queued"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "delivered"
+  | "opened"
+  | "clicked"
+  | "converted"
+  | "failed"
+  | "cancelled";
 
-export type ActionPriority =
-  | 'low'
-  | 'normal'
-  | 'high'
-  | 'urgent';
+export type ActionPriority = "low" | "normal" | "high" | "urgent";
 
 export interface PAPAnalytics {
   campaignId?: string;
@@ -373,7 +359,7 @@ export interface PAPAnalytics {
 export interface AnalyticsPeriod {
   start: Date;
   end: Date;
-  granularity: 'hour' | 'day' | 'week' | 'month';
+  granularity: "hour" | "day" | "week" | "month";
 }
 
 export interface PAPMetrics {
@@ -461,19 +447,19 @@ export interface PAPInsight {
   type: InsightType;
   title: string;
   description: string;
-  impact: 'high' | 'medium' | 'low';
+  impact: "high" | "medium" | "low";
   recommendation: string;
   data: any;
 }
 
 export type InsightType =
-  | 'optimal_timing'
-  | 'audience_segmentation'
-  | 'content_performance'
-  | 'channel_effectiveness'
-  | 'geographic_opportunities'
-  | 'budget_optimization'
-  | 'engagement_patterns';
+  | "optimal_timing"
+  | "audience_segmentation"
+  | "content_performance"
+  | "channel_effectiveness"
+  | "geographic_opportunities"
+  | "budget_optimization"
+  | "engagement_patterns";
 
 // API Interfaces
 export interface CreateCampaignRequest {
@@ -527,30 +513,30 @@ export class PAPError extends Error {
     public details?: any
   ) {
     super(message);
-    this.name = 'PAPError';
+    this.name = "PAPError";
   }
 }
 
 export class ConsentError extends PAPError {
   constructor(message: string, details?: any) {
-    super(message, 'CONSENT_ERROR', 403, details);
+    super(message, "CONSENT_ERROR", 403, details);
   }
 }
 
 export class EntitlementError extends PAPError {
   constructor(message: string, details?: any) {
-    super(message, 'ENTITLEMENT_ERROR', 402, details);
+    super(message, "ENTITLEMENT_ERROR", 402, details);
   }
 }
 
 export class BudgetError extends PAPError {
   constructor(message: string, details?: any) {
-    super(message, 'BUDGET_ERROR', 402, details);
+    super(message, "BUDGET_ERROR", 402, details);
   }
 }
 
 export class ValidationError extends PAPError {
   constructor(message: string, details?: any) {
-    super(message, 'VALIDATION_ERROR', 400, details);
+    super(message, "VALIDATION_ERROR", 400, details);
   }
 }

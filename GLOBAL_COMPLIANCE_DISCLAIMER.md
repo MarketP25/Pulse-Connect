@@ -1,6 +1,6 @@
 # Pulsco Global Compliance Disclaimer
 
-Effective Date: [Insert Date]
+**Effective Date: February 28 ,2026**
 
 Regulatory Approach
 - Pulsco aims to comply with applicable global regulations across jurisdictions (US, EU, Africa, Asia) including data protection (GDPR/UK GDPR, CCPA/CPRA, African data laws), e-commerce and consumer protection, financial/payments compliance, export controls, and content moderation.

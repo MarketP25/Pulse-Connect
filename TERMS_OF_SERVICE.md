@@ -4,7 +4,7 @@
 
 **Legal Entity: Pulsco Global Ltd.**
 
-**Registered Address: The Pulsco Complex, 123 Innovation Avenue, Nairobi, Kenya**
+**Registered Address: The Marp Complex, Nairobi, Kenya**
 
 **Contact Email: legal@pulsco.com**
 

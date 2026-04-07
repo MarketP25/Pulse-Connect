@@ -10,7 +10,7 @@ class StubBillingClient implements BillingClient {
     return {
       linked: true,
       provider: "billing-engine" as const,
-      planId: "basic-free",
+      planId: "basic-free"
     };
   }
 }
@@ -30,12 +30,12 @@ function createService() {
       storage,
       kycService: new PulseKycService(new InMemoryKycRepository()),
       billingClient: new StubBillingClient(),
-      eventPublisher: publisher,
+      eventPublisher: publisher
     },
     {
       exposeDebugTokens: true,
-      jwtSecret: "test-secret",
-    },
+      jwtSecret: "test-secret"
+    }
   );
   return { service, publisher, storage };
 }
@@ -50,11 +50,11 @@ const baseInput = {
   consents: {
     privacyPolicy: { accepted: true, version: "2026.03" },
     termsOfService: { accepted: true, version: "2026.03" },
-    dataProcessing: { accepted: true, version: "2026.03" },
+    dataProcessing: { accepted: true, version: "2026.03" }
   },
   deviceFingerprint: "device-fingerprint-001",
   ipAddress: "127.0.0.1",
-  userAgent: "Mozilla/5.0 PulscoWeb",
+  userAgent: "Mozilla/5.0 PulscoWeb"
 };
 
 describe("PulseIdentityService registration", () => {
@@ -65,8 +65,8 @@ describe("PulseIdentityService registration", () => {
     await expect(
       service.registerUser({
         ...baseInput,
-        username: "person_two",
-      }),
+        username: "person_two"
+      })
     ).rejects.toMatchObject<IdentityError>({ code: "email_conflict" } as IdentityError);
   });
 
@@ -78,21 +78,21 @@ describe("PulseIdentityService registration", () => {
         ...baseInput,
         email: "new@example.com",
         username: "new_user",
-        referralCode: "NOPE-CODE",
-      }),
+        referralCode: "NOPE-CODE"
+      })
     ).rejects.toMatchObject<IdentityError>({ code: "invalid_referral_code" } as IdentityError);
 
     const first = await service.registerUser({
       ...baseInput,
       email: "referrer@example.com",
-      username: "referrer",
+      username: "referrer"
     });
 
     // Verify referrer email first so account is valid in system state.
     await service.verifyEmail({
       token: first.debug!.verificationToken,
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     const referrer = await storage.findUserByEmail("referrer@example.com");
@@ -104,8 +104,8 @@ describe("PulseIdentityService registration", () => {
         ...baseInput,
         email: "referrer@example.com",
         username: "referrer2",
-        referralCode: referrerCode,
-      }),
+        referralCode: referrerCode
+      })
     ).rejects.toMatchObject<IdentityError>({ code: "self_referral_blocked" } as IdentityError);
   });
 
@@ -118,9 +118,9 @@ describe("PulseIdentityService registration", () => {
         username: "consent_missing",
         consents: {
           ...baseInput.consents,
-          termsOfService: { accepted: true, version: "" },
-        },
-      }),
+          termsOfService: { accepted: true, version: "" }
+        }
+      })
     ).rejects.toMatchObject<IdentityError>({ code: "missing_required_consent" } as IdentityError);
   });
 
@@ -129,13 +129,13 @@ describe("PulseIdentityService registration", () => {
     const created = await service.registerUser({
       ...baseInput,
       email: "events@example.com",
-      username: "events_user",
+      username: "events_user"
     });
 
     await service.verifyEmail({
       token: created.debug!.verificationToken,
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     await service.activateAccount(created.userId);
@@ -145,9 +145,11 @@ describe("PulseIdentityService registration", () => {
       password: "StrongPass!234",
       ipAddress: "127.0.0.1",
       userAgent: "Mozilla/5.0 PulscoWeb",
-      deviceFingerprint: "device-fingerprint-001",
+      deviceFingerprint: "device-fingerprint-001"
     });
 
-    expect(publisher.events).toEqual(expect.arrayContaining(["user.created", "user.verified", "user.login"]));
+    expect(publisher.events).toEqual(
+      expect.arrayContaining(["user.created", "user.verified", "user.login"])
+    );
   });
 });

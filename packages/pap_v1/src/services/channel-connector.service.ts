@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 import {
   ChannelConnectorResult,
   EmailConnectorConfig,
@@ -6,8 +6,8 @@ import {
   PushConnectorConfig,
   SocialConnectorConfig,
   ActionContent,
-  ActionRecipient,
-} from '../types/template';
+  ActionRecipient
+} from "../types/template";
 
 @Injectable()
 export class ChannelConnectorService {
@@ -15,24 +15,24 @@ export class ChannelConnectorService {
 
   // Mock configurations - in real implementation, these would come from config service
   private emailConfig: EmailConnectorConfig = {
-    provider: 'sendgrid',
-    apiKey: process.env.SENDGRID_API_KEY || '',
-    fromEmail: 'noreply@pulsco.com',
-    fromName: 'Pulsco',
-    trackingEnabled: true,
+    provider: "sendgrid",
+    apiKey: process.env.SENDGRID_API_KEY || "",
+    fromEmail: "noreply@pulsco.global",
+    fromName: "Pulsco",
+    trackingEnabled: true
   };
 
   private smsConfig: SMSConnectorConfig = {
-    provider: 'twilio',
-    apiKey: process.env.TWILIO_API_KEY || '',
-    apiSecret: process.env.TWILIO_API_SECRET || '',
-    fromNumber: '+1234567890',
+    provider: "twilio",
+    apiKey: process.env.TWILIO_API_KEY || "",
+    apiSecret: process.env.TWILIO_API_SECRET || "",
+    fromNumber: "+1234567890"
   };
 
   private pushConfig: PushConnectorConfig = {
-    provider: 'firebase',
-    serverKey: process.env.FIREBASE_SERVER_KEY || '',
-    appId: process.env.FIREBASE_APP_ID || '',
+    provider: "firebase",
+    serverKey: process.env.FIREBASE_SERVER_KEY || "",
+    appId: process.env.FIREBASE_APP_ID || ""
   };
 
   /**
@@ -43,16 +43,16 @@ export class ChannelConnectorService {
 
     try {
       switch (channel) {
-        case 'email':
+        case "email":
           return await this.sendEmail(content, recipient);
-        case 'sms':
+        case "sms":
           return await this.sendSMS(content, recipient);
-        case 'push':
+        case "push":
           return await this.sendPush(content, recipient);
-        case 'social_facebook':
-        case 'social_twitter':
-        case 'social_instagram':
-        case 'social_linkedin':
+        case "social_facebook":
+        case "social_twitter":
+        case "social_instagram":
+        case "social_linkedin":
           return await this.sendSocial(channel, content, recipient);
         default:
           throw new Error(`Unsupported channel: ${channel}`);
@@ -61,7 +61,7 @@ export class ChannelConnectorService {
       this.logger.error(`Failed to send action via ${channel}: ${error.message}`, error.stack);
       return {
         delivered: false,
-        metadata: { error: error.message },
+        metadata: { error: error.message }
       };
     }
   }
@@ -69,12 +69,15 @@ export class ChannelConnectorService {
   /**
    * Send email through email provider
    */
-  private async sendEmail(content: ActionContent, recipient: ActionRecipient): Promise<ChannelConnectorResult> {
+  private async sendEmail(
+    content: ActionContent,
+    recipient: ActionRecipient
+  ): Promise<ChannelConnectorResult> {
     // Mock email sending - in real implementation, this would integrate with SendGrid, SES, etc.
     this.logger.log(`Sending email to ${recipient.contactInfo.email}: ${content.subject}`);
 
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Mock delivery result
     const delivered = Math.random() > 0.05; // 95% success rate
@@ -85,20 +88,25 @@ export class ChannelConnectorService {
       cost: 0.0001, // Cost per email
       metadata: {
         provider: this.emailConfig.provider,
-        trackingEnabled: this.emailConfig.trackingEnabled,
-      },
+        trackingEnabled: this.emailConfig.trackingEnabled
+      }
     };
   }
 
   /**
    * Send SMS through SMS provider
    */
-  private async sendSMS(content: ActionContent, recipient: ActionRecipient): Promise<ChannelConnectorResult> {
+  private async sendSMS(
+    content: ActionContent,
+    recipient: ActionRecipient
+  ): Promise<ChannelConnectorResult> {
     // Mock SMS sending - in real implementation, this would integrate with Twilio, MessageBird, etc.
-    this.logger.log(`Sending SMS to ${recipient.contactInfo.phone}: ${content.body.substring(0, 50)}...`);
+    this.logger.log(
+      `Sending SMS to ${recipient.contactInfo.phone}: ${content.body.substring(0, 50)}...`
+    );
 
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // Mock delivery result
     const delivered = Math.random() > 0.1; // 90% success rate
@@ -109,20 +117,25 @@ export class ChannelConnectorService {
       cost: 0.0075, // Cost per SMS
       metadata: {
         provider: this.smsConfig.provider,
-        segmentCount: Math.ceil(content.body.length / 160),
-      },
+        segmentCount: Math.ceil(content.body.length / 160)
+      }
     };
   }
 
   /**
    * Send push notification through push provider
    */
-  private async sendPush(content: ActionContent, recipient: ActionRecipient): Promise<ChannelConnectorResult> {
+  private async sendPush(
+    content: ActionContent,
+    recipient: ActionRecipient
+  ): Promise<ChannelConnectorResult> {
     // Mock push sending - in real implementation, this would integrate with Firebase, OneSignal, etc.
-    this.logger.log(`Sending push notification to ${recipient.contactInfo.pushToken}: ${content.subject}`);
+    this.logger.log(
+      `Sending push notification to ${recipient.contactInfo.pushToken}: ${content.subject}`
+    );
 
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
     // Mock delivery result
     const delivered = Math.random() > 0.08; // 92% success rate
@@ -133,21 +146,25 @@ export class ChannelConnectorService {
       cost: 0.0005, // Cost per push
       metadata: {
         provider: this.pushConfig.provider,
-        platform: this.detectPlatform(recipient.contactInfo.pushToken),
-      },
+        platform: this.detectPlatform(recipient.contactInfo.pushToken)
+      }
     };
   }
 
   /**
    * Send social media post through social provider
    */
-  private async sendSocial(channel: string, content: ActionContent, recipient: ActionRecipient): Promise<ChannelConnectorResult> {
+  private async sendSocial(
+    channel: string,
+    content: ActionContent,
+    recipient: ActionRecipient
+  ): Promise<ChannelConnectorResult> {
     // Mock social posting - in real implementation, this would integrate with respective APIs
-    const platform = channel.replace('social_', '');
+    const platform = channel.replace("social_", "");
     this.logger.log(`Posting to ${platform}: ${content.body.substring(0, 50)}...`);
 
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Mock delivery result
     const delivered = Math.random() > 0.15; // 85% success rate
@@ -159,8 +176,8 @@ export class ChannelConnectorService {
       metadata: {
         platform,
         postType: this.detectPostType(content),
-        estimatedReach: Math.floor(Math.random() * 10000) + 100,
-      },
+        estimatedReach: Math.floor(Math.random() * 10000) + 100
+      }
     };
   }
 
@@ -170,16 +187,16 @@ export class ChannelConnectorService {
   async validateChannelConfig(channel: string): Promise<boolean> {
     try {
       switch (channel) {
-        case 'email':
+        case "email":
           return !!(this.emailConfig.apiKey && this.emailConfig.fromEmail);
-        case 'sms':
+        case "sms":
           return !!(this.smsConfig.apiKey && this.smsConfig.fromNumber);
-        case 'push':
+        case "push":
           return !!(this.pushConfig.serverKey && this.pushConfig.appId);
-        case 'social_facebook':
-        case 'social_twitter':
-        case 'social_instagram':
-        case 'social_linkedin':
+        case "social_facebook":
+        case "social_twitter":
+        case "social_instagram":
+        case "social_linkedin":
           // Would check respective API keys
           return true; // Mock validation
         default:
@@ -203,49 +220,49 @@ export class ChannelConnectorService {
     costPerMessage?: number;
   } {
     switch (channel) {
-      case 'email':
+      case "email":
         return {
           supportsAttachments: true,
           supportsHtml: true,
           supportsTracking: true,
           rateLimit: 1000, // per hour
-          costPerMessage: 0.0001,
+          costPerMessage: 0.0001
         };
-      case 'sms':
+      case "sms":
         return {
           maxMessageLength: 160,
           supportsAttachments: false,
           supportsHtml: false,
           supportsTracking: false,
           rateLimit: 100, // per hour
-          costPerMessage: 0.0075,
+          costPerMessage: 0.0075
         };
-      case 'push':
+      case "push":
         return {
           maxMessageLength: 200,
           supportsAttachments: false,
           supportsHtml: false,
           supportsTracking: true,
           rateLimit: 10000, // per hour
-          costPerMessage: 0.0005,
+          costPerMessage: 0.0005
         };
-      case 'social_facebook':
-      case 'social_twitter':
-      case 'social_instagram':
-      case 'social_linkedin':
+      case "social_facebook":
+      case "social_twitter":
+      case "social_instagram":
+      case "social_linkedin":
         return {
           maxMessageLength: 280, // Twitter-like limit
           supportsAttachments: true,
           supportsHtml: false,
           supportsTracking: true,
           rateLimit: 50, // per hour
-          costPerMessage: 0.0,
+          costPerMessage: 0.0
         };
       default:
         return {
           supportsAttachments: false,
           supportsHtml: false,
-          supportsTracking: false,
+          supportsTracking: false
         };
     }
   }
@@ -263,21 +280,21 @@ export class ChannelConnectorService {
     try {
       const isValid = await this.validateChannelConfig(channel);
       if (!isValid) {
-        return { connected: false, error: 'Invalid configuration' };
+        return { connected: false, error: "Invalid configuration" };
       }
 
       // Mock connectivity test
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       return {
         connected: true,
-        latency: Date.now() - startTime,
+        latency: Date.now() - startTime
       };
     } catch (error) {
       return {
         connected: false,
         latency: Date.now() - startTime,
-        error: error.message,
+        error: error.message
       };
     }
   }
@@ -285,7 +302,10 @@ export class ChannelConnectorService {
   /**
    * Get delivery statistics for channel
    */
-  async getChannelStats(channel: string, period: { start: Date; end: Date }): Promise<{
+  async getChannelStats(
+    channel: string,
+    period: { start: Date; end: Date }
+  ): Promise<{
     totalSent: number;
     delivered: number;
     failed: number;
@@ -301,29 +321,29 @@ export class ChannelConnectorService {
       delivered: Math.floor(totalSent * deliveryRate),
       failed: Math.floor(totalSent * (1 - deliveryRate)),
       avgLatency: 200 + Math.random() * 300, // 200-500ms
-      totalCost: totalSent * (this.getChannelCapabilities(channel).costPerMessage || 0),
+      totalCost: totalSent * (this.getChannelCapabilities(channel).costPerMessage || 0)
     };
   }
 
   // Helper methods
   private detectPlatform(pushToken?: string): string {
-    if (!pushToken) return 'unknown';
+    if (!pushToken) return "unknown";
 
     // Mock platform detection based on token format
-    if (pushToken.startsWith('ios_')) return 'ios';
-    if (pushToken.startsWith('android_')) return 'android';
-    if (pushToken.startsWith('web_')) return 'web';
+    if (pushToken.startsWith("ios_")) return "ios";
+    if (pushToken.startsWith("android_")) return "android";
+    if (pushToken.startsWith("web_")) return "web";
 
-    return 'unknown';
+    return "unknown";
   }
 
   private detectPostType(content: ActionContent): string {
     if (content.attachments && content.attachments.length > 0) {
-      return 'media';
+      return "media";
     }
     if (content.body.length > 100) {
-      return 'long_form';
+      return "long_form";
     }
-    return 'text';
+    return "text";
   }
 }

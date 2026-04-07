@@ -1,0 +1,49 @@
+name: 'Terraform'
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/**'
+  pull_request:
+
+env:
+  TF_DIR: infra
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.9.0
+
+    - name: Terraform Init
+      run: cd ${{ env.TF_DIR }} && terraform init
+
+    - name: Terraform Format
+      run: cd ${{ env.TF_DIR }} && terraform fmt -check
+
+    - name: Terraform Validate
+      run: cd ${{ env.TF_DIR }} && terraform validate
+
+    - name: Terraform Plan
+      id: plan
+      run: cd ${{ env.TF_DIR }} && terraform plan -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1" -var="service_account_name=pulsco-sa"
+      continue-on-error: true
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: cd ${{ env.TF_DIR }} && terraform apply -auto-approve -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1" -var="service_account_name=pulsco-sa"

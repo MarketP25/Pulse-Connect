@@ -1,9 +1,19 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { GoogleMap, useLoadScript, Marker, DirectionsRenderer, InfoWindow, OverlayView } from '@react-google-maps/api';
-import { useProximity } from '../../hooks/useProximity';
-import { Venue, ProximityInsights } from '../../../pulse-connect-core/src/places/proximityIntegration';
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import {
+  GoogleMap,
+  useLoadScript,
+  Marker,
+  DirectionsRenderer,
+  InfoWindow,
+  OverlayView
+} from "@react-google-maps/api";
+import { useProximity } from "../../hooks/useProximity";
+import {
+  Venue,
+  ProximityInsights
+} from "../../../pulse-connect-core/src/places/proximityIntegration";
 
 interface ProximityMapProps {
   center?: { lat: number; lng: number };
@@ -12,7 +22,7 @@ interface ProximityMapProps {
   userLocation?: { lat: number; lng: number };
   showDirections?: boolean;
   destination?: { lat: number; lng: number };
-  mapStyle?: 'standard' | 'satellite' | 'terrain' | 'hybrid';
+  mapStyle?: "standard" | "satellite" | "terrain" | "hybrid";
   enableDragging?: boolean;
   enableZoom?: boolean;
   showControls?: boolean;
@@ -28,7 +38,7 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
   userLocation,
   showDirections = false,
   destination,
-  mapStyle = 'standard',
+  mapStyle = "standard",
   enableDragging = true,
   enableZoom = true,
   showControls = true,
@@ -49,16 +59,16 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
 
   // Load Google Maps script
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places', 'geometry', 'drawing']
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries: ["places", "geometry", "drawing"]
   });
 
   // Map container style
   const containerStyle = {
-    width: '100%',
-    height: '600px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+    width: "100%",
+    height: "600px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
   };
 
   // Map options
@@ -69,7 +79,7 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
     streetViewControl: showControls,
     rotateControl: showControls,
     fullscreenControl: showControls,
-    gestureHandling: enableDragging ? 'cooperative' : 'none',
+    gestureHandling: enableDragging ? "cooperative" : "none",
     zoomControlOptions: {
       position: google.maps.ControlPosition.RIGHT_CENTER
     },
@@ -102,19 +112,21 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
   // Add custom controls to map
   const addCustomControls = (map: google.maps.Map) => {
     // Satellite/Aerial view toggle
-    const satelliteControl = document.createElement('div');
-    satelliteControl.style.backgroundColor = '#fff';
-    satelliteControl.style.border = '2px solid #fff';
-    satelliteControl.style.borderRadius = '3px';
-    satelliteControl.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-    satelliteControl.style.cursor = 'pointer';
-    satelliteControl.style.marginBottom = '22px';
-    satelliteControl.style.textAlign = 'center';
-    satelliteControl.title = 'Toggle Satellite View';
-    satelliteControl.innerHTML = '🛰️';
+    const satelliteControl = document.createElement("div");
+    satelliteControl.style.backgroundColor = "#fff";
+    satelliteControl.style.border = "2px solid #fff";
+    satelliteControl.style.borderRadius = "3px";
+    satelliteControl.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+    satelliteControl.style.cursor = "pointer";
+    satelliteControl.style.marginBottom = "22px";
+    satelliteControl.style.textAlign = "center";
+    satelliteControl.title = "Toggle Satellite View";
+    satelliteControl.innerHTML = "🛰️";
 
-    satelliteControl.addEventListener('click', () => {
-      const newMapType = isSatelliteView ? google.maps.MapTypeId.ROADMAP : google.maps.MapTypeId.SATELLITE;
+    satelliteControl.addEventListener("click", () => {
+      const newMapType = isSatelliteView
+        ? google.maps.MapTypeId.ROADMAP
+        : google.maps.MapTypeId.SATELLITE;
       setMapType(newMapType);
       setIsSatelliteView(!isSatelliteView);
       map.setMapTypeId(newMapType);
@@ -123,25 +135,25 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(satelliteControl);
 
     // Traffic layer toggle
-    const trafficControl = document.createElement('div');
-    trafficControl.style.backgroundColor = '#fff';
-    trafficControl.style.border = '2px solid #fff';
-    trafficControl.style.borderRadius = '3px';
-    trafficControl.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-    trafficControl.style.cursor = 'pointer';
-    trafficControl.style.marginBottom = '22px';
-    trafficControl.style.textAlign = 'center';
-    trafficControl.title = 'Toggle Traffic Layer';
-    trafficControl.innerHTML = '🚗';
+    const trafficControl = document.createElement("div");
+    trafficControl.style.backgroundColor = "#fff";
+    trafficControl.style.border = "2px solid #fff";
+    trafficControl.style.borderRadius = "3px";
+    trafficControl.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+    trafficControl.style.cursor = "pointer";
+    trafficControl.style.marginBottom = "22px";
+    trafficControl.style.textAlign = "center";
+    trafficControl.title = "Toggle Traffic Layer";
+    trafficControl.innerHTML = "🚗";
 
-    trafficControl.addEventListener('click', () => {
+    trafficControl.addEventListener("click", () => {
       if (trafficLayer) {
         if (trafficLayer.getMap()) {
           trafficLayer.setMap(null);
-          trafficControl.style.backgroundColor = '#fff';
+          trafficControl.style.backgroundColor = "#fff";
         } else {
           trafficLayer.setMap(map);
-          trafficControl.style.backgroundColor = '#e3f2fd';
+          trafficControl.style.backgroundColor = "#e3f2fd";
         }
       }
     });
@@ -149,25 +161,25 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(trafficControl);
 
     // Transit layer toggle
-    const transitControl = document.createElement('div');
-    transitControl.style.backgroundColor = '#fff';
-    transitControl.style.border = '2px solid #fff';
-    transitControl.style.borderRadius = '3px';
-    transitControl.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-    transitControl.style.cursor = 'pointer';
-    transitControl.style.marginBottom = '22px';
-    transitControl.style.textAlign = 'center';
-    transitControl.title = 'Toggle Transit Layer';
-    transitControl.innerHTML = '🚇';
+    const transitControl = document.createElement("div");
+    transitControl.style.backgroundColor = "#fff";
+    transitControl.style.border = "2px solid #fff";
+    transitControl.style.borderRadius = "3px";
+    transitControl.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+    transitControl.style.cursor = "pointer";
+    transitControl.style.marginBottom = "22px";
+    transitControl.style.textAlign = "center";
+    transitControl.title = "Toggle Transit Layer";
+    transitControl.innerHTML = "🚇";
 
-    transitControl.addEventListener('click', () => {
+    transitControl.addEventListener("click", () => {
       if (transitLayer) {
         if (transitLayer.getMap()) {
           transitLayer.setMap(null);
-          transitControl.style.backgroundColor = '#fff';
+          transitControl.style.backgroundColor = "#fff";
         } else {
           transitLayer.setMap(map);
-          transitControl.style.backgroundColor = '#e3f2fd';
+          transitControl.style.backgroundColor = "#e3f2fd";
         }
       }
     });
@@ -175,25 +187,25 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(transitControl);
 
     // Bicycling layer toggle
-    const bicyclingControl = document.createElement('div');
-    bicyclingControl.style.backgroundColor = '#fff';
-    bicyclingControl.style.border = '2px solid #fff';
-    bicyclingControl.style.borderRadius = '3px';
-    bicyclingControl.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-    bicyclingControl.style.cursor = 'pointer';
-    bicyclingControl.style.marginBottom = '22px';
-    bicyclingControl.style.textAlign = 'center';
-    bicyclingControl.title = 'Toggle Bicycling Layer';
-    bicyclingControl.innerHTML = '🚴';
+    const bicyclingControl = document.createElement("div");
+    bicyclingControl.style.backgroundColor = "#fff";
+    bicyclingControl.style.border = "2px solid #fff";
+    bicyclingControl.style.borderRadius = "3px";
+    bicyclingControl.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+    bicyclingControl.style.cursor = "pointer";
+    bicyclingControl.style.marginBottom = "22px";
+    bicyclingControl.style.textAlign = "center";
+    bicyclingControl.title = "Toggle Bicycling Layer";
+    bicyclingControl.innerHTML = "🚴";
 
-    bicyclingControl.addEventListener('click', () => {
+    bicyclingControl.addEventListener("click", () => {
       if (bicyclingLayer) {
         if (bicyclingLayer.getMap()) {
           bicyclingLayer.setMap(null);
-          bicyclingControl.style.backgroundColor = '#fff';
+          bicyclingControl.style.backgroundColor = "#fff";
         } else {
           bicyclingLayer.setMap(map);
-          bicyclingControl.style.backgroundColor = '#e3f2fd';
+          bicyclingControl.style.backgroundColor = "#e3f2fd";
         }
       }
     });
@@ -202,23 +214,29 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
   };
 
   // Handle map click
-  const onMapClick = useCallback((event: google.maps.MapMouseEvent) => {
-    if (event.latLng && onMapClick) {
-      const location = {
-        lat: event.latLng.lat(),
-        lng: event.latLng.lng()
-      };
-      onMapClick(location);
-    }
-  }, [onMapClick]);
+  const onMapClick = useCallback(
+    (event: google.maps.MapMouseEvent) => {
+      if (event.latLng && onMapClick) {
+        const location = {
+          lat: event.latLng.lat(),
+          lng: event.latLng.lng()
+        };
+        onMapClick(location);
+      }
+    },
+    [onMapClick]
+  );
 
   // Handle venue marker click
-  const onVenueMarkerClick = useCallback((venue: Venue) => {
-    setSelectedVenue(venue);
-    if (onVenueClick) {
-      onVenueClick(venue);
-    }
-  }, [onVenueClick]);
+  const onVenueMarkerClick = useCallback(
+    (venue: Venue) => {
+      setSelectedVenue(venue);
+      if (onVenueClick) {
+        onVenueClick(venue);
+      }
+    },
+    [onVenueClick]
+  );
 
   // Get directions
   useEffect(() => {
@@ -234,7 +252,7 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
             onDirectionsChange(result);
           }
         } catch (error) {
-          console.error('Error fetching directions:', error);
+          console.error("Error fetching directions:", error);
         }
       };
 
@@ -244,22 +262,22 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
 
   // Get venue icon based on category and proximity score
   const getVenueIcon = (venue: Venue): string => {
-    const baseIcon = '📍';
+    const baseIcon = "📍";
     const categoryIcons: Record<string, string> = {
-      restaurant: '🍽️',
-      cafe: '☕',
-      bar: '🍺',
-      hotel: '🏨',
-      shop: '🛍️',
-      park: '🌳',
-      museum: '🏛️',
-      gym: '💪',
-      hospital: '🏥',
-      school: '🎓',
-      bank: '🏦',
-      gas_station: '⛽',
-      pharmacy: '💊',
-      supermarket: '🛒'
+      restaurant: "🍽️",
+      cafe: "☕",
+      bar: "🍺",
+      hotel: "🏨",
+      shop: "🛍️",
+      park: "🌳",
+      museum: "🏛️",
+      gym: "💪",
+      hospital: "🏥",
+      school: "🎓",
+      bank: "🏦",
+      gas_station: "⛽",
+      pharmacy: "💊",
+      supermarket: "🛒"
     };
 
     return categoryIcons[venue.category] || baseIcon;
@@ -267,10 +285,10 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
 
   // Get marker color based on proximity score
   const getMarkerColor = (score: number): string => {
-    if (score >= 80) return '#10b981'; // green
-    if (score >= 60) return '#f59e0b'; // yellow
-    if (score >= 40) return '#f97316'; // orange
-    return '#ef4444'; // red
+    if (score >= 80) return "#10b981"; // green
+    if (score >= 60) return "#f59e0b"; // yellow
+    if (score >= 40) return "#f97316"; // orange
+    return "#ef4444"; // red
   };
 
   // Custom marker component
@@ -279,25 +297,22 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
     const color = getMarkerColor(venue.proximityScore);
 
     return (
-      <OverlayView
-        position={venue.location}
-        mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-      >
+      <OverlayView position={venue.location} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}>
         <div
           onClick={onClick}
           style={{
             backgroundColor: color,
-            border: '2px solid white',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '18px',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-            transform: 'translate(-50%, -50%)'
+            border: "2px solid white",
+            borderRadius: "50%",
+            width: "40px",
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "18px",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            transform: "translate(-50%, -50%)"
           }}
           title={`${venue.name} (${venue.proximityScore.toFixed(1)}/100)`}
         >
@@ -348,7 +363,9 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
           <Marker
             position={userLocation}
             icon={{
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              url:
+                "data:image/svg+xml;charset=UTF-8," +
+                encodeURIComponent(`
                 <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="20" cy="20" r="18" fill="#3b82f6" stroke="white" stroke-width="3"/>
                   <circle cx="20" cy="20" r="8" fill="white"/>
@@ -364,11 +381,7 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
 
         {/* Venue markers */}
         {venues.map((venue) => (
-          <CustomMarker
-            key={venue.id}
-            venue={venue}
-            onClick={() => onVenueMarkerClick(venue)}
-          />
+          <CustomMarker key={venue.id} venue={venue} onClick={() => onVenueMarkerClick(venue)} />
         ))}
 
         {/* Directions */}
@@ -378,7 +391,7 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
             options={{
               suppressMarkers: true,
               polylineOptions: {
-                strokeColor: '#3b82f6',
+                strokeColor: "#3b82f6",
                 strokeWeight: 5,
                 strokeOpacity: 0.8
               }
@@ -388,18 +401,24 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
 
         {/* Info window for selected venue */}
         {selectedVenue && (
-          <InfoWindow
-            position={selectedVenue.location}
-            onCloseClick={() => setSelectedVenue(null)}
-          >
+          <InfoWindow position={selectedVenue.location} onCloseClick={() => setSelectedVenue(null)}>
             <div className="p-3 max-w-xs">
               <h3 className="font-semibold text-lg mb-2">{selectedVenue.name}</h3>
               <div className="space-y-1 text-sm">
-                <p><strong>Category:</strong> {selectedVenue.category}</p>
-                <p><strong>Distance:</strong> {selectedVenue.distanceKm?.toFixed(1)} km</p>
-                <p><strong>Proximity Score:</strong> {selectedVenue.proximityScore.toFixed(1)}/100</p>
+                <p>
+                  <strong>Category:</strong> {selectedVenue.category}
+                </p>
+                <p>
+                  <strong>Distance:</strong> {selectedVenue.distanceKm?.toFixed(1)} km
+                </p>
+                <p>
+                  <strong>Proximity Score:</strong> {selectedVenue.proximityScore.toFixed(1)}/100
+                </p>
                 {selectedVenue.regionInfo && (
-                  <p><strong>Region:</strong> {selectedVenue.regionInfo.locality}, {selectedVenue.regionInfo.countryCode}</p>
+                  <p>
+                    <strong>Region:</strong> {selectedVenue.regionInfo.locality},{" "}
+                    {selectedVenue.regionInfo.countryCode}
+                  </p>
                 )}
               </div>
               <div className="mt-3 flex gap-2">
@@ -418,7 +437,7 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
                   className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
                   onClick={() => {
                     // Add to favorites or similar action
-                    console.log('Added to favorites:', selectedVenue.name);
+                    console.log("Added to favorites:", selectedVenue.name);
                   }}
                 >
                   ⭐ Favorite
@@ -522,17 +541,33 @@ const ProximityMap: React.FC<ProximityMapProps> = ({
         <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 max-w-xs">
           <div className="text-sm font-semibold text-gray-700 mb-2">Proximity Insights</div>
           <div className="space-y-1 text-xs">
-            <p><strong>Venues:</strong> {venues.length}</p>
-            <p><strong>Avg Distance:</strong> {(venues.reduce((sum, v) => sum + (v.distanceKm || 0), 0) / venues.length).toFixed(1)} km</p>
-            <p><strong>Top Category:</strong> {venues.reduce((acc, v) => {
-              acc[v.category] = (acc[v.category] || 0) + 1;
-              return acc;
-            }, {} as Record<string, number>) &&
-              Object.entries(venues.reduce((acc, v) => {
-                acc[v.category] = (acc[v.category] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)).sort(([,a], [,b]) => b - a)[0]?.[0]
-            }</p>
+            <p>
+              <strong>Venues:</strong> {venues.length}
+            </p>
+            <p>
+              <strong>Avg Distance:</strong>{" "}
+              {(venues.reduce((sum, v) => sum + (v.distanceKm || 0), 0) / venues.length).toFixed(1)}{" "}
+              km
+            </p>
+            <p>
+              <strong>Top Category:</strong>{" "}
+              {venues.reduce(
+                (acc, v) => {
+                  acc[v.category] = (acc[v.category] || 0) + 1;
+                  return acc;
+                },
+                {} as Record<string, number>
+              ) &&
+                Object.entries(
+                  venues.reduce(
+                    (acc, v) => {
+                      acc[v.category] = (acc[v.category] || 0) + 1;
+                      return acc;
+                    },
+                    {} as Record<string, number>
+                  )
+                ).sort(([, a], [, b]) => b - a)[0]?.[0]}
+            </p>
           </div>
         </div>
       )}

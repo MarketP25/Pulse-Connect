@@ -1,4 +1,5 @@
 import express from "express";
+import { verifyToken } from "@pulsco/pulse-identity-service";
 import { FeeService } from "./fee.service";
 import { PublishService } from "./publish.service";
 import { BookingService } from "./booking.service";
@@ -6,17 +7,49 @@ import { LedgerService } from "./ledger.service";
 
 const router = express.Router();
 
-// Middleware for authentication (placeholder)
-const requireAuth = (req: any, res: any, next: any) => {
-  // TODO: Implement proper authentication
-  req.user = { id: req.headers["x-user-id"] || "anonymous" };
-  next();
+type AuthPayload = { sub: string; typ?: string; role?: string };
+
+const getBearerToken = (req: express.Request): string | null => {
+  const header = req.headers.authorization || "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
 };
 
-// Middleware for admin access
+const requireAuth = (req: any, res: any, next: any) => {
+  const token = getBearerToken(req);
+  if (!token) {
+    return res.status(401).json({ success: false, error: "Authentication required" });
+  }
+
+  const secret = process.env.PULSE_IDENTITY_JWT_SECRET;
+  if (!secret) {
+    return res.status(500).json({ success: false, error: "Auth not configured" });
+  }
+
+  try {
+    const payload = verifyToken<AuthPayload>(token, secret);
+    if (payload.typ && payload.typ !== "access") {
+      return res.status(401).json({ success: false, error: "Invalid token type" });
+    }
+    req.user = { id: payload.sub, role: payload.role };
+    return next();
+  } catch {
+    return res.status(401).json({ success: false, error: "Invalid token" });
+  }
+};
+
 const requireAdmin = (req: any, res: any, next: any) => {
-  // TODO: Implement admin role check
-  next();
+  const role = req.user?.role;
+  const allowedRoles = (process.env.PULSE_ADMIN_ROLES || "admin")
+    .split(",")
+    .map((r) => r.trim())
+    .filter(Boolean);
+
+  if (!role || !allowedRoles.includes(role)) {
+    return res.status(403).json({ success: false, error: "Admin access required" });
+  }
+
+  return next();
 };
 
 // Fee Service Routes

@@ -1,10 +1,14 @@
-import { ProximityMarketingService, MarketingCampaign, MarketingRecipient } from '../../pulse-connect-core/src/marketing/proximityMarketing';
-import { ProximityService } from '../../pulse-connect-core/src/proximity/service';
-import { RegionIntelligence } from '../../pulse-connect-core/src/proximity/service/regionIntelligence';
-import { AuditEngine } from '../../pulse-connect-core/src/proximity/service/audit';
-import { createSubsystemEmitter } from '../../packages/csi/events';
+import {
+  ProximityMarketingService,
+  MarketingCampaign,
+  MarketingRecipient
+} from "../../pulse-connect-core/src/marketing/proximityMarketing";
+import { ProximityService } from "../../pulse-connect-core/src/proximity/service";
+import { RegionIntelligence } from "../../pulse-connect-core/src/proximity/service/regionIntelligence";
+import { AuditEngine } from "../../pulse-connect-core/src/proximity/service/audit";
+import { createSubsystemEmitter } from "../../packages/csi/events";
 
-const emitMarketingEvent = createSubsystemEmitter('marketing');
+const emitMarketingEvent = createSubsystemEmitter("marketing");
 
 export interface PAPMarketingCampaign extends MarketingCampaign {
   papSpecific: {
@@ -56,24 +60,24 @@ export class PAPProximityIntegration {
       campaign,
       recipients,
       actorId,
-      'pap_marketing'
+      "pap_marketing"
     );
 
     // Generate proximity insights
     const proximityInsights = await this.generateProximityInsights(campaign, recipients, actorId);
 
     emitMarketingEvent(
-      'marketing.campaign.executed',
-      'GLOBAL',
+      "marketing.campaign.executed",
+      "GLOBAL",
       {
         campaignId: campaign.id,
         actorId,
         recipientCount: recipients.length,
-        triggerCount: campaign.papSpecific.triggerEvents.length,
+        triggerCount: campaign.papSpecific.triggerEvents.length
       },
       {
         riskScore: recipients.length === 0 ? 42 : 18,
-        performanceScore: 85,
+        performanceScore: 85
       }
     );
 
@@ -100,18 +104,17 @@ export class PAPProximityIntegration {
 
       if (userData.location) {
         // Get region intelligence
-        const geocodeResult = await this.proximityService.reverseGeocode(
-          userData.location,
-          {
-            actorId,
-            subsystem: 'pap_marketing',
-            purpose: 'marketing',
-            requestId: `recipient_build_${userId}`
-          }
-        );
+        const geocodeResult = await this.proximityService.reverseGeocode(userData.location, {
+          actorId,
+          subsystem: "pap_marketing",
+          purpose: "marketing",
+          requestId: `recipient_build_${userId}`
+        });
 
         // Import RegionIntelligence to use it
-        const regionIntelligence = new (await import('../../pulse-connect-core/src/proximity/service/regionIntelligence')).RegionIntelligence();
+        const regionIntelligence = new (
+          await import("../../pulse-connect-core/src/proximity/service/regionIntelligence")
+        ).RegionIntelligence();
         const regionInfo = regionIntelligence.inferRegion(geocodeResult);
 
         recipients.push({
@@ -149,7 +152,7 @@ export class PAPProximityIntegration {
 
     for (const recipient of recipients) {
       // Count by region
-      const region = recipient.regionInfo?.countryCode || 'unknown';
+      const region = recipient.regionInfo?.countryCode || "unknown";
       regionalDistribution[region] = (regionalDistribution[region] || 0) + 1;
 
       // Count by timezone
@@ -163,25 +166,23 @@ export class PAPProximityIntegration {
     }
 
     // Generate proximity clusters
-    const locations = recipients
-      .filter(r => r.location)
-      .map(r => r.location!);
+    const locations = recipients.filter((r) => r.location).map((r) => r.location!);
 
     let proximityClusters = [];
     if (locations.length > 0) {
       try {
         proximityClusters = await this.proximityService.cluster(
           locations,
-          { algorithm: 'kmeans', k: 5 },
+          { algorithm: "kmeans", k: 5 },
           {
             actorId,
-            subsystem: 'pap_marketing',
-            purpose: 'marketing',
+            subsystem: "pap_marketing",
+            purpose: "marketing",
             requestId: `cluster_analysis_${campaign.id}`
           }
         );
       } catch (error) {
-        console.warn('Failed to generate proximity clusters:', error);
+        console.warn("Failed to generate proximity clusters:", error);
       }
     }
 
@@ -213,25 +214,31 @@ export class PAPProximityIntegration {
 
     // Regional recommendations
     const topRegions = Object.entries(regionalDistribution)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3);
 
     if (topRegions.length > 0) {
-      recommendations.push(`Focus on top regions: ${topRegions.map(([region]) => region).join(', ')}`);
+      recommendations.push(
+        `Focus on top regions: ${topRegions.map(([region]) => region).join(", ")}`
+      );
     }
 
     // Timezone recommendations
     const topTimezones = Object.entries(timezoneDistribution)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3);
 
     if (topTimezones.length > 0) {
-      recommendations.push(`Schedule campaigns for optimal timezone delivery: ${topTimezones.map(([tz]) => tz).join(', ')}`);
+      recommendations.push(
+        `Schedule campaigns for optimal timezone delivery: ${topTimezones.map(([tz]) => tz).join(", ")}`
+      );
     }
 
     // Proximity recommendations
     if (proximityClusters.length > 0) {
-      recommendations.push(`Identified ${proximityClusters.length} proximity clusters for targeted local campaigns`);
+      recommendations.push(
+        `Identified ${proximityClusters.length} proximity clusters for targeted local campaigns`
+      );
     }
 
     return recommendations;
@@ -261,7 +268,7 @@ export class PAPProximityIntegration {
    * PAP-specific campaign triggers based on proximity events
    */
   async handleProximityTrigger(
-    eventType: 'user_location_changed' | 'entered_region' | 'left_region' | 'proximity_alert',
+    eventType: "user_location_changed" | "entered_region" | "left_region" | "proximity_alert",
     userId: string,
     location: { lat: number; lng: number },
     metadata: Record<string, any>,
@@ -272,26 +279,28 @@ export class PAPProximityIntegration {
       userId,
       location,
       actorId,
-      'pap_marketing'
+      "pap_marketing"
     );
 
     // Trigger automated campaigns based on proximity events
     switch (eventType) {
-      case 'entered_region':
+      case "entered_region":
         await this.triggerRegionalCampaign(userId, metadata.region, actorId);
         break;
-      case 'user_location_changed':
+      case "user_location_changed":
         await this.triggerLocationBasedCampaign(userId, location, actorId);
         break;
-      case 'proximity_alert':
+      case "proximity_alert":
         await this.triggerProximityAlertCampaign(userId, metadata, actorId);
         break;
     }
 
     // Log the trigger event
-    const auditEngine = new (await import('../../pulse-connect-core/src/proximity/service/audit')).AuditEngine({
-      sinkUrl: process.env.AUDIT_SINK_URL || '',
-      apiKey: process.env.AUDIT_API_KEY || '',
+    const auditEngine = new (
+      await import("../../pulse-connect-core/src/proximity/service/audit")
+    ).AuditEngine({
+      sinkUrl: process.env.AUDIT_SINK_URL || "",
+      apiKey: process.env.AUDIT_API_KEY || "",
       batchSize: 100,
       flushIntervalMs: 30000,
       retentionDays: 90
@@ -299,11 +308,11 @@ export class PAPProximityIntegration {
 
     await auditEngine.record({
       actorId,
-      subsystem: 'pap_marketing',
-      action: 'proximity_trigger',
-      purpose: 'marketing',
-      policyVersion: '1.0.0',
-      reasonCode: 'PROXIMITY_EVENT_TRIGGER',
+      subsystem: "pap_marketing",
+      action: "proximity_trigger",
+      purpose: "marketing",
+      policyVersion: "1.0.0",
+      reasonCode: "PROXIMITY_EVENT_TRIGGER",
       requestId: `trigger_${eventType}_${userId}`,
       metadata: {
         eventType,
@@ -312,20 +321,20 @@ export class PAPProximityIntegration {
         recommendations: recommendations.recommendedCampaigns,
         ...metadata
       },
-      result: 'success'
+      result: "success"
     });
 
     emitMarketingEvent(
-      'marketing.proximity.triggered',
-      metadata.region || 'GLOBAL',
+      "marketing.proximity.triggered",
+      metadata.region || "GLOBAL",
       {
         eventType,
         userId,
-        actorId,
+        actorId
       },
       {
-        riskScore: eventType === 'proximity_alert' ? 55 : 20,
-        performanceScore: 82,
+        riskScore: eventType === "proximity_alert" ? 55 : 20,
+        performanceScore: 82
       }
     );
   }
@@ -350,7 +359,9 @@ export class PAPProximityIntegration {
     location: { lat: number; lng: number },
     actorId: string
   ): Promise<void> {
-    console.log(`Triggering location-based campaign for user ${userId} at ${location.lat}, ${location.lng}`);
+    console.log(
+      `Triggering location-based campaign for user ${userId} at ${location.lat}, ${location.lng}`
+    );
     // Implementation would create and execute location-based campaign
   }
 

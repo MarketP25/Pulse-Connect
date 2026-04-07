@@ -7,7 +7,7 @@ import {
   DashboardRole,
   SupportedDashboardLanguage,
   ConsentSettings,
-  DashboardAiStatus,
+  DashboardAiStatus
 } from "@/types/dashboard";
 
 type DashboardState = {
@@ -40,22 +40,26 @@ type DashboardState = {
   enableTwoFactor: () => Promise<void>;
   runBillingAction: (
     action: "create" | "renew" | "upgrade" | "cancel",
-    payload?: Record<string, unknown>,
+    payload?: Record<string, unknown>
   ) => Promise<void>;
   runPlacesAction: (
     action: "create_place" | "create_booking" | "cancel_booking",
-    payload: Record<string, unknown>,
+    payload: Record<string, unknown>
   ) => Promise<void>;
   runMatchmakingAction: (
     action: "create_brief" | "submit_proposal" | "create_contract",
-    payload: Record<string, unknown>,
+    payload: Record<string, unknown>
   ) => Promise<void>;
   runGovernanceAction: (
     action: "request_arbitration" | "review_recommendation",
-    payload?: Record<string, unknown>,
+    payload?: Record<string, unknown>
   ) => Promise<void>;
   updateSecurity: (consents: Partial<ConsentSettings>) => Promise<void>;
-  trackInteraction: (module: string, eventType: string, metadata?: Record<string, string | number | boolean>) => Promise<void>;
+  trackInteraction: (
+    module: string,
+    eventType: string,
+    metadata?: Record<string, string | number | boolean>
+  ) => Promise<void>;
 };
 
 async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
@@ -63,9 +67,9 @@ async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Pro
     ...init,
     headers: {
       "content-type": "application/json",
-      ...(init?.headers || {}),
+      ...(init?.headers || {})
     },
-    cache: "no-store",
+    cache: "no-store"
   });
 
   if (!response.ok) {
@@ -80,14 +84,17 @@ function userQuery(userId: string): string {
   return `?userId=${encodeURIComponent(userId)}`;
 }
 
-function mergeSnapshotPatch(current: DashboardSnapshot | null, patch: Partial<DashboardSnapshot>): DashboardSnapshot | null {
+function mergeSnapshotPatch(
+  current: DashboardSnapshot | null,
+  patch: Partial<DashboardSnapshot>
+): DashboardSnapshot | null {
   if (!current) {
     return null;
   }
 
   return {
     ...current,
-    ...patch,
+    ...patch
   };
 }
 
@@ -107,13 +114,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set({ loading: true, error: null, userId });
 
     try {
-      const snapshot = await requestJson<DashboardSnapshot>(`/api/dashboard/bootstrap${userQuery(userId)}`);
+      const snapshot = await requestJson<DashboardSnapshot>(
+        `/api/dashboard/bootstrap${userQuery(userId)}`
+      );
       set({ snapshot, loading: false, error: null, aiStatus: snapshot.aiStatus || null });
       await get().loadExtendedModules();
     } catch (error) {
       set({
         loading: false,
-        error: error instanceof Error ? error.message : "Failed to load dashboard",
+        error: error instanceof Error ? error.message : "Failed to load dashboard"
       });
     }
   },
@@ -125,7 +134,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     try {
       await requestJson(`/api/dashboard/onboarding${userQuery(userId)}`, {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
       await get().bootstrap(userId);
     } catch (error) {
@@ -142,7 +151,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     try {
       await requestJson(`/api/dashboard/profile${userQuery(userId)}`, {
         method: "PATCH",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
       await get().bootstrap(userId);
     } catch (error) {
@@ -159,7 +168,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     try {
       await requestJson(`/api/dashboard/subscription${userQuery(userId)}`, {
         method: "PATCH",
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier })
       });
       await get().bootstrap(userId);
     } catch (error) {
@@ -176,7 +185,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     try {
       await requestJson(`/api/dashboard/kyc${userQuery(userId)}`, {
         method: "POST",
-        body: JSON.stringify({ approved }),
+        body: JSON.stringify({ approved })
       });
       await get().bootstrap(userId);
     } catch (error) {
@@ -193,7 +202,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     try {
       await requestJson(`/api/dashboard/ecommerce${userQuery(userId)}`, {
         method: "POST",
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId })
       });
       await get().bootstrap(userId);
     } catch (error) {
@@ -211,9 +220,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       const data = await requestJson<{ response: string; aiStatus?: DashboardAiStatus }>(
         `/api/dashboard/communication${userQuery(userId)}`,
         {
-        method: "POST",
-        body: JSON.stringify({ prompt }),
-      });
+          method: "POST",
+          body: JSON.stringify({ prompt })
+        }
+      );
       set({ chatResponse: data.response, aiStatus: data.aiStatus || get().aiStatus });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Chat request failed" });
@@ -233,10 +243,12 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       `/api/dashboard/matchmaking-ops${userQuery(userId)}`,
       `/api/dashboard/governance${userQuery(userId)}`,
       `/api/dashboard/localization-advanced${userQuery(userId)}`,
-      `/api/dashboard/proximity-advanced${userQuery(userId)}`,
+      `/api/dashboard/proximity-advanced${userQuery(userId)}`
     ];
 
-    const settled = await Promise.allSettled(endpoints.map((endpoint) => requestJson<Record<string, unknown>>(endpoint)));
+    const settled = await Promise.allSettled(
+      endpoints.map((endpoint) => requestJson<Record<string, unknown>>(endpoint))
+    );
     const patch: Partial<DashboardSnapshot> = {};
 
     for (const result of settled) {
@@ -247,7 +259,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     }
 
     set((state) => ({
-      snapshot: mergeSnapshotPatch(state.snapshot, patch),
+      snapshot: mergeSnapshotPatch(state.snapshot, patch)
     }));
   },
 
@@ -255,12 +267,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     const userId = get().userId;
     set({ saving: true, error: null });
     try {
-      const result = await requestJson<Record<string, unknown>>(`/api/dashboard/identity${userQuery(userId)}`, {
-        method: "POST",
-        body: JSON.stringify({ action: "enable_2fa" }),
-      });
+      const result = await requestJson<Record<string, unknown>>(
+        `/api/dashboard/identity${userQuery(userId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ action: "enable_2fa" })
+        }
+      );
       set((state) => ({
-        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>),
+        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>)
       }));
       await get().bootstrap(userId);
     } catch (error) {
@@ -274,12 +289,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     const userId = get().userId;
     set({ saving: true, error: null });
     try {
-      const result = await requestJson<Record<string, unknown>>(`/api/dashboard/billing${userQuery(userId)}`, {
-        method: "POST",
-        body: JSON.stringify({ action, payload }),
-      });
+      const result = await requestJson<Record<string, unknown>>(
+        `/api/dashboard/billing${userQuery(userId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ action, payload })
+        }
+      );
       set((state) => ({
-        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>),
+        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>)
       }));
       await get().bootstrap(userId);
     } catch (error) {
@@ -293,12 +311,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     const userId = get().userId;
     set({ saving: true, error: null });
     try {
-      const result = await requestJson<Record<string, unknown>>(`/api/dashboard/places-ops${userQuery(userId)}`, {
-        method: "POST",
-        body: JSON.stringify({ action, payload }),
-      });
+      const result = await requestJson<Record<string, unknown>>(
+        `/api/dashboard/places-ops${userQuery(userId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ action, payload })
+        }
+      );
       set((state) => ({
-        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>),
+        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>)
       }));
       await get().loadExtendedModules();
     } catch (error) {
@@ -312,12 +333,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     const userId = get().userId;
     set({ saving: true, error: null });
     try {
-      const result = await requestJson<Record<string, unknown>>(`/api/dashboard/matchmaking-ops${userQuery(userId)}`, {
-        method: "POST",
-        body: JSON.stringify({ action, payload }),
-      });
+      const result = await requestJson<Record<string, unknown>>(
+        `/api/dashboard/matchmaking-ops${userQuery(userId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ action, payload })
+        }
+      );
       set((state) => ({
-        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>),
+        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>)
       }));
       await get().loadExtendedModules();
     } catch (error) {
@@ -331,16 +355,19 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     const userId = get().userId;
     set({ saving: true, error: null });
     try {
-      const result = await requestJson<Record<string, unknown>>(`/api/dashboard/governance${userQuery(userId)}`, {
-        method: "POST",
-        body: JSON.stringify({
-          action,
-          recommendationId: payload?.recommendationId,
-          decision: payload?.decision,
-        }),
-      });
+      const result = await requestJson<Record<string, unknown>>(
+        `/api/dashboard/governance${userQuery(userId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            action,
+            recommendationId: payload?.recommendationId,
+            decision: payload?.decision
+          })
+        }
+      );
       set((state) => ({
-        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>),
+        snapshot: mergeSnapshotPatch(state.snapshot, result as Partial<DashboardSnapshot>)
       }));
       await get().loadExtendedModules();
     } catch (error) {
@@ -357,7 +384,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     try {
       await requestJson(`/api/dashboard/security${userQuery(userId)}`, {
         method: "PATCH",
-        body: JSON.stringify({ consents }),
+        body: JSON.stringify({ consents })
       });
       await get().bootstrap(userId);
     } catch (error) {
@@ -373,10 +400,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     try {
       await requestJson(`/api/dashboard/interactions${userQuery(userId)}`, {
         method: "POST",
-        body: JSON.stringify({ module, eventType, metadata }),
+        body: JSON.stringify({ module, eventType, metadata })
       });
     } catch {
       // Telemetry should not break the UX.
     }
-  },
+  }
 }));

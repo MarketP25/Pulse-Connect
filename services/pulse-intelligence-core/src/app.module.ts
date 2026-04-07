@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { PoliciesModule } from './policies/policies.module';
-import { DecisionsModule } from './decisions/decisions.module';
-import { AccountsModule } from './accounts/accounts.module';
-import { KycModule } from './ecommerce/kyc.module';
-import { FeatureFlagsModule } from './ecommerce/feature-flags.module';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ClientsModule, Transport } from "@nestjs/microservices";
+import { PoliciesModule } from "./policies/policies.module";
+import { DecisionsModule } from "./decisions/decisions.module";
+import { AccountsModule } from "./accounts/accounts.module";
+import { KycModule } from "./ecommerce/kyc.module";
+import { FeatureFlagsModule } from "./ecommerce/feature-flags.module";
 
 @Module({
   imports: [
@@ -14,15 +14,15 @@ import { FeatureFlagsModule } from './ecommerce/feature-flags.module';
     TypeOrmModule.forRoot(),
     ClientsModule.register([
       {
-        name: 'KAFKA_CLIENT',
+        name: "KAFKA_CLIENT",
         transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'pulsco-kafka',
-            brokers: [process.env.KAFKA_BROKER || 'localhost:9092']
+            clientId: "pulsco-kafka",
+            brokers: [process.env.KAFKA_BROKER || "localhost:9092"]
           },
           consumer: {
-            groupId: 'pulsco-consumer'
+            groupId: "pulsco-consumer"
           }
         }
       }
@@ -37,4 +37,3 @@ import { FeatureFlagsModule } from './ecommerce/feature-flags.module';
   providers: []
 })
 export class AppModule {}
-

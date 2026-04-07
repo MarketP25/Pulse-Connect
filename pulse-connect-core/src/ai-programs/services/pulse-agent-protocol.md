@@ -1,8 +1,8 @@
-# Pulse Agent Protocol
+# Pulse Agent Protocol(PAPv1)
 
 ## Purpose
 
-To govern agent behavior within Pulsco using override-safe, emotionally scoped logic.
+To do automated marketing of user`s listed product to all linked social platforms under a governed agent rules/behavior set by Pulsco admin team using override-safe, emotionally scoped logic following our policies globally.
 
 ## Core Principles
 

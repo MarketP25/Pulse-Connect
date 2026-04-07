@@ -1,17 +1,17 @@
 // MARP Firewall Smart Contracts for Pulsco Admin Governance System
 // Cryptographic policy enforcement and audit trails
 
-import { AdminRoleType } from '@pulsco/admin-shared-types';
+import { AdminRoleType } from "@pulsco/admin-shared-types";
 
 export interface SmartContract {
   id: string;
   name: string;
-  type: 'policy-enforcement' | 'audit-trail' | 'access-control' | 'data-governance';
+  type: "policy-enforcement" | "audit-trail" | "access-control" | "data-governance";
   bytecode: string;
   abi: any[];
   deployedAddress?: string;
   network: string;
-  status: 'draft' | 'deployed' | 'active' | 'deprecated';
+  status: "draft" | "deployed" | "active" | "deprecated";
   version: string;
   createdAt: Date;
   updatedAt: Date;
@@ -19,22 +19,22 @@ export interface SmartContract {
 
 export interface PolicyContract {
   contractId: string;
-  policyType: 'authentication' | 'authorization' | 'data-access' | 'audit';
+  policyType: "authentication" | "authorization" | "data-access" | "audit";
   conditions: PolicyCondition[];
   actions: PolicyAction[];
-  enforcementLevel: 'strict' | 'permissive' | 'audit-only';
+  enforcementLevel: "strict" | "permissive" | "audit-only";
   active: boolean;
 }
 
 export interface PolicyCondition {
-  type: 'role' | 'permission' | 'time' | 'location' | 'device' | 'data-classification';
-  operator: 'equals' | 'contains' | 'greater-than' | 'less-than' | 'in-range';
+  type: "role" | "permission" | "time" | "location" | "device" | "data-classification";
+  operator: "equals" | "contains" | "greater-than" | "less-than" | "in-range";
   value: any;
   negate: boolean;
 }
 
 export interface PolicyAction {
-  type: 'allow' | 'deny' | 'log' | 'alert' | 'escalate' | 'transform';
+  type: "allow" | "deny" | "log" | "alert" | "escalate" | "transform";
   parameters: Record<string, any>;
   priority: number;
 }
@@ -66,14 +66,14 @@ export class MARPFirewallContractManager {
    * Deploy a smart contract to the blockchain
    */
   async deployContract(
-    contract: Omit<SmartContract, 'id' | 'deployedAddress' | 'status' | 'createdAt' | 'updatedAt'>
+    contract: Omit<SmartContract, "id" | "deployedAddress" | "status" | "createdAt" | "updatedAt">
   ): Promise<string> {
     const contractId = `contract_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     const fullContract: SmartContract = {
       ...contract,
       id: contractId,
-      status: 'draft',
+      status: "draft",
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -82,7 +82,7 @@ export class MARPFirewallContractManager {
     const deployment = await this.simulateDeployment(fullContract);
 
     fullContract.deployedAddress = deployment.address;
-    fullContract.status = 'deployed';
+    fullContract.status = "deployed";
 
     this.contracts.set(contractId, fullContract);
 
@@ -119,12 +119,12 @@ export class MARPFirewallContractManager {
     }
 
     // Execute policy actions
-    const actions = policy.actions.filter(action => this.shouldExecuteAction(action, context));
+    const actions = policy.actions.filter((action) => this.shouldExecuteAction(action, context));
 
     // Create audit trail
     await this.createAuditTrail({
       contractId: policy.contractId,
-      eventType: 'policy-enforcement',
+      eventType: "policy-enforcement",
       dataHash: this.hashData(context),
       previousHash: this.getLastAuditHash(policy.contractId),
       timestamp: new Date(),
@@ -139,7 +139,7 @@ export class MARPFirewallContractManager {
     return {
       allowed: true,
       actions,
-      auditRequired: policy.enforcementLevel !== 'permissive'
+      auditRequired: policy.enforcementLevel !== "permissive"
     };
   }
 
@@ -192,12 +192,14 @@ export class MARPFirewallContractManager {
     integrityViolations: number;
   } {
     const totalContracts = this.contracts.size;
-    const deployedContracts = Array.from(this.contracts.values())
-      .filter(c => c.status === 'deployed' || c.status === 'active').length;
-    const activePolicies = Array.from(this.policies.values())
-      .filter(p => p.active).length;
-    const totalAuditEntries = Array.from(this.auditTrails.values())
-      .reduce((sum, trail) => sum + trail.length, 0);
+    const deployedContracts = Array.from(this.contracts.values()).filter(
+      (c) => c.status === "deployed" || c.status === "active"
+    ).length;
+    const activePolicies = Array.from(this.policies.values()).filter((p) => p.active).length;
+    const totalAuditEntries = Array.from(this.auditTrails.values()).reduce(
+      (sum, trail) => sum + trail.length,
+      0
+    );
 
     // Check integrity violations
     let integrityViolations = 0;
@@ -229,7 +231,7 @@ export class MARPFirewallContractManager {
     conditions: PolicyCondition[],
     context: Record<string, any>
   ): boolean {
-    return conditions.every(condition => {
+    return conditions.every((condition) => {
       const fieldValue = this.getNestedValue(context, condition.type);
       const result = this.evaluateCondition(fieldValue, condition.operator, condition.value);
 
@@ -239,15 +241,17 @@ export class MARPFirewallContractManager {
 
   private evaluateCondition(value: any, operator: string, expected: any): boolean {
     switch (operator) {
-      case 'equals':
+      case "equals":
         return value === expected;
-      case 'contains':
-        return Array.isArray(expected) ? expected.includes(value) : String(value).includes(String(expected));
-      case 'greater-than':
+      case "contains":
+        return Array.isArray(expected)
+          ? expected.includes(value)
+          : String(value).includes(String(expected));
+      case "greater-than":
         return Number(value) > Number(expected);
-      case 'less-than':
+      case "less-than":
         return Number(value) < Number(expected);
-      case 'in-range':
+      case "in-range":
         return value >= expected.min && value <= expected.max;
       default:
         return false;
@@ -272,7 +276,7 @@ export class MARPFirewallContractManager {
 
   private getLastAuditHash(contractId: string): string {
     const trails = this.auditTrails.get(contractId) || [];
-    return trails.length > 0 ? this.hashAuditEntry(trails[trails.length - 1]) : '';
+    return trails.length > 0 ? this.hashAuditEntry(trails[trails.length - 1]) : "";
   }
 
   private hashAuditEntry(entry: AuditTrailContract): string {
@@ -286,108 +290,116 @@ export class MARPFirewallContractManager {
 
   private verifySignature(trail: AuditTrailContract): boolean {
     // Simplified signature verification
-    return trail.signature.startsWith('sig_');
+    return trail.signature.startsWith("sig_");
   }
 
   private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
+    return path.split(".").reduce((current, key) => current?.[key], obj);
   }
 
   private initializeDefaultContracts(): void {
     const defaultContracts: SmartContract[] = [
       {
-        id: 'auth-policy-contract',
-        name: 'Authentication Policy Contract',
-        type: 'policy-enforcement',
-        bytecode: '0x608060405234801561001057600080fd5b50d3801561001d57600080fd5b50d2801561002a57600080fd5b5061012f806100396000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063...',
+        id: "auth-policy-contract",
+        name: "Authentication Policy Contract",
+        type: "policy-enforcement",
+        bytecode:
+          "0x608060405234801561001057600080fd5b50d3801561001d57600080fd5b50d2801561002a57600080fd5b5061012f806100396000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063...",
         abi: [
           {
-            "inputs": [{"name": "adminId", "type": "bytes32"}, {"name": "action", "type": "string"}],
-            "name": "checkAuthorization",
-            "outputs": [{"name": "allowed", "type": "bool"}],
-            "stateMutability": "view",
-            "type": "function"
+            inputs: [
+              { name: "adminId", type: "bytes32" },
+              { name: "action", type: "string" }
+            ],
+            name: "checkAuthorization",
+            outputs: [{ name: "allowed", type: "bool" }],
+            stateMutability: "view",
+            type: "function"
           }
         ],
-        network: 'polygon-mainnet',
-        status: 'active',
-        version: '1.0.0',
+        network: "polygon-mainnet",
+        status: "active",
+        version: "1.0.0",
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'audit-trail-contract',
-        name: 'Audit Trail Contract',
-        type: 'audit-trail',
-        bytecode: '0x608060405234801561001057600080fd5b50d3801561001d57600080fd5b50d2801561002a57600080fd5b50d2801561002a57600080fd5b5061012f806100396000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063...',
+        id: "audit-trail-contract",
+        name: "Audit Trail Contract",
+        type: "audit-trail",
+        bytecode:
+          "0x608060405234801561001057600080fd5b50d3801561001d57600080fd5b50d2801561002a57600080fd5b50d2801561002a57600080fd5b5061012f806100396000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063...",
         abi: [
           {
-            "inputs": [{"name": "eventHash", "type": "bytes32"}, {"name": "previousHash", "type": "bytes32"}],
-            "name": "recordEvent",
-            "outputs": [{"name": "recorded", "type": "bool"}],
-            "stateMutability": "nonpayable",
-            "type": "function"
+            inputs: [
+              { name: "eventHash", type: "bytes32" },
+              { name: "previousHash", type: "bytes32" }
+            ],
+            name: "recordEvent",
+            outputs: [{ name: "recorded", type: "bool" }],
+            stateMutability: "nonpayable",
+            type: "function"
           }
         ],
-        network: 'polygon-mainnet',
-        status: 'active',
-        version: '1.0.0',
+        network: "polygon-mainnet",
+        status: "active",
+        version: "1.0.0",
         createdAt: new Date(),
         updatedAt: new Date()
       }
     ];
 
-    defaultContracts.forEach(contract => {
+    defaultContracts.forEach((contract) => {
       this.contracts.set(contract.id, contract);
     });
 
     // Initialize default policies
     const defaultPolicies: PolicyContract[] = [
       {
-        contractId: 'auth-policy-contract',
-        policyType: 'authentication',
+        contractId: "auth-policy-contract",
+        policyType: "authentication",
         conditions: [
           {
-            type: 'role',
-            operator: 'equals',
-            value: 'superadmin',
+            type: "role",
+            operator: "equals",
+            value: "superadmin",
             negate: false
           }
         ],
         actions: [
           {
-            type: 'allow',
+            type: "allow",
             parameters: { allAccess: true },
             priority: 100
           }
         ],
-        enforcementLevel: 'strict',
+        enforcementLevel: "strict",
         active: true
       },
       {
-        contractId: 'audit-trail-contract',
-        policyType: 'audit',
+        contractId: "audit-trail-contract",
+        policyType: "audit",
         conditions: [
           {
-            type: 'permission',
-            operator: 'contains',
-            value: 'admin',
+            type: "permission",
+            operator: "contains",
+            value: "admin",
             negate: false
           }
         ],
         actions: [
           {
-            type: 'log',
-            parameters: { level: 'info', includeMetadata: true },
+            type: "log",
+            parameters: { level: "info", includeMetadata: true },
             priority: 50
           }
         ],
-        enforcementLevel: 'audit-only',
+        enforcementLevel: "audit-only",
         active: true
       }
     ];
 
-    defaultPolicies.forEach(policy => {
+    defaultPolicies.forEach((policy) => {
       this.policies.set(policy.contractId, policy);
     });
   }

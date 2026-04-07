@@ -208,6 +208,11 @@ export const PlacesDashboard: React.FC<PlacesDashboardProps> = ({
     'attraction',
     'shopping',
     'entertainment',
+    'hospital'
+    'school'
+    'garage'
+    'petrol station'
+    'others'
   ];
 
   return (

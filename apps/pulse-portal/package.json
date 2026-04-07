@@ -1,7 +1,7 @@
 {
-  "name": "@pulsco/pulse-portal",
+  "name": "pulse-portal",
   "version": "1.0.0",
-  "description": "Unified PULSCO Portal - Single Entry Point for All Planetary Services",
+  "description": " A Unified Portal for guests exploring Pulsco  (Single Entry Point for All Planetary Services)",
   "private": true,
   "scripts": {
     "dev": "pnpm exec next dev -p 3000",
@@ -23,6 +23,7 @@
     "@tanstack/react-query": "^5.0.0",
     "autoprefixer": "^10.4.16",
     "framer-motion": "^10.16.0",
+    "lucide-react": "^0.294.0",
     "next": "^14.0.0",
     "postcss": "^8.4.31",
     "react": "^18.2.0",

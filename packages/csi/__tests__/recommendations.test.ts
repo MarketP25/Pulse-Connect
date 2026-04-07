@@ -12,7 +12,7 @@ describe("CSI recommendations", () => {
         region: "US",
         metrics: { errorRate: 0.4, latencyMs: 2200, failureCount: 5 },
         riskScore: 80,
-        performanceScore: 30,
+        performanceScore: 30
       }),
       createCSIEvent({
         subsystem: "billing",
@@ -20,8 +20,8 @@ describe("CSI recommendations", () => {
         region: "US",
         metrics: { errorRate: 0.2, latencyMs: 1300 },
         riskScore: 52,
-        performanceScore: 52,
-      }),
+        performanceScore: 52
+      })
     ];
 
     const analysis = analyzeEvents(events);

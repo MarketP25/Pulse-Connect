@@ -44,9 +44,9 @@ import {
   NearbyPlace,
   ProductOffering,
   PurchaseRecord,
-  SupportedDashboardLanguage,
+  SupportedDashboardLanguage
 } from "@/types/dashboard";
-import { maskEmail, hashSensitive, signPayload } from "./cpc365";
+import { maskEmail, hashSensitive, signPayload } from "./pc365";
 import { defaultConsents, resolveComplianceProfile } from "./compliance";
 import { geocodeWithProximity } from "./proximity-client";
 
@@ -93,7 +93,7 @@ type MetricAccumulator = {
 const TIER_PRIORITY: Record<DashboardTier, number> = {
   basic: 1,
   premium: 2,
-  enterprise: 3,
+  enterprise: 3
 };
 
 const PRODUCTS: ProductOffering[] = [
@@ -103,7 +103,7 @@ const PRODUCTS: ProductOffering[] = [
     description: "Core dashboard optimization and automation templates.",
     priceUsd: 29,
     requiredTier: "basic",
-    category: "addon",
+    category: "addon"
   },
   {
     id: "prd-smart-commerce",
@@ -111,7 +111,7 @@ const PRODUCTS: ProductOffering[] = [
     description: "Advanced ecommerce tooling with intelligent fraud hints.",
     priceUsd: 99,
     requiredTier: "premium",
-    category: "service",
+    category: "service"
   },
   {
     id: "prd-planetary-reporting",
@@ -119,8 +119,8 @@ const PRODUCTS: ProductOffering[] = [
     description: "Enterprise reporting pipeline with global KPI slicing.",
     priceUsd: 349,
     requiredTier: "enterprise",
-    category: "subscription",
-  },
+    category: "subscription"
+  }
 ];
 
 const PLACES: Array<Omit<NearbyPlace, "distanceKm">> = [
@@ -130,7 +130,7 @@ const PLACES: Array<Omit<NearbyPlace, "distanceKm">> = [
     latitude: 40.7128,
     longitude: -74.006,
     category: "workspace",
-    score: 96,
+    score: 96
   },
   {
     id: "pl-nairobi-partner",
@@ -138,7 +138,7 @@ const PLACES: Array<Omit<NearbyPlace, "distanceKm">> = [
     latitude: -1.2921,
     longitude: 36.8219,
     category: "partner",
-    score: 91,
+    score: 91
   },
   {
     id: "pl-london-fulfillment",
@@ -146,8 +146,8 @@ const PLACES: Array<Omit<NearbyPlace, "distanceKm">> = [
     latitude: 51.5072,
     longitude: -0.1276,
     category: "fulfillment",
-    score: 89,
-  },
+    score: 89
+  }
 ];
 
 const MATCHMAKING: MatchmakingSuggestion[] = [
@@ -156,15 +156,15 @@ const MATCHMAKING: MatchmakingSuggestion[] = [
     label: "Design Labs Collective",
     type: "partner",
     compatibility: 92,
-    reason: "High overlap with your commerce and communication goals.",
+    reason: "High overlap with your commerce and communication goals."
   },
   {
     id: "mm-local-growth",
     label: "Local Growth Accelerator",
     type: "service",
     compatibility: 88,
-    reason: "Strong regional coverage and language-aligned support.",
-  },
+    reason: "Strong regional coverage and language-aligned support."
+  }
 ];
 
 const ANNOUNCEMENTS: Announcement[] = [
@@ -172,8 +172,8 @@ const ANNOUNCEMENTS: Announcement[] = [
     id: "ann-upgrade-2026-03",
     title: "New Adaptive Insights Engine",
     body: "CSI advisory insights now include fraud and optimization overlays.",
-    createdAt: new Date().toISOString(),
-  },
+    createdAt: new Date().toISOString()
+  }
 ];
 
 const CAMPAIGNS: MarketingCampaignMetric[] = [
@@ -183,7 +183,7 @@ const CAMPAIGNS: MarketingCampaignMetric[] = [
     impressions: 124_500,
     clicks: 8_945,
     conversions: 1_032,
-    spendUsd: 2_180,
+    spendUsd: 2_180
   },
   {
     id: "cmp-localized-02",
@@ -191,8 +191,8 @@ const CAMPAIGNS: MarketingCampaignMetric[] = [
     impressions: 86_310,
     clicks: 6_778,
     conversions: 913,
-    spendUsd: 1_540,
-  },
+    spendUsd: 1_540
+  }
 ];
 
 function tierAtLeast(current: DashboardTier, required: DashboardTier): boolean {
@@ -200,10 +200,10 @@ function tierAtLeast(current: DashboardTier, required: DashboardTier): boolean {
 }
 
 function buildReferralCode(seed: string): string {
-  return `${seed.replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}-${Math.random()
-    .toString(36)
-    .slice(2, 7)
-    .toUpperCase()}`;
+  return `${seed
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(0, 6)
+    .toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
 
 function distanceKm(latA: number, lonA: number, latB: number, lonB: number): number {
@@ -212,7 +212,10 @@ function distanceKm(latA: number, lonA: number, latB: number, lonB: number): num
   const dLon = ((lonB - lonA) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((latA * Math.PI) / 180) * Math.cos((latB * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos((latA * Math.PI) / 180) *
+      Math.cos((latB * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Number((R * c).toFixed(1));
 }
@@ -251,7 +254,7 @@ export class DashboardStore {
   private readonly proximityRules: DashboardProximityRule[] = [
     { id: "prx-rule-01", name: "location-consent-required", value: "true" },
     { id: "prx-rule-02", name: "max-radius-km", value: "150" },
-    { id: "prx-rule-03", name: "reason-code", value: "CSI_GATEWAY_ACCESS" },
+    { id: "prx-rule-03", name: "reason-code", value: "CSI_GATEWAY_ACCESS" }
   ];
 
   constructor() {
@@ -263,7 +266,7 @@ export class DashboardStore {
     const seedUsers: InternalUser[] = [
       {
         id: "demo-basic",
-        email: "basic.user@pulsco.com",
+        email: "basic.user@pulsco.global",
         displayName: "Basic User",
         role: "individual",
         tier: "basic",
@@ -277,11 +280,11 @@ export class DashboardStore {
         referralCredits: 1,
         consents: defaultConsents(),
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: "demo-premium",
-        email: "premium.user@pulsco.com",
+        email: "premium.user@pulsco.global",
         displayName: "Premium User",
         role: "business",
         tier: "premium",
@@ -296,16 +299,16 @@ export class DashboardStore {
         consents: {
           ...defaultConsents(),
           marketing: true,
-          profiling: true,
+          profiling: true
         },
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       },
       {
         id: "demo-enterprise",
-        email: "enterprise.user@pulsco.com",
+        email: "enterprise.user@pulsco.global",
         displayName: "Enterprise User",
-        role: "enterprise",
+        role: "organisation",
         tier: "enterprise",
         preferredLanguage: "en",
         country: "US",
@@ -318,11 +321,11 @@ export class DashboardStore {
         consents: {
           ...defaultConsents(),
           marketing: true,
-          profiling: true,
+          profiling: true
         },
         createdAt: now,
-        updatedAt: now,
-      },
+        updatedAt: now
+      }
     ];
 
     for (const user of seedUsers) {
@@ -339,12 +342,12 @@ export class DashboardStore {
       this.inbox.set(user.id, [
         {
           id: randomUUID(),
-          from: "support@pulsco.com",
-          subject: "Welcome to PULSCO Dashboard",
+          from: "support@pulsco.global",
+          subject: "Welcome to Pulsco",
           preview: "Your universal dashboard is ready.",
           createdAt: now,
-          unread: false,
-        },
+          unread: false
+        }
       ]);
       this.notifications.set(user.id, [
         {
@@ -352,8 +355,8 @@ export class DashboardStore {
           title: "Security posture stable",
           body: "No critical anomalies detected in the last 24 hours.",
           level: "info",
-          createdAt: now,
-        },
+          createdAt: now
+        }
       ]);
       this.recommendations.set(user.id, [
         {
@@ -364,8 +367,8 @@ export class DashboardStore {
           priority: "medium",
           requiresApproval: false,
           approvalRole: "none",
-          status: "suggested",
-        },
+          status: "suggested"
+        }
       ]);
       this.identitySessions.set(user.id, [
         {
@@ -373,8 +376,8 @@ export class DashboardStore {
           device: "Chrome on Windows",
           ipMasked: "192.168.xxx.xxx",
           createdAt: now,
-          lastSeenAt: now,
-        },
+          lastSeenAt: now
+        }
       ]);
       if (user.phoneVerified) {
         this.twoFactorEnabledUsers.add(user.id);
@@ -407,7 +410,7 @@ export class DashboardStore {
       referralCredits: 0,
       consents: defaultConsents(),
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     };
 
     this.users.set(userId, user);
@@ -429,8 +432,8 @@ export class DashboardStore {
         device: "Chrome on Web",
         ipMasked: "203.0.xxx.xxx",
         createdAt: now,
-        lastSeenAt: now,
-      },
+        lastSeenAt: now
+      }
     ]);
     return user;
   }
@@ -454,7 +457,7 @@ export class DashboardStore {
       referredByCode: user.referredByCode,
       referralCredits: user.referralCredits,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      updatedAt: user.updatedAt
     };
   }
 
@@ -467,17 +470,26 @@ export class DashboardStore {
     const updated: InternalUser = {
       ...current,
       ...input,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     this.users.set(userId, updated);
     return this.toPublicUser(updated);
   }
 
-  updateOnboarding(userId: string, input: { role?: DashboardRole; preferredLanguage?: SupportedDashboardLanguage; referralCode?: string }): DashboardUser {
+  updateOnboarding(
+    userId: string,
+    input: {
+      role?: DashboardRole;
+      preferredLanguage?: SupportedDashboardLanguage;
+      referralCode?: string;
+    }
+  ): DashboardUser {
     const current = this.getOrCreateUser(userId);
 
     if (input.referralCode && !current.referredByCode) {
-      const referrer = [...this.users.values()].find((entry) => entry.referralCode === input.referralCode);
+      const referrer = [...this.users.values()].find(
+        (entry) => entry.referralCode === input.referralCode
+      );
       if (referrer && referrer.id !== current.id) {
         current.referredByCode = input.referralCode;
         referrer.referralCredits += 1;
@@ -488,20 +500,21 @@ export class DashboardStore {
 
     return this.updateProfile(userId, {
       role: input.role || current.role,
-      preferredLanguage: input.preferredLanguage || current.preferredLanguage,
+      preferredLanguage: input.preferredLanguage || current.preferredLanguage
     });
   }
 
   updateTier(userId: string, tier: DashboardTier): DashboardUser {
     const user = this.getOrCreateUser(userId);
-    const kycStatus: KycStatus = tier === "basic" ? "not_required" : user.kycStatus === "verified" ? "verified" : "pending";
+    const kycStatus: KycStatus =
+      tier === "basic" ? "not_required" : user.kycStatus === "verified" ? "verified" : "pending";
     this.subscriptionStatus.set(userId, "active");
     return this.updateProfile(userId, { tier, kycStatus });
   }
 
   completeKyc(userId: string, approved = true): DashboardUser {
     return this.updateProfile(userId, {
-      kycStatus: approved ? "verified" : "rejected",
+      kycStatus: approved ? "verified" : "rejected"
     });
   }
 
@@ -509,7 +522,7 @@ export class DashboardStore {
     const user = this.getOrCreateUser(userId);
     const next = {
       ...user.consents,
-      ...partial,
+      ...partial
     };
     user.consents = next;
     user.updatedAt = new Date().toISOString();
@@ -520,7 +533,11 @@ export class DashboardStore {
   syncProductCatalogWithBilling(planPrices: Partial<Record<DashboardTier, number>>): void {
     for (const product of PRODUCTS) {
       const priceFromBilling = planPrices[product.requiredTier];
-      if (typeof priceFromBilling === "number" && Number.isFinite(priceFromBilling) && priceFromBilling > 0) {
+      if (
+        typeof priceFromBilling === "number" &&
+        Number.isFinite(priceFromBilling) &&
+        priceFromBilling > 0
+      ) {
         product.priceUsd = Number(priceFromBilling.toFixed(2));
       }
     }
@@ -559,11 +576,17 @@ export class DashboardStore {
     return this.invoices.get(userId) || [];
   }
 
-  purchaseProduct(userId: string, productId: string, options?: { amountUsd?: number }): PurchaseRecord {
+  purchaseProduct(
+    userId: string,
+    productId: string,
+    options?: { amountUsd?: number }
+  ): PurchaseRecord {
     const product = this.validateProductPurchase(userId, productId);
 
     const billedAmount =
-      typeof options?.amountUsd === "number" && Number.isFinite(options.amountUsd) && options.amountUsd > 0
+      typeof options?.amountUsd === "number" &&
+      Number.isFinite(options.amountUsd) &&
+      options.amountUsd > 0
         ? Number(options.amountUsd.toFixed(2))
         : product.priceUsd;
 
@@ -573,7 +596,7 @@ export class DashboardStore {
       productName: product.name,
       amountUsd: billedAmount,
       purchasedAt: new Date().toISOString(),
-      status: "completed",
+      status: "completed"
     };
 
     const invoice: InvoiceRecord = {
@@ -582,7 +605,7 @@ export class DashboardStore {
       amountUsd: billedAmount,
       issuedAt: purchase.purchasedAt,
       dueAt: purchase.purchasedAt,
-      status: "paid",
+      status: "paid"
     };
 
     this.purchases.set(userId, [purchase, ...(this.purchases.get(userId) || [])]);
@@ -610,7 +633,7 @@ export class DashboardStore {
         type: "fraud",
         severity: "warning",
         message: "Paid tier operations are restricted until full KYC verification is complete.",
-        createdAt: now,
+        createdAt: now
       });
     }
 
@@ -619,8 +642,9 @@ export class DashboardStore {
         id: randomUUID(),
         type: "system",
         severity: "warning",
-        message: "Some dashboard intelligence modules are paused until data processing consent is re-enabled.",
-        createdAt: now,
+        message:
+          "Some dashboard intelligence modules are paused until data processing consent is re-enabled.",
+        createdAt: now
       });
     }
 
@@ -629,7 +653,7 @@ export class DashboardStore {
       type: "optimization",
       severity: "info",
       message: "CSI recommends consolidating campaigns into top-performing channels.",
-      createdAt: now,
+      createdAt: now
     });
 
     return alerts;
@@ -645,14 +669,14 @@ export class DashboardStore {
       const geocoded = await geocodeWithProximity(locationKey);
       current = {
         latitude: geocoded.latitude,
-        longitude: geocoded.longitude,
+        longitude: geocoded.longitude
       };
       this.geocodeCache.set(locationKey, current);
     }
 
     return PLACES.map((place) => ({
       ...place,
-      distanceKm: distanceKm(current.latitude, current.longitude, place.latitude, place.longitude),
+      distanceKm: distanceKm(current.latitude, current.longitude, place.latitude, place.longitude)
     })).sort((a, b) => a.distanceKm - b.distanceKm);
   }
 
@@ -691,9 +715,13 @@ export class DashboardStore {
       id: alert.id,
       type: "policy_alert",
       severity:
-        alert.severity === "critical" ? "critical" : alert.severity === "warning" ? "high" : "medium",
+        alert.severity === "critical"
+          ? "critical"
+          : alert.severity === "warning"
+            ? "high"
+            : "medium",
       message: alert.message,
-      detectedAt: alert.createdAt,
+      detectedAt: alert.createdAt
     })) as FraudAnomaly[];
 
     anomalies.push({
@@ -701,7 +729,7 @@ export class DashboardStore {
       type: "behavioral_drift",
       severity: "medium",
       message: "Behavioral pattern drift detected; monitor sensitive actions.",
-      detectedAt: now,
+      detectedAt: now
     });
 
     return anomalies.slice(0, 8);
@@ -719,7 +747,7 @@ export class DashboardStore {
       const pointDate = new Date(now.getTime() - (5 - index) * 86_400_000);
       return {
         label: pointDate.toISOString().slice(5, 10),
-        value: Number((grossUsd * (0.55 + index * 0.09)).toFixed(2)),
+        value: Number((grossUsd * (0.55 + index * 0.09)).toFixed(2))
       };
     });
 
@@ -731,11 +759,11 @@ export class DashboardStore {
         netUsd,
         orders: Math.max(orders, invoices.length),
         currency: "USD",
-        period: "last_30_days",
+        period: "last_30_days"
       },
       revenueTrends: trends,
       performanceLatencyMs: 142,
-      anomalies: this.listFraudAnomalies(userId),
+      anomalies: this.listFraudAnomalies(userId)
     };
   }
 
@@ -746,7 +774,7 @@ export class DashboardStore {
       source: "dashboard-store-fallback",
       refreshedAt: new Date().toISOString(),
       riskScore,
-      anomalies: this.listFraudAnomalies(userId),
+      anomalies: this.listFraudAnomalies(userId)
     };
   }
 
@@ -770,7 +798,7 @@ export class DashboardStore {
       twoFactorEnabled: this.twoFactorEnabledUsers.has(user.id),
       onboardingRequiredActions: required,
       sessions: this.identitySessions.get(user.id) || [],
-      history: this.listIdentityHistory(user.id),
+      history: this.listIdentityHistory(user.id)
     };
   }
 
@@ -794,7 +822,7 @@ export class DashboardStore {
         type: "charge",
         amountUsd: purchase.amountUsd,
         balanceUsd: Number(runningBalance.toFixed(2)),
-        createdAt: purchase.purchasedAt,
+        createdAt: purchase.purchasedAt
       });
     }
 
@@ -804,7 +832,7 @@ export class DashboardStore {
         type: "invoice",
         amountUsd: invoice.amountUsd,
         balanceUsd: Number(runningBalance.toFixed(2)),
-        createdAt: invoice.issuedAt,
+        createdAt: invoice.issuedAt
       });
     }
 
@@ -812,13 +840,13 @@ export class DashboardStore {
       {
         version: "2026.03.01",
         status: "active",
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       },
       {
         version: "2025.12.15",
         status: "deprecated",
-        createdAt: new Date(Date.now() - 7_776_000_000).toISOString(),
-      },
+        createdAt: new Date(Date.now() - 7_776_000_000).toISOString()
+      }
     ];
 
     return {
@@ -828,10 +856,10 @@ export class DashboardStore {
         tier: user.tier,
         status: this.subscriptionStatus.get(user.id) || "active",
         region: user.country,
-        renewalAt: new Date(Date.now() + 2_592_000_000).toISOString(),
+        renewalAt: new Date(Date.now() + 2_592_000_000).toISOString()
       },
       ledgerEntries: ledgerEntries.slice(0, 15),
-      policyVersions,
+      policyVersions
     };
   }
 
@@ -853,7 +881,7 @@ export class DashboardStore {
       type: booking.status === "cancelled" ? "refund" : "booking",
       amountUsd: booking.totalUsd,
       balanceUsd: booking.totalUsd,
-      createdAt: booking.startAt,
+      createdAt: booking.startAt
     }));
 
     return {
@@ -861,18 +889,21 @@ export class DashboardStore {
       refreshedAt: new Date().toISOString(),
       places,
       bookings,
-      transactions,
+      transactions
     };
   }
 
-  createManagedPlace(userId: string, input: { name: string; category: string }): DashboardPlacesOperationsModule {
+  createManagedPlace(
+    userId: string,
+    input: { name: string; category: string }
+  ): DashboardPlacesOperationsModule {
     const current = this.managedPlaces.get(userId) || [];
     current.unshift({
       id: randomUUID(),
       name: input.name,
       category: input.category,
       status: "published",
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
     this.managedPlaces.set(userId, current.slice(0, 30));
     return this.listPlacesOperations(userId);
@@ -880,7 +911,7 @@ export class DashboardStore {
 
   createPlaceBooking(
     userId: string,
-    input: { placeId: string; totalUsd: number; startAt: string; endAt: string },
+    input: { placeId: string; totalUsd: number; startAt: string; endAt: string }
   ): DashboardPlacesOperationsModule {
     const current = this.placeBookings.get(userId) || [];
     current.unshift({
@@ -889,7 +920,7 @@ export class DashboardStore {
       status: "confirmed",
       startAt: input.startAt,
       endAt: input.endAt,
-      totalUsd: Number(input.totalUsd.toFixed(2)),
+      totalUsd: Number(input.totalUsd.toFixed(2))
     });
     this.placeBookings.set(userId, current.slice(0, 50));
     return this.listPlacesOperations(userId);
@@ -897,7 +928,7 @@ export class DashboardStore {
 
   cancelPlaceBooking(userId: string, bookingId: string): DashboardPlacesOperationsModule {
     const current = (this.placeBookings.get(userId) || []).map((booking) =>
-      booking.id === bookingId ? { ...booking, status: "cancelled" as const } : booking,
+      booking.id === bookingId ? { ...booking, status: "cancelled" as const } : booking
     );
     this.placeBookings.set(userId, current);
     return this.listPlacesOperations(userId);
@@ -909,7 +940,7 @@ export class DashboardStore {
       refreshedAt: new Date().toISOString(),
       briefs: this.briefs.get(userId) || [],
       proposals: this.proposals.get(userId) || [],
-      contracts: this.contracts.get(userId) || [],
+      contracts: this.contracts.get(userId) || []
     };
   }
 
@@ -919,20 +950,24 @@ export class DashboardStore {
       id: randomUUID(),
       title,
       status: "open",
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     });
     this.briefs.set(userId, current.slice(0, 50));
     return this.listMatchmakingOperations(userId);
   }
 
-  submitProposal(userId: string, briefId: string, amountUsd: number): DashboardMatchmakingOperationsModule {
+  submitProposal(
+    userId: string,
+    briefId: string,
+    amountUsd: number
+  ): DashboardMatchmakingOperationsModule {
     const current = this.proposals.get(userId) || [];
     current.unshift({
       id: randomUUID(),
       briefId,
       status: "submitted",
       amountUsd: Number(amountUsd.toFixed(2)),
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     });
     this.proposals.set(userId, current.slice(0, 100));
     return this.listMatchmakingOperations(userId);
@@ -944,7 +979,7 @@ export class DashboardStore {
       id: randomUUID(),
       proposalId,
       status: "active",
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     });
     this.contracts.set(userId, current.slice(0, 100));
     return this.listMatchmakingOperations(userId);
@@ -955,13 +990,13 @@ export class DashboardStore {
     const providerHealth: DashboardLocalizationProviderHealth[] = [
       { provider: "localization-service", status: "healthy", latencyMs: 121, errorRate: 0.01 },
       { provider: "azure-translator", status: "healthy", latencyMs: 144, errorRate: 0.02 },
-      { provider: "fallback", status: "degraded", latencyMs: 15, errorRate: 0.04 },
+      { provider: "fallback", status: "degraded", latencyMs: 15, errorRate: 0.04 }
     ];
     const languageCoverage: DashboardLanguageCoverage[] = [
       { language: "en", regions: ["us", "eu", "asia"], quality: "high" },
       { language: "sw", regions: ["africa"], quality: "high" },
       { language: "fr", regions: ["eu", "africa"], quality: "high" },
-      { language: "es", regions: ["us", "eu", "south_america"], quality: "high" },
+      { language: "es", regions: ["us", "eu", "south_america"], quality: "high" }
     ];
     return {
       source: "dashboard-store-fallback",
@@ -969,11 +1004,11 @@ export class DashboardStore {
       providerHealth,
       languageCoverage,
       sampleTranslation: {
-        sourceText: "Welcome to PULSCO",
+        sourceText: "Welcome to Pulsco Global Ltd",
         targetLanguage: user.preferredLanguage,
-        translatedText: `[${user.preferredLanguage.toUpperCase()}] Welcome to PULSCO`,
-        provider: "fallback",
-      },
+        translatedText: `[${user.preferredLanguage.toUpperCase()}] Welcome to Pulsco Global Ltd`,
+        provider: "fallback"
+      }
     };
   }
 
@@ -982,17 +1017,17 @@ export class DashboardStore {
     const metrics: DashboardProximityMetric[] = [
       { name: "geocode_requests_24h", value: 1284 },
       { name: "distance_calculations_24h", value: 3491 },
-      { name: "cluster_ops_24h", value: 203 },
+      { name: "cluster_ops_24h", value: 203 }
     ];
     return {
       source: "dashboard-store-fallback",
       refreshedAt: new Date().toISOString(),
       health: {
         status: "healthy",
-        latencyMs: 97,
+        latencyMs: 97
       },
       rules: this.proximityRules,
-      metrics,
+      metrics
     };
   }
 
@@ -1005,7 +1040,7 @@ export class DashboardStore {
       csiApprovals,
       policyVersions: ["1.0.0", "1.1.0", "1.2.0"],
       firewallRuleCount: 14,
-      arbitrations,
+      arbitrations
     };
   }
 
@@ -1014,7 +1049,7 @@ export class DashboardStore {
     list.unshift({
       id: randomUUID(),
       status: "pending",
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     });
     this.arbitrations.set(userId, list.slice(0, 30));
     return this.getGovernanceModule(userId);
@@ -1023,10 +1058,10 @@ export class DashboardStore {
   updateRecommendationStatus(
     userId: string,
     recommendationId: string,
-    status: DashboardRecommendation["status"],
+    status: DashboardRecommendation["status"]
   ): DashboardRecommendation[] {
     const list = this.getRecommendations(userId).map((item) =>
-      item.id === recommendationId ? { ...item, status } : item,
+      item.id === recommendationId ? { ...item, status } : item
     );
     this.recommendations.set(userId, list);
     return list;
@@ -1040,7 +1075,7 @@ export class DashboardStore {
         id: log.id,
         action: `${log.module}.${log.action}`,
         actor: "dashboard-service",
-        at: log.at,
+        at: log.at
       }));
 
     if (entries.length === 0) {
@@ -1048,7 +1083,7 @@ export class DashboardStore {
         id: randomUUID(),
         action: "identity.account_initialized",
         actor: "dashboard-service",
-        at: new Date().toISOString(),
+        at: new Date().toISOString()
       });
     }
 
@@ -1082,7 +1117,7 @@ export class DashboardStore {
       userId: input.userId,
       latencyMs: input.latencyMs,
       at,
-      detail: input.detail,
+      detail: input.detail
     });
 
     if (this.logs.length > 500) {
@@ -1095,7 +1130,7 @@ export class DashboardStore {
       failedRequests: 0,
       totalLatencyMs: 0,
       lastLatencyMs: 0,
-      lastUpdatedAt: at,
+      lastUpdatedAt: at
     };
 
     existing.totalRequests += 1;
@@ -1116,14 +1151,14 @@ export class DashboardStore {
       tier: user.tier,
       kycStatus: user.kycStatus,
       updatedAt: user.updatedAt,
-      consentHash: signPayload(user.consents),
+      consentHash: signPayload(user.consents)
     }));
 
     const snapshot = {
       at: new Date().toISOString(),
       reason,
       users,
-      purchaseCount: [...this.purchases.values()].reduce((acc, current) => acc + current.length, 0),
+      purchaseCount: [...this.purchases.values()].reduce((acc, current) => acc + current.length, 0)
     };
 
     const summary: DashboardBackupSnapshot = {
@@ -1132,7 +1167,7 @@ export class DashboardStore {
       reason,
       signature: signPayload(snapshot),
       userCount: users.length,
-      purchaseCount: snapshot.purchaseCount,
+      purchaseCount: snapshot.purchaseCount
     };
 
     this.backups.unshift(summary);
@@ -1150,7 +1185,7 @@ export class DashboardStore {
       failedRequests: metric.failedRequests,
       avgLatencyMs: Number((metric.totalLatencyMs / Math.max(metric.totalRequests, 1)).toFixed(2)),
       lastLatencyMs: metric.lastLatencyMs,
-      lastUpdatedAt: metric.lastUpdatedAt,
+      lastUpdatedAt: metric.lastUpdatedAt
     }));
   }
 
@@ -1160,7 +1195,6 @@ export class DashboardStore {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __pulscoDashboardStore: DashboardStore | undefined;
 }
 

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { MatchmakingProfile, MatchmakingPreferences, MatchResult } from '../types/matchmaking';
-import { matchmakingService } from '../services/matchmakingService';
+import { useState, useEffect, useCallback } from "react";
+import { MatchmakingProfile, MatchmakingPreferences, MatchResult } from "../types/matchmaking";
+import { matchmakingService } from "../services/matchmakingService";
 
 export function useMatchmaking() {
   const [profile, setProfile] = useState<MatchmakingProfile | null>(null);
@@ -20,14 +20,14 @@ export function useMatchmaking() {
       const [profileData, preferencesData, matchesData] = await Promise.all([
         matchmakingService.getProfile(),
         matchmakingService.getPreferences(),
-        matchmakingService.getMatches(),
+        matchmakingService.getMatches()
       ]);
 
       setProfile(profileData);
       setPreferences(preferencesData);
       setMatches(matchesData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load matchmaking data');
+      setError(err instanceof Error ? err.message : "Failed to load matchmaking data");
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,7 @@ export function useMatchmaking() {
       const updatedProfile = await matchmakingService.updateProfile(updates);
       setProfile(updatedProfile);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
+      setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export function useMatchmaking() {
       const updatedPreferences = await matchmakingService.updatePreferences(updates);
       setPreferences(updatedPreferences);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update preferences');
+      setError(err instanceof Error ? err.message : "Failed to update preferences");
     } finally {
       setLoading(false);
     }
@@ -61,9 +61,9 @@ export function useMatchmaking() {
     try {
       setLoading(true);
       const newMatches = await matchmakingService.findMatches();
-      setMatches(prev => [...prev, ...newMatches]);
+      setMatches((prev) => [...prev, ...newMatches]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to find matches');
+      setError(err instanceof Error ? err.message : "Failed to find matches");
     } finally {
       setLoading(false);
     }
@@ -72,19 +72,19 @@ export function useMatchmaking() {
   const acceptMatch = useCallback(async (matchId: string) => {
     try {
       await matchmakingService.acceptMatch(matchId);
-      setMatches(prev => prev.filter(match => match.id !== matchId));
+      setMatches((prev) => prev.filter((match) => match.id !== matchId));
       // Could add to accepted matches list here
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept match');
+      setError(err instanceof Error ? err.message : "Failed to accept match");
     }
   }, []);
 
   const rejectMatch = useCallback(async (matchId: string) => {
     try {
       await matchmakingService.rejectMatch(matchId);
-      setMatches(prev => prev.filter(match => match.id !== matchId));
+      setMatches((prev) => prev.filter((match) => match.id !== matchId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject match');
+      setError(err instanceof Error ? err.message : "Failed to reject match");
     }
   }, []);
 
@@ -104,6 +104,6 @@ export function useMatchmaking() {
     acceptMatch,
     rejectMatch,
     clearError,
-    refresh: loadInitialData,
+    refresh: loadInitialData
   };
 }

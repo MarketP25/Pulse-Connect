@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class CognitiveComputingService {
@@ -86,34 +86,34 @@ export class CognitiveComputingService {
   private extractTriples(data: any[]): any[] {
     const triples = [];
 
-    data.forEach(item => {
-      if (item.type === 'transaction') {
+    data.forEach((item) => {
+      if (item.type === "transaction") {
         triples.push({
           subject: item.userId,
-          predicate: 'performed_transaction',
+          predicate: "performed_transaction",
           object: item.transactionId,
           confidence: 0.95
         });
 
         triples.push({
           subject: item.transactionId,
-          predicate: 'amount',
+          predicate: "amount",
           object: item.amount,
           confidence: 0.98
         });
 
         triples.push({
           subject: item.transactionId,
-          predicate: 'location',
+          predicate: "location",
           object: item.location,
           confidence: 0.9
         });
       }
 
-      if (item.type === 'user') {
+      if (item.type === "user") {
         triples.push({
           subject: item.userId,
-          predicate: 'risk_score',
+          predicate: "risk_score",
           object: item.riskScore,
           confidence: 0.85
         });
@@ -127,7 +127,7 @@ export class CognitiveComputingService {
     const nodes = new Set();
     const edges = [];
 
-    triples.forEach(triple => {
+    triples.forEach((triple) => {
       nodes.add(triple.subject);
       nodes.add(triple.object);
 
@@ -150,11 +150,11 @@ export class CognitiveComputingService {
     const inferences = [];
 
     // Transitive inference: if A -> B and B -> C, then A -> C
-    graph.edges.forEach(edge1 => {
-      graph.edges.forEach(edge2 => {
+    graph.edges.forEach((edge1) => {
+      graph.edges.forEach((edge2) => {
         if (edge1.to === edge2.from && edge1.from !== edge2.to) {
           inferences.push({
-            type: 'transitive',
+            type: "transitive",
             conclusion: `${edge1.from} -> ${edge2.to}`,
             confidence: Math.min(edge1.confidence, edge2.confidence) * 0.9, // Reduce confidence
             path: [edge1, edge2]
@@ -164,16 +164,16 @@ export class CognitiveComputingService {
     });
 
     // Risk propagation: if user has high-risk transaction, mark as high-risk
-    graph.edges.forEach(edge => {
-      if (edge.label === 'performed_transaction') {
-        const transactionEdges = graph.edges.filter(e => e.from === edge.to);
-        const highRiskTransaction = transactionEdges.find(e =>
-          e.label === 'amount' && parseFloat(e.to) > 5000
+    graph.edges.forEach((edge) => {
+      if (edge.label === "performed_transaction") {
+        const transactionEdges = graph.edges.filter((e) => e.from === edge.to);
+        const highRiskTransaction = transactionEdges.find(
+          (e) => e.label === "amount" && parseFloat(e.to) > 5000
         );
 
         if (highRiskTransaction) {
           inferences.push({
-            type: 'risk_propagation',
+            type: "risk_propagation",
             conclusion: `${edge.from} is high_risk`,
             confidence: 0.8,
             evidence: [edge, highRiskTransaction]
@@ -195,33 +195,31 @@ export class CognitiveComputingService {
 
     if (highConnectivity.length > 0) {
       insights.push({
-        type: 'connectivity_analysis',
-        finding: `Highly connected entities: ${highConnectivity.join(', ')}`,
-        severity: 'medium',
-        recommendation: 'Investigate for potential fraud rings'
+        type: "connectivity_analysis",
+        finding: `Highly connected entities: ${highConnectivity.join(", ")}`,
+        severity: "medium",
+        recommendation: "Investigate for potential fraud rings"
       });
     }
 
     // Geographic clustering
-    const locations = graph.edges
-      .filter(e => e.label === 'location')
-      .map(e => e.to);
+    const locations = graph.edges.filter((e) => e.label === "location").map((e) => e.to);
 
     const locationClusters = this.clusterLocations(locations);
     if (locationClusters.length > 3) {
       insights.push({
-        type: 'geographic_clustering',
+        type: "geographic_clustering",
         finding: `${locationClusters.length} geographic clusters detected`,
-        severity: 'low',
-        recommendation: 'Monitor for regional fraud patterns'
+        severity: "low",
+        recommendation: "Monitor for regional fraud patterns"
       });
     }
 
     // Suspicious patterns
     const suspiciousPatterns = this.detectSuspiciousPatterns(graph);
-    suspiciousPatterns.forEach(pattern => {
+    suspiciousPatterns.forEach((pattern) => {
       insights.push({
-        type: 'pattern_detection',
+        type: "pattern_detection",
         finding: pattern.description,
         severity: pattern.severity,
         recommendation: pattern.recommendation
@@ -232,9 +230,12 @@ export class CognitiveComputingService {
   }
 
   private calculateGraphReliability(graph: any, inferences: any[]): number {
-    const edgeConfidence = graph.edges.reduce((sum, e) => sum + e.confidence, 0) / graph.edges.length;
-    const inferenceConfidence = inferences.length > 0 ?
-      inferences.reduce((sum, inf) => sum + inf.confidence, 0) / inferences.length : 1;
+    const edgeConfidence =
+      graph.edges.reduce((sum, e) => sum + e.confidence, 0) / graph.edges.length;
+    const inferenceConfidence =
+      inferences.length > 0
+        ? inferences.reduce((sum, inf) => sum + inf.confidence, 0) / inferences.length
+        : 1;
 
     return (edgeConfidence + inferenceConfidence) / 2;
   }
@@ -264,10 +265,10 @@ export class CognitiveComputingService {
     const inferences = [];
 
     // Deductive reasoning
-    nodes.forEach(node => {
-      if (node.riskLevel === 'high') {
+    nodes.forEach((node) => {
+      if (node.riskLevel === "high") {
         inferences.push({
-          type: 'deductive',
+          type: "deductive",
           premise: `${node.id} has high risk`,
           conclusion: `${node.id} should be flagged for suspicious activity`,
           confidence: 0.9
@@ -280,12 +281,12 @@ export class CognitiveComputingService {
     const velocityPatterns = this.detectVelocityPatterns(nodes);
     if (velocityPatterns.highVelocity) {
       inferences.push({
-        type: 'inductive',
+        type: "inductive",
         premise: `High transaction velocity detected`,
         conclusion: `Potential automated fraud activity`,
         confidence: 0.75
       });
-      steps.push('Inducted potential automated fraud from velocity patterns');
+      steps.push("Inducted potential automated fraud from velocity patterns");
     }
 
     return { steps, inferences };
@@ -294,7 +295,7 @@ export class CognitiveComputingService {
   private drawConclusions(reasoning: any): any[] {
     const conclusions = [];
 
-    reasoning.inferences.forEach(inference => {
+    reasoning.inferences.forEach((inference) => {
       const severity = this.determineSeverity(inference.confidence);
       conclusions.push({
         conclusion: inference.conclusion,
@@ -316,50 +317,50 @@ export class CognitiveComputingService {
   private initializeExpertRules(): void {
     this.expertRules = [
       {
-        id: 'fraud_detection_1',
+        id: "fraud_detection_1",
         conditions: [
-          { fact: 'amount', operator: '>', value: 5000, weight: 0.4 },
-          { fact: 'location', operator: '!=', value: 'usual', weight: 0.3 },
-          { fact: 'frequency', operator: '>', value: 10, weight: 0.3 }
+          { fact: "amount", operator: ">", value: 5000, weight: 0.4 },
+          { fact: "location", operator: "!=", value: "usual", weight: 0.3 },
+          { fact: "frequency", operator: ">", value: 10, weight: 0.3 }
         ],
-        conclusion: 'high_fraud_risk',
+        conclusion: "high_fraud_risk",
         certainty: 0.85
       },
       {
-        id: 'geographic_anomaly',
+        id: "geographic_anomaly",
         conditions: [
-          { fact: 'location', operator: '!=', value: 'usual', weight: 0.5 },
-          { fact: 'distance', operator: '>', value: 1000, weight: 0.3 },
-          { fact: 'time', operator: '<', value: 24, weight: 0.2 }
+          { fact: "location", operator: "!=", value: "usual", weight: 0.5 },
+          { fact: "distance", operator: ">", value: 1000, weight: 0.3 },
+          { fact: "time", operator: "<", value: 24, weight: 0.2 }
         ],
-        conclusion: 'geographic_anomaly',
+        conclusion: "geographic_anomaly",
         certainty: 0.75
       },
       {
-        id: 'velocity_check',
+        id: "velocity_check",
         conditions: [
-          { fact: 'frequency', operator: '>', value: 20, weight: 0.4 },
-          { fact: 'amount', operator: '>', value: 1000, weight: 0.3 },
-          { fact: 'unique_locations', operator: '>', value: 5, weight: 0.3 }
+          { fact: "frequency", operator: ">", value: 20, weight: 0.4 },
+          { fact: "amount", operator: ">", value: 1000, weight: 0.3 },
+          { fact: "unique_locations", operator: ">", value: 5, weight: 0.3 }
         ],
-        conclusion: 'velocity_anomaly',
+        conclusion: "velocity_anomaly",
         certainty: 0.8
       },
       {
-        id: 'user_risk_assessment',
+        id: "user_risk_assessment",
         conditions: [
-          { fact: 'risk_score', operator: '>', value: 0.7, weight: 0.5 },
-          { fact: 'recent_transactions', operator: '>', value: 15, weight: 0.3 },
-          { fact: 'failed_attempts', operator: '>', value: 3, weight: 0.2 }
+          { fact: "risk_score", operator: ">", value: 0.7, weight: 0.5 },
+          { fact: "recent_transactions", operator: ">", value: 15, weight: 0.3 },
+          { fact: "failed_attempts", operator: ">", value: 3, weight: 0.2 }
         ],
-        conclusion: 'high_user_risk',
+        conclusion: "high_user_risk",
         certainty: 0.9
       }
     ];
   }
 
   private fuzzifyFacts(facts: any[]): any[] {
-    return facts.map(fact => ({
+    return facts.map((fact) => ({
       ...fact,
       fuzzyValue: this.fuzzifyValue(fact.type, fact.value)
     }));
@@ -367,33 +368,34 @@ export class CognitiveComputingService {
 
   private fuzzifyValue(type: string, value: any): string {
     switch (type) {
-      case 'amount':
-        if (value < 100) return 'low';
-        if (value < 1000) return 'medium';
-        return 'high';
-      case 'frequency':
-        if (value < 5) return 'low';
-        if (value < 15) return 'medium';
-        return 'high';
-      case 'distance':
-        if (value < 100) return 'low';
-        if (value < 500) return 'medium';
-        return 'high';
-      case 'risk_score':
-        if (value < 0.3) return 'low';
-        if (value < 0.7) return 'medium';
-        return 'high';
+      case "amount":
+        if (value < 100) return "low";
+        if (value < 1000) return "medium";
+        return "high";
+      case "frequency":
+        if (value < 5) return "low";
+        if (value < 15) return "medium";
+        return "high";
+      case "distance":
+        if (value < 100) return "low";
+        if (value < 500) return "medium";
+        return "high";
+      case "risk_score":
+        if (value < 0.3) return "low";
+        if (value < 0.7) return "medium";
+        return "high";
       default:
-        return 'high'; // Default to high for unknown types
+        return "high"; // Default to high for unknown types
     }
   }
 
   private applyFuzzyRules(facts: any[]): any[] {
     const ruleApplications = [];
 
-    this.expertRules.forEach(rule => {
+    this.expertRules.forEach((rule) => {
       const satisfaction = this.evaluateRuleConditions(rule, facts);
-      if (satisfaction > 0.5) { // Rule threshold
+      if (satisfaction > 0.5) {
+        // Rule threshold
         ruleApplications.push({
           ruleId: rule.id,
           conclusion: rule.conclusion,
@@ -411,8 +413,8 @@ export class CognitiveComputingService {
     let totalSatisfaction = 0;
     let totalWeight = 0;
 
-    rule.conditions.forEach(condition => {
-      const fact = facts.find(f => f.type === condition.fact);
+    rule.conditions.forEach((condition) => {
+      const fact = facts.find((f) => f.type === condition.fact);
       if (fact) {
         const satisfaction = this.evaluateCondition(condition, fact.fuzzyValue);
         totalSatisfaction += satisfaction * condition.weight;
@@ -426,14 +428,14 @@ export class CognitiveComputingService {
   private evaluateCondition(condition: any, fuzzyValue: string): number {
     // Simple fuzzy matching
     switch (condition.operator) {
-      case '>':
-        if (condition.fact === 'amount' && fuzzyValue === 'high') return 1;
-        if (condition.fact === 'amount' && fuzzyValue === 'medium') return 0.5;
+      case ">":
+        if (condition.fact === "amount" && fuzzyValue === "high") return 1;
+        if (condition.fact === "amount" && fuzzyValue === "medium") return 0.5;
         return 0;
-      case '!=':
+      case "!=":
         return fuzzyValue !== condition.value ? 1 : 0;
-      case '<':
-        if (condition.fact === 'time' && fuzzyValue === 'low') return 1;
+      case "<":
+        if (condition.fact === "time" && fuzzyValue === "low") return 1;
         return 0;
       default:
         return 0;
@@ -445,9 +447,11 @@ export class CognitiveComputingService {
 
     // Group by conclusion and take highest certainty
     const groupedConclusions = {};
-    ruleApplications.forEach(app => {
-      if (!groupedConclusions[app.conclusion] ||
-          app.certainty > groupedConclusions[app.conclusion].certainty) {
+    ruleApplications.forEach((app) => {
+      if (
+        !groupedConclusions[app.conclusion] ||
+        app.certainty > groupedConclusions[app.conclusion].certainty
+      ) {
         groupedConclusions[app.conclusion] = app;
       }
     });
@@ -476,7 +480,7 @@ export class CognitiveComputingService {
       maxIterations: 100,
       evaporationRate: 0.1,
       alpha: 1, // Pheromone importance
-      beta: 2,  // Heuristic importance
+      beta: 2, // Heuristic importance
       pheromoneMatrix: this.initializePheromoneMatrix(problem.nodes),
       problem
     };
@@ -484,9 +488,9 @@ export class CognitiveComputingService {
 
   private initializePheromoneMatrix(nodes: string[]): any {
     const matrix = {};
-    nodes.forEach(node1 => {
+    nodes.forEach((node1) => {
       matrix[node1] = {};
-      nodes.forEach(node2 => {
+      nodes.forEach((node2) => {
         if (node1 !== node2) {
           matrix[node1][node2] = 1.0; // Initial pheromone
         }
@@ -541,7 +545,7 @@ export class CognitiveComputingService {
     visited.add(currentNode);
 
     while (visited.size < aco.problem.nodes.length) {
-      const candidates = aco.problem.nodes.filter(n => !visited.has(n));
+      const candidates = aco.problem.nodes.filter((n) => !visited.has(n));
       if (candidates.length === 0) break;
 
       const nextNode = this.selectNextNode(currentNode, candidates, aco);
@@ -554,7 +558,7 @@ export class CognitiveComputingService {
   }
 
   private selectNextNode(currentNode: string, candidates: string[], aco: any): string {
-    const probabilities = candidates.map(candidate => {
+    const probabilities = candidates.map((candidate) => {
       const pheromone = aco.pheromoneMatrix[currentNode][candidate] || 0.1;
       const heuristic = this.calculateHeuristic(currentNode, candidate, aco.problem);
       const tau = Math.pow(pheromone, aco.alpha);
@@ -606,9 +610,9 @@ export class CognitiveComputingService {
 
   private updatePheromones(aco: any, solutions: any[]): void {
     // Evaporate pheromones
-    Object.keys(aco.pheromoneMatrix).forEach(from => {
-      Object.keys(aco.pheromoneMatrix[from]).forEach(to => {
-        aco.pheromoneMatrix[from][to] *= (1 - aco.evaporationRate);
+    Object.keys(aco.pheromoneMatrix).forEach((from) => {
+      Object.keys(aco.pheromoneMatrix[from]).forEach((to) => {
+        aco.pheromoneMatrix[from][to] *= 1 - aco.evaporationRate;
       });
     });
 
@@ -632,51 +636,53 @@ export class CognitiveComputingService {
   // Helper methods
   private initializeKnowledgeGraph(): void {
     // Initialize with domain knowledge
-    this.knowledgeGraph.set('fraud_patterns', {
-      related: ['velocity', 'geographic_anomaly', 'amount_anomaly'],
+    this.knowledgeGraph.set("fraud_patterns", {
+      related: ["velocity", "geographic_anomaly", "amount_anomaly"],
       confidence: 0.9
     });
 
-    this.knowledgeGraph.set('velocity', {
-      definition: 'High frequency of transactions',
-      risk_level: 'medium',
-      indicators: ['transactions_per_hour > 10', 'unique_locations > 3']
+    this.knowledgeGraph.set("velocity", {
+      definition: "High frequency of transactions",
+      risk_level: "medium",
+      indicators: ["transactions_per_hour > 10", "unique_locations > 3"]
     });
 
-    this.knowledgeGraph.set('geographic_anomaly', {
-      definition: 'Transactions from unusual locations',
-      risk_level: 'high',
-      indicators: ['distance_from_usual > 1000km', 'time_between < 24h']
+    this.knowledgeGraph.set("geographic_anomaly", {
+      definition: "Transactions from unusual locations",
+      risk_level: "high",
+      indicators: ["distance_from_usual > 1000km", "time_between < 24h"]
     });
   }
 
   private calculateCentrality(nodes: string[], edges: any[]): any {
     const centrality = {};
-    nodes.forEach(node => {
-      centrality[node] = edges.filter(e => e.from === node || e.to === node).length;
+    nodes.forEach((node) => {
+      centrality[node] = edges.filter((e) => e.from === node || e.to === node).length;
     });
     return centrality;
   }
 
   private clusterLocations(locations: string[]): string[] {
     // Simple clustering by region
-    const regions = new Set(locations.map(loc => loc.split(',')[0]));
+    const regions = new Set(locations.map((loc) => loc.split(",")[0]));
     return Array.from(regions);
   }
 
   private detectSuspiciousPatterns(graph: any): any[] {
     const patterns = [];
 
-    graph.nodes.forEach(node => {
-      const nodeEdges = graph.edges.filter(e => e.from === node);
-      const transactionCount = nodeEdges.filter(e => e.label === 'performed_transaction').length;
-      const uniqueLocations = new Set(nodeEdges.filter(e => e.label === 'location').map(e => e.to)).size;
+    graph.nodes.forEach((node) => {
+      const nodeEdges = graph.edges.filter((e) => e.from === node);
+      const transactionCount = nodeEdges.filter((e) => e.label === "performed_transaction").length;
+      const uniqueLocations = new Set(
+        nodeEdges.filter((e) => e.label === "location").map((e) => e.to)
+      ).size;
 
       if (transactionCount > 20 && uniqueLocations > 5) {
         patterns.push({
           description: `Node ${node} shows suspicious activity: ${transactionCount} transactions across ${uniqueLocations} locations`,
-          severity: 'high',
-          recommendation: 'Flag as potential_fraud_ring_member'
+          severity: "high",
+          recommendation: "Flag as potential_fraud_ring_member"
         });
       }
     });
@@ -696,8 +702,8 @@ export class CognitiveComputingService {
   }
 
   private determineSeverity(confidence: number): string {
-    if (confidence > 0.8) return 'high';
-    if (confidence > 0.6) return 'medium';
-    return 'low';
+    if (confidence > 0.8) return "high";
+    if (confidence > 0.6) return "medium";
+    return "low";
   }
 }

@@ -91,7 +91,10 @@ export function computeSubsystemScores(events: CSIEvent[]): SubsystemScore[] {
   const scores: SubsystemScore[] = [];
   for (const [subsystem, bucket] of grouped.entries()) {
     const trustTotal = bucket.reduce((sum, event) => sum + computeEventTrustScore(event), 0);
-    const performanceTotal = bucket.reduce((sum, event) => sum + computeEventPerformanceScore(event), 0);
+    const performanceTotal = bucket.reduce(
+      (sum, event) => sum + computeEventPerformanceScore(event),
+      0
+    );
     const lastUpdated = Math.max(...bucket.map((event) => event.timestamp));
 
     scores.push({
@@ -99,7 +102,7 @@ export function computeSubsystemScores(events: CSIEvent[]): SubsystemScore[] {
       trustScore: Number((trustTotal / bucket.length).toFixed(2)),
       performanceScore: Number((performanceTotal / bucket.length).toFixed(2)),
       eventVolume: bucket.length,
-      lastUpdated,
+      lastUpdated
     });
   }
 
@@ -111,7 +114,7 @@ export function computeGlobalScores(subsystemScores: SubsystemScore[]): GlobalSc
     return {
       globalTrustScore: 0,
       globalPerformanceScore: 0,
-      subsystemScores: [],
+      subsystemScores: []
     };
   }
 
@@ -121,7 +124,7 @@ export function computeGlobalScores(subsystemScores: SubsystemScore[]): GlobalSc
   return {
     globalTrustScore: Number((trustTotal / subsystemScores.length).toFixed(2)),
     globalPerformanceScore: Number((performanceTotal / subsystemScores.length).toFixed(2)),
-    subsystemScores,
+    subsystemScores
   };
 }
 

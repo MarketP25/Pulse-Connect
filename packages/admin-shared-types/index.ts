@@ -1,17 +1,17 @@
 // Shared types for Pulsco Admin Governance System
 
-export type AdminRoleType = 
-  | 'superadmin'
-  | 'coo'
-  | 'business-ops'
-  | 'people-risk'
-  | 'procurement-partnerships'
-  | 'legal-finance'
-  | 'commercial-outreach'
-  | 'tech-security'
-  | 'customer-experience'
-  | 'governance-registrar'
-  | 'dpo';
+export type AdminRoleType =
+  | "superadmin"
+  | "coo"
+  | "business-ops"
+  | "people-risk"
+  | "procurement-partnerships"
+  | "legal-finance"
+  | "commercial-outreach"
+  | "tech-security"
+  | "customer-experience"
+  | "governance-registrar"
+  | "dpo";
 
 export interface GovernanceIntent {
   id: string;
@@ -31,5 +31,5 @@ export interface EscalationRule {
   condition: string;
   targetRole: AdminRoleType;
   timeoutMinutes: number;
-  action: 'notify' | 'escalate' | 'freeze' | 'audit';
+  action: "notify" | "escalate" | "freeze" | "audit";
 }

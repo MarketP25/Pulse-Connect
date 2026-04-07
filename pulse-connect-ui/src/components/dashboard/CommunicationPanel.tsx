@@ -23,12 +23,12 @@ export function CommunicationPanel({
   announcements,
   chatResponse,
   onSend,
-  loading,
+  loading
 }: Props) {
   const [prompt, setPrompt] = useState("");
 
   return (
-    <SectionCard title={title} subtitle="Inbox, notifications, announcements, and AI chatbot assistance.">
+    <SectionCard title={title} subtitle="Inbox, notifications, announcements, and Pulsco AI.">
       <div className="grid gap-4 lg:grid-cols-3">
         <div>
           <p className="mb-2 text-sm font-semibold text-slate-900">Inbox</p>
@@ -65,7 +65,7 @@ export function CommunicationPanel({
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-semibold text-slate-900">AI Chatbot</p>
+          <p className="mb-2 text-sm font-semibold text-slate-900">Pulsco AI</p>
           <textarea
             className="h-28 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             value={prompt}
@@ -80,7 +80,11 @@ export function CommunicationPanel({
             {sendLabel}
           </button>
 
-          {chatResponse ? <p className="mt-3 rounded-lg bg-slate-100 p-2 text-sm text-slate-700">{chatResponse}</p> : null}
+          {chatResponse ? (
+            <p className="mt-3 rounded-lg bg-slate-100 p-2 text-sm text-slate-700">
+              {chatResponse}
+            </p>
+          ) : null}
         </div>
       </div>
     </SectionCard>

@@ -5,7 +5,7 @@ export interface User {
   email: string;
   phone?: string;
   region?: string;
-  status: 'active' | 'deactivated' | 'deleted';
+  status: "active" | "deactivated" | "deleted";
   created_at: Date;
   updated_at: Date;
 }
@@ -13,8 +13,8 @@ export interface User {
 export interface AccountHistory {
   id: string;
   user_id: string;
-  action: 'create' | 'modify' | 'deactivate' | 'delete';
-  actor_type: 'founder' | 'system' | 'edge';
+  action: "create" | "modify" | "deactivate" | "delete";
+  actor_type: "founder" | "system" | "edge";
   reason_code: string;
   policy_version: string;
   device_fingerprint: string;
@@ -109,7 +109,7 @@ export interface FounderMessage {
 export interface FounderAction {
   id: string;
   message_id: string;
-  action_type: 'approve' | 'deny' | 'rollback';
+  action_type: "approve" | "deny" | "rollback";
   actor_verification: string;
   result: string;
   timestamp: Date;
@@ -154,7 +154,7 @@ export interface DistanceResponse {
 
 export interface ClusterRequest {
   points: Array<{ lat: number; lng: number }>;
-  algorithm: 'kmeans' | 'dbscan';
+  algorithm: "kmeans" | "dbscan";
   k?: number;
 }
 

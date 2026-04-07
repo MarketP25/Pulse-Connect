@@ -4,7 +4,13 @@ export class WalletService {
   private wallets = new Map<string, WalletRecord>();
 
   createWallet(walletId: string, accountId: string, initial = 0): WalletRecord {
-    const r: WalletRecord = { walletId, accountId, currency: "USD", balance: initial, status: initial <= 0 ? "locked" : "active" };
+    const r: WalletRecord = {
+      walletId,
+      accountId,
+      currency: "USD",
+      balance: initial,
+      status: initial <= 0 ? "locked" : "active"
+    };
     this.wallets.set(walletId, r);
     return r;
   }

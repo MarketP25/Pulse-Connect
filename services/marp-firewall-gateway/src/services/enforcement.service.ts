@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { HashChain } from '../../../shared/lib/src/hashChain';
+import { Injectable, Logger } from "@nestjs/common";
+import { Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { HashChain } from "../../../shared/lib/src/hashChain";
 
 export interface EnforcementRequest {
   subsystemName: string;
@@ -26,8 +26,8 @@ export class EnforcementService {
   private readonly hashChain = new HashChain();
 
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
-    @Inject('REDIS_CONNECTION') private readonly redis: any,
+    @Inject("DATABASE_CONNECTION") private readonly db: Pool,
+    @Inject("REDIS_CONNECTION") private readonly redis: any
   ) {}
 
   async enforceRules(request: EnforcementRequest): Promise<EnforcementResult> {
@@ -39,9 +39,9 @@ export class EnforcementService {
       if (this.isCSIProtectedOperation(payload, context)) {
         return {
           allowed: false,
-          action: 'blocked',
-          riskAssessment: 'csi_protected_operation',
-          auditEntry: this.createAuditEntry(request, 'blocked', 'csi_protection_violation'),
+          action: "blocked",
+          riskAssessment: "csi_protected_operation",
+          auditEntry: this.createAuditEntry(request, "blocked", "csi_protection_violation")
         };
       }
 
@@ -50,9 +50,9 @@ export class EnforcementService {
       if (!isRegistered) {
         return {
           allowed: false,
-          action: 'blocked',
-          riskAssessment: 'unregistered_subsystem',
-          auditEntry: this.createAuditEntry(request, 'blocked', 'unregistered_subsystem'),
+          action: "blocked",
+          riskAssessment: "unregistered_subsystem",
+          auditEntry: this.createAuditEntry(request, "blocked", "unregistered_subsystem")
         };
       }
 
@@ -61,10 +61,10 @@ export class EnforcementService {
       if (!interfaceValidation.valid) {
         return {
           allowed: false,
-          action: 'quarantined',
-          riskAssessment: 'interface_role_violation',
+          action: "quarantined",
+          riskAssessment: "interface_role_violation",
           quarantineInfo: { reason: interfaceValidation.reason },
-          auditEntry: this.createAuditEntry(request, 'quarantined', 'interface_role_violation'),
+          auditEntry: this.createAuditEntry(request, "quarantined", "interface_role_violation")
         };
       }
 
@@ -75,7 +75,11 @@ export class EnforcementService {
       const evaluation = await this.evaluateRules(rules, payload, context);
 
       // Create audit entry
-      const auditEntry = this.createAuditEntry(request, evaluation.action, evaluation.riskAssessment);
+      const auditEntry = this.createAuditEntry(
+        request,
+        evaluation.action,
+        evaluation.riskAssessment
+      );
 
       return {
         allowed: evaluation.allowed,
@@ -84,16 +88,16 @@ export class EnforcementService {
         quarantineInfo: evaluation.quarantineInfo,
         escalationInfo: evaluation.escalationInfo,
         riskAssessment: evaluation.riskAssessment,
-        auditEntry,
+        auditEntry
       };
     } catch (error) {
       this.logger.error(`Enforcement failed: ${error.message}`);
       return {
         allowed: false,
-        action: 'escalated',
-        riskAssessment: 'enforcement_error',
+        action: "escalated",
+        riskAssessment: "enforcement_error",
         escalationInfo: { error: error.message },
-        auditEntry: this.createAuditEntry(request, 'escalated', 'enforcement_error'),
+        auditEntry: this.createAuditEntry(request, "escalated", "enforcement_error")
       };
     }
   }
@@ -135,7 +139,7 @@ export class EnforcementService {
     escalationInfo?: Record<string, any>;
     riskAssessment: string;
   }> {
-    let riskAssessment = 'low';
+    let riskAssessment = "low";
     let quarantineInfo: Record<string, any> | undefined;
     let escalationInfo: Record<string, any> | undefined;
 
@@ -144,17 +148,17 @@ export class EnforcementService {
 
       if (matches) {
         switch (rule.rule_type) {
-          case 'allow':
-            return { allowed: true, action: 'allowed', riskAssessment };
-          case 'block':
-            return { allowed: false, action: 'blocked', riskAssessment: 'high' };
-          case 'quarantine':
+          case "allow":
+            return { allowed: true, action: "allowed", riskAssessment };
+          case "block":
+            return { allowed: false, action: "blocked", riskAssessment: "high" };
+          case "quarantine":
             quarantineInfo = rule.actions;
-            riskAssessment = 'medium';
+            riskAssessment = "medium";
             break;
-          case 'escalate':
+          case "escalate":
             escalationInfo = rule.actions;
-            riskAssessment = 'critical';
+            riskAssessment = "critical";
             break;
         }
       }
@@ -163,10 +167,10 @@ export class EnforcementService {
     // Default action if no rules match
     return {
       allowed: true,
-      action: 'allowed',
+      action: "allowed",
       riskAssessment,
       quarantineInfo,
-      escalationInfo,
+      escalationInfo
     };
   }
 
@@ -181,7 +185,7 @@ export class EnforcementService {
     // In production, this would be more sophisticated
     for (const [key, pattern] of Object.entries(conditions)) {
       const value = payload[key] || context?.[key];
-      if (value && typeof pattern === 'string') {
+      if (value && typeof pattern === "string") {
         if (!new RegExp(pattern).test(String(value))) {
           return false;
         }
@@ -202,7 +206,7 @@ export class EnforcementService {
       action: request.action,
       enforcementAction: action,
       riskAssessment,
-      payloadHash: this.hashChain.hash(this.hashChain.canonicalize(request.payload)),
+      payloadHash: this.hashChain.hash(this.hashChain.canonicalize(request.payload))
     };
   }
 
@@ -210,20 +214,24 @@ export class EnforcementService {
    * CRITICAL: MARP does not operate on CSI - it protects it
    * Block any operations that attempt to directly access or modify CSI
    */
-  private isCSIProtectedOperation(payload: Record<string, any>, context?: Record<string, any>): boolean {
+  private isCSIProtectedOperation(
+    payload: Record<string, any>,
+    context?: Record<string, any>
+  ): boolean {
     const protectedPatterns = [
       /csi/i,
       /central.*super.*intelligence/i,
       /super.*intelligence.*core/i,
       /internal.*ai.*system/i,
-      /protected.*core/i
+      /protected.*core/i,
+      /pulse.*intelligence.*core/i
     ];
 
     const checkValue = (value: any): boolean => {
-      if (typeof value === 'string') {
-        return protectedPatterns.some(pattern => pattern.test(value));
+      if (typeof value === "string") {
+        return protectedPatterns.some((pattern) => pattern.test(value));
       }
-      if (typeof value === 'object' && value !== null) {
+      if (typeof value === "object" && value !== null) {
         return Object.values(value).some(checkValue);
       }
       return false;
@@ -236,44 +244,44 @@ export class EnforcementService {
    * Validate MARP's interface role - ensure flows are between Pulsco and Edge
    * MARP acts as interface between Pulsco through MARP platform and Edge
    */
-  private validateMARPInterfaceRole(payload: Record<string, any>, context?: Record<string, any>): { valid: boolean; reason?: string } {
+  private validateMARPInterfaceRole(
+    payload: Record<string, any>,
+    context?: Record<string, any>
+  ): { valid: boolean; reason?: string } {
     // Check if this is a valid Pulsco-to-Edge flow
     const source = payload.source || context?.source;
     const destination = payload.destination || context?.destination;
 
     // Valid sources: Pulsco subsystems, MARP platform
     const validSources = [
-      'pulsco',
-      'marp-platform',
-      'ecommerce',
-      'fraud',
-      'communication',
-      'payments',
-      'marketing',
-      'reporting',
-      'ai-engine',
-      'global-speed'
+      "pulsco",
+      "marp-platform",
+      "ecommerce",
+      "fraud",
+      "communication",
+      "payments",
+      "marketing",
+      "reporting",
+      "ai-engine",
+      "global-speed",
+      "ai programs",
+      "places",
+      "matchmaking"
     ];
 
     // Valid destinations: Edge nodes, planetary systems
-    const validDestinations = [
-      'edge',
-      'planetary',
-      'regional',
-      'user',
-      'device',
-      'client'
-    ];
+    const validDestinations = ["edge", "planetary", "regional", "user", "device", "client"];
 
-    const isValidSource = source && validSources.some(s => source.toLowerCase().includes(s));
-    const isValidDestination = destination && validDestinations.some(d => destination.toLowerCase().includes(d));
+    const isValidSource = source && validSources.some((s) => source.toLowerCase().includes(s));
+    const isValidDestination =
+      destination && validDestinations.some((d) => destination.toLowerCase().includes(d));
 
     if (!isValidSource) {
-      return { valid: false, reason: 'Invalid source - must be Pulsco or MARP platform subsystem' };
+      return { valid: false, reason: "Invalid source - must be Pulsco or MARP platform subsystem" };
     }
 
     if (!isValidDestination) {
-      return { valid: false, reason: 'Invalid destination - must be Edge or planetary system' };
+      return { valid: false, reason: "Invalid destination - must be Edge or planetary system" };
     }
 
     return { valid: true };

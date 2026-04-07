@@ -17,7 +17,7 @@ import {
   verifyPassword,
   verifyToken,
   InMemoryRateLimiter,
-  RateLimiter,
+  RateLimiter
 } from "./security";
 import { SessionStore, InMemorySessionStore } from "./session-store";
 import { IdentityStorageAdapter } from "./storage";
@@ -46,7 +46,7 @@ import {
   SubscriptionTier,
   UserRow,
   VerifyEmailInput,
-  KycAutomationSignals,
+  KycAutomationSignals
 } from "./types";
 import { InMemoryAsyncQueue } from "./queue";
 
@@ -73,40 +73,40 @@ type IdentityServiceOptions = {
 const REQUIRED_CONSENTS = [
   { field: "privacyPolicy", type: "privacy_policy" },
   { field: "termsOfService", type: "terms_of_service" },
-  { field: "dataProcessing", type: "data_processing" },
+  { field: "dataProcessing", type: "data_processing" }
 ] as const;
 
 const ROLE_POLICIES: Record<OnboardingRole, RolePolicy> = {
   admin: {
     role: "admin",
     dashboardRoute: "/admin",
-    featureAccess: ["core", "admin", "users", "settings"],
+    featureAccess: ["core", "admin", "users", "settings"]
   },
   individual: {
     role: "individual",
-    dashboardRoute: "/dashboard/individual",
-    featureAccess: ["core", "localization"],
+    dashboardRoute: "/dashboard",
+    featureAccess: ["core", "localization"]
   },
   business: {
     role: "business",
-    dashboardRoute: "/dashboard/business",
-    featureAccess: ["core", "ecommerce", "billing", "communication"],
+    dashboardRoute: "/dashboard",
+    featureAccess: ["core", "ecommerce", "billing", "communication"]
   },
   organisation: {
     role: "organisation",
-    dashboardRoute: "/dashboard/organisation",
-    featureAccess: ["core", "compliance", "audit", "security"],
+    dashboardRoute: "/dashboard",
+    featureAccess: ["core", "compliance", "audit", "security"]
   },
   investor: {
     role: "investor",
     dashboardRoute: "/dashboard/investor",
-    featureAccess: ["core", "analytics", "governance"],
+    featureAccess: ["core", "analytics", "governance"]
   },
   partner: {
     role: "partner",
     dashboardRoute: "/dashboard/partner",
-    featureAccess: ["core", "places", "communication"],
-  },
+    featureAccess: ["core", "places", "communication"]
+  }
 };
 
 const COUNTRY_CURRENCY: Record<string, string> = {
@@ -115,7 +115,7 @@ const COUNTRY_CURRENCY: Record<string, string> = {
   DE: "EUR",
   FR: "EUR",
   KE: "KES",
-  IN: "INR",
+  IN: "INR"
 };
 
 const COUNTRY_REGION: Record<string, string> = {
@@ -125,7 +125,7 @@ const COUNTRY_REGION: Record<string, string> = {
   FR: "Europe West 1",
   KE: "Africa South 1",
   NG: "Africa South 1",
-  IN: "Asia East 1",
+  IN: "Asia East 1"
 };
 
 function safeUuidV7(): string {
@@ -146,9 +146,10 @@ export class PulseIdentityService {
 
   constructor(
     private readonly deps: IdentityServiceDeps,
-    options: IdentityServiceOptions = {},
+    options: IdentityServiceOptions = {}
   ) {
-    this.jwtSecret = options.jwtSecret || process.env.PULSE_IDENTITY_JWT_SECRET || "pulse-identity-dev-secret";
+    this.jwtSecret =
+      options.jwtSecret || process.env.PULSE_IDENTITY_JWT_SECRET || "pulse-identity-dev-secret";
     this.refreshTtlSec = options.refreshTtlSec || 60 * 60 * 24 * 30;
     this.accessTtlSec = options.accessTtlSec || 60 * 15;
     this.emailVerificationTtlSec = options.emailVerificationTtlSec || 60 * 60 * 24;
@@ -158,6 +159,14 @@ export class PulseIdentityService {
     this.emailQueue = deps.emailQueue || new InMemoryAsyncQueue<EmailQueueJob>();
     this.kycQueue = deps.kycQueue || new InMemoryAsyncQueue<KycQueueJob>();
     this.autoKycEnabled = options.autoKycEnabled ?? false;
+
+    if (process.env.NODE_ENV === "production" && this.jwtSecret === "pulse-identity-dev-secret") {
+      throw new IdentityError(
+        "missing_jwt_secret",
+        500,
+        "PULSE_IDENTITY_JWT_SECRET must be configured in production"
+      );
+    }
   }
 
   async registerUser(input: RegisterUserInput): Promise<RegisterUserResult> {
@@ -165,7 +174,7 @@ export class PulseIdentityService {
       intent: "register",
       ipAddress: input.ipAddress,
       userAgent: input.userAgent,
-      deviceFingerprint: input.deviceFingerprint,
+      deviceFingerprint: input.deviceFingerprint
     });
 
     assertStrongPassword(input.password);
@@ -180,13 +189,20 @@ export class PulseIdentityService {
     }
 
     if (input.idempotencyKey) {
-      const cached = await this.deps.storage.getIdempotentResponse<RegisterUserResult>("register", input.idempotencyKey);
+      const cached = await this.deps.storage.getIdempotentResponse<RegisterUserResult>(
+        "register",
+        input.idempotencyKey
+      );
       if (cached) {
         return cached;
       }
     }
 
-    const localeBinding = this.resolveLocaleBinding(input.preferredLanguage, input.country, input.city);
+    const localeBinding = this.resolveLocaleBinding(
+      input.preferredLanguage,
+      input.country,
+      input.city
+    );
     const now = new Date().toISOString();
     const userId = randomUUID();
     const referralCode = this.generateReferralCode(username);
@@ -208,7 +224,7 @@ export class PulseIdentityService {
 
     const [existingEmail, existingUsername] = await Promise.all([
       this.deps.storage.findUserByEmail(email),
-      this.deps.storage.findUserByUsername(username),
+      this.deps.storage.findUserByUsername(username)
     ]);
     if (existingEmail) {
       throw new IdentityError("email_conflict", 409, "Email already exists");
@@ -221,10 +237,10 @@ export class PulseIdentityService {
       {
         sub: userId,
         sid: randomUUID(),
-        typ: "verify_email",
+        typ: "verify_email"
       },
       this.jwtSecret,
-      this.emailVerificationTtlSec,
+      this.emailVerificationTtlSec
     );
 
     const userRow: UserRow = {
@@ -242,7 +258,7 @@ export class PulseIdentityService {
       dashboardRoute: rolePolicy.dashboardRoute,
       featureFlags: this.resolveFeatureFlags(rolePolicy, tier),
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     };
 
     await this.deps.storage.insertUser(userRow);
@@ -251,7 +267,7 @@ export class PulseIdentityService {
       userId,
       role: input.role,
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     });
     await this.deps.storage.upsertUserLocale({
       id: randomUUID(),
@@ -263,18 +279,22 @@ export class PulseIdentityService {
       complianceProfile: localeBinding.complianceProfile,
       translationContext: localeBinding.translationContext,
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     });
     await this.deps.storage.upsertUserSecurity({
       id: randomUUID(),
       userId,
-      encryptedDeviceFingerprint: encryptSensitive(deriveDeviceFingerprint(input.deviceFingerprint, input.userAgent)),
+      encryptedDeviceFingerprint: encryptSensitive(
+        deriveDeviceFingerprint(input.deviceFingerprint, input.userAgent)
+      ),
       encryptedLastIpAddress: encryptSensitive(input.ipAddress),
       encryptedLastUserAgent: encryptSensitive(input.userAgent),
       verificationTokenHash: hashValue(verificationToken),
-      verificationTokenExpiry: new Date(Date.now() + this.emailVerificationTtlSec * 1000).toISOString(),
+      verificationTokenExpiry: new Date(
+        Date.now() + this.emailVerificationTtlSec * 1000
+      ).toISOString(),
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     });
 
     await this.recordConsentRows(userId, input.consents, input.ipAddress, input.userAgent, now);
@@ -290,7 +310,7 @@ export class PulseIdentityService {
         referredUserId: userId,
         referralCode: input.referralCode || "",
         createdAt: now,
-        updatedAt: now,
+        updatedAt: now
       });
     }
 
@@ -298,7 +318,7 @@ export class PulseIdentityService {
       userId,
       role: input.role,
       subscriptionTier: tier,
-      actorId: "pulse-identity-service",
+      actorId: "pulse-identity-service"
     });
     const kycStatus: KycStatusRow = {
       id: randomUUID(),
@@ -307,7 +327,7 @@ export class PulseIdentityService {
       level: kycRecord?.level || "none",
       providerSessionId: kycRecord?.providerSessionId,
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     };
     await this.deps.storage.upsertKycStatus(kycStatus);
     if (kycRecord) {
@@ -315,7 +335,7 @@ export class PulseIdentityService {
         type: "identity.kyc.start",
         userId,
         role: input.role,
-        subscriptionTier: tier,
+        subscriptionTier: tier
       });
     }
 
@@ -324,13 +344,13 @@ export class PulseIdentityService {
       type: "identity.email.verification",
       userId,
       email,
-      verificationToken,
+      verificationToken
     });
 
     await this.appendAudit(userId, "identity.user.registered", "identity-service", {
       role: input.role,
       subscriptionTier: tier,
-      referralAttached: Boolean(referredByUserId),
+      referralAttached: Boolean(referredByUserId)
     });
     await this.emitIdentityEvent({
       eventType: "user.created",
@@ -338,8 +358,8 @@ export class PulseIdentityService {
       region: localeBinding.country,
       payload: {
         role: input.role,
-        subscriptionTier: tier,
-      },
+        subscriptionTier: tier
+      }
     });
 
     const result: RegisterUserResult = {
@@ -349,7 +369,7 @@ export class PulseIdentityService {
       activationReady: false,
       dashboardRoute: rolePolicy.dashboardRoute,
       subscriptionTier: tier,
-      debug: this.exposeDebugTokens ? { verificationToken } : undefined,
+      debug: this.exposeDebugTokens ? { verificationToken } : undefined
     };
 
     if (this.autoKycEnabled && kycStatus.status === "pending") {
@@ -358,12 +378,12 @@ export class PulseIdentityService {
           ipRiskScore: this.estimateIpRisk(input.ipAddress),
           deviceConsistency: true,
           referralTrusted,
-          documentCompleteness: 1,
+          documentCompleteness: 1
         });
         result.kycStatus = automated.status;
       } catch (error) {
         await this.appendAudit(userId, "identity.kyc.automation_failed", "kyc-automation-bot", {
-          message: error instanceof Error ? error.message : "unknown_error",
+          message: error instanceof Error ? error.message : "unknown_error"
         });
       }
     }
@@ -375,12 +395,14 @@ export class PulseIdentityService {
     return result;
   }
 
-  async verifyEmail(input: VerifyEmailInput): Promise<{ verified: boolean; activationReady: boolean }> {
+  async verifyEmail(
+    input: VerifyEmailInput
+  ): Promise<{ verified: boolean; activationReady: boolean }> {
     await this.precheck({
       intent: "verify_email",
       ipAddress: input.ipAddress,
       userAgent: input.userAgent,
-      deviceFingerprint: "verify-email-device",
+      deviceFingerprint: "verify-email-device"
     });
 
     const payload = verifyToken<{ sub: string; typ: string }>(input.token, this.jwtSecret);
@@ -394,18 +416,29 @@ export class PulseIdentityService {
     }
 
     const security = await this.deps.storage.getUserSecurity(user.id);
-    if (!security?.verificationTokenHash || security.verificationTokenHash !== hashValue(input.token)) {
-      throw new IdentityError("invalid_verification_token", 401, "Email verification token is invalid");
+    if (
+      !security?.verificationTokenHash ||
+      security.verificationTokenHash !== hashValue(input.token)
+    ) {
+      throw new IdentityError(
+        "invalid_verification_token",
+        401,
+        "Email verification token is invalid"
+      );
     }
     if (security.verificationTokenUsedAt) {
-      throw new IdentityError("verification_token_used", 409, "Email verification token already used");
+      throw new IdentityError(
+        "verification_token_used",
+        409,
+        "Email verification token already used"
+      );
     }
 
     const now = new Date().toISOString();
     const nextUser: UserRow = {
       ...user,
       emailVerified: true,
-      updatedAt: now,
+      updatedAt: now
     };
     await this.deps.storage.updateUser(nextUser);
     await this.deps.storage.upsertUserSecurity({
@@ -413,7 +446,7 @@ export class PulseIdentityService {
       verificationTokenUsedAt: now,
       verificationTokenHash: undefined,
       verificationTokenExpiry: undefined,
-      updatedAt: now,
+      updatedAt: now
     });
     await this.upsertTrustScore(nextUser, (await this.getUserCountry(nextUser.id)) || "US", true);
     await this.appendAudit(nextUser.id, "identity.user.email_verified", "identity-service", {});
@@ -421,7 +454,7 @@ export class PulseIdentityService {
       eventType: "user.verified",
       userId: nextUser.id,
       region: (await this.getUserCountry(nextUser.id)) || "US",
-      payload: {},
+      payload: {}
     });
 
     let activationReady = false;
@@ -441,13 +474,13 @@ export class PulseIdentityService {
     userId: string,
     approved: boolean,
     actorId = "kyc-provider",
-    reason?: string,
+    reason?: string
   ): Promise<KycStatusRow> {
     const updated = await this.deps.kycService.completeWorkflow({
       userId,
       actorId,
       approved,
-      reason,
+      reason
     });
 
     const now = new Date().toISOString();
@@ -458,7 +491,7 @@ export class PulseIdentityService {
       level: updated.level,
       providerSessionId: updated.providerSessionId,
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     };
     await this.deps.storage.upsertKycStatus(row);
 
@@ -470,7 +503,7 @@ export class PulseIdentityService {
     await this.upsertTrustScore(user, (await this.getUserCountry(userId)) || "US", true);
     await this.appendAudit(userId, "identity.user.kyc_updated", actorId, {
       status: updated.status,
-      reason: reason || null,
+      reason: reason || null
     });
 
     if (updated.status === "verified") {
@@ -478,12 +511,15 @@ export class PulseIdentityService {
         eventType: "user.kyc_completed",
         userId,
         region: (await this.getUserCountry(userId)) || "US",
-        payload: {},
+        payload: {}
       });
       try {
         await this.activateAccount(userId, "identity-service");
       } catch (error) {
-        if (!(error instanceof IdentityError) || error.code !== "activation_prerequisites_not_met") {
+        if (
+          !(error instanceof IdentityError) ||
+          error.code !== "activation_prerequisites_not_met"
+        ) {
           throw error;
         }
       }
@@ -495,7 +531,7 @@ export class PulseIdentityService {
   async autoProcessKyc(
     userId: string,
     signals: KycAutomationSignals = {},
-    actorId = "kyc-automation-bot",
+    actorId = "kyc-automation-bot"
   ): Promise<KycStatusRow> {
     const evaluation = await this.deps.kycService.evaluatePending(userId, signals);
     if (!evaluation.shouldProcess) {
@@ -509,7 +545,7 @@ export class PulseIdentityService {
     await this.appendAudit(userId, "identity.kyc.automation_evaluated", actorId, {
       riskScore: evaluation.riskScore,
       approved: evaluation.approved,
-      reason: evaluation.reason || null,
+      reason: evaluation.reason || null
     });
 
     return this.completeKycWorkflow(userId, evaluation.approved, actorId, evaluation.reason);
@@ -524,7 +560,7 @@ export class PulseIdentityService {
       this.deps.storage.findUserById(userId),
       this.deps.storage.getUserRole(userId),
       this.deps.storage.listConsentRecords(userId),
-      this.deps.storage.getKycStatus(userId),
+      this.deps.storage.getKycStatus(userId)
     ]);
 
     if (!user || !role) {
@@ -537,7 +573,7 @@ export class PulseIdentityService {
       requiredActions.push("verify_email");
     }
     const hasConsent = REQUIRED_CONSENTS.every((required) =>
-      consents.some((entry) => entry.consentType === required.type && entry.accepted),
+      consents.some((entry) => entry.consentType === required.type && entry.accepted)
     );
     if (!hasConsent) {
       requiredActions.push("accept_required_consents");
@@ -552,7 +588,7 @@ export class PulseIdentityService {
       kycStatus: kyc?.status || "not_required",
       accountStatus: user.status,
       activationReady: requiredActions.length === 0,
-      requiredActions,
+      requiredActions
     };
   }
 
@@ -562,7 +598,7 @@ export class PulseIdentityService {
       this.deps.storage.getUserRole(userId),
       this.deps.storage.getUserLocale(userId),
       this.deps.storage.getKycStatus(userId),
-      this.deps.storage.listConsentRecords(userId),
+      this.deps.storage.listConsentRecords(userId)
     ]);
 
     if (!user || !roleRow || !locale) {
@@ -577,28 +613,38 @@ export class PulseIdentityService {
         pulscoInternalId: user.pulscoInternalId,
         dashboardRoute: user.dashboardRoute,
         featureFlags: user.featureFlags,
-        subscriptionTier: user.subscriptionTier,
+        subscriptionTier: user.subscriptionTier
       };
     }
 
     const requiresKyc = this.deps.kycService.requiresKyc(roleRow.role, user.subscriptionTier);
     const hasRequiredConsent = REQUIRED_CONSENTS.every((required) =>
-      consents.some((entry) => entry.consentType === required.type && entry.accepted),
+      consents.some((entry) => entry.consentType === required.type && entry.accepted)
     );
 
-    if (!user.emailVerified || !hasRequiredConsent || (requiresKyc && kycStatus?.status !== "verified")) {
-      throw new IdentityError("activation_prerequisites_not_met", 400, "Activation prerequisites are not satisfied", {
-        emailVerified: user.emailVerified,
-        hasRequiredConsent,
-        requiresKyc,
-        kycStatus: kycStatus?.status || "not_required",
-      });
+    if (
+      !user.emailVerified ||
+      !hasRequiredConsent ||
+      (requiresKyc && kycStatus?.status !== "verified")
+    ) {
+      throw new IdentityError(
+        "activation_prerequisites_not_met",
+        400,
+        "Activation prerequisites are not satisfied",
+        {
+          emailVerified: user.emailVerified,
+          hasRequiredConsent,
+          requiresKyc,
+          kycStatus: kycStatus?.status || "not_required"
+        }
+      );
     }
 
     const rolePolicy = ROLE_POLICIES[roleRow.role];
     const now = new Date().toISOString();
     const accountUuidV7 = user.accountUuidV7 || safeUuidV7();
-    const pulscoInternalId = user.pulscoInternalId || this.buildPulscoInternalId(locale.country, accountUuidV7);
+    const pulscoInternalId =
+      user.pulscoInternalId || this.buildPulscoInternalId(locale.country, accountUuidV7);
     const featureFlags = this.resolveFeatureFlags(rolePolicy, user.subscriptionTier);
 
     const updatedUser: UserRow = {
@@ -609,7 +655,7 @@ export class PulseIdentityService {
       dashboardRoute: rolePolicy.dashboardRoute,
       featureFlags,
       activatedAt: user.activatedAt || now,
-      updatedAt: now,
+      updatedAt: now
     };
     await this.deps.storage.updateUser(updatedUser);
 
@@ -617,14 +663,14 @@ export class PulseIdentityService {
       accountId: user.id,
       tier: user.subscriptionTier,
       region: this.resolveBillingRegion(locale.country),
-      idempotencyKey: `activate:${user.id}:${user.subscriptionTier}`,
+      idempotencyKey: `activate:${user.id}:${user.subscriptionTier}`
     };
     const billingResult = await this.deps.billingClient.linkSubscription(billingRequest);
 
     await this.appendAudit(user.id, "identity.user.activated", actorId, {
       billingLinked: billingResult.linked,
       tier: user.subscriptionTier,
-      dashboardRoute: rolePolicy.dashboardRoute,
+      dashboardRoute: rolePolicy.dashboardRoute
     });
 
     return {
@@ -634,7 +680,7 @@ export class PulseIdentityService {
       pulscoInternalId,
       dashboardRoute: rolePolicy.dashboardRoute,
       featureFlags,
-      subscriptionTier: user.subscriptionTier,
+      subscriptionTier: user.subscriptionTier
     };
   }
 
@@ -643,7 +689,7 @@ export class PulseIdentityService {
       intent: "login",
       ipAddress: input.ipAddress,
       userAgent: input.userAgent,
-      deviceFingerprint: input.deviceFingerprint,
+      deviceFingerprint: input.deviceFingerprint
     });
 
     const email = normalizeEmail(input.email);
@@ -656,7 +702,11 @@ export class PulseIdentityService {
       throw new IdentityError("invalid_credentials", 401, "Invalid credentials");
     }
     if (user.status !== "active") {
-      throw new IdentityError("account_not_active", 403, "Account activation is required before login");
+      throw new IdentityError(
+        "account_not_active",
+        403,
+        "Account activation is required before login"
+      );
     }
 
     const security = await this.deps.storage.getUserSecurity(user.id);
@@ -670,7 +720,7 @@ export class PulseIdentityService {
     const sessionId = randomUUID();
     const rolePolicy = ROLE_POLICIES[user.role];
     const dashboardRoute = rolePolicy?.dashboardRoute || "/dashboard";
-    const tokens = this.issueAuthTokens(user.id, sessionId, 0, dashboardRoute);
+    const tokens = this.issueAuthTokens(user.id, sessionId, 0, dashboardRoute, user.role);
     const now = new Date().toISOString();
     const expiresAt = new Date(Date.now() + this.refreshTtlSec * 1000).toISOString();
 
@@ -683,7 +733,7 @@ export class PulseIdentityService {
       encryptedUserAgent: encryptSensitive(input.userAgent),
       expiresAt,
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     };
     await this.deps.storage.insertLoginSession(session);
     await this.sessionStore.set(sessionId, { userId: user.id }, this.refreshTtlSec);
@@ -694,7 +744,7 @@ export class PulseIdentityService {
         encryptedDeviceFingerprint: encryptSensitive(incomingFingerprint),
         encryptedLastIpAddress: encryptSensitive(input.ipAddress),
         encryptedLastUserAgent: encryptSensitive(input.userAgent),
-        updatedAt: now,
+        updatedAt: now
       });
     }
 
@@ -702,7 +752,7 @@ export class PulseIdentityService {
     await this.upsertTrustScore(user, country, deviceConsistency);
     await this.appendAudit(user.id, "identity.user.login", "identity-service", {
       sessionId,
-      deviceConsistency,
+      deviceConsistency
     });
     await this.emitIdentityEvent({
       eventType: "user.login",
@@ -710,8 +760,8 @@ export class PulseIdentityService {
       region: country,
       payload: {
         sessionId,
-        deviceConsistency,
-      },
+        deviceConsistency
+      }
     });
 
     return tokens;
@@ -722,10 +772,13 @@ export class PulseIdentityService {
       intent: "refresh",
       ipAddress: input.ipAddress,
       userAgent: input.userAgent,
-      deviceFingerprint: "refresh-token-device",
+      deviceFingerprint: "refresh-token-device"
     });
 
-    const payload = verifyToken<{ sub: string; sid: string; typ: string; rot?: number }>(input.refreshToken, this.jwtSecret);
+    const payload = verifyToken<{ sub: string; sid: string; typ: string; rot?: number }>(
+      input.refreshToken,
+      this.jwtSecret
+    );
     if (payload.typ !== "refresh") {
       throw new IdentityError("invalid_refresh_token", 401, "Refresh token type invalid");
     }
@@ -745,14 +798,28 @@ export class PulseIdentityService {
     }
 
     const nextRotation = (payload.rot || 0) + 1;
-    const tokens = this.issueAuthTokens(payload.sub, payload.sid, nextRotation);
+    const user = await this.deps.storage.findUserById(payload.sub);
+    if (!user) {
+      throw new IdentityError("user_not_found", 404, "User does not exist");
+    }
+    const tokens = this.issueAuthTokens(
+      payload.sub,
+      payload.sid,
+      nextRotation,
+      user.dashboardRoute,
+      user.role
+    );
     const now = new Date().toISOString();
     await this.deps.storage.updateLoginSession({
       ...session,
       refreshTokenHash: hashValue(tokens.refreshToken),
-      updatedAt: now,
+      updatedAt: now
     });
-    await this.sessionStore.set(payload.sid, { userId: payload.sub, rot: nextRotation }, this.refreshTtlSec);
+    await this.sessionStore.set(
+      payload.sid,
+      { userId: payload.sub, rot: nextRotation },
+      this.refreshTtlSec
+    );
     return tokens;
   }
 
@@ -765,26 +832,33 @@ export class PulseIdentityService {
     await assertSecurityPrechecks(input, this.rateLimiter);
   }
 
-  private issueAuthTokens(userId: string, sessionId: string, rotation: number, dashboardRoute: string = "/dashboard"): AuthTokens {
+  private issueAuthTokens(
+    userId: string,
+    sessionId: string,
+    rotation: number,
+    dashboardRoute: string = "/dashboard",
+    role?: OnboardingRole
+  ): AuthTokens {
     const accessToken = signToken(
       {
         sub: userId,
         sid: sessionId,
         typ: "access",
         rot: rotation,
+        role
       },
       this.jwtSecret,
-      this.accessTtlSec,
+      this.accessTtlSec
     );
     const refreshToken = signToken(
       {
         sub: userId,
         sid: sessionId,
         typ: "refresh",
-        rot: rotation,
+        rot: rotation
       },
       this.jwtSecret,
-      this.refreshTtlSec,
+      this.refreshTtlSec
     );
 
     return {
@@ -794,7 +868,7 @@ export class PulseIdentityService {
       accessExpiresInSec: this.accessTtlSec,
       refreshExpiresInSec: this.refreshTtlSec,
       sessionId,
-      dashboardRoute,
+      dashboardRoute
     };
   }
 
@@ -802,7 +876,11 @@ export class PulseIdentityService {
     for (const required of REQUIRED_CONSENTS) {
       const entry = consents[required.field];
       if (!entry || !entry.accepted || !entry.version) {
-        throw new IdentityError("missing_required_consent", 400, `Missing required consent: ${required.field}`);
+        throw new IdentityError(
+          "missing_required_consent",
+          400,
+          `Missing required consent: ${required.field}`
+        );
       }
     }
   }
@@ -812,7 +890,7 @@ export class PulseIdentityService {
     consents: ConsentInput,
     ipAddress: string,
     userAgent: string,
-    createdAt: string,
+    createdAt: string
   ) {
     const rows: ConsentRecordRow[] = [
       {
@@ -824,7 +902,7 @@ export class PulseIdentityService {
         ipAddress: encryptSensitive(ipAddress),
         userAgent: encryptSensitive(userAgent),
         createdAt,
-        updatedAt: createdAt,
+        updatedAt: createdAt
       },
       {
         id: randomUUID(),
@@ -835,7 +913,7 @@ export class PulseIdentityService {
         ipAddress: encryptSensitive(ipAddress),
         userAgent: encryptSensitive(userAgent),
         createdAt,
-        updatedAt: createdAt,
+        updatedAt: createdAt
       },
       {
         id: randomUUID(),
@@ -846,8 +924,8 @@ export class PulseIdentityService {
         ipAddress: encryptSensitive(ipAddress),
         userAgent: encryptSensitive(userAgent),
         createdAt,
-        updatedAt: createdAt,
-      },
+        updatedAt: createdAt
+      }
     ];
 
     if (consents.marketing) {
@@ -860,7 +938,7 @@ export class PulseIdentityService {
         ipAddress: encryptSensitive(ipAddress),
         userAgent: encryptSensitive(userAgent),
         createdAt,
-        updatedAt: createdAt,
+        updatedAt: createdAt
       });
     }
 
@@ -869,7 +947,11 @@ export class PulseIdentityService {
     }
   }
 
-  private resolveLocaleBinding(preferredLanguage: string, country: string, city?: string): LocaleBinding {
+  private resolveLocaleBinding(
+    preferredLanguage: string,
+    country: string,
+    city?: string
+  ): LocaleBinding {
     const cc = country.trim().toUpperCase();
     const language = preferredLanguage.trim().toLowerCase();
     return {
@@ -877,13 +959,23 @@ export class PulseIdentityService {
       country: cc,
       city,
       currency: COUNTRY_CURRENCY[cc] || "USD",
-      complianceProfile: cc === "DE" || cc === "FR" || cc === "GB" ? "gdpr" : cc === "US" ? "ccpa" : "global-default",
-      translationContext: `${language}-${cc}`,
+      complianceProfile:
+        cc === "DE" || cc === "FR" || cc === "GB"
+          ? "gdpr"
+          : cc === "US"
+            ? "ccpa"
+            : "global-default",
+      translationContext: `${language}-${cc}`
     };
   }
 
   private resolveFeatureFlags(rolePolicy: RolePolicy, tier: SubscriptionTier): string[] {
-    const tierFeatures = tier === "enterprise" ? ["tier.enterprise"] : tier === "premium" ? ["tier.premium"] : ["tier.basic"];
+    const tierFeatures =
+      tier === "enterprise"
+        ? ["tier.enterprise"]
+        : tier === "premium"
+          ? ["tier.premium"]
+          : ["tier.basic"];
     return [...new Set([...rolePolicy.featureAccess, ...tierFeatures])];
   }
 
@@ -906,7 +998,11 @@ export class PulseIdentityService {
   }
 
   private estimateIpRisk(ipAddress: string): number {
-    if (ipAddress.startsWith("10.") || ipAddress.startsWith("192.168.") || ipAddress === "127.0.0.1") {
+    if (
+      ipAddress.startsWith("10.") ||
+      ipAddress.startsWith("192.168.") ||
+      ipAddress === "127.0.0.1"
+    ) {
       return 5;
     }
     if (ipAddress.startsWith("172.")) {
@@ -915,7 +1011,12 @@ export class PulseIdentityService {
     return 18;
   }
 
-  private async appendAudit(userId: string | undefined, action: string, actor: string, metadata: Record<string, unknown>) {
+  private async appendAudit(
+    userId: string | undefined,
+    action: string,
+    actor: string,
+    metadata: Record<string, unknown>
+  ) {
     const now = new Date().toISOString();
     await this.deps.storage.insertAuditLog({
       id: randomUUID(),
@@ -924,7 +1025,7 @@ export class PulseIdentityService {
       actor,
       metadata,
       createdAt: now,
-      updatedAt: now,
+      updatedAt: now
     });
   }
 
@@ -934,7 +1035,7 @@ export class PulseIdentityService {
     } catch (error) {
       await this.appendAudit(event.userId, "identity.event.publish_failed", "identity-service", {
         eventType: event.eventType,
-        message: error instanceof Error ? error.message : "unknown_error",
+        message: error instanceof Error ? error.message : "unknown_error"
       });
     }
   }
@@ -943,7 +1044,7 @@ export class PulseIdentityService {
     user: UserRow,
     country: string,
     deviceConsistency = true,
-    referralTrusted?: boolean,
+    referralTrusted?: boolean
   ): Promise<void> {
     const kycStatus = await this.deps.storage.getKycStatus(user.id);
     const referral = await this.deps.storage.getReferralByReferredUser(user.id);
@@ -952,7 +1053,7 @@ export class PulseIdentityService {
       phoneVerified: user.phoneVerified,
       kycPassed: kycStatus?.status === "verified",
       referralTrusted: referralTrusted ?? Boolean(referral),
-      deviceConsistency,
+      deviceConsistency
     });
 
     const existing = await this.deps.storage.getTrustScore(user.id);
@@ -964,7 +1065,7 @@ export class PulseIdentityService {
       components: trust.components,
       initializedBy: "pulse-identity-service",
       createdAt: existing?.createdAt || now,
-      updatedAt: now,
+      updatedAt: now
     });
   }
 }

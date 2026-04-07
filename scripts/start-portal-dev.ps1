@@ -1,7 +1,7 @@
 # PULSCO Portal Development Launcher
 # Starts all subsystems and the unified portal
 
-Write-Host "🚀 Starting PULSCO Planetary Portal Development Environment" -ForegroundColor Cyan
+Write-Host "🚀 Starting Pulsco Planetary Portal Development Environment" -ForegroundColor Cyan
 Write-Host "========================================================" -ForegroundColor Cyan
 
 # Function to start a service in background
@@ -61,12 +61,12 @@ $uiJobs += Start-Service -Name "MARP Governance UI" -Command "pnpm --filter puls
 # Wait for UIs to start
 Start-Sleep -Seconds 10
 
-# Start the Unified Portal (main entry point)
-Write-Host "Starting PULSCO Portal..." -ForegroundColor Green
-$portalJob = Start-Service -Name "PULSCO Portal" -Command "pnpm --filter pulse-portal dev -- -p 3000" -WorkingDir "."
+# Start the Unified Portal (Main entry point)
+Write-Host "Starting Pulsco Portal..." -ForegroundColor Green
+$portalJob = Start-Service -Name "Pulsco Portal" -Command "pnpm --filter pulse-portal dev -- -p 3000" -WorkingDir "."
 
 Write-Host ""
-Write-Host "🎉 PULSCO Planetary Portal is starting up!" -ForegroundColor Green
+Write-Host "🎉 Pulsco Planetary Portal is starting up!" -ForegroundColor Green
 Write-Host "========================================================" -ForegroundColor Green
 Write-Host "Portal URL:        http://localhost:3000" -ForegroundColor White
 Write-Host "Places & Venues:   http://localhost:3001" -ForegroundColor White

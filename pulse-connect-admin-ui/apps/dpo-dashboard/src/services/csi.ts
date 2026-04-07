@@ -1,59 +1,59 @@
 // DPO Dashboard CSI Service
 // Handles privacy metrics, data subject requests and incident insights for the DPO role
 
-import { AdminRoleType } from '@pulsco/admin-shared-types'
+import { AdminRoleType } from "@pulsco/admin-shared-types";
 
 export interface DpoMetrics {
-  privacyScore: number
-  openIncidents: number
-  dsrRequests: number
-  piiRecordsCount: number
-  encryptionCoverage: number
-  retentionCompliance: number
-  avgResponseTime: number
+  privacyScore: number;
+  openIncidents: number;
+  dsrRequests: number;
+  piiRecordsCount: number;
+  encryptionCoverage: number;
+  retentionCompliance: number;
+  avgResponseTime: number;
 }
 
 export interface PrivacyAnomaly {
-  metric: string
-  severity: 'low' | 'medium' | 'high' | 'critical'
-  title?: string
-  description: string
-  confidence: number
-  timestamp: Date
+  metric: string;
+  severity: "low" | "medium" | "high" | "critical";
+  title?: string;
+  description: string;
+  confidence: number;
+  timestamp: Date;
 }
 
 export class DPOCSIService {
-  private readonly baseUrl: string
-  private role: AdminRoleType = 'dpo'
+  private readonly baseUrl: string;
+  private role: AdminRoleType = "dpo";
 
-  constructor(baseUrl = '/api/admin/intelligence') {
-    this.baseUrl = baseUrl
+  constructor(baseUrl = "/api/admin/intelligence") {
+    this.baseUrl = baseUrl;
   }
 
   async fetchDpoMetrics(timeRange?: { start: Date; end: Date }): Promise<DpoMetrics> {
     const params = new URLSearchParams({
-      action: 'metrics',
+      action: "metrics",
       role: this.role
-    })
+    });
 
     if (timeRange) {
-      params.set('start', timeRange.start.toISOString())
-      params.set('end', timeRange.end.toISOString())
+      params.set("start", timeRange.start.toISOString());
+      params.set("end", timeRange.end.toISOString());
     }
 
     const response = await fetch(`${this.baseUrl}?${params.toString()}`, {
       headers: {
-        'Content-Type': 'application/json',
-        'x-admin-role': this.role,
-      },
-    })
+        "Content-Type": "application/json",
+        "x-admin-role": this.role
+      }
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch DPO metrics: ${response.status}`)
+      throw new Error(`Failed to fetch DPO metrics: ${response.status}`);
     }
 
-    const payload = await response.json()
-    const metrics = payload.metrics || payload.data || payload || {}
+    const payload = await response.json();
+    const metrics = payload.metrics || payload.data || payload || {};
 
     return {
       privacyScore: metrics.privacy_score || metrics.privacyScore || 0,
@@ -63,23 +63,23 @@ export class DPOCSIService {
       encryptionCoverage: metrics.encryption_coverage || metrics.encryptionCoverage || 0,
       retentionCompliance: metrics.retention_compliance || metrics.retentionCompliance || 0,
       avgResponseTime: metrics.avg_response_time || metrics.avgResponseTime || 0
-    }
+    };
   }
 
   async getPrivacyAnomalies(): Promise<PrivacyAnomaly[]> {
     const response = await fetch(`${this.baseUrl}?action=anomalies&role=${this.role}`, {
       headers: {
-        'Content-Type': 'application/json',
-        'x-admin-role': this.role,
-      },
-    })
+        "Content-Type": "application/json",
+        "x-admin-role": this.role
+      }
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch DPO anomalies: ${response.status}`)
+      throw new Error(`Failed to fetch DPO anomalies: ${response.status}`);
     }
 
-    const payload = await response.json()
-    const anomalies = payload.anomalies || payload.data?.anomalies || []
+    const payload = await response.json();
+    const anomalies = payload.anomalies || payload.data?.anomalies || [];
 
     return anomalies.map((a: any) => ({
       metric: a.metric,
@@ -88,8 +88,8 @@ export class DPOCSIService {
       description: a.description,
       confidence: a.confidence,
       timestamp: new Date(a.timestamp || Date.now())
-    }))
+    }));
   }
 }
 
-export default DPOCSIService
+export default DPOCSIService;

@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EdgeTelemetryService } from '../services/telemetry.service';
-import { AiRuleInterpreter } from '@/shared/lib/src/ai-rule-interpreter';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EdgeTelemetryService } from "../services/telemetry.service";
+import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
 
 export interface PaymentsRequest {
   paymentId: string;
@@ -9,7 +9,7 @@ export interface PaymentsRequest {
   amount: number;
   currency: string;
   method: string;
-  action: 'charge' | 'refund' | 'transfer' | 'verify';
+  action: "charge" | "refund" | "transfer" | "verify";
   context?: {
     description?: string;
     recipientId?: string;
@@ -37,7 +37,7 @@ export class PaymentsAdapter {
   constructor(
     private readonly kafkaClient: ClientKafka,
     private readonly telemetryService: EdgeTelemetryService,
-    private readonly aiRuleInterpreter: AiRuleInterpreter,
+    private readonly aiRuleInterpreter: AiRuleInterpreter
   ) {}
 
   /**
@@ -50,20 +50,20 @@ export class PaymentsAdapter {
       // 1. Validate payment method and amount
       const methodCheck = await this.validatePaymentMethod(request);
       if (!methodCheck.allowed) {
-        await this.telemetryService.recordEvent('payments_blocked', {
+        await this.telemetryService.recordEvent("payments_blocked", {
           paymentId: request.paymentId,
           userId: request.userId,
           action: request.action,
           reason: methodCheck.blockedReason,
           amount: request.amount,
-          currency: request.currency,
+          currency: request.currency
         });
         return {
           paymentId: request.paymentId,
           allowed: false,
           blockedReason: methodCheck.blockedReason,
           complianceFlags: methodCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -75,7 +75,7 @@ export class PaymentsAdapter {
           allowed: false,
           blockedReason: fraudCheck.blockedReason,
           complianceFlags: fraudCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -87,7 +87,7 @@ export class PaymentsAdapter {
           allowed: false,
           blockedReason: fxCheck.blockedReason,
           complianceFlags: fxCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -95,49 +95,40 @@ export class PaymentsAdapter {
       const result = await this.executePaymentOperation(request);
 
       // 5. Record telemetry
-      await this.telemetryService.recordEvent('payments_operation', {
+      await this.telemetryService.recordEvent("payments_operation", {
         paymentId: request.paymentId,
         userId: request.userId,
         action: request.action,
         amount: request.amount,
         currency: request.currency,
         allowed: true,
-        complianceFlags: [
-          ...methodCheck.flags,
-          ...fraudCheck.flags,
-          ...fxCheck.flags,
-        ].length,
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...methodCheck.flags, ...fraudCheck.flags, ...fxCheck.flags].length,
+        processingTime: Date.now() - startTime
       });
 
       return {
         paymentId: request.paymentId,
         allowed: true,
         paymentData: result.paymentData,
-        complianceFlags: [
-          ...methodCheck.flags,
-          ...fraudCheck.flags,
-          ...fxCheck.flags,
-        ],
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...methodCheck.flags, ...fraudCheck.flags, ...fxCheck.flags],
+        processingTime: Date.now() - startTime
       };
-
     } catch (error) {
       this.logger.error(`Payments processing failed: ${error.message}`, error.stack);
-      await this.telemetryService.recordEvent('payments_error', {
+      await this.telemetryService.recordEvent("payments_error", {
         paymentId: request.paymentId,
         userId: request.userId,
         action: request.action,
         error: error.message,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
         paymentId: request.paymentId,
         allowed: false,
-        blockedReason: 'System error during payment processing',
-        complianceFlags: ['error'],
-        processingTime: Date.now() - startTime,
+        blockedReason: "System error during payment processing",
+        complianceFlags: ["error"],
+        processingTime: Date.now() - startTime
       };
     }
   }
@@ -153,27 +144,27 @@ export class PaymentsAdapter {
     const flags = [];
 
     // Check supported methods
-    const supportedMethods = ['card', 'bank_transfer', 'crypto', 'wallet'];
+    const supportedMethods = ["card", "bank_transfer", "crypto", "wallet"];
     if (!supportedMethods.includes(request.method)) {
       return {
         allowed: false,
-        blockedReason: 'Unsupported payment method',
-        flags: ['unsupported_method'],
+        blockedReason: "Unsupported payment method",
+        flags: ["unsupported_method"]
       };
     }
 
-    flags.push('method_supported');
+    flags.push("method_supported");
 
     // Check amount limits
     if (request.amount <= 0 || request.amount > 100000) {
       return {
         allowed: false,
-        blockedReason: 'Invalid payment amount',
-        flags: ['invalid_amount'],
+        blockedReason: "Invalid payment amount",
+        flags: ["invalid_amount"]
       };
     }
 
-    flags.push('amount_valid');
+    flags.push("amount_valid");
     return { allowed: true, flags };
   }
 
@@ -192,13 +183,13 @@ export class PaymentsAdapter {
     if (fraudScore > 0.8) {
       return {
         allowed: false,
-        blockedReason: 'Payment flagged for fraud review',
-        flags: ['high_fraud_risk'],
+        blockedReason: "Payment flagged for fraud review",
+        flags: ["high_fraud_risk"]
       };
     }
 
-    flags.push('fraud_check_passed');
-    if (fraudScore > 0.5) flags.push('moderate_risk');
+    flags.push("fraud_check_passed");
+    if (fraudScore > 0.5) flags.push("moderate_risk");
 
     return { allowed: true, flags };
   }
@@ -214,27 +205,27 @@ export class PaymentsAdapter {
     const flags = [];
 
     // Check currency support
-    const supportedCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'BTC', 'ETH'];
+    const supportedCurrencies = ["USD", "EUR", "GBP", "JPY", "BTC", "ETH"];
     if (!supportedCurrencies.includes(request.currency)) {
       return {
         allowed: false,
-        blockedReason: 'Unsupported currency',
-        flags: ['unsupported_currency'],
+        blockedReason: "Unsupported currency",
+        flags: ["unsupported_currency"]
       };
     }
 
-    flags.push('currency_supported');
+    flags.push("currency_supported");
 
     // Validate FX rate if provided
     if (request.context?.fxRate && (request.context.fxRate <= 0 || request.context.fxRate > 10)) {
       return {
         allowed: false,
-        blockedReason: 'Invalid FX rate',
-        flags: ['invalid_fx_rate'],
+        blockedReason: "Invalid FX rate",
+        flags: ["invalid_fx_rate"]
       };
     }
 
-    flags.push('fx_compliant');
+    flags.push("fx_compliant");
     return { allowed: true, flags };
   }
 
@@ -242,17 +233,19 @@ export class PaymentsAdapter {
    * Execute payment operation
    */
   private async executePaymentOperation(request: PaymentsRequest): Promise<any> {
-    const result = await this.kafkaClient.send('payments.execute', {
-      paymentId: request.paymentId,
-      userId: request.userId,
-      amount: request.amount,
-      currency: request.currency,
-      method: request.method,
-      action: request.action,
-      context: request.context,
-      edgeValidated: true,
-      timestamp: new Date().toISOString(),
-    }).toPromise();
+    const result = await this.kafkaClient
+      .send("payments.execute", {
+        paymentId: request.paymentId,
+        userId: request.userId,
+        amount: request.amount,
+        currency: request.currency,
+        method: request.method,
+        action: request.action,
+        context: request.context,
+        edgeValidated: true,
+        timestamp: new Date().toISOString()
+      })
+      .toPromise();
 
     return result;
   }

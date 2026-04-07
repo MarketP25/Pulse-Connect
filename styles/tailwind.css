@@ -1,1 +1,335 @@
-@import "tailwindcss";
+/* Global Styles for PULSCO Design System */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Import Design Tokens */
+@import "./design-tokens.css";
+
+/* === BASE STYLES === */
+
+/* Root configuration for dark mode */
+:root {
+  color-scheme: dark;
+}
+
+/* Typography defaults */
+html {
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-nebula-dark);
+  color: var(--color-tech-white);
+  line-height: var(--line-height-relaxed);
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* === TYPOGRAPHY === */
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-tech-white);
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  color: var(--color-tech-white);
+}
+
+h3 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-tech-white);
+}
+
+h4 {
+  font-size: var(--font-size-h4);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-tech-white);
+}
+
+body,
+p {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-relaxed);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-tech-white);
+}
+
+small,
+.caption {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-grid-silver);
+}
+
+code,
+pre {
+  font-family: var(--font-family-mono);
+}
+
+/* === LINKS === */
+
+a {
+  color: var(--color-pulse-cyan-accent);
+  text-decoration: none;
+  transition: color var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+a:hover {
+  color: var(--color-stellar-purple-secondary);
+  text-decoration: underline;
+}
+
+a:active {
+  opacity: 0.8;
+}
+
+/* === FORM ELEMENTS === */
+
+input,
+textarea,
+select {
+  font-family: var(--font-family-sans);
+  background-color: var(--color-nebula-dark);
+  color: var(--color-tech-white);
+  border: 1px solid var(--color-grid-silver);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-body);
+  transition: all var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-pulse-cyan-accent);
+  box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-grid-silver);
+}
+
+/* === BUTTONS === */
+
+button {
+  font-family: var(--font-family-sans);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-duration-normal) var(--transition-timing-ease-out);
+  cursor: pointer;
+  border: none;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* === ANIMATIONS === */
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: var(--shadow-glow-cyan);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* === UTILITY CLASSES === */
+
+.glow {
+  animation: glow var(--transition-duration-slow) ease-in-out infinite;
+}
+
+.slide-in-left {
+  animation: slideInFromLeft var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+.slide-in-top {
+  animation: slideInFromTop var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+.fade-out {
+  animation: fadeOut var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+.pulse-glow {
+  animation: pulse-glow var(--transition-duration-slow) ease-in-out infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+.transition-colors {
+  transition: background-color var(--transition-duration-normal) var(--transition-timing-ease-out),
+    color var(--transition-duration-normal) var(--transition-timing-ease-out),
+    border-color var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+.transition-all {
+  transition: all var(--transition-duration-normal) var(--transition-timing-ease-out);
+}
+
+/* === SCROLLBAR STYLING === */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-nebula-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-grid-silver);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-pulse-cyan-accent);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: var(--color-grid-silver) var(--color-nebula-dark);
+  scrollbar-width: thin;
+}
+
+/* === SELECTION === */
+
+::selection {
+  background-color: var(--color-pulse-cyan-accent);
+  color: var(--color-orbit-blue-primary);
+}
+
+::-moz-selection {
+  background-color: var(--color-pulse-cyan-accent);
+  color: var(--color-orbit-blue-primary);
+}
+
+/* === ACCESSIBILITY === */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-pulse-cyan-accent);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  a {
+    text-decoration: underline;
+  }
+
+  button {
+    border: 2px solid var(--color-pulse-cyan-accent);
+  }
+}
+
+/* === PRINT STYLES === */
+
+@media print {
+  body {
+    background-color: white;
+    color: black;
+  }
+
+  a {
+    color: blue;
+  }
+}

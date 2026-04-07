@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EdgeTelemetryService } from '../services/telemetry.service';
-import { AiRuleInterpreter } from '@/shared/lib/src/ai-rule-interpreter';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EdgeTelemetryService } from "../services/telemetry.service";
+import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
 
 export interface ProximityGeocodingRequest {
   requestId: string;
   userId: string;
-  action: 'geocode' | 'reverse_geocode' | 'proximity_search' | 'distance_calc';
+  action: "geocode" | "reverse_geocode" | "proximity_search" | "distance_calc";
   location?: {
     latitude: number;
     longitude: number;
@@ -41,31 +41,33 @@ export class ProximityGeocodingAdapter {
   constructor(
     private readonly kafkaClient: ClientKafka,
     private readonly telemetryService: EdgeTelemetryService,
-    private readonly aiRuleInterpreter: AiRuleInterpreter,
+    private readonly aiRuleInterpreter: AiRuleInterpreter
   ) {}
 
   /**
    * Process proximity/geocoding request through Edge governance
    */
-  async processProximityGeocodingRequest(request: ProximityGeocodingRequest): Promise<ProximityGeocodingResponse> {
+  async processProximityGeocodingRequest(
+    request: ProximityGeocodingRequest
+  ): Promise<ProximityGeocodingResponse> {
     const startTime = Date.now();
 
     try {
       // 1. Validate location data and permissions
       const locationCheck = await this.validateLocationData(request);
       if (!locationCheck.allowed) {
-        await this.telemetryService.recordEvent('proximity_blocked', {
+        await this.telemetryService.recordEvent("proximity_blocked", {
           requestId: request.requestId,
           userId: request.userId,
           action: request.action,
-          reason: locationCheck.blockedReason,
+          reason: locationCheck.blockedReason
         });
         return {
           requestId: request.requestId,
           allowed: false,
           blockedReason: locationCheck.blockedReason,
           complianceFlags: locationCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -77,7 +79,7 @@ export class ProximityGeocodingAdapter {
           allowed: false,
           blockedReason: privacyCheck.blockedReason,
           complianceFlags: privacyCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -87,9 +89,9 @@ export class ProximityGeocodingAdapter {
         return {
           requestId: request.requestId,
           allowed: false,
-          blockedReason: 'Rate limit exceeded for geocoding requests',
-          complianceFlags: ['rate_limited'],
-          processingTime: Date.now() - startTime,
+          blockedReason: "Rate limit exceeded for geocoding requests",
+          complianceFlags: ["rate_limited"],
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -97,45 +99,38 @@ export class ProximityGeocodingAdapter {
       const result = await this.executeGeocodingOperation(request);
 
       // 5. Record telemetry
-      await this.telemetryService.recordEvent('proximity_operation', {
+      await this.telemetryService.recordEvent("proximity_operation", {
         requestId: request.requestId,
         userId: request.userId,
         action: request.action,
         allowed: true,
-        complianceFlags: [
-          ...locationCheck.flags,
-          ...privacyCheck.flags,
-        ].length,
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...locationCheck.flags, ...privacyCheck.flags].length,
+        processingTime: Date.now() - startTime
       });
 
       return {
         requestId: request.requestId,
         allowed: true,
         locationData: result.locationData,
-        complianceFlags: [
-          ...locationCheck.flags,
-          ...privacyCheck.flags,
-        ],
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...locationCheck.flags, ...privacyCheck.flags],
+        processingTime: Date.now() - startTime
       };
-
     } catch (error) {
       this.logger.error(`Proximity geocoding failed: ${error.message}`, error.stack);
-      await this.telemetryService.recordEvent('proximity_error', {
+      await this.telemetryService.recordEvent("proximity_error", {
         requestId: request.requestId,
         userId: request.userId,
         action: request.action,
         error: error.message,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
         requestId: request.requestId,
         allowed: false,
-        blockedReason: 'System error during geocoding',
-        complianceFlags: ['error'],
-        processingTime: Date.now() - startTime,
+        blockedReason: "System error during geocoding",
+        complianceFlags: ["error"],
+        processingTime: Date.now() - startTime
       };
     }
   }
@@ -150,41 +145,45 @@ export class ProximityGeocodingAdapter {
   }> {
     const flags = [];
 
-    if (request.action === 'geocode' || request.action === 'reverse_geocode') {
+    if (request.action === "geocode" || request.action === "reverse_geocode") {
       if (!request.location) {
         return {
           allowed: false,
-          blockedReason: 'Location data required',
-          flags: ['missing_location'],
+          blockedReason: "Location data required",
+          flags: ["missing_location"]
         };
       }
 
       // Validate coordinates
-      if (request.location.latitude < -90 || request.location.latitude > 90 ||
-          request.location.longitude < -180 || request.location.longitude > 180) {
+      if (
+        request.location.latitude < -90 ||
+        request.location.latitude > 90 ||
+        request.location.longitude < -180 ||
+        request.location.longitude > 180
+      ) {
         return {
           allowed: false,
-          blockedReason: 'Invalid coordinates',
-          flags: ['invalid_coordinates'],
+          blockedReason: "Invalid coordinates",
+          flags: ["invalid_coordinates"]
         };
       }
 
-      flags.push('coordinates_valid');
+      flags.push("coordinates_valid");
     }
 
     // Validate search parameters
-    if (request.action === 'proximity_search') {
+    if (request.action === "proximity_search") {
       if (!request.context?.radius || request.context.radius <= 0) {
         return {
           allowed: false,
-          blockedReason: 'Invalid search radius',
-          flags: ['invalid_radius'],
+          blockedReason: "Invalid search radius",
+          flags: ["invalid_radius"]
         };
       }
-      flags.push('search_params_valid');
+      flags.push("search_params_valid");
     }
 
-    flags.push('location_data_valid');
+    flags.push("location_data_valid");
     return { allowed: true, flags };
   }
 
@@ -203,12 +202,12 @@ export class ProximityGeocodingAdapter {
     if (!consentGranted) {
       return {
         allowed: false,
-        blockedReason: 'Location sharing consent not granted',
-        flags: ['consent_denied'],
+        blockedReason: "Location sharing consent not granted",
+        flags: ["consent_denied"]
       };
     }
 
-    flags.push('consent_granted');
+    flags.push("consent_granted");
 
     // Check for restricted areas
     if (request.location) {
@@ -216,13 +215,13 @@ export class ProximityGeocodingAdapter {
       if (restricted) {
         return {
           allowed: false,
-          blockedReason: 'Location in restricted area',
-          flags: ['restricted_area'],
+          blockedReason: "Location in restricted area",
+          flags: ["restricted_area"]
         };
       }
     }
 
-    flags.push('privacy_compliant');
+    flags.push("privacy_compliant");
     return { allowed: true, flags };
   }
 
@@ -238,15 +237,17 @@ export class ProximityGeocodingAdapter {
    * Execute geocoding operation
    */
   private async executeGeocodingOperation(request: ProximityGeocodingRequest): Promise<any> {
-    const result = await this.kafkaClient.send('proximity.execute', {
-      requestId: request.requestId,
-      userId: request.userId,
-      action: request.action,
-      location: request.location,
-      context: request.context,
-      edgeValidated: true,
-      timestamp: new Date().toISOString(),
-    }).toPromise();
+    const result = await this.kafkaClient
+      .send("proximity.execute", {
+        requestId: request.requestId,
+        userId: request.userId,
+        action: request.action,
+        location: request.location,
+        context: request.context,
+        edgeValidated: true,
+        timestamp: new Date().toISOString()
+      })
+      .toPromise();
 
     return result;
   }
@@ -262,7 +263,10 @@ export class ProximityGeocodingAdapter {
   /**
    * Check for restricted areas
    */
-  private async checkRestrictedAreas(location: { latitude: number; longitude: number }): Promise<boolean> {
+  private async checkRestrictedAreas(location: {
+    latitude: number;
+    longitude: number;
+  }): Promise<boolean> {
     // Would check against restricted area database
     return false; // Simplified
   }

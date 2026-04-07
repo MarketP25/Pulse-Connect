@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { RevenueRollup } from './entities/revenue-rollup.entity';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { RevenueRollup } from "./entities/revenue-rollup.entity";
 
 @Injectable()
 export class ReportingService {
   constructor(
     @InjectRepository(RevenueRollup)
-    private revenueRepository: Repository<RevenueRollup>,
+    private revenueRepository: Repository<RevenueRollup>
   ) {}
 
   /**
@@ -15,15 +15,15 @@ export class ReportingService {
    */
   async getRevenueSummary(period: string, region?: string, subsystem?: string) {
     const query = this.revenueRepository
-      .createQueryBuilder('revenue')
-      .where('revenue.period = :period', { period });
+      .createQueryBuilder("revenue")
+      .where("revenue.period = :period", { period });
 
     if (region) {
-      query.andWhere('revenue.region = :region', { region });
+      query.andWhere("revenue.region = :region", { region });
     }
 
     if (subsystem) {
-      query.andWhere('revenue.subsystem = :subsystem', { subsystem });
+      query.andWhere("revenue.subsystem = :subsystem", { subsystem });
     }
 
     const results = await query.getMany();
@@ -33,8 +33,8 @@ export class ReportingService {
       region,
       subsystem,
       total_amount: results.reduce((sum, r) => sum + parseFloat(r.total_amount.toString()), 0),
-      currency: 'USD',
-      breakdown: results,
+      currency: "USD",
+      breakdown: results
     };
   }
 
@@ -43,12 +43,12 @@ export class ReportingService {
    */
   async getRevenueTrends(period: string, region?: string) {
     const query = this.revenueRepository
-      .createQueryBuilder('revenue')
-      .where('revenue.period = :period', { period })
-      .orderBy('revenue.created_at', 'ASC');
+      .createQueryBuilder("revenue")
+      .where("revenue.period = :period", { period })
+      .orderBy("revenue.created_at", "ASC");
 
     if (region) {
-      query.andWhere('revenue.region = :region', { region });
+      query.andWhere("revenue.region = :region", { region });
     }
 
     const results = await query.getMany();
@@ -56,11 +56,11 @@ export class ReportingService {
     return {
       period,
       region,
-      trends: results.map(r => ({
+      trends: results.map((r) => ({
         date: r.created_at,
         amount: r.total_amount,
-        subsystem: r.subsystem,
-      })),
+        subsystem: r.subsystem
+      }))
     };
   }
 
@@ -76,13 +76,13 @@ export class ReportingService {
       p99_latency_ms: 250,
       throughput_rps: 1500,
       error_rate_percent: 0.1,
-      cache_hit_ratio: 0.92,
+      cache_hit_ratio: 0.92
     };
 
     return {
-      subsystem: subsystem || 'all',
+      subsystem: subsystem || "all",
       metrics: mockMetrics,
-      timestamp: new Date(),
+      timestamp: new Date()
     };
   }
 
@@ -94,30 +94,30 @@ export class ReportingService {
     // For now, return mock anomalies
     const mockAnomalies = [
       {
-        id: 'anomaly-001',
-        type: 'unusual_transaction_volume',
-        severity: 'medium',
-        region: region || 'global',
-        description: 'Transaction volume 3x above normal',
+        id: "anomaly-001",
+        type: "unusual_transaction_volume",
+        severity: "medium",
+        region: region || "global",
+        description: "Transaction volume 3x above normal",
         detected_at: new Date(),
-        confidence_score: 0.85,
+        confidence_score: 0.85
       },
       {
-        id: 'anomaly-002',
-        type: 'geographic_anomaly',
-        severity: 'high',
-        region: region || 'global',
-        description: 'Transactions from unusual geographic locations',
+        id: "anomaly-002",
+        type: "geographic_anomaly",
+        severity: "high",
+        region: region || "global",
+        description: "Transactions from unusual geographic locations",
         detected_at: new Date(),
-        confidence_score: 0.92,
-      },
+        confidence_score: 0.92
+      }
     ];
 
     return {
-      region: region || 'global',
-      window: window || '24h',
+      region: region || "global",
+      window: window || "24h",
       anomalies: mockAnomalies,
-      total_count: mockAnomalies.length,
+      total_count: mockAnomalies.length
     };
   }
 }

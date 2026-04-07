@@ -6,7 +6,7 @@ import {
   emitCommunicationEvent,
   emitLocalizationEvent,
   emitMatchmakingEvent,
-  emitPlacesEvent,
+  emitPlacesEvent
 } from "../../../pulse-connect-core/src/csi/instrumentation";
 
 describe("subsystem event emission", () => {

@@ -10,7 +10,7 @@ describe("CSI analysis", () => {
       timestamp: 1,
       metrics: { latencyMs: 250, errorRate: 0.01, successRate: 0.99 },
       riskScore: 12,
-      performanceScore: 88,
+      performanceScore: 88
     }),
     createCSIEvent({
       subsystem: "communication",
@@ -19,7 +19,7 @@ describe("CSI analysis", () => {
       timestamp: 2,
       metrics: { latencyMs: 260, errorRate: 0.02, successRate: 0.98 },
       riskScore: 14,
-      performanceScore: 84,
+      performanceScore: 84
     }),
     createCSIEvent({
       subsystem: "billing",
@@ -28,8 +28,8 @@ describe("CSI analysis", () => {
       timestamp: 3,
       metrics: { latencyMs: 2200, errorRate: 0.34, failureCount: 6 },
       riskScore: 72,
-      performanceScore: 31,
-    }),
+      performanceScore: 31
+    })
   ];
 
   it("detects grouped patterns", () => {

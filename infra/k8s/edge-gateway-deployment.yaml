@@ -71,6 +71,16 @@ spec:
             secretKeyRef:
               name: planetary-secrets
               key: kafka-url
+        - name: ADMIN_GATEWAY_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: admin-gateway-url
+        - name: INTERNAL_SERVICE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: internal-service-token
         - name: MARP_BUNDLES_URL
           valueFrom:
             secretKeyRef:
@@ -264,3 +274,4 @@ spec:
       - type: Pods
         value: 10
         periodSeconds: 60
+

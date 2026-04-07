@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
+import { useEffect, useState } from "react";
+import { Card, Button, Badge, Alert, LoadingSpinner } from "@pulsco/admin-ui-core";
 
 interface CustomerExperienceMetrics {
-  customerSatisfactionScore: number
-  netPromoterScore: number
-  supportTicketResolutionTime: number
-  firstResponseTime: number
-  customerRetentionRate: number
-  userEngagementRate: number
-  supportTicketVolume: number
-  selfServiceResolutionRate: number
-  mobileAppCrashRate: number
-  pageLoadTime: number
+  customerSatisfactionScore: number;
+  netPromoterScore: number;
+  supportTicketResolutionTime: number;
+  firstResponseTime: number;
+  customerRetentionRate: number;
+  userEngagementRate: number;
+  supportTicketVolume: number;
+  selfServiceResolutionRate: number;
+  mobileAppCrashRate: number;
+  pageLoadTime: number;
 }
 
 interface SupportAlert {
-  id: string
-  type: 'critical' | 'high' | 'medium' | 'low'
-  title: string
-  description: string
-  source: string
-  timestamp: string
-  affectedUsers: number
+  id: string;
+  type: "critical" | "high" | "medium" | "low";
+  title: string;
+  description: string;
+  source: string;
+  timestamp: string;
+  affectedUsers: number;
 }
 
 const FALLBACK_METRICS: CustomerExperienceMetrics = {
@@ -37,96 +37,98 @@ const FALLBACK_METRICS: CustomerExperienceMetrics = {
   selfServiceResolutionRate: 0.68,
   mobileAppCrashRate: 0.015,
   pageLoadTime: 1850
-}
+};
 
 const FALLBACK_ALERTS: SupportAlert[] = [
   {
-    id: '1',
-    type: 'high',
-    title: 'Support Ticket Backlog Increasing',
-    description: 'Ticket volume exceeded normal threshold by 35%',
-    source: 'Support System',
-    timestamp: '1 hour ago',
+    id: "1",
+    type: "high",
+    title: "Support Ticket Backlog Increasing",
+    description: "Ticket volume exceeded normal threshold by 35%",
+    source: "Support System",
+    timestamp: "1 hour ago",
     affectedUsers: 247
   },
   {
-    id: '2',
-    type: 'medium',
-    title: 'Mobile App Performance Degradation',
-    description: 'Page load times increased by 22% in last 24 hours',
-    source: 'Mobile Analytics',
-    timestamp: '3 hours ago',
+    id: "2",
+    type: "medium",
+    title: "Mobile App Performance Degradation",
+    description: "Page load times increased by 22% in last 24 hours",
+    source: "Mobile Analytics",
+    timestamp: "3 hours ago",
     affectedUsers: 1250
   },
   {
-    id: '3',
-    type: 'low',
-    title: 'Customer Satisfaction Score Trending Down',
-    description: 'CSAT decreased by 0.3 points over the past week',
-    source: 'CSI Analytics',
-    timestamp: '6 hours ago',
+    id: "3",
+    type: "low",
+    title: "Customer Satisfaction Score Trending Down",
+    description: "CSAT decreased by 0.3 points over the past week",
+    source: "CSI Analytics",
+    timestamp: "6 hours ago",
     affectedUsers: 0
   }
-]
+];
 
 export default function CustomerExperienceDashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [metrics, setMetrics] = useState<CustomerExperienceMetrics | null>(null)
-  const [alerts, setAlerts] = useState<SupportAlert[]>([])
-  const [activeView, setActiveView] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<CustomerExperienceMetrics | null>(null);
+  const [alerts, setAlerts] = useState<SupportAlert[]>([]);
+  const [activeView, setActiveView] = useState("overview");
 
   useEffect(() => {
     const loadCustomerData = async () => {
       try {
-        const headers = { 'x-admin-role': 'customer-experience' }
+        const headers = { "x-admin-role": "customer-experience" };
         const [metricsRes, anomaliesRes] = await Promise.all([
-          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
-        ])
+          fetch("api/admin/intelligence?action=metrics", { headers, cache: "no-store" }),
+          fetch("api/admin/intelligence?action=anomalies", { headers, cache: "no-store" })
+        ]);
 
         if (!metricsRes.ok) {
-          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+          throw new Error(`Metrics request failed with ${metricsRes.status}`);
         }
 
-        const metricsPayload = await metricsRes.json()
-        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        const metricsPayload = await metricsRes.json();
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {};
         setMetrics({
           ...FALLBACK_METRICS,
           ...rawMetrics
-        })
+        });
 
         if (anomaliesRes.ok) {
-          const anomaliesPayload = await anomaliesRes.json()
-          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          const anomaliesPayload = await anomaliesRes.json();
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || [];
           if (Array.isArray(anomalies) && anomalies.length > 0) {
             setAlerts(
               anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
                 id: String(index + 1),
-                type: anomaly.severity || 'low',
-                title: anomaly.title || `Customer experience anomaly in ${anomaly.metric || 'signal'}`,
-                description: anomaly.description || 'CSI detected an unusual customer experience pattern.',
-                source: anomaly.source || 'CSI Intelligence',
-                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                type: anomaly.severity || "low",
+                title:
+                  anomaly.title || `Customer experience anomaly in ${anomaly.metric || "signal"}`,
+                description:
+                  anomaly.description || "CSI detected an unusual customer experience pattern.",
+                source: anomaly.source || "CSI Intelligence",
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : "now",
                 affectedUsers: Number(anomaly.affectedUsers || anomaly.impactCount || 0)
               }))
-            )
+            );
           } else {
-            setAlerts(FALLBACK_ALERTS)
+            setAlerts(FALLBACK_ALERTS);
           }
         } else {
-          setAlerts(FALLBACK_ALERTS)
+          setAlerts(FALLBACK_ALERTS);
         }
       } catch (error) {
-        console.error('Failed to load customer experience intelligence', error)
-        setMetrics(FALLBACK_METRICS)
-        setAlerts(FALLBACK_ALERTS)
+        console.error("Failed to load customer experience intelligence", error);
+        setMetrics(FALLBACK_METRICS);
+        setAlerts(FALLBACK_ALERTS);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadCustomerData()
-  }, [])
+    loadCustomerData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -136,7 +138,7 @@ export default function CustomerExperienceDashboard() {
           <p className="mt-4 text-gray-600">Loading Customer Experience Dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -148,12 +150,20 @@ export default function CustomerExperienceDashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Customer Experience Dashboard</h1>
-                <p className="text-gray-600">Customer satisfaction, support quality, and user experience metrics</p>
+                <p className="text-gray-600">
+                  Customer satisfaction, support quality, and user experience metrics
+                </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="secondary" size="sm">Customer Survey</Button>
-                <Button variant="danger" size="sm">Escalate Issue</Button>
-                <Button variant="primary" size="sm">Support Response</Button>
+                <Button variant="secondary" size="sm">
+                  Customer Survey
+                </Button>
+                <Button variant="danger" size="sm">
+                  Escalate Issue
+                </Button>
+                <Button variant="primary" size="sm">
+                  Support Response
+                </Button>
               </div>
             </div>
           </div>
@@ -164,12 +174,17 @@ export default function CustomerExperienceDashboard() {
         {/* Critical Customer Experience Alerts */}
         {alerts.length > 0 && (
           <div className="mb-8">
-            {alerts.map(alert => (
-              <Alert key={alert.id} type={alert.type === 'critical' ? 'error' : alert.type === 'high' ? 'warning' : 'info'}>
+            {alerts.map((alert) => (
+              <Alert
+                key={alert.id}
+                type={
+                  alert.type === "critical" ? "error" : alert.type === "high" ? "warning" : "info"
+                }
+              >
                 <div className="flex justify-between items-center">
                   <div className="flex items-start">
                     <div className="text-lg mr-3">
-                      {alert.type === 'critical' ? '🚨' : alert.type === 'high' ? '⚠️' : 'ℹ️'}
+                      {alert.type === "critical" ? "🚨" : alert.type === "high" ? "⚠️" : "ℹ️"}
                     </div>
                     <div>
                       <h4 className="font-medium">{alert.title}</h4>
@@ -181,8 +196,12 @@ export default function CustomerExperienceDashboard() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="secondary">Investigate</Button>
-                    <Button size="sm" variant="primary">Resolve</Button>
+                    <Button size="sm" variant="secondary">
+                      Investigate
+                    </Button>
+                    <Button size="sm" variant="primary">
+                      Resolve
+                    </Button>
                   </div>
                 </div>
               </Alert>
@@ -196,7 +215,9 @@ export default function CustomerExperienceDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Customer Satisfaction</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.customerSatisfactionScore}/5.0</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.customerSatisfactionScore}/5.0
+                </p>
               </div>
               <Badge variant="success">Good</Badge>
             </div>
@@ -216,7 +237,9 @@ export default function CustomerExperienceDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Support Resolution Time</p>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(metrics?.supportTicketResolutionTime! / 3600)}h</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {Math.round(metrics?.supportTicketResolutionTime! / 3600)}h
+                </p>
               </div>
               <Badge variant="warning">Monitor</Badge>
             </div>
@@ -226,7 +249,9 @@ export default function CustomerExperienceDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Customer Retention</p>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(metrics?.customerRetentionRate! * 100)}%</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {Math.round(metrics?.customerRetentionRate! * 100)}%
+                </p>
               </div>
               <Badge variant="success">Strong</Badge>
             </div>
@@ -238,41 +263,41 @@ export default function CustomerExperienceDashboard() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveView('overview')}
+                onClick={() => setActiveView("overview")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "overview"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Experience Overview
               </button>
               <button
-                onClick={() => setActiveView('support')}
+                onClick={() => setActiveView("support")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'support'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "support"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Support Operations
               </button>
               <button
-                onClick={() => setActiveView('engagement')}
+                onClick={() => setActiveView("engagement")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'engagement'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "engagement"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 User Engagement
               </button>
               <button
-                onClick={() => setActiveView('quality')}
+                onClick={() => setActiveView("quality")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'quality'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "quality"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Quality Assurance
@@ -282,7 +307,7 @@ export default function CustomerExperienceDashboard() {
         </div>
 
         {/* Content based on active view */}
-        {activeView === 'overview' && (
+        {activeView === "overview" && (
           <div className="space-y-6">
             {/* Experience Quality Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -294,11 +319,15 @@ export default function CustomerExperienceDashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Mobile App Crashes</span>
-                    <span className="font-medium text-green-600">{(metrics?.mobileAppCrashRate! * 100).toFixed(2)}%</span>
+                    <span className="font-medium text-green-600">
+                      {(metrics?.mobileAppCrashRate! * 100).toFixed(2)}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">User Engagement</span>
-                    <span className="font-medium text-blue-600">{Math.round(metrics?.userEngagementRate! * 100)}%</span>
+                    <span className="font-medium text-blue-600">
+                      {Math.round(metrics?.userEngagementRate! * 100)}%
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -307,15 +336,21 @@ export default function CustomerExperienceDashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">First Response Time</span>
-                    <span className="font-medium text-blue-600">{Math.round(metrics?.firstResponseTime! / 60)}min</span>
+                    <span className="font-medium text-blue-600">
+                      {Math.round(metrics?.firstResponseTime! / 60)}min
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Self-Service Resolution</span>
-                    <span className="font-medium text-green-600">{Math.round(metrics?.selfServiceResolutionRate! * 100)}%</span>
+                    <span className="font-medium text-green-600">
+                      {Math.round(metrics?.selfServiceResolutionRate! * 100)}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Active Tickets</span>
-                    <span className="font-medium text-orange-600">{metrics?.supportTicketVolume}</span>
+                    <span className="font-medium text-orange-600">
+                      {metrics?.supportTicketVolume}
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -340,7 +375,7 @@ export default function CustomerExperienceDashboard() {
           </div>
         )}
 
-        {activeView === 'support' && (
+        {activeView === "support" && (
           <div className="space-y-6">
             <Card title="Support Operations Center">
               <div className="space-y-4">
@@ -400,7 +435,7 @@ export default function CustomerExperienceDashboard() {
           </div>
         )}
 
-        {activeView === 'engagement' && (
+        {activeView === "engagement" && (
           <div className="space-y-6">
             <Card title="User Engagement Analytics">
               <div className="space-y-4">
@@ -430,7 +465,7 @@ export default function CustomerExperienceDashboard() {
           </div>
         )}
 
-        {activeView === 'quality' && (
+        {activeView === "quality" && (
           <div className="space-y-6">
             <Card title="Quality Assurance Dashboard">
               <div className="space-y-4">
@@ -484,5 +519,5 @@ export default function CustomerExperienceDashboard() {
         )}
       </main>
     </div>
-  )
+  );
 }

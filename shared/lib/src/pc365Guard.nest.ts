@@ -1,12 +1,12 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { PC365Guard } from './pc365Guard';
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { PC365Guard, createPC365Guard } from "./pc365Guard";
 
 @Injectable()
 export class PC365NestGuard implements CanActivate {
   private pc365Guard: PC365Guard;
 
   constructor() {
-    this.pc365Guard = PC365Guard.createPC365Guard();
+    this.pc365Guard = createPC365Guard();
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -15,16 +15,16 @@ export class PC365NestGuard implements CanActivate {
 
     const pc365Headers = {
       authorization: headers.authorization,
-      'x-pc365': headers['x-pc365'],
-      'x-founder': headers['x-founder'],
-      'x-device': headers['x-device'],
+      "x-pc365": headers["x-pc365"],
+      "x-founder": headers["x-founder"],
+      "x-device": headers["x-device"]
     };
 
     try {
       return this.pc365Guard.validateDestructiveAction(pc365Headers);
     } catch (error) {
       // Log the security violation
-      console.error('PC365 Guard violation:', error.message);
+      console.error("PC365 Guard violation:", error.message);
       return false;
     }
   }

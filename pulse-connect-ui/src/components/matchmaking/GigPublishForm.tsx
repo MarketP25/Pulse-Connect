@@ -153,8 +153,8 @@ export default function GigPublishForm() {
           </div>
           <div className="mt-4 bg-yellow-50 p-3 rounded">
             <p className="text-xs text-yellow-800">
-              <strong>Fee Policy:</strong> Fees are charged using the active billing-engine policy at
-              publication and release time.
+              <strong>Fee Policy:</strong> Fees are charged using the active billing-engine policy
+              at publication and release time.
             </p>
           </div>
           <div className="mt-2 text-xs text-blue-600">
@@ -179,8 +179,8 @@ export default function GigPublishForm() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Publish a Gig</h2>
         <p className="text-gray-600 mt-2">
-          Create a gig to find providers for your project. Final platform fees are determined by
-          the active billing policy.
+          Create a gig to find providers for your project. Final platform fees are determined by the
+          active billing policy.
         </p>
       </div>
 

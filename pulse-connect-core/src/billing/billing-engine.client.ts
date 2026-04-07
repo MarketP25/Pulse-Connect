@@ -54,10 +54,15 @@ function resolveBillingRegion(region: string): string {
   const normalized = (region || "").toLowerCase();
   if (normalized.includes("africa")) return "Africa South 1";
   if (normalized.includes("asia")) return "Asia East 1";
-  if (normalized.includes("southamerica") || normalized.includes("south_america") || normalized.includes("latam")) {
+  if (
+    normalized.includes("southamerica") ||
+    normalized.includes("south_america") ||
+    normalized.includes("latam")
+  ) {
     return "South America East 1";
   }
-  if (normalized.includes("middleeast") || normalized.includes("me-")) return "Middle East Central 1";
+  if (normalized.includes("middleeast") || normalized.includes("me-"))
+    return "Middle East Central 1";
   return "Europe West 1";
 }
 
@@ -71,7 +76,10 @@ function billingRequestTimeoutMs(): number {
 }
 
 function billingWalletIdForAccount(accountId: string): string {
-  const safe = (accountId || "unknown").toLowerCase().replace(/[^a-z0-9_-]/g, "-").slice(0, 64);
+  const safe = (accountId || "unknown")
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, "-")
+    .slice(0, 64);
   return `pulsco-core-${safe}`;
 }
 
@@ -88,8 +96,8 @@ async function requestBillingJson<T>(path: string, init: RequestInit): Promise<T
       signal: controller.signal,
       headers: {
         "content-type": "application/json",
-        ...(init.headers || {}),
-      },
+        ...(init.headers || {})
+      }
     });
     if (!response.ok) return null;
     return (await response.json()) as T;
@@ -100,7 +108,10 @@ async function requestBillingJson<T>(path: string, init: RequestInit): Promise<T
   }
 }
 
-export async function ensureBillingWallet(accountId: string, walletId?: string): Promise<BillingWalletRecord | null> {
+export async function ensureBillingWallet(
+  accountId: string,
+  walletId?: string
+): Promise<BillingWalletRecord | null> {
   if (!isBillingEngineConfigured()) return null;
   const resolvedWalletId = walletId || billingWalletIdForAccount(accountId);
 
@@ -109,8 +120,8 @@ export async function ensureBillingWallet(accountId: string, walletId?: string):
     body: JSON.stringify({
       walletId: resolvedWalletId,
       accountId,
-      balance: Number(process.env.PULSCO_BILLING_WALLET_SEED_BALANCE || 0),
-    }),
+      balance: Number(process.env.PULSCO_BILLING_WALLET_SEED_BALANCE || 0)
+    })
   });
 }
 
@@ -131,10 +142,10 @@ export async function calculateBillingActivityQuote(input: {
         amount: input.amount,
         units: input.units,
         eventId: input.eventId,
-        details: input.details,
+        details: input.details
       },
-      at: new Date().toISOString(),
-    }),
+      at: new Date().toISOString()
+    })
   });
 }
 
@@ -166,11 +177,11 @@ export async function chargeBillingActivity(input: {
         amount: input.amount,
         units: input.units,
         eventId: input.eventId,
-        details: input.details,
+        details: input.details
       },
       at: new Date().toISOString(),
-      idempotencyKey: input.idempotencyKey || input.eventId,
-    }),
+      idempotencyKey: input.idempotencyKey || input.eventId
+    })
   });
 }
 
@@ -197,21 +208,24 @@ export async function chargeBillingSubscription(input: {
       price: input.price,
       region: resolveBillingRegion(input.region || "global"),
       at: new Date().toISOString(),
-      idempotencyKey: input.idempotencyKey,
-    }),
+      idempotencyKey: input.idempotencyKey
+    })
   });
 }
 
 export async function fetchBillingSubscriptionPlans(): Promise<BillingSubscriptionPlan[] | null> {
-  const plans = await requestBillingJson<Array<{ planId?: unknown; priceUsd?: unknown }>>("/marp/subscription/plans", {
-    method: "GET",
-  });
+  const plans = await requestBillingJson<Array<{ planId?: unknown; priceUsd?: unknown }>>(
+    "/marp/subscription/plans",
+    {
+      method: "GET"
+    }
+  );
   if (!plans) return null;
 
   return plans
     .map((plan) => ({
       planId: typeof plan.planId === "string" ? plan.planId : "",
-      priceUsd: typeof plan.priceUsd === "number" ? plan.priceUsd : Number(plan.priceUsd || 0),
+      priceUsd: typeof plan.priceUsd === "number" ? plan.priceUsd : Number(plan.priceUsd || 0)
     }))
     .filter((plan) => plan.planId.length > 0 && Number.isFinite(plan.priceUsd));
 }

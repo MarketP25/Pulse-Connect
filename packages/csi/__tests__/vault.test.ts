@@ -5,7 +5,7 @@ describe("CSI VAULT", () => {
     actorId: "admin-1",
     actorRole: "superadmin",
     pc365Attestation: "pc365_attestation_token_123",
-    requestId: "req-1",
+    requestId: "req-1"
   };
 
   it("stores and reads records with PC365-authenticated context", async () => {
@@ -13,7 +13,7 @@ describe("CSI VAULT", () => {
 
     const inserted = await vault.storeAggregatedIntelligence(
       { summary: { health: "stable" }, source: "analysis" },
-      validContext,
+      validContext
     );
 
     expect(inserted.id).toBeDefined();
@@ -35,9 +35,9 @@ describe("CSI VAULT", () => {
         {
           actorId: "admin-2",
           actorRole: "coo",
-          pc365Attestation: "",
-        },
-      ),
+          pc365Attestation: ""
+        }
+      )
     ).rejects.toThrow("PC365 authentication required");
   });
 });

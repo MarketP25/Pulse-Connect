@@ -2,8 +2,8 @@
 
 const dictionary = {
   en: {
-    title: "PULSCO User Dashboard",
-    subtitle: "Intelligent workspace across CSI, AI, ecommerce, places, and communications.",
+    title: "Pulsco User Dashboard",
+    subtitle: "Intelligent workspace across AI, ecommerce, places, and communications.",
     onboarding: "Onboarding",
     profile: "Profile",
     subscription: "Subscription",
@@ -30,10 +30,17 @@ const dictionary = {
     tierBasic: "Basic",
     tierPremium: "Premium",
     tierEnterprise: "Enterprise",
+    partnerInvestorNavTitle: "Partner & Investor Options",
+    partnerInvestorNavSubtitle: "Submit your enterprise-level partner or investor application.",
+    partnerApplication: "Partner Application",
+    partnerApplicationDescription: "Apply to onboard as an approved strategic partner.",
+    investorApplication: "Investor Application",
+    investorApplicationDescription: "Submit your investment profile for governance review.",
+    enterpriseRequired: "Enterprise tier is required for partner and investor applications."
   },
   sw: {
     title: "Dashibodi ya Mtumiaji ya PULSCO",
-    subtitle: "Eneo la kazi lenye akili kwa CSI, AI, ecommerce, maeneo, na mawasiliano.",
+    subtitle: "Eneo la kazi lenye akili kwa AI, ecommerce, maeneo, na mawasiliano.",
     onboarding: "Uanzishaji",
     profile: "Wasifu",
     subscription: "Usajili",
@@ -60,10 +67,18 @@ const dictionary = {
     tierBasic: "Msingi",
     tierPremium: "Premium",
     tierEnterprise: "Biashara Kubwa",
+    partnerInvestorNavTitle: "Chaguo za Mshirika na Mwekezaji",
+    partnerInvestorNavSubtitle:
+      "Wasilisha ombi lako la kiwango cha enterprise kama mshirika au mwekezaji.",
+    partnerApplication: "Ombi la Ushirika",
+    partnerApplicationDescription: "Omba kuingizwa kama mshirika wa kimkakati aliyeidhinishwa.",
+    investorApplication: "Ombi la Uwekezaji",
+    investorApplicationDescription: "Wasilisha wasifu wako wa uwekezaji kwa ukaguzi wa utawala.",
+    enterpriseRequired: "Tier ya Enterprise inahitajika kwa maombi ya mshirika na mwekezaji."
   },
   fr: {
-    title: "Tableau de bord utilisateur PULSCO",
-    subtitle: "Espace intelligent pour CSI, IA, ecommerce, lieux et communication.",
+    title: "Tableau de bord utilisateur Pulsco",
+    subtitle: "Espace intelligent pour IA, ecommerce, lieux et communication.",
     onboarding: "Intégration",
     profile: "Profil",
     subscription: "Abonnement",
@@ -90,10 +105,21 @@ const dictionary = {
     tierBasic: "Basique",
     tierPremium: "Premium",
     tierEnterprise: "Entreprise",
+    partnerInvestorNavTitle: "Options Partenaire et Investisseur",
+    partnerInvestorNavSubtitle:
+      "Soumettez votre candidature partenaire ou investisseur de niveau entreprise.",
+    partnerApplication: "Candidature Partenaire",
+    partnerApplicationDescription:
+      "Postulez pour etre integre comme partenaire strategique approuve.",
+    investorApplication: "Candidature Investisseur",
+    investorApplicationDescription:
+      "Soumettez votre profil d'investissement pour revue de gouvernance.",
+    enterpriseRequired:
+      "Le niveau Entreprise est requis pour les candidatures partenaire et investisseur."
   },
   es: {
-    title: "Panel de Usuario PULSCO",
-    subtitle: "Espacio inteligente para CSI, IA, ecommerce, lugares y comunicación.",
+    title: "Panel de Usuario Pulsco",
+    subtitle: "Espacio inteligente para IA, ecommerce, lugares y comunicación.",
     onboarding: "Incorporación",
     profile: "Perfil",
     subscription: "Suscripción",
@@ -120,7 +146,14 @@ const dictionary = {
     tierBasic: "Básico",
     tierPremium: "Premium",
     tierEnterprise: "Empresarial",
-  },
+    partnerInvestorNavTitle: "Opciones de Socio e Inversor",
+    partnerInvestorNavSubtitle: "Envie su solicitud de socio o inversor de nivel enterprise.",
+    partnerApplication: "Solicitud de Socio",
+    partnerApplicationDescription: "Solicite integrarse como socio estrategico aprobado.",
+    investorApplication: "Solicitud de Inversor",
+    investorApplicationDescription: "Comparta su perfil de inversion para revision de gobernanza.",
+    enterpriseRequired: "El nivel Enterprise es obligatorio para solicitudes de socio e inversor."
+  }
 } as const;
 
 export type DashboardDictionary = (typeof dictionary)["en"];
@@ -134,10 +167,10 @@ export function getDashboardDictionary(language: string): DashboardDictionary {
 
 export function mergeDashboardDictionary(
   partial: Record<string, string> | undefined,
-  language: string,
+  language: string
 ): DashboardDictionary {
   return {
     ...getDashboardDictionary(language),
-    ...(partial || {}),
+    ...(partial || {})
   };
 }

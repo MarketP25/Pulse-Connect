@@ -1,35 +1,35 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
 
-@Entity('planetary_insights')
+@Entity("planetary_insights")
 export class PlanetaryInsight {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()
-  type: 'anomaly' | 'trend' | 'correlation' | 'prediction' | 'pattern' | 'alert';
+  type: "anomaly" | "trend" | "correlation" | "prediction" | "pattern" | "alert";
 
-  @Column('decimal', { precision: 3, scale: 2 })
+  @Column("decimal", { precision: 3, scale: 2 })
   severity: number;
 
   @Column()
   title: string;
 
-  @Column('text')
+  @Column("text")
   description: string;
 
-  @Column('jsonb')
+  @Column("jsonb")
   affectedEntities: string[];
 
-  @Column('jsonb')
+  @Column("jsonb")
   recommendedActions: string[];
 
-  @Column('decimal', { precision: 3, scale: 2 })
+  @Column("decimal", { precision: 3, scale: 2 })
   confidence: number;
 
-  @Column('jsonb')
+  @Column("jsonb")
   sourceEvent: any;
 
-  @Column('jsonb', { nullable: true })
+  @Column("jsonb", { nullable: true })
   metadata: any;
 
   @CreateDateColumn()

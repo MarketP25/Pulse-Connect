@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Injectable, Logger } from "@nestjs/common";
+import { Inject } from "@nestjs/common";
+import { Pool } from "pg";
 
 export interface Alert {
   id: string;
-  type: 'slo_breach' | 'anomaly' | 'security' | 'system';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "slo_breach" | "anomaly" | "security" | "system";
+  severity: "low" | "medium" | "high" | "critical";
   title: string;
   description: string;
   metric: string;
@@ -22,9 +22,7 @@ export class AlertingService {
   private readonly logger = new Logger(AlertingService.name);
   private activeAlerts = new Map<string, Alert>();
 
-  constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
-  ) {
+  constructor(@Inject("DATABASE_CONNECTION") private readonly db: Pool) {
     // Start monitoring loop
     this.startMonitoringLoop();
   }
@@ -42,7 +40,7 @@ export class AlertingService {
         this.checkSLOMetrics(),
         this.checkAnomalies(),
         this.checkSecurityIncidents(),
-        this.checkSystemHealth(),
+        this.checkSystemHealth()
       ]);
     } catch (error) {
       this.logger.error(`Failed to check for alerts: ${error.message}`);
@@ -54,28 +52,28 @@ export class AlertingService {
     const snapshotFreshness = await this.getSnapshotFreshness();
     if (snapshotFreshness.age_seconds > 5) {
       await this.createAlert({
-        type: 'slo_breach',
-        severity: 'high',
-        title: 'Snapshot Freshness SLO Breach',
+        type: "slo_breach",
+        severity: "high",
+        title: "Snapshot Freshness SLO Breach",
         description: `Governance snapshot is ${snapshotFreshness.age_human} old`,
-        metric: 'snapshot_freshness_seconds',
+        metric: "snapshot_freshness_seconds",
         threshold: 5,
-        current_value: snapshotFreshness.age_seconds,
+        current_value: snapshotFreshness.age_seconds
       });
     }
 
     // Check quorum latency SLO
     const quorumLatency = await this.getQuorumLatency();
-    const maxLatency = Math.max(...quorumLatency.councils.map(c => c.max_latency_seconds));
+    const maxLatency = Math.max(...quorumLatency.councils.map((c) => c.max_latency_seconds));
     if (maxLatency > 30) {
       await this.createAlert({
-        type: 'slo_breach',
-        severity: 'medium',
-        title: 'Quorum Latency SLO Breach',
+        type: "slo_breach",
+        severity: "medium",
+        title: "Quorum Latency SLO Breach",
         description: `Council quorum decision took ${maxLatency}s`,
-        metric: 'quorum_latency_seconds',
+        metric: "quorum_latency_seconds",
         threshold: 30,
-        current_value: maxLatency,
+        current_value: maxLatency
       });
     }
 
@@ -84,77 +82,80 @@ export class AlertingService {
     const successRate = parseFloat(sigVerification.success_rate);
     if (successRate < 100) {
       await this.createAlert({
-        type: 'slo_breach',
-        severity: 'critical',
-        title: 'Signature Verification SLO Breach',
+        type: "slo_breach",
+        severity: "critical",
+        title: "Signature Verification SLO Breach",
         description: `Signature verification success rate: ${sigVerification.success_rate}`,
-        metric: 'signature_verification_success_rate',
+        metric: "signature_verification_success_rate",
         threshold: 100,
-        current_value: successRate,
+        current_value: successRate
       });
     }
   }
 
   private async checkAnomalies() {
     // Check for unusual firewall action patterns
-    const firewallActions = await this.getFirewallActionRatios('1h');
-    const blockRate = parseFloat(firewallActions.breakdown.find(a => a.action_type === 'firewall_block')?.percentage || '0');
+    const firewallActions = await this.getFirewallActionRatios("1h");
+    const blockRate = parseFloat(
+      firewallActions.breakdown.find((a) => a.action_type === "firewall_block")?.percentage || "0"
+    );
 
-    if (blockRate > 10) { // More than 10% blocks
+    if (blockRate > 10) {
+      // More than 10% blocks
       await this.createAlert({
-        type: 'anomaly',
-        severity: 'high',
-        title: 'High Firewall Block Rate',
+        type: "anomaly",
+        severity: "high",
+        title: "High Firewall Block Rate",
         description: `Firewall block rate is ${blockRate}% in the last hour`,
-        metric: 'firewall_block_rate_percentage',
+        metric: "firewall_block_rate_percentage",
         threshold: 10,
-        current_value: blockRate,
+        current_value: blockRate
       });
     }
 
     // Check for spike in conflict escalations
-    const escalations = await this.getConflictEscalations('1h');
+    const escalations = await this.getConflictEscalations("1h");
     if (escalations.total_escalations > 50) {
       await this.createAlert({
-        type: 'anomaly',
-        severity: 'medium',
-        title: 'High Conflict Escalation Rate',
+        type: "anomaly",
+        severity: "medium",
+        title: "High Conflict Escalation Rate",
         description: `${escalations.total_escalations} conflicts escalated in the last hour`,
-        metric: 'conflict_escalations_per_hour',
+        metric: "conflict_escalations_per_hour",
         threshold: 50,
-        current_value: escalations.total_escalations,
+        current_value: escalations.total_escalations
       });
     }
   }
 
   private async checkSecurityIncidents() {
     // Check for signature mismatches
-    const sigVerification = await this.getSignatureVerificationRates('5m');
+    const sigVerification = await this.getSignatureVerificationRates("5m");
     const invalidCount = sigVerification.invalid_signatures;
 
     if (invalidCount > 0) {
       await this.createAlert({
-        type: 'security',
-        severity: 'critical',
-        title: 'Signature Verification Failures',
+        type: "security",
+        severity: "critical",
+        title: "Signature Verification Failures",
         description: `${invalidCount} invalid signatures detected in the last 5 minutes`,
-        metric: 'invalid_signatures_count',
+        metric: "invalid_signatures_count",
         threshold: 0,
-        current_value: invalidCount,
+        current_value: invalidCount
       });
     }
 
     // Check for tamper suspicion
-    const tamperEvents = await this.getTamperEvents('5m');
+    const tamperEvents = await this.getTamperEvents("5m");
     if (tamperEvents.length > 0) {
       await this.createAlert({
-        type: 'security',
-        severity: 'critical',
-        title: 'Tamper Detection Alert',
+        type: "security",
+        severity: "critical",
+        title: "Tamper Detection Alert",
         description: `${tamperEvents.length} potential tampering events detected`,
-        metric: 'tamper_events_count',
+        metric: "tamper_events_count",
         threshold: 0,
-        current_value: tamperEvents.length,
+        current_value: tamperEvents.length
       });
     }
   }
@@ -162,42 +163,42 @@ export class AlertingService {
   private async checkSystemHealth() {
     // Check subsystem health
     const health = await this.getSubsystemHealth();
-    const unhealthySubsystems = health.subsystems.filter(s => s.health_status === 'unhealthy');
+    const unhealthySubsystems = health.subsystems.filter((s) => s.health_status === "unhealthy");
 
     if (unhealthySubsystems.length > 0) {
       await this.createAlert({
-        type: 'system',
-        severity: 'medium',
-        title: 'Subsystem Health Degradation',
-        description: `${unhealthySubsystems.length} subsystems are unhealthy: ${unhealthySubsystems.map(s => s.name).join(', ')}`,
-        metric: 'unhealthy_subsystems_count',
+        type: "system",
+        severity: "medium",
+        title: "Subsystem Health Degradation",
+        description: `${unhealthySubsystems.length} subsystems are unhealthy: ${unhealthySubsystems.map((s) => s.name).join(", ")}`,
+        metric: "unhealthy_subsystems_count",
         threshold: 0,
-        current_value: unhealthySubsystems.length,
+        current_value: unhealthySubsystems.length
       });
     }
 
     // Check quorum failures
-    const quorumFailures = await this.getQuorumFailures('1h');
+    const quorumFailures = await this.getQuorumFailures("1h");
     if (quorumFailures > 0) {
       await this.createAlert({
-        type: 'system',
-        severity: 'high',
-        title: 'Council Quorum Failures',
+        type: "system",
+        severity: "high",
+        title: "Council Quorum Failures",
         description: `${quorumFailures} council decisions failed to reach quorum in the last hour`,
-        metric: 'quorum_failures_count',
+        metric: "quorum_failures_count",
         threshold: 0,
-        current_value: quorumFailures,
+        current_value: quorumFailures
       });
     }
   }
 
-  private async createAlert(alertData: Omit<Alert, 'id' | 'created_at'>) {
+  private async createAlert(alertData: Omit<Alert, "id" | "created_at">) {
     const alertId = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     const alert: Alert = {
       id: alertId,
       ...alertData,
-      created_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
     };
 
     // Store in memory for quick access
@@ -214,14 +215,14 @@ export class AlertingService {
   }
 
   async getActiveAlerts(): Promise<Alert[]> {
-    return Array.from(this.activeAlerts.values()).filter(alert => !alert.resolved_at);
+    return Array.from(this.activeAlerts.values()).filter((alert) => !alert.resolved_at);
   }
 
   async acknowledgeAlert(alertId: string, userId: string): Promise<void> {
     const alert = this.activeAlerts.get(alertId);
     if (alert) {
       alert.acknowledged_at = new Date().toISOString();
-      await this.updateAlertStatus(alertId, 'acknowledged', userId);
+      await this.updateAlertStatus(alertId, "acknowledged", userId);
     }
   }
 
@@ -230,7 +231,7 @@ export class AlertingService {
     if (alert) {
       alert.resolved_at = new Date().toISOString();
       this.activeAlerts.delete(alertId);
-      await this.updateAlertStatus(alertId, 'resolved', userId);
+      await this.updateAlertStatus(alertId, "resolved", userId);
     }
   }
 
@@ -252,12 +253,12 @@ export class AlertingService {
       JSON.stringify(alert.threshold),
       JSON.stringify(alert.current_value),
       alert.subsystem,
-      alert.created_at,
+      alert.created_at
     ]);
   }
 
   private async updateAlertStatus(alertId: string, status: string, userId: string): Promise<void> {
-    const column = status === 'acknowledged' ? 'acknowledged_at' : 'resolved_at';
+    const column = status === "acknowledged" ? "acknowledged_at" : "resolved_at";
     const query = `UPDATE marp_alerts SET ${column} = NOW(), acknowledged_by = $1 WHERE id = $2`;
 
     await this.db.query(query, [userId, alertId]);
@@ -294,7 +295,7 @@ export class AlertingService {
 
   private async getSignatureVerificationRates(timeframe: string) {
     // Implementation similar to MetricsService
-    return { success_rate: '100.00%', invalid_signatures: 0 };
+    return { success_rate: "100.00%", invalid_signatures: 0 };
   }
 
   private async getFirewallActionRatios(timeframe: string) {
@@ -323,6 +324,6 @@ export class AlertingService {
       FROM council_decisions
       WHERE status = 'failed' AND created_at >= NOW() - INTERVAL '${timeframe}'
     `);
-    return parseInt(result.rows[0]?.failures || '0');
+    return parseInt(result.rows[0]?.failures || "0");
   }
 }

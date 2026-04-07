@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EdgeTelemetryService } from '../services/telemetry.service';
-import { AiRuleInterpreter } from '@/shared/lib/src/ai-rule-interpreter';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EdgeTelemetryService } from "../services/telemetry.service";
+import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
 
 export interface AiProgramsRequest {
   programId: string;
   userId: string;
-  action: 'execute_program' | 'deploy_agent' | 'update_protocol' | 'analyze_data';
+  action: "execute_program" | "deploy_agent" | "update_protocol" | "analyze_data";
   context?: {
     protocolVersion?: string;
     agentConfig?: any;
@@ -36,7 +36,7 @@ export class AiProgramsAdapter {
   constructor(
     private readonly kafkaClient: ClientKafka,
     private readonly telemetryService: EdgeTelemetryService,
-    private readonly aiRuleInterpreter: AiRuleInterpreter,
+    private readonly aiRuleInterpreter: AiRuleInterpreter
   ) {}
 
   /**
@@ -49,18 +49,18 @@ export class AiProgramsAdapter {
       // 1. Validate AI program and execution parameters
       const programCheck = await this.validateAiProgram(request);
       if (!programCheck.allowed) {
-        await this.telemetryService.recordEvent('ai_programs_blocked', {
+        await this.telemetryService.recordEvent("ai_programs_blocked", {
           programId: request.programId,
           userId: request.userId,
           action: request.action,
-          reason: programCheck.blockedReason,
+          reason: programCheck.blockedReason
         });
         return {
           programId: request.programId,
           allowed: false,
           blockedReason: programCheck.blockedReason,
           complianceFlags: programCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -72,7 +72,7 @@ export class AiProgramsAdapter {
           allowed: false,
           blockedReason: safetyCheck.blockedReason,
           complianceFlags: safetyCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -84,7 +84,7 @@ export class AiProgramsAdapter {
           allowed: false,
           blockedReason: resourceCheck.blockedReason,
           complianceFlags: resourceCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -92,47 +92,39 @@ export class AiProgramsAdapter {
       const result = await this.executeAiProgramOperation(request);
 
       // 5. Record detailed AI telemetry
-      await this.telemetryService.recordEvent('ai_programs_operation', {
+      await this.telemetryService.recordEvent("ai_programs_operation", {
         programId: request.programId,
         userId: request.userId,
         action: request.action,
         allowed: true,
-        complianceFlags: [
-          ...programCheck.flags,
-          ...safetyCheck.flags,
-          ...resourceCheck.flags,
-        ].length,
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...programCheck.flags, ...safetyCheck.flags, ...resourceCheck.flags]
+          .length,
+        processingTime: Date.now() - startTime
       });
 
       return {
         programId: request.programId,
         allowed: true,
         aiData: result.aiData,
-        complianceFlags: [
-          ...programCheck.flags,
-          ...safetyCheck.flags,
-          ...resourceCheck.flags,
-        ],
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...programCheck.flags, ...safetyCheck.flags, ...resourceCheck.flags],
+        processingTime: Date.now() - startTime
       };
-
     } catch (error) {
       this.logger.error(`AI programs processing failed: ${error.message}`, error.stack);
-      await this.telemetryService.recordEvent('ai_programs_error', {
+      await this.telemetryService.recordEvent("ai_programs_error", {
         programId: request.programId,
         userId: request.userId,
         action: request.action,
         error: error.message,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
         programId: request.programId,
         allowed: false,
-        blockedReason: 'System error during AI program execution',
-        complianceFlags: ['error'],
-        processingTime: Date.now() - startTime,
+        blockedReason: "System error during AI program execution",
+        complianceFlags: ["error"],
+        processingTime: Date.now() - startTime
       };
     }
   }
@@ -152,12 +144,12 @@ export class AiProgramsAdapter {
     if (!programValid) {
       return {
         allowed: false,
-        blockedReason: 'Invalid or unapproved AI program',
-        flags: ['invalid_program'],
+        blockedReason: "Invalid or unapproved AI program",
+        flags: ["invalid_program"]
       };
     }
 
-    flags.push('program_valid');
+    flags.push("program_valid");
 
     // Validate protocol version compatibility
     if (request.context?.protocolVersion) {
@@ -165,14 +157,14 @@ export class AiProgramsAdapter {
       if (!protocolValid) {
         return {
           allowed: false,
-          blockedReason: 'Incompatible protocol version',
-          flags: ['protocol_incompatible'],
+          blockedReason: "Incompatible protocol version",
+          flags: ["protocol_incompatible"]
         };
       }
-      flags.push('protocol_compatible');
+      flags.push("protocol_compatible");
     }
 
-    flags.push('program_compliant');
+    flags.push("program_compliant");
     return { allowed: true, flags };
   }
 
@@ -191,14 +183,14 @@ export class AiProgramsAdapter {
       programId: request.programId,
       action: request.action,
       context: request.context,
-      userId: request.userId,
+      userId: request.userId
     });
 
     if (!safetyAnalysis.allowed) {
       return {
         allowed: false,
         blockedReason: safetyAnalysis.blockedReason,
-        flags: safetyAnalysis.flags,
+        flags: safetyAnalysis.flags
       };
     }
 
@@ -210,7 +202,7 @@ export class AiProgramsAdapter {
       return {
         allowed: false,
         blockedReason: biasCheck.blockedReason,
-        flags: biasCheck.flags,
+        flags: biasCheck.flags
       };
     }
 
@@ -230,14 +222,15 @@ export class AiProgramsAdapter {
 
     // Check execution time limits
     if (request.context?.executionParams?.maxExecutionTime) {
-      if (request.context.executionParams.maxExecutionTime > 3600000) { // 1 hour max
+      if (request.context.executionParams.maxExecutionTime > 3600000) {
+        // 1 hour max
         return {
           allowed: false,
-          blockedReason: 'Execution time limit exceeded',
-          flags: ['execution_time_too_long'],
+          blockedReason: "Execution time limit exceeded",
+          flags: ["execution_time_too_long"]
         };
       }
-      flags.push('execution_time_valid');
+      flags.push("execution_time_valid");
     }
 
     // Check resource allocation
@@ -245,12 +238,12 @@ export class AiProgramsAdapter {
     if (!resourceValid) {
       return {
         allowed: false,
-        blockedReason: 'Resource allocation exceeds limits',
-        flags: ['resource_limit_exceeded'],
+        blockedReason: "Resource allocation exceeds limits",
+        flags: ["resource_limit_exceeded"]
       };
     }
 
-    flags.push('resources_valid');
+    flags.push("resources_valid");
     return { allowed: true, flags };
   }
 
@@ -258,14 +251,16 @@ export class AiProgramsAdapter {
    * Execute AI program operation
    */
   private async executeAiProgramOperation(request: AiProgramsRequest): Promise<any> {
-    const result = await this.kafkaClient.send('ai-programs.execute', {
-      programId: request.programId,
-      userId: request.userId,
-      action: request.action,
-      context: request.context,
-      edgeValidated: true,
-      timestamp: new Date().toISOString(),
-    }).toPromise();
+    const result = await this.kafkaClient
+      .send("ai-programs.execute", {
+        programId: request.programId,
+        userId: request.userId,
+        action: request.action,
+        context: request.context,
+        edgeValidated: true,
+        timestamp: new Date().toISOString()
+      })
+      .toPromise();
 
     return result;
   }
@@ -283,7 +278,7 @@ export class AiProgramsAdapter {
    */
   private async validateProtocolVersion(version: string): Promise<boolean> {
     // Would check version compatibility
-    return version.startsWith('v1.') || version.startsWith('v2.');
+    return version.startsWith("v1.") || version.startsWith("v2.");
   }
 
   /**
@@ -295,7 +290,7 @@ export class AiProgramsAdapter {
     flags: string[];
   }> {
     // Would analyze for bias patterns
-    return { allowed: true, flags: ['bias_check_passed'] };
+    return { allowed: true, flags: ["bias_check_passed"] };
   }
 
   /**

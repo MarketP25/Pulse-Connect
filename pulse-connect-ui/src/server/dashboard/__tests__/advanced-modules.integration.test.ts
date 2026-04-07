@@ -3,7 +3,7 @@ import {
   getGovernanceModule,
   reviewCsiRecommendation,
   runBillingAction,
-  runPlacesOperationsAction,
+  runPlacesOperationsAction
 } from "@/server/dashboard/service";
 
 describe("advanced dashboard modules integration", () => {
@@ -30,7 +30,7 @@ describe("advanced dashboard modules integration", () => {
 
     const placeResult = await runPlacesOperationsAction(userId, "create_place", {
       name: "Test Place",
-      category: "workspace",
+      category: "workspace"
     });
     expect(placeResult.placesOperations.places[0].name).toBe("Test Place");
   });
@@ -49,4 +49,3 @@ describe("advanced dashboard modules integration", () => {
     expect(result.recommendations.find((item) => item.id === target.id)?.status).toBe("approved");
   });
 });
-

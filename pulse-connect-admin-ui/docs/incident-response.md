@@ -257,9 +257,10 @@ Incidents are detected through:
 ## Contact Information
 
 ### Emergency Contacts
-- **SuperAdmin**: superadmin@pulsco.com
-- **Tech-Security Officer**: tech-security@pulsco.com
-- **Governance Registrar**: governance-registrar@pulsco.com
+- **SuperAdmin**: superadmin@pulsco.global
+- **Tech-Security Officer**: tech-security@pulsco.global
+- **Governance Registrar**: governance-registrar@pulsco.global
+- **Dpo**: dpo@pulsco.global
 
 ### External Resources
 - **Legal Counsel**: [Contact Information]

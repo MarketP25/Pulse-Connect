@@ -34,9 +34,7 @@ export function CSIDecisionFlowPanel() {
 
   const canSubmit = useMemo(() => {
     return (
-      pc365Token.trim().length >= 12 &&
-      title.trim().length > 2 &&
-      description.trim().length > 4
+      pc365Token.trim().length >= 12 && title.trim().length > 2 && description.trim().length > 4
     );
   }, [pc365Token, title, description]);
 
@@ -48,9 +46,9 @@ export function CSIDecisionFlowPanel() {
         "x-admin-role": adminRole,
         "x-admin-id": adminId,
         "x-pc365-attestation": pc365Token,
-        "x-founder-approved": founderApproved ? "true" : "false",
+        "x-founder-approved": founderApproved ? "true" : "false"
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -78,8 +76,8 @@ export function CSIDecisionFlowPanel() {
           guardrailsCompliant,
           strategic,
           riskAdjustment: strategic ? 8 : -4,
-          performanceAdjustment: guardrailsCompliant ? 6 : -5,
-        },
+          performanceAdjustment: guardrailsCompliant ? 6 : -5
+        }
       });
 
       setDecision(data.decision);
@@ -104,8 +102,8 @@ export function CSIDecisionFlowPanel() {
           description,
           expectedMetricDelta: { latencyMs: -100, throughput: 20 },
           riskAdjustment: strategic ? 4 : -2,
-          performanceAdjustment: guardrailsCompliant ? 4 : -3,
-        },
+          performanceAdjustment: guardrailsCompliant ? 4 : -3
+        }
       });
 
       setSimulationReport(data.report);
@@ -128,9 +126,9 @@ export function CSIDecisionFlowPanel() {
       const data = await callApi(
         {
           action: "approve-level3",
-          decisionId: decision.id,
+          decisionId: decision.id
         },
-        true,
+        true
       );
 
       setDecision(data.decision);
@@ -159,7 +157,7 @@ export function CSIDecisionFlowPanel() {
               "business-ops",
               "tech-security",
               "governance-registrar",
-              "dpo",
+              "dpo"
             ].map((role) => (
               <option key={role} value={role}>
                 {role}
@@ -211,9 +209,10 @@ export function CSIDecisionFlowPanel() {
               "matchmaking",
               "ai-programs",
               "localization",
-              "marketing",
+              "marketing(pap_v1)",
               "communication",
               "billing",
+              "proximity"
             ].map((item) => (
               <option key={item} value={item}>
                 {item}

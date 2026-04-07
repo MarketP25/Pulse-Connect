@@ -1,0 +1,43 @@
+# Ignore VCS and IDE
+.git/
+.github/
+.idea/
+.vscode/
+.vs/
+
+# Node / Frontend
+node_modules/
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+# Django static/media
+static/
+staticfiles/
+media/
+
+# Logs and reports
+*.log
+*.zip
+*.json
+run-*/ 
+job-*/ 
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenvs
+.venv/
+env/
+venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

@@ -1,28 +1,40 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts'
+import { useEffect, useState } from "react";
+import { Card, Button, Badge, Alert, LoadingSpinner } from "@pulsco/admin-ui-core";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area
+} from "recharts";
 
 interface COOMetrics {
-  systemAvailability: number
-  resourceUtilization: number
-  operationalEfficiency: number
-  costOptimization: number
-  performanceLatency: number
-  infrastructureHealth: number
-  scalingEfficiency: number
-  serviceLevelCompliance: number
+  systemAvailability: number;
+  resourceUtilization: number;
+  operationalEfficiency: number;
+  costOptimization: number;
+  performanceLatency: number;
+  infrastructureHealth: number;
+  scalingEfficiency: number;
+  serviceLevelCompliance: number;
 }
 
 interface OperationalAlert {
-  id: string
-  type: 'critical' | 'high' | 'medium' | 'low'
-  title: string
-  description: string
-  source: string
-  timestamp: string
-  affectedSystems: string[]
+  id: string;
+  type: "critical" | "high" | "medium" | "low";
+  title: string;
+  description: string;
+  source: string;
+  timestamp: string;
+  affectedSystems: string[];
 }
 
 const FALLBACK_METRICS: COOMetrics = {
@@ -34,96 +46,98 @@ const FALLBACK_METRICS: COOMetrics = {
   infrastructureHealth: 96.8,
   scalingEfficiency: 88.9,
   serviceLevelCompliance: 98.4
-}
+};
 
 const FALLBACK_ALERTS: OperationalAlert[] = [
   {
-    id: '1',
-    type: 'high',
-    title: 'Resource Utilization Spike',
-    description: 'CPU utilization exceeded 85% threshold for 15 minutes',
-    source: 'Infrastructure Monitoring',
-    timestamp: '45 minutes ago',
-    affectedSystems: ['Web Servers', 'Database Cluster']
+    id: "1",
+    type: "high",
+    title: "Resource Utilization Spike",
+    description: "CPU utilization exceeded 85% threshold for 15 minutes",
+    source: "Infrastructure Monitoring",
+    timestamp: "45 minutes ago",
+    affectedSystems: ["Web Servers", "Database Cluster"]
   },
   {
-    id: '2',
-    type: 'medium',
-    title: 'Performance Latency Increase',
-    description: 'Average response time increased by 22% in last hour',
-    source: 'Application Performance',
-    timestamp: '1 hour ago',
-    affectedSystems: ['API Gateway', 'User Services']
+    id: "2",
+    type: "medium",
+    title: "Performance Latency Increase",
+    description: "Average response time increased by 22% in last hour",
+    source: "Application Performance",
+    timestamp: "1 hour ago",
+    affectedSystems: ["API Gateway", "User Services"]
   },
   {
-    id: '3',
-    type: 'low',
-    title: 'Cost Optimization Opportunity',
-    description: 'Identified $12K monthly savings through resource optimization',
-    source: 'Cost Analytics',
-    timestamp: '2 hours ago',
-    affectedSystems: ['Cloud Infrastructure']
+    id: "3",
+    type: "low",
+    title: "Cost Optimization Opportunity",
+    description: "Identified $12K monthly savings through resource optimization",
+    source: "Cost Analytics",
+    timestamp: "2 hours ago",
+    affectedSystems: ["Cloud Infrastructure"]
   }
-]
+];
 
 export default function COODashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [metrics, setMetrics] = useState<COOMetrics | null>(null)
-  const [alerts, setAlerts] = useState<OperationalAlert[]>([])
-  const [activeView, setActiveView] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<COOMetrics | null>(null);
+  const [alerts, setAlerts] = useState<OperationalAlert[]>([]);
+  const [activeView, setActiveView] = useState("overview");
 
   useEffect(() => {
     const loadOperationalData = async () => {
       try {
-        const headers = { 'x-admin-role': 'coo' }
+        const headers = { "x-admin-role": "coo" };
         const [metricsRes, anomaliesRes] = await Promise.all([
-          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
-        ])
+          fetch("api/admin/intelligence?action=metrics", { headers, cache: "no-store" }),
+          fetch("api/admin/intelligence?action=anomalies", { headers, cache: "no-store" })
+        ]);
 
         if (!metricsRes.ok) {
-          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+          throw new Error(`Metrics request failed with ${metricsRes.status}`);
         }
 
-        const metricsPayload = await metricsRes.json()
-        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        const metricsPayload = await metricsRes.json();
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {};
         setMetrics({
           ...FALLBACK_METRICS,
           ...rawMetrics
-        })
+        });
 
         if (anomaliesRes.ok) {
-          const anomaliesPayload = await anomaliesRes.json()
-          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          const anomaliesPayload = await anomaliesRes.json();
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || [];
           if (Array.isArray(anomalies) && anomalies.length > 0) {
             setAlerts(
               anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
                 id: String(index + 1),
-                type: anomaly.severity || 'medium',
-                title: anomaly.title || `Operational anomaly in ${anomaly.metric || 'signal'}`,
-                description: anomaly.description || 'CSI detected an operational variance.',
-                source: anomaly.source || 'CSI Intelligence',
-                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
-                affectedSystems: Array.isArray(anomaly.affectedSystems) ? anomaly.affectedSystems : []
+                type: anomaly.severity || "medium",
+                title: anomaly.title || `Operational anomaly in ${anomaly.metric || "signal"}`,
+                description: anomaly.description || "CSI detected an operational variance.",
+                source: anomaly.source || "CSI Intelligence",
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : "now",
+                affectedSystems: Array.isArray(anomaly.affectedSystems)
+                  ? anomaly.affectedSystems
+                  : []
               }))
-            )
+            );
           } else {
-            setAlerts(FALLBACK_ALERTS)
+            setAlerts(FALLBACK_ALERTS);
           }
         } else {
-          setAlerts(FALLBACK_ALERTS)
+          setAlerts(FALLBACK_ALERTS);
         }
       } catch (error) {
-        console.error('Failed to load COO intelligence', error)
-        setMetrics(FALLBACK_METRICS)
-        setAlerts(FALLBACK_ALERTS)
+        console.error("Failed to load COO intelligence", error);
+        setMetrics(FALLBACK_METRICS);
+        setAlerts(FALLBACK_ALERTS);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadOperationalData()
-  }, [])
+    loadOperationalData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -133,7 +147,7 @@ export default function COODashboard() {
           <p className="mt-4 text-gray-600">Loading Chief Operating Officer Dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -144,13 +158,23 @@ export default function COODashboard() {
           <div className="py-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Chief Operating Officer Dashboard</h1>
-                <p className="text-gray-600">Operational excellence, resource management, and system performance oversight</p>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Chief Operating Officer Dashboard
+                </h1>
+                <p className="text-gray-600">
+                  Operational excellence, resource management, and system performance oversight
+                </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="secondary" size="sm">Resource Allocation</Button>
-                <Button variant="danger" size="sm">Emergency Maintenance</Button>
-                <Button variant="primary" size="sm">Performance Audit</Button>
+                <Button variant="secondary" size="sm">
+                  Resource Allocation
+                </Button>
+                <Button variant="danger" size="sm">
+                  Emergency Maintenance
+                </Button>
+                <Button variant="primary" size="sm">
+                  Performance Audit
+                </Button>
               </div>
             </div>
           </div>
@@ -161,25 +185,35 @@ export default function COODashboard() {
         {/* Operational Alerts */}
         {alerts.length > 0 && (
           <div className="mb-8">
-            {alerts.map(alert => (
-              <Alert key={alert.id} type={alert.type === 'critical' ? 'error' : alert.type === 'high' ? 'warning' : 'info'}>
+            {alerts.map((alert) => (
+              <Alert
+                key={alert.id}
+                type={
+                  alert.type === "critical" ? "error" : alert.type === "high" ? "warning" : "info"
+                }
+              >
                 <div className="flex justify-between items-center">
                   <div className="flex items-start">
                     <div className="text-lg mr-3">
-                      {alert.type === 'critical' ? '🚨' : alert.type === 'high' ? '⚠️' : 'ℹ️'}
+                      {alert.type === "critical" ? "🚨" : alert.type === "high" ? "⚠️" : "ℹ️"}
                     </div>
                     <div>
                       <h4 className="font-medium">{alert.title}</h4>
                       <p className="text-sm">{alert.description}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {alert.source} • {alert.timestamp}
-                        {alert.affectedSystems.length > 0 && ` • ${alert.affectedSystems.join(', ')}`}
+                        {alert.affectedSystems.length > 0 &&
+                          ` • ${alert.affectedSystems.join(", ")}`}
                       </p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="secondary">Investigate</Button>
-                    <Button size="sm" variant="primary">Resolve</Button>
+                    <Button size="sm" variant="secondary">
+                      Investigate
+                    </Button>
+                    <Button size="sm" variant="primary">
+                      Resolve
+                    </Button>
                   </div>
                 </div>
               </Alert>
@@ -213,7 +247,9 @@ export default function COODashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Operational Efficiency</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.operationalEfficiency}%</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.operationalEfficiency}%
+                </p>
               </div>
               <Badge variant="success">Optimal</Badge>
             </div>
@@ -235,41 +271,41 @@ export default function COODashboard() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveView('overview')}
+                onClick={() => setActiveView("overview")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "overview"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Operational Overview
               </button>
               <button
-                onClick={() => setActiveView('infrastructure')}
+                onClick={() => setActiveView("infrastructure")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'infrastructure'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "infrastructure"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Infrastructure Health
               </button>
               <button
-                onClick={() => setActiveView('performance')}
+                onClick={() => setActiveView("performance")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'performance'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "performance"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Performance Analytics
               </button>
               <button
-                onClick={() => setActiveView('costs')}
+                onClick={() => setActiveView("costs")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'costs'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "costs"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Cost Optimization
@@ -279,7 +315,7 @@ export default function COODashboard() {
         </div>
 
         {/* Content based on active view */}
-        {activeView === 'overview' && (
+        {activeView === "overview" && (
           <div className="space-y-6">
             {/* Operational Health Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -287,15 +323,21 @@ export default function COODashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Infrastructure Health</span>
-                    <span className="font-medium text-green-600">{metrics?.infrastructureHealth}%</span>
+                    <span className="font-medium text-green-600">
+                      {metrics?.infrastructureHealth}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Service Level Compliance</span>
-                    <span className="font-medium text-blue-600">{metrics?.serviceLevelCompliance}%</span>
+                    <span className="font-medium text-blue-600">
+                      {metrics?.serviceLevelCompliance}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Scaling Efficiency</span>
-                    <span className="font-medium text-green-600">{metrics?.scalingEfficiency}%</span>
+                    <span className="font-medium text-green-600">
+                      {metrics?.scalingEfficiency}%
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -337,7 +379,7 @@ export default function COODashboard() {
           </div>
         )}
 
-        {activeView === 'infrastructure' && (
+        {activeView === "infrastructure" && (
           <div className="space-y-6">
             <Card title="Infrastructure Command Center">
               <div className="space-y-4">
@@ -387,9 +429,12 @@ export default function COODashboard() {
                 </div>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                   <div className="text-4xl mb-4">⚙️</div>
-                  <h3 className="text-sm font-medium text-gray-900">Infrastructure Operations Center</h3>
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Infrastructure Operations Center
+                  </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Real-time monitoring, automated scaling, and infrastructure optimization controls
+                    Real-time monitoring, automated scaling, and infrastructure optimization
+                    controls
                   </p>
                 </div>
               </div>
@@ -397,7 +442,7 @@ export default function COODashboard() {
           </div>
         )}
 
-        {activeView === 'performance' && (
+        {activeView === "performance" && (
           <div className="space-y-6">
             <Card title="Performance Analytics Dashboard">
               <div className="space-y-4">
@@ -419,7 +464,8 @@ export default function COODashboard() {
                   <div className="text-4xl mb-4">📊</div>
                   <h3 className="text-sm font-medium text-gray-900">Performance Monitoring</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Application performance metrics, bottleneck identification, and optimization recommendations
+                    Application performance metrics, bottleneck identification, and optimization
+                    recommendations
                   </p>
                 </div>
               </div>
@@ -427,7 +473,7 @@ export default function COODashboard() {
           </div>
         )}
 
-        {activeView === 'costs' && (
+        {activeView === "costs" && (
           <div className="space-y-6">
             <Card title="Cost Optimization Center">
               <div className="space-y-4">
@@ -481,5 +527,5 @@ export default function COODashboard() {
         )}
       </main>
     </div>
-  )
+  );
 }

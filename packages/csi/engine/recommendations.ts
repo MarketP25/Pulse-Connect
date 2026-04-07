@@ -73,11 +73,12 @@ export function generateRecommendations(input: RecommendationInput): CSIRecommen
       subsystem,
       title: `Risk mitigation advisory for ${subsystem}`,
       rationale: `Risk map score is ${riskScore.toFixed(2)} with active correlated signals.`,
-      action: "Review anomaly clusters, tighten guardrails, and queue mitigation changes for approval.",
+      action:
+        "Review anomaly clusters, tighten guardrails, and queue mitigation changes for approval.",
       priority,
       approvalLevel: toApprovalLevel(riskScore, riskScore >= 80),
       advisoryOnly: true,
-      createdAt: now,
+      createdAt: now
     });
   }
 
@@ -91,11 +92,12 @@ export function generateRecommendations(input: RecommendationInput): CSIRecommen
       subsystem: score.subsystem,
       title: `Performance optimization advisory for ${score.subsystem}`,
       rationale: `Performance score is ${score.performanceScore.toFixed(2)} across ${score.eventVolume} events.`,
-      action: "Propose targeted optimization and run simulation against historical CSI data before rollout.",
+      action:
+        "Propose targeted optimization and run simulation against historical CSI data before rollout.",
       priority: toPriority(100 - score.performanceScore),
       approvalLevel: toApprovalLevel(100 - score.performanceScore),
       advisoryOnly: true,
-      createdAt: now,
+      createdAt: now
     });
   }
 
@@ -104,12 +106,13 @@ export function generateRecommendations(input: RecommendationInput): CSIRecommen
       id: `monitor_${now}`,
       subsystem: "csi",
       title: "System operating within expected range",
-      rationale: "No high-risk or low-performance clusters were found in the active analysis window.",
+      rationale:
+        "No high-risk or low-performance clusters were found in the active analysis window.",
       action: "Continue observability and keep advisory mode active.",
       priority: "low",
       approvalLevel: "Level1",
       advisoryOnly: true,
-      createdAt: now,
+      createdAt: now
     });
   }
 

@@ -1,0 +1,44 @@
+{
+  "active": true,
+  "protocolId": "ep-1774308903086-am7qoih7",
+  "severity": "elevated",
+  "reason": "smoke test",
+  "reasonCategory": "other",
+  "controls": {
+    "disableMajorFeatures": false,
+    "disabledFeatures": [],
+    "freezeTransactions": true,
+    "freezeWalletPayouts": false,
+    "blockedRegions": [],
+    "blockedIpRanges": [],
+    "allowFounderBypass": true
+  },
+  "csiLinkage": {
+    "correlationId": "csi-1774308903057-exdvai",
+    "linkedAt": "2026-03-23T23:35:03.083Z",
+    "riskScore": 2,
+    "anomaliesObserved": 0,
+    "confidence": 0.98,
+    "signals": [],
+    "source": "admin-gateway-csi-proxy"
+  },
+  "activatedAt": "2026-03-23T23:35:03.084Z",
+  "lastUpdatedAt": "2026-03-23T23:35:03.084Z",
+  "lastUpdatedByRole": "superadmin",
+  "lastUpdatedBy": "superadmin-session",
+  "source": "smoke",
+  "version": 2,
+  "history": [
+    {
+      "id": "audit-1774308903087-ua961q",
+      "action": "activate",
+      "reason": "smoke test",
+      "reasonCategory": "other",
+      "at": "2026-03-23T23:35:03.084Z",
+      "actorRole": "superadmin",
+      "actorId": "superadmin-session",
+      "founderApproved": true,
+      "source": "smoke"
+    }
+  ]
+}

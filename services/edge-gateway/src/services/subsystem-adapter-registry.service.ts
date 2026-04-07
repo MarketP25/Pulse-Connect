@@ -1,22 +1,26 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
-import { SubsystemAdapter, AdapterResult, AdapterContext } from '../adapters/subsystem-adapter.interface';
-import { ExecuteRequestDto } from '../dto/execute-request.dto';
+import { Injectable, Logger, Inject } from "@nestjs/common";
+import { ModuleRef } from "@nestjs/core";
+import {
+  SubsystemAdapter,
+  AdapterResult,
+  AdapterContext
+} from "../adapters/subsystem-adapter.interface";
+import { ExecuteRequestDto } from "../dto/execute-request.dto";
 
 // Import all adapters
-import { EcommerceAdapter } from '../adapters/ecommerce.adapter';
-import { ChatbotAdapter } from '../adapters/chatbot.adapter';
-import { PlacesAdapter } from '../adapters/places.adapter';
-import { MatchmakingAdapter } from '../adapters/matchmaking.adapter';
-import { PaymentsAdapter } from '../adapters/payments.adapter';
-import { FraudAdapter } from '../adapters/fraud.adapter';
-import { ProximityGeocodingAdapter } from '../adapters/proximity-geocoding.adapter';
-import { CommunicationAdapter } from '../adapters/communication.adapter';
-import { MarketingAdapter } from '../adapters/marketing.adapter';
-import { AiProgramsAdapter } from '../adapters/ai-programs.adapter';
-import { LocalizationAdapter } from '../adapters/localization.adapter';
-import { TranslationsAdapter } from '../adapters/translations.adapter';
-import { BillingAdapter } from '../adapters/billing.adapter';
+import { EcommerceAdapter } from "../adapters/ecommerce.adapter";
+import { ChatbotAdapter } from "../adapters/chatbot.adapter";
+import { PlacesAdapter } from "../adapters/places.adapter";
+import { MatchmakingAdapter } from "../adapters/matchmaking.adapter";
+import { PaymentsAdapter } from "../adapters/payments.adapter";
+import { FraudAdapter } from "../adapters/fraud.adapter";
+import { ProximityGeocodingAdapter } from "../adapters/proximity-geocoding.adapter";
+import { CommunicationAdapter } from "../adapters/communication.adapter";
+import { MarketingAdapter } from "../adapters/marketing.adapter";
+import { AiProgramsAdapter } from "../adapters/ai-programs.adapter";
+import { LocalizationAdapter } from "../adapters/localization.adapter";
+import { TranslationsAdapter } from "../adapters/translations.adapter";
+import { BillingAdapter } from "../adapters/billing.adapter";
 
 export interface AdapterRegistration {
   subsystem: string;
@@ -40,23 +44,24 @@ export class SubsystemAdapterRegistryService {
    */
   private async initializeAdapters() {
     try {
-      this.logger.log('Initializing subsystem adapter registry...');
+      this.logger.log("Initializing subsystem adapter registry...");
 
       // Register core adapters
-      await this.registerAdapter('ecommerce', EcommerceAdapter);
-      await this.registerAdapter('chatbot', ChatbotAdapter);
-      await this.registerAdapter('places', PlacesAdapter);
-      await this.registerAdapter('matchmaking', MatchmakingAdapter);
+      await this.registerAdapter("ecommerce", EcommerceAdapter);
+      await this.registerAdapter("chatbot", ChatbotAdapter);
+      await this.registerAdapter("places", PlacesAdapter);
+      await this.registerAdapter("matchmaking", MatchmakingAdapter);
 
       // Register additional adapters
-      await this.registerAdapter('payments', PaymentsAdapter);
-      await this.registerAdapter('fraud', FraudAdapter);
-      await this.registerAdapter('proximity-geocoding', ProximityGeocodingAdapter);
-      await this.registerAdapter('communication', CommunicationAdapter);
-      await this.registerAdapter('marketing', MarketingAdapter);
-      await this.registerAdapter('ai-programs', AiProgramsAdapter);
-      await this.registerAdapter('localization', LocalizationAdapter);
-      await this.registerAdapter('translations', TranslationsAdapter);
+      await this.registerAdapter("payments", PaymentsAdapter);
+      await this.registerAdapter("fraud", FraudAdapter);
+      await this.registerAdapter("proximity-geocoding", ProximityGeocodingAdapter);
+      await this.registerAdapter("communication", CommunicationAdapter);
+      await this.registerAdapter("marketing", MarketingAdapter);
+      await this.registerAdapter("ai-programs", AiProgramsAdapter);
+      await this.registerAdapter("localization", LocalizationAdapter);
+      await this.registerAdapter("translations", TranslationsAdapter);
+      await this.registerAdapter("billing", BillingAdapter);
 
       this.logger.log(`Registered ${this.adapters.size} subsystem adapters`);
     } catch (error) {
@@ -80,16 +85,15 @@ export class SubsystemAdapterRegistryService {
       const registration: AdapterRegistration = {
         subsystem: subsystemType,
         adapter,
-        version: '1.0.0', // Could be dynamic
+        version: "1.0.0", // Could be dynamic
         capabilities: this.getAdapterCapabilities(subsystemType),
         healthCheck: async () => {
           try {
-            // Basic health check - could be more sophisticated
-            return adapter && typeof adapter.execute === 'function';
+            return this.hasExecutionFunction(subsystemType, adapter);
           } catch {
             return false;
           }
-        },
+        }
       };
 
       this.adapters.set(subsystemType, registration);
@@ -124,14 +128,14 @@ export class SubsystemAdapterRegistryService {
       this.logger.debug(`Executing request through ${subsystem} adapter`);
 
       // Execute through adapter
-      const result = await registration.adapter.execute(request, context);
+      const result = await this.runAdapter(subsystem, registration.adapter, request, context);
 
       // Add adapter metadata
       result.metadata = {
         ...result.metadata,
         adapterVersion: registration.version,
         adapterCapabilities: registration.capabilities,
-        executedAt: new Date().toISOString(),
+        executedAt: new Date().toISOString()
       };
 
       return result;
@@ -141,12 +145,12 @@ export class SubsystemAdapterRegistryService {
       return {
         success: false,
         error: error.message,
-        riskFactors: ['adapter_error'],
+        riskFactors: ["adapter_error"],
         metadata: {
           subsystem,
           adapterError: true,
-          timestamp: new Date().toISOString(),
-        },
+          timestamp: new Date().toISOString()
+        }
       };
     }
   }
@@ -158,7 +162,7 @@ export class SubsystemAdapterRegistryService {
     return Array.from(this.adapters.entries()).map(([subsystem, registration]) => ({
       subsystem,
       version: registration.version,
-      capabilities: registration.capabilities,
+      capabilities: registration.capabilities
     }));
   }
 
@@ -179,7 +183,9 @@ export class SubsystemAdapterRegistryService {
   /**
    * Perform health check on all adapters
    */
-  async performHealthCheck(): Promise<Array<{ subsystem: string; healthy: boolean; error?: string }>> {
+  async performHealthCheck(): Promise<
+    Array<{ subsystem: string; healthy: boolean; error?: string }>
+  > {
     const results = [];
 
     for (const [subsystem, registration] of this.adapters.entries()) {
@@ -190,7 +196,7 @@ export class SubsystemAdapterRegistryService {
         results.push({
           subsystem,
           healthy: false,
-          error: error.message,
+          error: error.message
         });
       }
     }
@@ -203,21 +209,124 @@ export class SubsystemAdapterRegistryService {
    */
   private getAdapterCapabilities(subsystem: string): string[] {
     const capabilityMap: Record<string, string[]> = {
-      ecommerce: ['purchase', 'cart_management', 'checkout', 'refunds'],
-      chatbot: ['conversation', 'intent_analysis', 'content_filtering'],
-      places: ['check_in', 'booking', 'venue_info', 'reviews'],
-      matchmaking: ['user_matching', 'contract_creation', 'compatibility_analysis'],
-      payments: ['charge', 'refund', 'transfer', 'verification'],
-      fraud: ['detection', 'investigation', 'reporting', 'analysis'],
-      'proximity-geocoding': ['geocode', 'reverse_geocode', 'proximity_search', 'distance_calc'],
-      communication: ['messaging', 'calls', 'file_transfer', 'group_chat'],
-      marketing: ['campaign_management', 'targeting', 'engagement_analysis', 'consent_management'],
-      'ai-programs': ['program_execution', 'agent_deployment', 'data_analysis', 'protocol_management'],
-      localization: ['content_translation', 'language_detection', 'cultural_adaptation'],
-      translations: ['text_translation', 'batch_translation', 'domain_specialization', 'quality_assurance'],
+      ecommerce: ["purchase", "cart_management", "checkout", "refunds"],
+      chatbot: ["conversation", "intent_analysis", "content_filtering"],
+      places: ["check_in", "booking", "venue_info", "reviews"],
+      matchmaking: ["user_matching", "contract_creation", "compatibility_analysis"],
+      payments: ["charge", "refund", "transfer", "verification"],
+      fraud: ["detection", "investigation", "reporting", "analysis"],
+      "proximity-geocoding": ["geocode", "reverse_geocode", "proximity_search", "distance_calc"],
+      communication: ["messaging", "calls", "file_transfer", "group_chat"],
+      marketing: ["campaign_management", "targeting", "engagement_analysis", "consent_management"],
+      "ai-programs": [
+        "program_execution",
+        "agent_deployment",
+        "data_analysis",
+        "protocol_management"
+      ],
+      localization: ["content_translation", "language_detection", "cultural_adaptation"],
+      translations: [
+        "text_translation",
+        "batch_translation",
+        "domain_specialization",
+        "quality_assurance"
+      ],
+      billing: ["quote", "charge", "renew", "cancel"]
     };
 
-    return capabilityMap[subsystem] || ['general_processing'];
+    return capabilityMap[subsystem] || ["general_processing"];
+  }
+
+  private hasExecutionFunction(subsystem: string, adapter: unknown): boolean {
+    if (!adapter || typeof adapter !== "object") return false;
+
+    const record = adapter as Record<string, unknown>;
+    if (typeof record.execute === "function") return true;
+
+    const legacyMethod = this.getLegacyMethodName(subsystem);
+    return legacyMethod ? typeof record[legacyMethod] === "function" : false;
+  }
+
+  private async runAdapter(
+    subsystem: string,
+    adapter: unknown,
+    request: ExecuteRequestDto,
+    context: AdapterContext
+  ): Promise<AdapterResult> {
+    const record = adapter as Record<string, unknown>;
+    if (typeof record.execute === "function") {
+      return (
+        record.execute as (req: ExecuteRequestDto, ctx: AdapterContext) => Promise<AdapterResult>
+      )(request, context);
+    }
+
+    const legacyMethodName = this.getLegacyMethodName(subsystem);
+    if (!legacyMethodName || typeof record[legacyMethodName] !== "function") {
+      throw new Error(`Adapter for ${subsystem} does not expose executable methods`);
+    }
+
+    const legacyPayload = this.toLegacyPayload(subsystem, request);
+    const legacyResponse = await (
+      record[legacyMethodName] as (
+        payload: Record<string, unknown>
+      ) => Promise<Record<string, unknown>>
+    )(legacyPayload);
+
+    const success = Boolean(legacyResponse?.allowed ?? legacyResponse?.success ?? false);
+    return {
+      success,
+      data: legacyResponse,
+      error: success
+        ? undefined
+        : String(legacyResponse?.blockedReason || legacyResponse?.error || "adapter_rejected"),
+      riskFactors: success ? [] : ["adapter_rejected"],
+      metadata: {
+        subsystem,
+        legacyAdapter: true,
+        action: request.action
+      }
+    };
+  }
+
+  private getLegacyMethodName(subsystem: string): string | null {
+    const methodMap: Record<string, string> = {
+      "ai-programs": "processAiProgramsRequest",
+      communication: "processCommunicationRequest",
+      fraud: "processFraudRequest",
+      localization: "processLocalizationRequest",
+      marketing: "processMarketingRequest",
+      matchmaking: "processMatchmakingRequest",
+      payments: "processPaymentsRequest",
+      places: "processPlacesRequest",
+      "proximity-geocoding": "processProximityGeocodingRequest",
+      translations: "processTranslationsRequest"
+    };
+    return methodMap[subsystem] || null;
+  }
+
+  private toLegacyPayload(subsystem: string, request: ExecuteRequestDto): Record<string, unknown> {
+    const context = request.context || {};
+    const generatedId = `${subsystem}-${Date.now()}`;
+
+    return {
+      action: request.action,
+      userId: request.userId || "anonymous",
+      context,
+      campaignId: String(context.campaignId || generatedId),
+      paymentId: String(context.paymentId || generatedId),
+      requestId: request.requestId,
+      sessionId: String(context.sessionId || generatedId),
+      matchId: String(context.matchId || generatedId),
+      transactionId: String(context.transactionId || generatedId),
+      geocodeRequestId: String(context.geocodeRequestId || generatedId),
+      messageId: String(context.messageId || generatedId),
+      translationId: String(context.translationId || generatedId),
+      language: String(context.language || "en"),
+      regionCode: request.regionCode || "GLOBAL",
+      message: String(context.message || ""),
+      intent: String(context.intent || ""),
+      amount: Number(context.amount || 0)
+    };
   }
 
   /**
@@ -227,9 +336,9 @@ export class SubsystemAdapterRegistryService {
     const registration: AdapterRegistration = {
       subsystem,
       adapter,
-      version: '1.0.0',
+      version: "1.0.0",
       capabilities: this.getAdapterCapabilities(subsystem),
-      healthCheck: async () => true, // Basic health check for runtime adapters
+      healthCheck: async () => true // Basic health check for runtime adapters
     };
 
     this.adapters.set(subsystem, registration);
@@ -254,7 +363,7 @@ export class SubsystemAdapterRegistryService {
     return Array.from(this.adapters.entries()).map(([subsystem, registration]) => ({
       subsystem,
       version: registration.version,
-      capabilitiesCount: registration.capabilities.length,
+      capabilitiesCount: registration.capabilities.length
     }));
   }
 }

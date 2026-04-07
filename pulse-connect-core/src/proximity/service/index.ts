@@ -1,4 +1,4 @@
-import { ProviderRouter } from './providerRouter';
+
 import { RegionIntelligence } from './regionIntelligence';
 import { AuditEngine } from './audit';
 import { ConsentGuard } from './consentGuard';
@@ -8,7 +8,7 @@ import { TravelTimeEstimator } from './travelTime';
 export interface ProximityRequest {
   actorId: string;
   subsystem: string;
-  purpose: 'fraud' | 'matchmaking' | 'delivery' | 'marketing' | 'localization';
+  purpose: 'fraud' | 'matchmaking' | 'delivery' | 'marketing' | 'localization' | '';
   requestId: string;
   policyVersion?: string;
   reasonCode?: string;
@@ -38,8 +38,14 @@ export class ProximityService {
     googleApiKey: string,
     osmBaseUrl?: string,
     auditConfig?: any,
+
     redisUrl?: string
   ) {
+    this.redis = redisUrl ? new Redis(redisUrl, { lazyConnect: true, maxRetriesPerRequest: 3 }) : null;
+  }
+
+  private redis: Redis | null;
+
     this.providerRouter = new ProviderRouter(googleApiKey, osmBaseUrl);
     this.regionIntelligence = new RegionIntelligence();
     this.auditEngine = new AuditEngine(auditConfig || {
@@ -66,7 +72,13 @@ export class ProximityService {
     await this.consentGuard.ensureLocationConsent(request.actorId, request.purpose);
 
     // Perform geocoding
-    const result = await this.providerRouter.forwardGeocode({ address, countryCode });
+    const cacheKey = `geocode:forward:${this.hash(address + (countryCode || ''))}`;
+    let result = await this.redisGetGeocode(cacheKey);
+
+    if (!result) {
+      result = await this.providerRouter.forwardGeocode({ address, countryCode });
+      await this.redisSetGeocode(cacheKey, result, 300);  // 5min TTL
+    }
 
     // Audit the operation
     await this.auditEngine.recordGeocoding({

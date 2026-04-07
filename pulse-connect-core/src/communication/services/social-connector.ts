@@ -1,16 +1,16 @@
 export interface SocialPost {
-  platform: 'twitter' | 'facebook' | 'linkedin';
+  platform: "twitter" | "facebook" | "linkedin";
   message: string;
   userId?: string;
 }
 
 export class SocialConnector {
-  private platform: 'twitter' | 'facebook' | 'linkedin' = 'twitter';
+  private platform: "twitter" | "facebook" | "linkedin" = "twitter";
 
   /**
    * Set social media platform
    */
-  setPlatform(platform: 'twitter' | 'facebook' | 'linkedin'): void {
+  setPlatform(platform: "twitter" | "facebook" | "linkedin"): void {
     this.platform = platform;
   }
 

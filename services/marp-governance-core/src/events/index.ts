@@ -1,7 +1,7 @@
 // MARP Governance Core Events
 // Export all governance-related event types, interfaces, and services
 
-export * from './policy-events';
+export * from "./policy-events";
 // TODO: Implement additional event modules
 // export * from './governance-events';
 // export * from './audit-events';
@@ -21,7 +21,7 @@ export interface GovernanceEvent extends BaseEvent {
   governanceId: string;
   policyVersion: string;
   jurisdiction: string;
-  complianceLevel: 'strict' | 'moderate' | 'flexible';
+  complianceLevel: "strict" | "moderate" | "flexible";
 }
 
 export interface AuditEvent extends BaseEvent {
@@ -40,8 +40,8 @@ export interface ComplianceEvent extends BaseEvent {
   complianceId: string;
   regulation: string;
   requirement: string;
-  status: 'compliant' | 'non_compliant' | 'pending_review' | 'exempted';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: "compliant" | "non_compliant" | "pending_review" | "exempted";
+  severity: "low" | "medium" | "high" | "critical";
   remediationRequired: boolean;
   remediationDeadline?: Date;
 }
@@ -49,32 +49,32 @@ export interface ComplianceEvent extends BaseEvent {
 // Event type constants
 export const EVENT_TYPES = {
   // Policy Events
-  POLICY_CREATED: 'policy.created',
-  POLICY_UPDATED: 'policy.updated',
-  POLICY_ACTIVATED: 'policy.activated',
-  POLICY_DEACTIVATED: 'policy.deactivated',
-  POLICY_VIOLATED: 'policy.violated',
-  POLICY_COMPLIANCE_CHECK: 'policy.compliance_check',
+  POLICY_CREATED: "policy.created",
+  POLICY_UPDATED: "policy.updated",
+  POLICY_ACTIVATED: "policy.activated",
+  POLICY_DEACTIVATED: "policy.deactivated",
+  POLICY_VIOLATED: "policy.violated",
+  POLICY_COMPLIANCE_CHECK: "policy.compliance_check",
 
   // Governance Events
-  GOVERNANCE_DECISION_MADE: 'governance.decision_made',
-  GOVERNANCE_REVIEW_INITIATED: 'governance.review_initiated',
-  GOVERNANCE_APPROVAL_GRANTED: 'governance.approval_granted',
-  GOVERNANCE_APPROVAL_DENIED: 'governance.approval_denied',
-  GOVERNANCE_ESCALATION_TRIGGERED: 'governance.escalation_triggered',
+  GOVERNANCE_DECISION_MADE: "governance.decision_made",
+  GOVERNANCE_REVIEW_INITIATED: "governance.review_initiated",
+  GOVERNANCE_APPROVAL_GRANTED: "governance.approval_granted",
+  GOVERNANCE_APPROVAL_DENIED: "governance.approval_denied",
+  GOVERNANCE_ESCALATION_TRIGGERED: "governance.escalation_triggered",
 
   // Audit Events
-  AUDIT_LOG_CREATED: 'audit.log_created',
-  AUDIT_TRAIL_ACCESSED: 'audit.trail_accessed',
-  AUDIT_REPORT_GENERATED: 'audit.report_generated',
-  AUDIT_ANOMALY_DETECTED: 'audit.anomaly_detected',
+  AUDIT_LOG_CREATED: "audit.log_created",
+  AUDIT_TRAIL_ACCESSED: "audit.trail_accessed",
+  AUDIT_REPORT_GENERATED: "audit.report_generated",
+  AUDIT_ANOMALY_DETECTED: "audit.anomaly_detected",
 
   // Compliance Events
-  COMPLIANCE_CHECK_PASSED: 'compliance.check_passed',
-  COMPLIANCE_CHECK_FAILED: 'compliance.check_failed',
-  COMPLIANCE_VIOLATION_REPORTED: 'compliance.violation_reported',
-  COMPLIANCE_REMEDIATION_COMPLETED: 'compliance.remediation_completed',
-  COMPLIANCE_CERTIFICATION_RENEWED: 'compliance.certification_renewed',
+  COMPLIANCE_CHECK_PASSED: "compliance.check_passed",
+  COMPLIANCE_CHECK_FAILED: "compliance.check_failed",
+  COMPLIANCE_VIOLATION_REPORTED: "compliance.violation_reported",
+  COMPLIANCE_REMEDIATION_COMPLETED: "compliance.remediation_completed",
+  COMPLIANCE_CERTIFICATION_RENEWED: "compliance.certification_renewed"
 } as const;
 
 // Event priority levels
@@ -82,36 +82,36 @@ export const EVENT_PRIORITIES = {
   LOW: 1,
   MEDIUM: 2,
   HIGH: 3,
-  CRITICAL: 4,
+  CRITICAL: 4
 } as const;
 
 // Event processing status
 export const EVENT_STATUS = {
-  PENDING: 'pending',
-  PROCESSING: 'processing',
-  COMPLETED: 'completed',
-  FAILED: 'failed',
-  RETRIED: 'retried',
+  PENDING: "pending",
+  PROCESSING: "processing",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  RETRIED: "retried"
 } as const;
 
 // Jurisdiction constants
 export const JURISDICTIONS = {
-  GLOBAL: 'global',
-  REGIONAL: 'regional',
-  NATIONAL: 'national',
-  STATE: 'state',
-  LOCAL: 'local',
+  GLOBAL: "global",
+  REGIONAL: "regional",
+  NATIONAL: "national",
+  STATE: "state",
+  LOCAL: "local"
 } as const;
 
 // Compliance frameworks
 export const COMPLIANCE_FRAMEWORKS = {
-  GDPR: 'gdpr',
-  CCPA: 'ccpa',
-  SOX: 'sox',
-  HIPAA: 'hipaa',
-  PCI_DSS: 'pci_dss',
-  ISO_27001: 'iso_27001',
-  MARP: 'marp', // Market Arbitration Review Policies
+  GDPR: "gdpr",
+  CCPA: "ccpa",
+  SOX: "sox",
+  HIPAA: "hipaa",
+  PCI_DSS: "pci_dss",
+  ISO_27001: "iso_27001",
+  MARP: "marp" // Market Arbitration Review Policies
 } as const;
 
 // Event factory functions
@@ -124,11 +124,11 @@ export function createPolicyEvent(
     id: generateEventId(),
     type,
     timestamp: new Date(),
-    source: 'marp-governance-core',
+    source: "marp-governance-core",
     metadata: {
       policyId,
-      ...details,
-    },
+      ...details
+    }
   };
 }
 
@@ -142,12 +142,12 @@ export function createGovernanceEvent(
     id: generateEventId(),
     type,
     timestamp: new Date(),
-    source: 'marp-governance-core',
+    source: "marp-governance-core",
     governanceId,
-    policyVersion: details.policyVersion || '1.0.0',
+    policyVersion: details.policyVersion || "1.0.0",
     jurisdiction,
-    complianceLevel: details.complianceLevel || 'moderate',
-    metadata: details,
+    complianceLevel: details.complianceLevel || "moderate",
+    metadata: details
   };
 }
 
@@ -162,13 +162,13 @@ export function createAuditEvent(
     id: generateEventId(),
     type: EVENT_TYPES.AUDIT_LOG_CREATED,
     timestamp: new Date(),
-    source: 'marp-governance-core',
+    source: "marp-governance-core",
     auditId: generateAuditId(),
     action,
     resource,
     resourceId,
     success,
-    details,
+    details
   };
 }
 
@@ -183,14 +183,14 @@ export function createComplianceEvent(
     id: generateEventId(),
     type: getComplianceEventType(status),
     timestamp: new Date(),
-    source: 'marp-governance-core',
+    source: "marp-governance-core",
     complianceId: generateComplianceId(),
     regulation,
     requirement,
     status: status as any,
     severity: severity as any,
-    remediationRequired: status === 'non_compliant',
-    metadata: details,
+    remediationRequired: status === "non_compliant",
+    metadata: details
   };
 }
 
@@ -209,9 +209,9 @@ function generateComplianceId(): string {
 
 function getComplianceEventType(status: string): string {
   switch (status) {
-    case 'compliant':
+    case "compliant":
       return EVENT_TYPES.COMPLIANCE_CHECK_PASSED;
-    case 'non_compliant':
+    case "non_compliant":
       return EVENT_TYPES.COMPLIANCE_VIOLATION_REPORTED;
     default:
       return EVENT_TYPES.COMPLIANCE_CHECK_FAILED;
@@ -225,7 +225,7 @@ export function validateEvent(event: BaseEvent): boolean {
     event.type &&
     event.timestamp &&
     event.source &&
-    typeof event.timestamp.getTime === 'function'
+    typeof event.timestamp.getTime === "function"
   );
 }
 
@@ -234,7 +234,7 @@ export function validateGovernanceEvent(event: GovernanceEvent): boolean {
     validateEvent(event) &&
     !!event.governanceId &&
     !!event.jurisdiction &&
-    ['strict', 'moderate', 'flexible'].includes(event.complianceLevel)
+    ["strict", "moderate", "flexible"].includes(event.complianceLevel)
   );
 }
 
@@ -244,7 +244,7 @@ export function validateAuditEvent(event: AuditEvent): boolean {
     !!event.auditId &&
     !!event.action &&
     !!event.resource &&
-    typeof event.success === 'boolean'
+    typeof event.success === "boolean"
   );
 }
 
@@ -254,8 +254,8 @@ export function validateComplianceEvent(event: ComplianceEvent): boolean {
     !!event.complianceId &&
     !!event.regulation &&
     !!event.requirement &&
-    ['compliant', 'non_compliant', 'pending_review', 'exempted'].includes(event.status) &&
-    ['low', 'medium', 'high', 'critical'].includes(event.severity)
+    ["compliant", "non_compliant", "pending_review", "exempted"].includes(event.status) &&
+    ["low", "medium", "high", "critical"].includes(event.severity)
   );
 }
 
@@ -301,7 +301,7 @@ export class EventProcessor {
   private async processEvent(event: BaseEvent): Promise<void> {
     // Validate event
     if (!validateEvent(event)) {
-      console.error('Invalid event:', event);
+      console.error("Invalid event:", event);
       return;
     }
 
@@ -329,28 +329,28 @@ export class EventProcessor {
         break;
 
       default:
-        console.log('Unknown event type:', event.type);
+        console.log("Unknown event type:", event.type);
     }
   }
 
   private async processPolicyEvent(event: BaseEvent): Promise<void> {
     // Policy event processing logic
-    console.log('Processing policy event:', event.type);
+    console.log("Processing policy event:", event.type);
   }
 
   private async processGovernanceEvent(event: BaseEvent): Promise<void> {
     // Governance event processing logic
-    console.log('Processing governance event:', event.type);
+    console.log("Processing governance event:", event.type);
   }
 
   private async processAuditEvent(event: BaseEvent): Promise<void> {
     // Audit event processing logic
-    console.log('Processing audit event:', event.type);
+    console.log("Processing audit event:", event.type);
   }
 
   private async processComplianceEvent(event: BaseEvent): Promise<void> {
     // Compliance event processing logic
-    console.log('Processing compliance event:', event.type);
+    console.log("Processing compliance event:", event.type);
   }
 }
 

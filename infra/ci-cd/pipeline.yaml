@@ -120,8 +120,8 @@ jobs:
     - name: Run smoke tests
       run: |
         # Test critical endpoints
-        curl -f http://staging.pulsco.com/api/v1/policies/active
-        curl -f http://staging.pulsco.com/api/v1/decisions/evaluate -X POST -H "Content-Type: application/json" -d '{"test": "data"}'
+        curl -f http://staging.pulsco.global/api/v1/policies/active
+        curl -f http://staging.pulsco.global/api/v1/decisions/evaluate -X POST -H "Content-Type: application/json" -d '{"test": "data"}'
         # TODO: Add more smoke tests
 
   # Deploy to production

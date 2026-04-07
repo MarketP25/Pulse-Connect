@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       deviceFingerprint: body.deviceFingerprint,
       ipAddress: getRequestIp(req),
       userAgent: getUserAgent(req),
-      idempotencyKey: req.headers.get("idempotency-key") || body.idempotencyKey,
+      idempotencyKey: req.headers.get("idempotency-key") || body.idempotencyKey
     });
 
     return NextResponse.json(result, { status: 201 });

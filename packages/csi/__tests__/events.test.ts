@@ -5,7 +5,7 @@ import {
   emitCSIEvent,
   getCSIEventHistory,
   subscribeToEventBus,
-  validateCSIEvent,
+  validateCSIEvent
 } from "../events";
 
 describe("CSI events", () => {
@@ -21,7 +21,7 @@ describe("CSI events", () => {
       timestamp: Date.now(),
       metrics: { total: 1 },
       riskScore: 23,
-      performanceScore: 88,
+      performanceScore: 88
     });
 
     expect(result.valid).toBe(true);
@@ -34,7 +34,7 @@ describe("CSI events", () => {
       eventType: "",
       region: "",
       timestamp: Number.NaN,
-      metrics: { error: 'invalid metrics' },
+      metrics: { error: "invalid metrics" }
     });
 
     expect(result.valid).toBe(false);
@@ -50,8 +50,8 @@ describe("CSI events", () => {
         subsystem: "ecommerce",
         eventType: "order.created",
         region: "US",
-        metrics: { total: 1 },
-      }),
+        metrics: { total: 1 }
+      })
     );
 
     await new Promise((resolve) => setTimeout(resolve, 5));

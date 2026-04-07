@@ -1,9 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ClientKafka, MessagePattern } from '@nestjs/microservices';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import { PlanetaryEvent } from './entities/planetary-event.entity';
-import { CorrelatedEvent } from './entities/correlated-event.entity';
-import { PlanetaryInsight } from './entities/planetary-insight.entity';
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ClientKafka, MessagePattern } from "@nestjs/microservices";
+import { Observable, Subject, BehaviorSubject } from "rxjs";
+import { PlanetaryEvent } from "./entities/planetary-event.entity";
+import { CorrelatedEvent } from "./entities/correlated-event.entity";
+import { PlanetaryInsight } from "./entities/planetary-insight.entity";
 
 @Injectable()
 export class RealTimeIntelligenceService implements OnModuleInit {
@@ -18,15 +18,13 @@ export class RealTimeIntelligenceService implements OnModuleInit {
   private planetaryState = new BehaviorSubject<any>({});
   private activeCorrelations = new Map<string, CorrelatedEvent>();
 
-  constructor(
-    private readonly kafkaClient: ClientKafka,
-  ) {}
+  constructor(private readonly kafkaClient: ClientKafka) {}
 
   async onModuleInit() {
     // Subscribe to planetary event streams
     await this.kafkaClient.connect();
 
-    this.logger.log('Real-time Intelligence Service initialized');
+    this.logger.log("Real-time Intelligence Service initialized");
     this.startEventProcessing();
   }
 
@@ -61,7 +59,7 @@ export class RealTimeIntelligenceService implements OnModuleInit {
   /**
    * Process incoming planetary events
    */
-  @MessagePattern('planetary.events')
+  @MessagePattern("planetary.events")
   async processPlanetaryEvent(event: PlanetaryEvent) {
     try {
       this.logger.debug(`Processing planetary event: ${event.id}`);
@@ -77,7 +75,6 @@ export class RealTimeIntelligenceService implements OnModuleInit {
 
       // Generate real-time insights
       await this.generateRealTimeInsights(event);
-
     } catch (error) {
       this.logger.error(`Failed to process planetary event: ${error.message}`);
     }
@@ -98,7 +95,7 @@ export class RealTimeIntelligenceService implements OnModuleInit {
         strength: correlation.strength,
         description: correlation.description,
         affectedSubsystems: correlation.affectedSubsystems,
-        timestamp: new Date(),
+        timestamp: new Date()
       };
 
       // Store active correlation
@@ -108,7 +105,7 @@ export class RealTimeIntelligenceService implements OnModuleInit {
       this.correlatedEventStream.next(correlatedEvent);
 
       // Emit to Kafka for other services
-      await this.kafkaClient.emit('planetary.correlations', correlatedEvent);
+      await this.kafkaClient.emit("planetary.correlations", correlatedEvent);
     }
   }
 
@@ -125,7 +122,7 @@ export class RealTimeIntelligenceService implements OnModuleInit {
         eventCount: 0,
         lastEvent: null,
         activeUsers: new Set(),
-        healthScore: 100,
+        healthScore: 100
       };
     }
 
@@ -162,14 +159,14 @@ export class RealTimeIntelligenceService implements OnModuleInit {
         recommendedActions: insight.recommendedActions,
         confidence: insight.confidence,
         sourceEvent: event,
-        timestamp: new Date(),
+        timestamp: new Date()
       };
 
       // Emit insight
       this.insightStream.next(planetaryInsight);
 
       // Emit to Kafka for distribution
-      await this.kafkaClient.emit('planetary.insights', planetaryInsight);
+      await this.kafkaClient.emit("planetary.insights", planetaryInsight);
     }
   }
 
@@ -231,7 +228,8 @@ export class RealTimeIntelligenceService implements OnModuleInit {
 
     // Reduce health if no recent events (might indicate downtime)
     const timeSinceLastEvent = Date.now() - new Date(subsystem.lastEvent).getTime();
-    if (timeSinceLastEvent > 300000) { // 5 minutes
+    if (timeSinceLastEvent > 300000) {
+      // 5 minutes
       health -= 20;
     }
 

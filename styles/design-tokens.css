@@ -1,0 +1,281 @@
+/* Design Tokens - CSS Custom Properties */
+/* Generated from BRANDING_GUIDE.md */
+
+:root {
+  /* === PRIMARY COLORS === */
+  --color-orbit-blue-primary: #0A1428;
+  --color-pulse-cyan-accent: #00D9FF;
+  --color-stellar-purple-secondary: #9D00FF;
+
+  /* === BACKGROUND & SURFACE COLORS === */
+  --color-nebula-dark: #0F1929;
+  --color-cosmic-slate: #1A2744;
+  --color-grid-silver: #3A4A6A;
+  --color-tech-white: #F0F4F8;
+
+  /* === SEMANTIC COLORS === */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-critical: #EF4444;
+  --color-info: #3B82F6;
+
+  /* === TYPOGRAPHY === */
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* Font Sizes - Desktop */
+  --font-size-h1: 48px;
+  --font-size-h2: 36px;
+  --font-size-h3: 28px;
+  --font-size-h4: 22px;
+  --font-size-body-lg: 16px;
+  --font-size-body: 14px;
+  --font-size-caption: 12px;
+
+  /* Font Sizes - Mobile */
+  --font-size-h1-mobile: 36px;
+  --font-size-h2-mobile: 28px;
+  --font-size-h3-mobile: 22px;
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-tight: 1.1;
+  --line-height-normal: 1.2;
+  --line-height-relaxed: 1.6;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: -0.01em;
+  --letter-spacing-default: 0;
+
+  /* === SPACING (8px Grid) === */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  /* === BORDER RADIUS === */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* === SHADOWS === */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 217, 255, 0.1);
+  --shadow-lg: 0 8px 12px -2px rgba(0, 217, 255, 0.15);
+  --shadow-xl: 0 16px 24px -4px rgba(0, 217, 255, 0.2);
+  --shadow-glow-cyan: 0 0 20px rgba(0, 217, 255, 0.3);
+  --shadow-glow-purple: 0 0 20px rgba(157, 0, 255, 0.3);
+
+  /* === TRANSITIONS === */
+  --transition-duration-fast: 150ms;
+  --transition-duration-normal: 300ms;
+  --transition-duration-slow: 500ms;
+
+  --transition-timing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --transition-timing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --transition-timing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === CONTAINER WIDTHS === */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+
+  /* === Z-INDEX SCALE === */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 100;
+  --z-index-fixed: 1000;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* === RESPONSIVE TYPOGRAPHY === */
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  :root {
+    --font-size-h1: 48px;
+    --font-size-h2: 36px;
+    --font-size-h3: 28px;
+    --font-size-h4: 22px;
+    --font-size-body-lg: 16px;
+    --font-size-body: 14px;
+    --font-size-caption: 12px;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --font-size-h1: 40px;
+    --font-size-h2: 32px;
+    --font-size-h3: 24px;
+    --font-size-h4: 20px;
+    --font-size-body-lg: 15px;
+    --font-size-body: 13px;
+    --font-size-caption: 11px;
+  }
+}
+
+/* Large Phone (481px - 767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+  :root {
+    --font-size-h1: 32px;
+    --font-size-h2: 26px;
+    --font-size-h3: 20px;
+    --font-size-h4: 18px;
+    --font-size-body-lg: 14px;
+    --font-size-body: 13px;
+    --font-size-caption: 11px;
+  }
+}
+
+/* Small Phone (361px - 480px) */
+@media (min-width: 361px) and (max-width: 480px) {
+  :root {
+    --font-size-h1: 28px;
+    --font-size-h2: 22px;
+    --font-size-h3: 18px;
+    --font-size-h4: 16px;
+    --font-size-body-lg: 13px;
+    --font-size-body: 12px;
+    --font-size-caption: 10px;
+  }
+}
+
+/* Smartwatch / Tiny Screen (280px - 360px) */
+@media (max-width: 360px) {
+  :root {
+    --font-size-h1: 24px;
+    --font-size-h2: 18px;
+    --font-size-h3: 16px;
+    --font-size-h4: 14px;
+    --font-size-body-lg: 12px;
+    --font-size-body: 11px;
+    --font-size-caption: 9px;
+  }
+}
+
+/* Ultra-Wide (1920px+) */
+@media (min-width: 1920px) {
+  :root {
+    --font-size-h1: 56px;
+    --font-size-h2: 42px;
+    --font-size-h3: 32px;
+    --font-size-h4: 26px;
+    --font-size-body-lg: 18px;
+    --font-size-body: 16px;
+    --font-size-caption: 13px;
+  }
+}
+
+/* 4K and Beyond (3840px+) */
+@media (min-width: 3840px) {
+  :root {
+    --font-size-h1: 72px;
+    --font-size-h2: 54px;
+    --font-size-h3: 42px;
+    --font-size-h4: 32px;
+    --font-size-body-lg: 22px;
+    --font-size-body: 18px;
+    --font-size-caption: 14px;
+  }
+}
+
+/* Dark Mode (Default) */
+html,
+body {
+  color-scheme: dark;
+  background-color: var(--color-nebula-dark);
+  color: var(--color-tech-white);
+}
+
+/* Light Mode (Optional) */
+@media (prefers-color-scheme: light) {
+  html.light-mode,
+  html.light-mode body {
+    --color-primary-bg: #ffffff;
+    --color-secondary-bg: #f3f4f6;
+    --color-primary-text: #111827;
+    --color-border: #e5e7eb;
+  }
+}
+
+/* === TOUCH & POINTER DETECTION === */
+
+/* Touch Device Optimizations */
+@media (pointer: coarse) {
+  /* Increase touch target sizes for touch devices */
+  button, a, input, textarea, select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Reduce hover effects on touch devices */
+  button:hover, a:hover {
+    transform: none;
+  }
+}
+
+/* Fine Pointer (Mouse/Trackpad) Optimizations */
+@media (pointer: fine) {
+  /* Add hover effects for mouse users */
+  button:hover {
+    transform: scale(1.05);
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Hover Device Optimizations */
+@media (hover: hover) {
+  /* Desktop - add hover effects */
+  a:hover {
+    text-decoration: underline;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* No Hover (Touch) Devices */
+@media (hover: none) {
+  /* Remove hover effects for touch devices */
+  button:hover, a:hover {
+    transform: none;
+    text-decoration: none;
+  }
+}
+
+/* Landscape Mode */
+@media (orientation: landscape) and (max-height: 600px) {
+  /* Reduce vertical spacing for mobile landscape */
+  nav {
+    padding-top: var(--spacing-xs);
+    padding-bottom: var(--spacing-xs);
+  }
+
+  body {
+    font-size: var(--font-size-body);
+  }
+}

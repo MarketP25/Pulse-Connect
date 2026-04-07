@@ -1,27 +1,36 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
-import { ReservationEntity } from './reservation.entity';
-import { ReviewEntity } from './review.entity';
-import { PlaceManagerEntity } from './place-manager.entity';
-import { ImageEntity } from './image.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn
+} from "typeorm";
+import { ReservationEntity } from "./reservation.entity";
+import { ReviewEntity } from "./review.entity";
+import { PlaceManagerEntity } from "./place-manager.entity";
+import { ImageEntity } from "./image.entity";
 
-@Entity('places')
+@Entity("places")
 export class PlaceEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 255 })
   name: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   description: string;
 
   @Column({ length: 50 })
   category: string;
 
-  @Column({ length: 20, default: 'physical' })
+  @Column({ length: 20, default: "physical" })
   type: string;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   location: {
     latitude: number;
     longitude: number;
@@ -36,7 +45,7 @@ export class PlaceEntity {
     neighborhood?: string;
   };
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   address: {
     street: string;
     city: string;
@@ -51,7 +60,7 @@ export class PlaceEntity {
     }>;
   };
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   contact: {
     phone?: string;
     email?: string;
@@ -63,7 +72,7 @@ export class PlaceEntity {
     }>;
   };
 
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   businessHours: Array<{
     day: string;
     open: string;
@@ -78,7 +87,7 @@ export class PlaceEntity {
     };
   }>;
 
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   amenities: Array<{
     id: string;
     name: string;
@@ -88,7 +97,7 @@ export class PlaceEntity {
     description?: string;
   }>;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   pricing: {
     currency: string;
     priceRange: string;
@@ -106,13 +115,13 @@ export class PlaceEntity {
     };
   };
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+  @Column({ type: "decimal", precision: 3, scale: 2, default: 0 })
   rating: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   reviewCount: number;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   capacity: {
     maxOccupancy: number;
     currentOccupancy?: number;
@@ -128,7 +137,7 @@ export class PlaceEntity {
     }>;
   };
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   accessibility: {
     wheelchairAccessible: boolean;
     wheelchairAccessibleRestroom: boolean;
@@ -156,7 +165,7 @@ export class PlaceEntity {
     };
   };
 
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   policies: Array<{
     type: string;
     title: string;
@@ -164,7 +173,7 @@ export class PlaceEntity {
     required: boolean;
   }>;
 
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: "jsonb", default: {} })
   metadata: {
     tags: string[];
     keywords: string[];
@@ -193,7 +202,7 @@ export class PlaceEntity {
     customFields: Record<string, any>;
   };
 
-  @Column({ length: 20, default: 'active' })
+  @Column({ length: 20, default: "active" })
   status: string;
 
   @Column({ default: false })
@@ -212,15 +221,15 @@ export class PlaceEntity {
   updatedAt: Date;
 
   // Relations
-  @OneToMany(() => ReservationEntity, reservation => reservation.place)
+  @OneToMany(() => ReservationEntity, (reservation) => reservation.place)
   reservations: ReservationEntity[];
 
-  @OneToMany(() => ReviewEntity, review => review.place)
+  @OneToMany(() => ReviewEntity, (review) => review.place)
   reviews: ReviewEntity[];
 
-  @OneToMany(() => PlaceManagerEntity, manager => manager.place)
+  @OneToMany(() => PlaceManagerEntity, (manager) => manager.place)
   managers: PlaceManagerEntity[];
 
-  @OneToMany(() => ImageEntity, image => image.place)
+  @OneToMany(() => ImageEntity, (image) => image.place)
   images: ImageEntity[];
 }

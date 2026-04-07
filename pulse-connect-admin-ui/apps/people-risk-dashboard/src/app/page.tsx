@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
+import { useEffect, useState } from "react";
+import { Card, Button, Badge, Alert, LoadingSpinner } from "@pulsco/admin-ui-core";
 
 interface PeopleRiskMetrics {
-  employeeSatisfactionScore: number
-  turnoverRate: number
-  absenteeismRate: number
-  trainingCompletionRate: number
-  diversityInclusionScore: number
-  complianceTrainingRate: number
-  riskIncidents: number
-  harassmentReports: number
-  performanceReviewCompletion: number
-  talentAcquisitionTime: number
+  employeeSatisfactionScore: number;
+  turnoverRate: number;
+  absenteeismRate: number;
+  trainingCompletionRate: number;
+  diversityInclusionScore: number;
+  complianceTrainingRate: number;
+  riskIncidents: number;
+  harassmentReports: number;
+  performanceReviewCompletion: number;
+  talentAcquisitionTime: number;
 }
 
 interface HRAlert {
-  id: string
-  type: 'critical' | 'high' | 'medium' | 'low'
-  title: string
-  description: string
-  source: string
-  timestamp: string
-  affectedEmployees: number
+  id: string;
+  type: "critical" | "high" | "medium" | "low";
+  title: string;
+  description: string;
+  source: string;
+  timestamp: string;
+  affectedEmployees: number;
 }
 
 const FALLBACK_METRICS: PeopleRiskMetrics = {
@@ -37,96 +37,96 @@ const FALLBACK_METRICS: PeopleRiskMetrics = {
   harassmentReports: 0,
   performanceReviewCompletion: 92,
   talentAcquisitionTime: 28
-}
+};
 
 const FALLBACK_ALERTS: HRAlert[] = [
   {
-    id: '1',
-    type: 'high',
-    title: 'Employee Turnover Rate Increasing',
-    description: 'Turnover rate exceeded 2% threshold in engineering department',
-    source: 'HR Analytics',
-    timestamp: '2 hours ago',
+    id: "1",
+    type: "high",
+    title: "Employee Turnover Rate Increasing",
+    description: "Turnover rate exceeded 2% threshold in engineering department",
+    source: "HR Analytics",
+    timestamp: "2 hours ago",
     affectedEmployees: 12
   },
   {
-    id: '2',
-    type: 'medium',
-    title: 'Compliance Training Due',
-    description: 'GDPR training expires for 156 employees in 7 days',
-    source: 'Compliance System',
-    timestamp: '4 hours ago',
+    id: "2",
+    type: "medium",
+    title: "Compliance Training Due",
+    description: "GDPR training expires for 156 employees in 7 days",
+    source: "Compliance System",
+    timestamp: "4 hours ago",
     affectedEmployees: 156
   },
   {
-    id: '3',
-    type: 'low',
-    title: 'Performance Reviews Pending',
-    description: '8% of quarterly performance reviews are overdue',
-    source: 'Performance Management',
-    timestamp: '1 day ago',
+    id: "3",
+    type: "low",
+    title: "Performance Reviews Pending",
+    description: "8% of quarterly performance reviews are overdue",
+    source: "Performance Management",
+    timestamp: "1 day ago",
     affectedEmployees: 24
   }
-]
+];
 
 export default function PeopleRiskDashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [metrics, setMetrics] = useState<PeopleRiskMetrics | null>(null)
-  const [alerts, setAlerts] = useState<HRAlert[]>([])
-  const [activeView, setActiveView] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<PeopleRiskMetrics | null>(null);
+  const [alerts, setAlerts] = useState<HRAlert[]>([]);
+  const [activeView, setActiveView] = useState("overview");
 
   useEffect(() => {
     const loadPeopleData = async () => {
       try {
-        const headers = { 'x-admin-role': 'people-risk' }
+        const headers = { "x-admin-role": "people-risk" };
         const [metricsRes, anomaliesRes] = await Promise.all([
-          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
-        ])
+          fetch("api/admin/intelligence?action=metrics", { headers, cache: "no-store" }),
+          fetch("api/admin/intelligence?action=anomalies", { headers, cache: "no-store" })
+        ]);
 
         if (!metricsRes.ok) {
-          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+          throw new Error(`Metrics request failed with ${metricsRes.status}`);
         }
 
-        const metricsPayload = await metricsRes.json()
-        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        const metricsPayload = await metricsRes.json();
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {};
         setMetrics({
           ...FALLBACK_METRICS,
           ...rawMetrics
-        })
+        });
 
         if (anomaliesRes.ok) {
-          const anomaliesPayload = await anomaliesRes.json()
-          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          const anomaliesPayload = await anomaliesRes.json();
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || [];
           if (Array.isArray(anomalies) && anomalies.length > 0) {
             setAlerts(
               anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
                 id: String(index + 1),
-                type: anomaly.severity || 'medium',
-                title: anomaly.title || `People-risk anomaly in ${anomaly.metric || 'signal'}`,
-                description: anomaly.description || 'CSI detected an HR/risk anomaly.',
-                source: anomaly.source || 'CSI Intelligence',
-                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                type: anomaly.severity || "medium",
+                title: anomaly.title || `People-risk anomaly in ${anomaly.metric || "signal"}`,
+                description: anomaly.description || "CSI detected an HR/risk anomaly.",
+                source: anomaly.source || "CSI Intelligence",
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : "now",
                 affectedEmployees: Number(anomaly.affectedEmployees || anomaly.impactCount || 0)
               }))
-            )
+            );
           } else {
-            setAlerts(FALLBACK_ALERTS)
+            setAlerts(FALLBACK_ALERTS);
           }
         } else {
-          setAlerts(FALLBACK_ALERTS)
+          setAlerts(FALLBACK_ALERTS);
         }
       } catch (error) {
-        console.error('Failed to load people-risk intelligence', error)
-        setMetrics(FALLBACK_METRICS)
-        setAlerts(FALLBACK_ALERTS)
+        console.error("Failed to load people-risk intelligence", error);
+        setMetrics(FALLBACK_METRICS);
+        setAlerts(FALLBACK_ALERTS);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadPeopleData()
-  }, [])
+    loadPeopleData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -136,7 +136,7 @@ export default function PeopleRiskDashboard() {
           <p className="mt-4 text-gray-600">Loading People & Risk Dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -148,12 +148,20 @@ export default function PeopleRiskDashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">People & Risk Dashboard</h1>
-                <p className="text-gray-600">Employee experience, risk management, and organizational health</p>
+                <p className="text-gray-600">
+                  Employee experience, risk management, and organizational health
+                </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="secondary" size="sm">Employee Survey</Button>
-                <Button variant="danger" size="sm">Risk Assessment</Button>
-                <Button variant="primary" size="sm">Talent Acquisition</Button>
+                <Button variant="secondary" size="sm">
+                  Employee Survey
+                </Button>
+                <Button variant="danger" size="sm">
+                  Risk Assessment
+                </Button>
+                <Button variant="primary" size="sm">
+                  Talent Acquisition
+                </Button>
               </div>
             </div>
           </div>
@@ -164,25 +172,35 @@ export default function PeopleRiskDashboard() {
         {/* HR & Risk Alerts */}
         {alerts.length > 0 && (
           <div className="mb-8">
-            {alerts.map(alert => (
-              <Alert key={alert.id} type={alert.type === 'critical' ? 'error' : alert.type === 'high' ? 'warning' : 'info'}>
+            {alerts.map((alert) => (
+              <Alert
+                key={alert.id}
+                type={
+                  alert.type === "critical" ? "error" : alert.type === "high" ? "warning" : "info"
+                }
+              >
                 <div className="flex justify-between items-center">
                   <div className="flex items-start">
                     <div className="text-lg mr-3">
-                      {alert.type === 'critical' ? '🚨' : alert.type === 'high' ? '⚠️' : 'ℹ️'}
+                      {alert.type === "critical" ? "🚨" : alert.type === "high" ? "⚠️" : "ℹ️"}
                     </div>
                     <div>
                       <h4 className="font-medium">{alert.title}</h4>
                       <p className="text-sm">{alert.description}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {alert.source} • {alert.timestamp}
-                        {alert.affectedEmployees > 0 && ` • ${alert.affectedEmployees} employees affected`}
+                        {alert.affectedEmployees > 0 &&
+                          ` • ${alert.affectedEmployees} employees affected`}
                       </p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="secondary">Investigate</Button>
-                    <Button size="sm" variant="primary">Action Plan</Button>
+                    <Button size="sm" variant="secondary">
+                      Investigate
+                    </Button>
+                    <Button size="sm" variant="primary">
+                      Action Plan
+                    </Button>
                   </div>
                 </div>
               </Alert>
@@ -196,7 +214,9 @@ export default function PeopleRiskDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Employee Satisfaction</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.employeeSatisfactionScore}/5.0</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.employeeSatisfactionScore}/5.0
+                </p>
               </div>
               <Badge variant="success">Good</Badge>
             </div>
@@ -216,7 +236,9 @@ export default function PeopleRiskDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Training Completion</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.trainingCompletionRate}%</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.trainingCompletionRate}%
+                </p>
               </div>
               <Badge variant="success">Excellent</Badge>
             </div>
@@ -238,41 +260,41 @@ export default function PeopleRiskDashboard() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveView('overview')}
+                onClick={() => setActiveView("overview")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "overview"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 People Overview
               </button>
               <button
-                onClick={() => setActiveView('risk')}
+                onClick={() => setActiveView("risk")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'risk'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "risk"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Risk Management
               </button>
               <button
-                onClick={() => setActiveView('talent')}
+                onClick={() => setActiveView("talent")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'talent'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "talent"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Talent & Development
               </button>
               <button
-                onClick={() => setActiveView('compliance')}
+                onClick={() => setActiveView("compliance")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'compliance'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "compliance"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Compliance & Safety
@@ -282,7 +304,7 @@ export default function PeopleRiskDashboard() {
         </div>
 
         {/* Content based on active view */}
-        {activeView === 'overview' && (
+        {activeView === "overview" && (
           <div className="space-y-6">
             {/* Employee Experience Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -307,7 +329,9 @@ export default function PeopleRiskDashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">D&I Score</span>
-                    <span className="font-medium text-green-600">{metrics?.diversityInclusionScore}/10</span>
+                    <span className="font-medium text-green-600">
+                      {metrics?.diversityInclusionScore}/10
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Gender Balance</span>
@@ -324,7 +348,9 @@ export default function PeopleRiskDashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Review Completion</span>
-                    <span className="font-medium text-green-600">{metrics?.performanceReviewCompletion}%</span>
+                    <span className="font-medium text-green-600">
+                      {metrics?.performanceReviewCompletion}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Promotion Rate</span>
@@ -340,7 +366,7 @@ export default function PeopleRiskDashboard() {
           </div>
         )}
 
-        {activeView === 'risk' && (
+        {activeView === "risk" && (
           <div className="space-y-6">
             <Card title="Risk Management Center">
               <div className="space-y-4">
@@ -400,13 +426,15 @@ export default function PeopleRiskDashboard() {
           </div>
         )}
 
-        {activeView === 'talent' && (
+        {activeView === "talent" && (
           <div className="space-y-6">
             <Card title="Talent Management Hub">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{metrics?.talentAcquisitionTime}</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {metrics?.talentAcquisitionTime}
+                    </div>
                     <div className="text-sm text-gray-600">Days to Hire</div>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
@@ -430,7 +458,7 @@ export default function PeopleRiskDashboard() {
           </div>
         )}
 
-        {activeView === 'compliance' && (
+        {activeView === "compliance" && (
           <div className="space-y-6">
             <Card title="Compliance & Safety Dashboard">
               <div className="space-y-4">
@@ -440,7 +468,9 @@ export default function PeopleRiskDashboard() {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-sm">Training Completion</span>
-                        <span className="font-medium text-green-600">{metrics?.complianceTrainingRate}%</span>
+                        <span className="font-medium text-green-600">
+                          {metrics?.complianceTrainingRate}%
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Policy Acknowledgment</span>
@@ -484,5 +514,5 @@ export default function PeopleRiskDashboard() {
         )}
       </main>
     </div>
-  )
+  );
 }

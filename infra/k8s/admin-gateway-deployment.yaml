@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-gateway
+  namespace: planetary-pulse
+  labels:
+    app: admin-gateway
+    component: governance-control
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: admin-gateway
+  template:
+    metadata:
+      labels:
+        app: admin-gateway
+        component: governance-control
+    spec:
+      containers:
+      - name: admin-gateway
+        image: planetary/admin-gateway:latest
+        ports:
+        - containerPort: 3001
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+        - name: INTERNAL_SERVICE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: internal-service-token
+        - name: EDGE_GATEWAY_URL
+          value: "http://edge-gateway-service.planetary-pulse.svc.cluster.local"
+        - name: BILLING_SERVICE_URL
+          value: "http://billing-engine-service.planetary-pulse.svc.cluster.local:3100"
+        - name: EMERGENCY_BROADCAST_ENDPOINTS
+          value: "http://edge-gateway-service.planetary-pulse.svc.cluster.local/edge/internal/emergency-protocol/event,http://billing-engine-service.planetary-pulse.svc.cluster.local:3100/internal/emergency-protocol/event"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-gateway-service
+  namespace: planetary-pulse
+  labels:
+    app: admin-gateway
+spec:
+  selector:
+    app: admin-gateway
+  ports:
+  - name: http
+    port: 3001
+    targetPort: 3001
+  type: ClusterIP

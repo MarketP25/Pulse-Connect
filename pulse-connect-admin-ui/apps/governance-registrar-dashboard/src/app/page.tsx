@@ -1,27 +1,27 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
+import { useEffect, useState } from "react";
+import { Card, Button, Badge, Alert, LoadingSpinner } from "@pulsco/admin-ui-core";
 
 interface GovernanceMetrics {
-  activePolicies: number
-  councilMembers: number
-  marpSignatures: number
-  governanceAlerts: number
-  policyCompliance: number
-  registrarActivity: number
-  crossDomainCorrelations: number
-  decisionEngineStatus: string
+  activePolicies: number;
+  councilMembers: number;
+  marpSignatures: number;
+  governanceAlerts: number;
+  policyCompliance: number;
+  registrarActivity: number;
+  crossDomainCorrelations: number;
+  decisionEngineStatus: string;
 }
 
 interface GovernanceAlert {
-  id: string
-  type: 'critical' | 'high' | 'medium' | 'low'
-  title: string
-  description: string
-  source: string
-  timestamp: string
-  priority: string
+  id: string;
+  type: "critical" | "high" | "medium" | "low";
+  title: string;
+  description: string;
+  source: string;
+  timestamp: string;
+  priority: string;
 }
 
 const FALLBACK_METRICS: GovernanceMetrics = {
@@ -32,97 +32,97 @@ const FALLBACK_METRICS: GovernanceMetrics = {
   policyCompliance: 98.7,
   registrarActivity: 156,
   crossDomainCorrelations: 23,
-  decisionEngineStatus: 'Active'
-}
+  decisionEngineStatus: "Active"
+};
 
 const FALLBACK_ALERTS: GovernanceAlert[] = [
   {
-    id: '1',
-    type: 'high',
-    title: 'Policy Review Required',
-    description: 'Annual policy review due in 7 days for 12 active policies',
-    source: 'Policy Management',
-    timestamp: '2 hours ago',
-    priority: 'High'
+    id: "1",
+    type: "high",
+    title: "Policy Review Required",
+    description: "Annual policy review due in 7 days for 12 active policies",
+    source: "Policy Management",
+    timestamp: "2 hours ago",
+    priority: "High"
   },
   {
-    id: '2',
-    type: 'medium',
-    title: 'Council Member Onboarding',
-    description: '3 new council members require MARP signature verification',
-    source: 'Council Registrar',
-    timestamp: '1 day ago',
-    priority: 'Medium'
+    id: "2",
+    type: "medium",
+    title: "Council Member Onboarding",
+    description: "3 new council members require MARP signature verification",
+    source: "Council Registrar",
+    timestamp: "1 day ago",
+    priority: "Medium"
   },
   {
-    id: '3',
-    type: 'low',
-    title: 'Cross-Domain Correlation Detected',
-    description: 'New correlation pattern identified between governance and operations',
-    source: 'CSI Intelligence',
-    timestamp: '3 days ago',
-    priority: 'Low'
+    id: "3",
+    type: "low",
+    title: "Cross-Domain Correlation Detected",
+    description: "New correlation pattern identified between governance and operations",
+    source: "CSI Intelligence",
+    timestamp: "3 days ago",
+    priority: "Low"
   }
-]
+];
 
 export default function GovernanceRegistrarDashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [metrics, setMetrics] = useState<GovernanceMetrics | null>(null)
-  const [alerts, setAlerts] = useState<GovernanceAlert[]>([])
-  const [activeView, setActiveView] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<GovernanceMetrics | null>(null);
+  const [alerts, setAlerts] = useState<GovernanceAlert[]>([]);
+  const [activeView, setActiveView] = useState("overview");
 
   useEffect(() => {
     const loadGovernanceData = async () => {
       try {
-        const headers = { 'x-admin-role': 'governance-registrar' }
+        const headers = { "x-admin-role": "governance-registrar" };
         const [metricsRes, anomaliesRes] = await Promise.all([
-          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
-        ])
+          fetch("api/admin/intelligence?action=metrics", { headers, cache: "no-store" }),
+          fetch("api/admin/intelligence?action=anomalies", { headers, cache: "no-store" })
+        ]);
 
         if (!metricsRes.ok) {
-          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+          throw new Error(`Metrics request failed with ${metricsRes.status}`);
         }
 
-        const metricsPayload = await metricsRes.json()
-        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        const metricsPayload = await metricsRes.json();
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {};
         setMetrics({
           ...FALLBACK_METRICS,
           ...rawMetrics
-        })
+        });
 
         if (anomaliesRes.ok) {
-          const anomaliesPayload = await anomaliesRes.json()
-          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          const anomaliesPayload = await anomaliesRes.json();
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || [];
           if (Array.isArray(anomalies) && anomalies.length > 0) {
             setAlerts(
               anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
                 id: String(index + 1),
-                type: anomaly.severity || 'low',
-                title: anomaly.title || `Governance anomaly in ${anomaly.metric || 'signal'}`,
-                description: anomaly.description || 'CSI detected an unusual governance pattern.',
-                source: anomaly.source || 'CSI Intelligence',
-                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
-                priority: anomaly.severity ? String(anomaly.severity).toUpperCase() : 'LOW'
+                type: anomaly.severity || "low",
+                title: anomaly.title || `Governance anomaly in ${anomaly.metric || "signal"}`,
+                description: anomaly.description || "CSI detected an unusual governance pattern.",
+                source: anomaly.source || "CSI Intelligence",
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : "now",
+                priority: anomaly.severity ? String(anomaly.severity).toUpperCase() : "LOW"
               }))
-            )
+            );
           } else {
-            setAlerts(FALLBACK_ALERTS)
+            setAlerts(FALLBACK_ALERTS);
           }
         } else {
-          setAlerts(FALLBACK_ALERTS)
+          setAlerts(FALLBACK_ALERTS);
         }
       } catch (error) {
-        console.error('Failed to load governance intelligence', error)
-        setMetrics(FALLBACK_METRICS)
-        setAlerts(FALLBACK_ALERTS)
+        console.error("Failed to load governance intelligence", error);
+        setMetrics(FALLBACK_METRICS);
+        setAlerts(FALLBACK_ALERTS);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadGovernanceData()
-  }, [])
+    loadGovernanceData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -132,7 +132,7 @@ export default function GovernanceRegistrarDashboard() {
           <p className="mt-4 text-gray-600">Loading Governance Registrar Dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -144,12 +144,20 @@ export default function GovernanceRegistrarDashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Governance Registrar Dashboard</h1>
-                <p className="text-gray-600">Council management, policy oversight, and MARP firewall governance</p>
+                <p className="text-gray-600">
+                  Council management, policy oversight, and MARP firewall governance
+                </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="secondary" size="sm">Policy Review</Button>
-                <Button variant="danger" size="sm">Governance Alert</Button>
-                <Button variant="primary" size="sm">Council Meeting</Button>
+                <Button variant="secondary" size="sm">
+                  Policy Review
+                </Button>
+                <Button variant="danger" size="sm">
+                  Governance Alert
+                </Button>
+                <Button variant="primary" size="sm">
+                  Council Meeting
+                </Button>
               </div>
             </div>
           </div>
@@ -160,12 +168,17 @@ export default function GovernanceRegistrarDashboard() {
         {/* Governance Alerts */}
         {alerts.length > 0 && (
           <div className="mb-8">
-            {alerts.map(alert => (
-              <Alert key={alert.id} type={alert.type === 'critical' ? 'error' : alert.type === 'high' ? 'warning' : 'info'}>
+            {alerts.map((alert) => (
+              <Alert
+                key={alert.id}
+                type={
+                  alert.type === "critical" ? "error" : alert.type === "high" ? "warning" : "info"
+                }
+              >
                 <div className="flex justify-between items-center">
                   <div className="flex items-start">
                     <div className="text-lg mr-3">
-                      {alert.type === 'critical' ? '🚨' : alert.type === 'high' ? '⚠️' : 'ℹ️'}
+                      {alert.type === "critical" ? "🚨" : alert.type === "high" ? "⚠️" : "ℹ️"}
                     </div>
                     <div>
                       <h4 className="font-medium">{alert.title}</h4>
@@ -176,8 +189,12 @@ export default function GovernanceRegistrarDashboard() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="secondary">Review</Button>
-                    <Button size="sm" variant="primary">Action</Button>
+                    <Button size="sm" variant="secondary">
+                      Review
+                    </Button>
+                    <Button size="sm" variant="primary">
+                      Action
+                    </Button>
                   </div>
                 </div>
               </Alert>
@@ -191,7 +208,9 @@ export default function GovernanceRegistrarDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Policies</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.activePolicies.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.activePolicies.toLocaleString()}
+                </p>
               </div>
               <Badge variant="success">+5.2%</Badge>
             </div>
@@ -211,7 +230,9 @@ export default function GovernanceRegistrarDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">MARP Signatures</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.marpSignatures.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.marpSignatures.toLocaleString()}
+                </p>
               </div>
               <Badge variant="success">Valid</Badge>
             </div>
@@ -233,41 +254,41 @@ export default function GovernanceRegistrarDashboard() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveView('overview')}
+                onClick={() => setActiveView("overview")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "overview"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Governance Overview
               </button>
               <button
-                onClick={() => setActiveView('council')}
+                onClick={() => setActiveView("council")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'council'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "council"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Council Management
               </button>
               <button
-                onClick={() => setActiveView('policies')}
+                onClick={() => setActiveView("policies")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'policies'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "policies"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Policy Framework
               </button>
               <button
-                onClick={() => setActiveView('marp')}
+                onClick={() => setActiveView("marp")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'marp'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "marp"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 MARP Firewall
@@ -277,7 +298,7 @@ export default function GovernanceRegistrarDashboard() {
         </div>
 
         {/* Content based on active view */}
-        {activeView === 'overview' && (
+        {activeView === "overview" && (
           <div className="space-y-6">
             {/* Governance Health Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -289,7 +310,9 @@ export default function GovernanceRegistrarDashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Active Correlations</span>
-                    <span className="font-medium text-blue-600">{metrics?.crossDomainCorrelations}</span>
+                    <span className="font-medium text-blue-600">
+                      {metrics?.crossDomainCorrelations}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Processing Latency</span>
@@ -335,7 +358,7 @@ export default function GovernanceRegistrarDashboard() {
           </div>
         )}
 
-        {activeView === 'council' && (
+        {activeView === "council" && (
           <div className="space-y-6">
             <Card title="Council Management Center">
               <div className="space-y-4">
@@ -395,13 +418,15 @@ export default function GovernanceRegistrarDashboard() {
           </div>
         )}
 
-        {activeView === 'policies' && (
+        {activeView === "policies" && (
           <div className="space-y-6">
             <Card title="Policy Framework Management">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{metrics?.activePolicies}</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {metrics?.activePolicies}
+                    </div>
                     <div className="text-sm text-gray-600">Active Policies</div>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
@@ -425,7 +450,7 @@ export default function GovernanceRegistrarDashboard() {
           </div>
         )}
 
-        {activeView === 'marp' && (
+        {activeView === "marp" && (
           <div className="space-y-6">
             <Card title="MARP Firewall Control">
               <div className="space-y-4">
@@ -435,7 +460,9 @@ export default function GovernanceRegistrarDashboard() {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-sm">Active Signatures</span>
-                        <span className="font-medium text-green-600">{metrics?.marpSignatures.toLocaleString()}</span>
+                        <span className="font-medium text-green-600">
+                          {metrics?.marpSignatures.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Signature Validation</span>
@@ -479,5 +506,5 @@ export default function GovernanceRegistrarDashboard() {
         )}
       </main>
     </div>
-  )
+  );
 }

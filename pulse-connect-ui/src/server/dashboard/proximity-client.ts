@@ -10,7 +10,7 @@ const DEFAULT_COORDS: Record<string, { latitude: number; longitude: number }> = 
   "Seattle, US": { latitude: 47.6062, longitude: -122.3321 },
   "New York, US": { latitude: 40.7128, longitude: -74.006 },
   "Nairobi, KE": { latitude: -1.2921, longitude: 36.8219 },
-  "San Francisco, US": { latitude: 37.7749, longitude: -122.4194 },
+  "San Francisco, US": { latitude: 37.7749, longitude: -122.4194 }
 };
 
 function normalizeBaseUrl(url: string): string {
@@ -23,7 +23,7 @@ function fallbackForAddress(address: string): GeocodeResult {
     latitude: coords.latitude,
     longitude: coords.longitude,
     source: "fallback",
-    formattedAddress: address,
+    formattedAddress: address
   };
 }
 
@@ -36,7 +36,8 @@ function parseGeocodePayload(payload: Record<string, unknown>): GeocodeResult | 
       latitude: latFromRoot,
       longitude: lngFromRoot,
       source: "proximity",
-      formattedAddress: typeof payload.formatted_address === "string" ? payload.formatted_address : undefined,
+      formattedAddress:
+        typeof payload.formatted_address === "string" ? payload.formatted_address : undefined
     };
   }
 
@@ -46,7 +47,8 @@ function parseGeocodePayload(payload: Record<string, unknown>): GeocodeResult | 
       latitude: data.lat,
       longitude: data.lng,
       source: "proximity",
-      formattedAddress: typeof data.formatted_address === "string" ? data.formatted_address : undefined,
+      formattedAddress:
+        typeof data.formatted_address === "string" ? data.formatted_address : undefined
     };
   }
 
@@ -69,14 +71,14 @@ export async function geocodeWithProximity(address: string): Promise<GeocodeResu
         "x-actor-id": "dashboard-service",
         "x-subsystem": "localization",
         "x-request-id": `geo-${Date.now()}`,
-        "x-policy-version": "1.0.0",
+        "x-policy-version": "1.0.0"
       },
       cache: "no-store",
       body: JSON.stringify({
         address,
         purpose: "localization",
-        reasonCode: "CSI_GATEWAY_ACCESS",
-      }),
+        reasonCode: "CSI_GATEWAY_ACCESS"
+      })
     });
 
     if (!response.ok) {

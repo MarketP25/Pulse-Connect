@@ -4,44 +4,44 @@ import {
   PrimaryGeneratedColumn,
   Index,
   CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+  UpdateDateColumn
+} from "typeorm";
 
 export enum UserStatus {
-  ACTIVE = 'active',
-  DEACTIVATED = 'deactivated',
-  DELETED = 'deleted',
+  ACTIVE = "active",
+  DEACTIVATED = "deactivated",
+  DELETED = "deleted"
 }
 
-@Entity('users')
+@Entity("users")
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column('text', { unique: true })
+  @Column("text", { unique: true })
   email: string;
 
-  @Column('text', { select: false })
+  @Column("text", { select: false })
   password_hash: string;
 
-  @Column('text', { nullable: true })
+  @Column("text", { nullable: true })
   phone: string;
 
-  @Column('text')
+  @Column("text")
   region: string;
 
-  @Column('enum', { enum: UserStatus, default: UserStatus.ACTIVE })
+  @Column("enum", { enum: UserStatus, default: UserStatus.ACTIVE })
   status: UserStatus;
 
-  @Column({ type: 'text', nullable: true, select: false })
+  @Column({ type: "text", nullable: true, select: false })
   two_factor_secret: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: "boolean", default: false })
   two_factor_enabled: boolean;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: "timestamptz" })
   updated_at: Date;
 }

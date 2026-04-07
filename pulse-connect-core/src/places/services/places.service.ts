@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, SelectQueryBuilder } from 'typeorm';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource, SelectQueryBuilder } from "typeorm";
 import {
   Place,
   PlaceSearchQuery,
@@ -12,15 +12,15 @@ import {
   PlaceAnalytics,
   PlaceManager,
   Reservation,
-  Review,
-} from '../types/places';
-import { PlaceEntity } from '../entities/place.entity';
-import { ReservationEntity } from '../entities/reservation.entity';
-import { ReviewEntity } from '../entities/review.entity';
-import { PlaceManagerEntity } from '../entities/place-manager.entity';
-import { ProximityService } from '../../proximity/proximity.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { emitPlacesEvent } from '../../csi/instrumentation';
+  Review
+} from "../types/places";
+import { PlaceEntity } from "../entities/place.entity";
+import { ReservationEntity } from "../entities/reservation.entity";
+import { ReviewEntity } from "../entities/review.entity";
+import { PlaceManagerEntity } from "../entities/place-manager.entity";
+import { ProximityService } from "../../proximity/proximity.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { emitPlacesEvent } from "../../csi/instrumentation";
 
 @Injectable()
 export class PlacesService {
@@ -37,7 +37,7 @@ export class PlacesService {
     private readonly placeManagerRepository: Repository<PlaceManagerEntity>,
     private readonly proximityService: ProximityService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly dataSource: DataSource,
+    private readonly dataSource: DataSource
   ) {}
 
   /**
@@ -53,11 +53,11 @@ export class PlacesService {
       const placeEntity = this.placeRepository.create({
         ...request,
         ownerId,
-        status: 'pending_review',
+        status: "pending_review",
         verified: false,
         featured: false,
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       });
 
       const savedPlace = await queryRunner.manager.save(PlaceEntity, placeEntity);
@@ -66,29 +66,37 @@ export class PlacesService {
       const placeManager = this.placeManagerRepository.create({
         userId: ownerId,
         placeId: savedPlace.id,
-        role: 'owner',
-        permissions: ['read', 'write', 'delete', 'manage_staff', 'manage_finances', 'manage_reservations', 'publish'],
-        assignedAt: new Date(),
+        role: "owner",
+        permissions: [
+          "read",
+          "write",
+          "delete",
+          "manage_staff",
+          "manage_finances",
+          "manage_reservations",
+          "publish"
+        ],
+        assignedAt: new Date()
       });
 
       await queryRunner.manager.save(PlaceManagerEntity, placeManager);
 
       await queryRunner.commitTransaction();
 
-      this.eventEmitter.emit('place.created', { place: savedPlace, ownerId });
+      this.eventEmitter.emit("place.created", { place: savedPlace, ownerId });
       emitPlacesEvent(
-        'place.created',
-        String(savedPlace.location?.country || savedPlace.location?.region || 'GLOBAL'),
+        "place.created",
+        String(savedPlace.location?.country || savedPlace.location?.region || "GLOBAL"),
         {
           placeId: savedPlace.id,
           ownerId,
           category: savedPlace.category,
-          type: savedPlace.type,
+          type: savedPlace.type
         },
         {
           riskScore: 16,
-          performanceScore: 82,
-        },
+          performanceScore: 82
+        }
       );
 
       return this.mapPlaceEntityToPlace(savedPlace);
@@ -107,36 +115,36 @@ export class PlacesService {
   async updatePlace(request: UpdatePlaceRequest, userId: string): Promise<Place> {
     const place = await this.placeRepository.findOne({
       where: { id: request.id },
-      relations: ['managers'],
+      relations: ["managers"]
     });
 
     if (!place) {
-      throw new Error('Place not found');
+      throw new Error("Place not found");
     }
 
     // Check permissions
-    const manager = place.managers.find(m => m.userId === userId);
-    if (!manager || !manager.permissions.includes('write')) {
-      throw new Error('Insufficient permissions to update place');
+    const manager = place.managers.find((m) => m.userId === userId);
+    if (!manager || !manager.permissions.includes("write")) {
+      throw new Error("Insufficient permissions to update place");
     }
 
     // Update place
     Object.assign(place, request, { updatedAt: new Date() });
     const updatedPlace = await this.placeRepository.save(place);
 
-    this.eventEmitter.emit('place.updated', { place: updatedPlace, updatedBy: userId });
+    this.eventEmitter.emit("place.updated", { place: updatedPlace, updatedBy: userId });
     emitPlacesEvent(
-      'place.updated',
-      String(updatedPlace.location?.country || updatedPlace.location?.region || 'GLOBAL'),
+      "place.updated",
+      String(updatedPlace.location?.country || updatedPlace.location?.region || "GLOBAL"),
       {
         placeId: updatedPlace.id,
         updatedBy: userId,
-        status: updatedPlace.status,
+        status: updatedPlace.status
       },
       {
         riskScore: 22,
-        performanceScore: 80,
-      },
+        performanceScore: 80
+      }
     );
 
     return this.mapPlaceEntityToPlace(updatedPlace);
@@ -148,15 +156,15 @@ export class PlacesService {
   async getPlaceById(id: string, userId?: string): Promise<Place> {
     const place = await this.placeRepository.findOne({
       where: { id },
-      relations: ['reservations', 'reviews', 'managers', 'images'],
+      relations: ["reservations", "reviews", "managers", "images"]
     });
 
     if (!place) {
-      throw new Error('Place not found');
+      throw new Error("Place not found");
     }
 
     // Track view for analytics
-    this.eventEmitter.emit('place.viewed', { placeId: id, userId });
+    this.eventEmitter.emit("place.viewed", { placeId: id, userId });
 
     return this.mapPlaceEntityToPlace(place);
   }
@@ -165,48 +173,58 @@ export class PlacesService {
    * Search places with advanced filtering
    */
   async searchPlaces(query: PlaceSearchQuery): Promise<PlaceSearchResult> {
-    const qb = this.placeRepository.createQueryBuilder('place')
-      .leftJoinAndSelect('place.images', 'images')
-      .leftJoinAndSelect('place.reviews', 'reviews')
-      .where('place.status = :status', { status: 'active' });
+    const qb = this.placeRepository
+      .createQueryBuilder("place")
+      .leftJoinAndSelect("place.images", "images")
+      .leftJoinAndSelect("place.reviews", "reviews")
+      .where("place.status = :status", { status: "active" });
 
     // Apply filters
     if (query.query) {
-      qb.andWhere('(place.name ILIKE :query OR place.description ILIKE :query)', {
-        query: `%${query.query}%`,
+      qb.andWhere("(place.name ILIKE :query OR place.description ILIKE :query)", {
+        query: `%${query.query}%`
       });
     }
 
     if (query.category && query.category.length > 0) {
-      qb.andWhere('place.category IN (:...categories)', { categories: query.category });
+      qb.andWhere("place.category IN (:...categories)", { categories: query.category });
     }
 
     if (query.type && query.type.length > 0) {
-      qb.andWhere('place.type IN (:...types)', { types: query.type });
+      qb.andWhere("place.type IN (:...types)", { types: query.type });
     }
 
     if (query.rating) {
-      qb.andWhere('place.rating >= :rating', { rating: query.rating });
+      qb.andWhere("place.rating >= :rating", { rating: query.rating });
     }
 
     if (query.priceRange && query.priceRange.length > 0) {
-      qb.andWhere('place.priceRange IN (:...priceRanges)', { priceRanges: query.priceRange });
+      qb.andWhere("place.priceRange IN (:...priceRanges)", { priceRanges: query.priceRange });
     }
 
     // Location-based filtering
     if (query.location) {
       const { latitude, longitude, radius = 5000 } = query.location; // 5km default
       // Use PostGIS or similar for location queries
-      qb.andWhere(
-        'ST_DWithin(place.location, ST_MakePoint(:lng, :lat)::geography, :radius)',
-        { lng: longitude, lat: latitude, radius }
-      );
+      qb.andWhere("ST_DWithin(place.location, ST_MakePoint(:lng, :lat)::geography, :radius)", {
+        lng: longitude,
+        lat: latitude,
+        radius
+      });
     }
 
     // Open now filter
     if (query.openNow) {
       const now = new Date();
-      const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()];
+      const dayOfWeek = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday"
+      ][now.getDay()];
       const currentTime = now.toTimeString().slice(0, 5);
 
       qb.andWhere(
@@ -215,30 +233,30 @@ export class PlacesService {
     }
 
     // Sorting
-    const sortBy = query.sortBy || 'relevance';
-    const sortOrder = query.sortOrder || 'desc';
+    const sortBy = query.sortBy || "relevance";
+    const sortOrder = query.sortOrder || "desc";
 
     switch (sortBy) {
-      case 'distance':
+      case "distance":
         if (query.location) {
-          qb.orderBy('ST_Distance(place.location, ST_MakePoint(:lng, :lat))', sortOrder);
+          qb.orderBy("ST_Distance(place.location, ST_MakePoint(:lng, :lat))", sortOrder);
           qb.setParameters({ lng: query.location.longitude, lat: query.location.latitude });
         }
         break;
-      case 'rating':
-        qb.orderBy('place.rating', sortOrder);
+      case "rating":
+        qb.orderBy("place.rating", sortOrder);
         break;
-      case 'price':
-        qb.orderBy('place.priceRange', sortOrder);
+      case "price":
+        qb.orderBy("place.priceRange", sortOrder);
         break;
-      case 'popularity':
-        qb.orderBy('place.reviewCount', sortOrder);
+      case "popularity":
+        qb.orderBy("place.reviewCount", sortOrder);
         break;
-      case 'newest':
-        qb.orderBy('place.createdAt', sortOrder);
+      case "newest":
+        qb.orderBy("place.createdAt", sortOrder);
         break;
       default:
-        qb.orderBy('place.rating', 'DESC');
+        qb.orderBy("place.rating", "DESC");
     }
 
     // Pagination
@@ -255,45 +273,52 @@ export class PlacesService {
     const suggestions = await this.generateSearchSuggestions(query.query);
 
     emitPlacesEvent(
-      'place.search.executed',
-      query.location ? 'LOCAL' : 'GLOBAL',
+      "place.search.executed",
+      query.location ? "LOCAL" : "GLOBAL",
       {
         resultCount: total,
         limit,
         offset,
-        query: query.query || null,
+        query: query.query || null
       },
       {
         riskScore: 8,
-        performanceScore: 90,
-      },
+        performanceScore: 90
+      }
     );
 
     return {
-      places: places.map(p => this.mapPlaceEntityToPlace(p)),
+      places: places.map((p) => this.mapPlaceEntityToPlace(p)),
       total,
       facets,
-      suggestions,
+      suggestions
     };
   }
 
   /**
    * Create a reservation
    */
-  async createReservation(request: PlaceReservationRequest, userId: string): Promise<PlaceReservationResponse> {
+  async createReservation(
+    request: PlaceReservationRequest,
+    userId: string
+  ): Promise<PlaceReservationResponse> {
     const place = await this.placeRepository.findOne({
       where: { id: request.placeId },
-      relations: ['reservations'],
+      relations: ["reservations"]
     });
 
     if (!place) {
-      throw new Error('Place not found');
+      throw new Error("Place not found");
     }
 
     // Check availability
-    const isAvailable = await this.checkAvailability(request.placeId, request.dateTime, request.duration);
+    const isAvailable = await this.checkAvailability(
+      request.placeId,
+      request.dateTime,
+      request.duration
+    );
     if (!isAvailable) {
-      throw new Error('Requested time slot is not available');
+      throw new Error("Requested time slot is not available");
     }
 
     // Create reservation
@@ -303,55 +328,61 @@ export class PlacesService {
       partySize: request.partySize,
       dateTime: request.dateTime,
       duration: request.duration,
-      status: 'pending',
+      status: "pending",
       specialRequests: request.specialRequests,
-      createdAt: new Date(),
+      createdAt: new Date()
     });
 
     const savedReservation = await this.reservationRepository.save(reservation);
 
-    this.eventEmitter.emit('reservation.created', {
+    this.eventEmitter.emit("reservation.created", {
       reservation: savedReservation,
       placeId: request.placeId,
-      userId,
+      userId
     });
     emitPlacesEvent(
-      'reservation.created',
-      String(place.location?.country || place.location?.region || 'GLOBAL'),
+      "reservation.created",
+      String(place.location?.country || place.location?.region || "GLOBAL"),
       {
         reservationId: savedReservation.id,
         placeId: request.placeId,
         userId,
-        partySize: request.partySize,
+        partySize: request.partySize
       },
       {
         riskScore: 20,
-        performanceScore: 86,
-      },
+        performanceScore: 86
+      }
     );
 
     return {
       reservation: this.mapReservationEntityToReservation(savedReservation),
-      confirmationCode: this.generateConfirmationCode(savedReservation.id),
+      confirmationCode: this.generateConfirmationCode(savedReservation.id)
     };
   }
 
   /**
    * Add a review
    */
-  async addReview(placeId: string, userId: string, rating: number, content: string, title?: string): Promise<Review> {
+  async addReview(
+    placeId: string,
+    userId: string,
+    rating: number,
+    content: string,
+    title?: string
+  ): Promise<Review> {
     const place = await this.placeRepository.findOne({ where: { id: placeId } });
     if (!place) {
-      throw new Error('Place not found');
+      throw new Error("Place not found");
     }
 
     // Check if user already reviewed this place
     const existingReview = await this.reviewRepository.findOne({
-      where: { placeId, userId },
+      where: { placeId, userId }
     });
 
     if (existingReview) {
-      throw new Error('User has already reviewed this place');
+      throw new Error("User has already reviewed this place");
     }
 
     const review = this.reviewRepository.create({
@@ -363,7 +394,7 @@ export class PlacesService {
       verified: false, // Could be verified based on reservation history
       helpful: 0,
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
 
     const savedReview = await this.reviewRepository.save(review);
@@ -371,20 +402,20 @@ export class PlacesService {
     // Update place rating
     await this.updatePlaceRating(placeId);
 
-    this.eventEmitter.emit('review.added', { review: savedReview, placeId, userId });
+    this.eventEmitter.emit("review.added", { review: savedReview, placeId, userId });
     emitPlacesEvent(
-      'review.added',
-      String(place.location?.country || place.location?.region || 'GLOBAL'),
+      "review.added",
+      String(place.location?.country || place.location?.region || "GLOBAL"),
       {
         reviewId: savedReview.id,
         placeId,
         userId,
-        rating,
+        rating
       },
       {
         riskScore: 12,
-        performanceScore: 88,
-      },
+        performanceScore: 88
+      }
     );
 
     return this.mapReviewEntityToReview(savedReview);
@@ -393,24 +424,27 @@ export class PlacesService {
   /**
    * Get place analytics
    */
-  async getPlaceAnalytics(placeId: string, period: { start: Date; end: Date }): Promise<PlaceAnalytics> {
+  async getPlaceAnalytics(
+    placeId: string,
+    period: { start: Date; end: Date }
+  ): Promise<PlaceAnalytics> {
     // This would aggregate data from various sources
     // For now, return mock data structure
     const metrics = await this.aggregatePlaceMetrics(placeId, period);
     const trends = await this.generateTrendsData(placeId, period);
     const insights = await this.generateInsights(placeId, metrics);
     emitPlacesEvent(
-      'place.analytics.generated',
-      'GLOBAL',
+      "place.analytics.generated",
+      "GLOBAL",
       {
         placeId,
         periodStart: period.start.toISOString(),
-        periodEnd: period.end.toISOString(),
+        periodEnd: period.end.toISOString()
       },
       {
         riskScore: 10,
-        performanceScore: 91,
-      },
+        performanceScore: 91
+      }
     );
 
     return {
@@ -418,28 +452,32 @@ export class PlacesService {
       period: {
         start: period.start,
         end: period.end,
-        granularity: 'day',
+        granularity: "day"
       },
       metrics,
       trends,
-      insights,
+      insights
     };
   }
 
   /**
    * Check availability for a time slot
    */
-  private async checkAvailability(placeId: string, dateTime: Date, duration: number): Promise<boolean> {
+  private async checkAvailability(
+    placeId: string,
+    dateTime: Date,
+    duration: number
+  ): Promise<boolean> {
     const endTime = new Date(dateTime.getTime() + duration * 60000);
 
     const conflictingReservations = await this.reservationRepository
-      .createQueryBuilder('reservation')
-      .where('reservation.placeId = :placeId', { placeId })
-      .andWhere('reservation.status IN (:...statuses)', { statuses: ['confirmed', 'pending'] })
+      .createQueryBuilder("reservation")
+      .where("reservation.placeId = :placeId", { placeId })
+      .andWhere("reservation.status IN (:...statuses)", { statuses: ["confirmed", "pending"] })
       .andWhere(
-        '(reservation.dateTime <= :startTime AND DATEADD(minute, reservation.duration, reservation.dateTime) > :startTime) OR ' +
-        '(reservation.dateTime < :endTime AND DATEADD(minute, reservation.duration, reservation.dateTime) >= :endTime) OR ' +
-        '(reservation.dateTime >= :startTime AND DATEADD(minute, reservation.duration, reservation.dateTime) <= :endTime)',
+        "(reservation.dateTime <= :startTime AND DATEADD(minute, reservation.duration, reservation.dateTime) > :startTime) OR " +
+          "(reservation.dateTime < :endTime AND DATEADD(minute, reservation.duration, reservation.dateTime) >= :endTime) OR " +
+          "(reservation.dateTime >= :startTime AND DATEADD(minute, reservation.duration, reservation.dateTime) <= :endTime)",
         { startTime: dateTime, endTime }
       )
       .getCount();
@@ -452,16 +490,16 @@ export class PlacesService {
    */
   private async updatePlaceRating(placeId: string): Promise<void> {
     const result = await this.reviewRepository
-      .createQueryBuilder('review')
-      .select('AVG(review.rating)', 'average')
-      .addSelect('COUNT(review.id)', 'count')
-      .where('review.placeId = :placeId', { placeId })
+      .createQueryBuilder("review")
+      .select("AVG(review.rating)", "average")
+      .addSelect("COUNT(review.id)", "count")
+      .where("review.placeId = :placeId", { placeId })
       .getRawOne();
 
     await this.placeRepository.update(placeId, {
       rating: parseFloat(result.average) || 0,
       reviewCount: parseInt(result.count) || 0,
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
   }
 
@@ -484,25 +522,31 @@ export class PlacesService {
   /**
    * Aggregate place metrics
    */
-  private async aggregatePlaceMetrics(placeId: string, period: { start: Date; end: Date }): Promise<any> {
+  private async aggregatePlaceMetrics(
+    placeId: string,
+    period: { start: Date; end: Date }
+  ): Promise<any> {
     // Mock implementation
     return {
       views: 1250,
       searches: 340,
       clicks: 89,
       bookings: 23,
-      revenue: 1250.50,
+      revenue: 1250.5,
       averageRating: 4.2,
       reviewCount: 45,
       occupancyRate: 0.75,
-      customerSatisfaction: 4.1,
+      customerSatisfaction: 4.1
     };
   }
 
   /**
    * Generate trends data
    */
-  private async generateTrendsData(placeId: string, period: { start: Date; end: Date }): Promise<any[]> {
+  private async generateTrendsData(
+    placeId: string,
+    period: { start: Date; end: Date }
+  ): Promise<any[]> {
     // Mock implementation
     return [];
   }
@@ -538,7 +582,7 @@ export class PlacesService {
       pricing: entity.pricing,
       images: entity.images,
       rating: entity.rating,
-      reviews: entity.reviews?.map(r => this.mapReviewEntityToReview(r)),
+      reviews: entity.reviews?.map((r) => this.mapReviewEntityToReview(r)),
       capacity: entity.capacity,
       accessibility: entity.accessibility,
       policies: entity.policies,
@@ -547,7 +591,7 @@ export class PlacesService {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       verified: entity.verified,
-      featured: entity.featured,
+      featured: entity.featured
     };
   }
 
@@ -560,7 +604,7 @@ export class PlacesService {
       duration: entity.duration,
       status: entity.status,
       specialRequests: entity.specialRequests,
-      createdAt: entity.createdAt,
+      createdAt: entity.createdAt
     };
   }
 
@@ -577,7 +621,7 @@ export class PlacesService {
       verified: entity.verified,
       helpful: entity.helpful,
       createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
+      updatedAt: entity.updatedAt
     };
   }
 }

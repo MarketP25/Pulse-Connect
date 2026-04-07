@@ -43,7 +43,7 @@ export interface LedgerEntry {
   sourceEventId?: string;
   policyId?: string;
   policyVersion?: string;
-  discounts?: Array<{ offerId: string; applied: number; policyId: string }>; 
+  discounts?: Array<{ offerId: string; applied: number; policyId: string }>;
   region?: Region;
   taxBreakdown?: { region: string; rate: number; amount: number }[];
   userExplanation?: string;
@@ -58,6 +58,10 @@ export interface WalletRecord {
   currency: Currency;
   balance: number;
   status: "active" | "locked" | "closed";
+  tier: "basic" | "premium" | "enterprise";
+  kycVerified?: boolean;
+  kycExpiryDate?: string;
+  kycVerifiedAt?: string;
 }
 
 export interface SubscriptionRecord {
@@ -68,7 +72,7 @@ export interface SubscriptionRecord {
   region: Region;
   periodStart: string;
   periodEnd: string;
-  status: 'active' | 'pending_change' | 'canceled' | 'closed';
+  status: "active" | "pending_change" | "canceled" | "closed";
   autoRenew?: boolean;
   pendingPlan?: { planId: string; price: number };
   pendingEffective?: string;
@@ -86,13 +90,13 @@ export interface ChargeBreakdown {
 }
 
 export type ActivityEngineType =
-  | 'ecommerce'
-  | 'matchmaking'
-  | 'places'
-  | 'communication'
-  | 'pap_v1'
-  | 'ai_programs'
-  | 'localization';
+  | "ecommerce"
+  | "matchmaking"
+  | "places"
+  | "communication"
+  | "pap_v1"
+  | "ai_programs"
+  | "localization";
 
 export interface UsageEvent {
   engine: ActivityEngineType;
@@ -111,4 +115,9 @@ export interface ActivityChargeResult {
   total: number;
   description?: string;
 }
-export type ActivityEngine = (event: UsageEvent, region?: Region, atIso?: string, policy?: Policy) => ActivityChargeResult;
+export type ActivityEngine = (
+  event: UsageEvent,
+  region?: Region,
+  atIso?: string,
+  policy?: Policy
+) => ActivityChargeResult;

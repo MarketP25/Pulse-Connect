@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
-import { ActionEntity } from '../entities/action.entity';
-import { CampaignEntity } from '../entities/campaign.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, MoreThan } from "typeorm";
+import { ActionEntity } from "../entities/action.entity";
+import { CampaignEntity } from "../entities/campaign.entity";
 
 export interface ABTestVariant {
   id: string;
@@ -26,17 +26,17 @@ export interface ABTest {
   name: string;
   description?: string;
   campaignId: string;
-  status: 'draft' | 'running' | 'paused' | 'completed' | 'cancelled';
-  testType: 'content' | 'timing' | 'audience' | 'channel' | 'creative';
+  status: "draft" | "running" | "paused" | "completed" | "cancelled";
+  testType: "content" | "timing" | "audience" | "channel" | "creative";
   variants: ABTestVariant[];
   controlVariantId?: string;
   startDate?: Date;
   endDate?: Date;
   targetSampleSize: number;
   confidenceThreshold: number; // 0.95 for 95% confidence
-  primaryMetric: 'open_rate' | 'click_rate' | 'conversion_rate' | 'revenue';
+  primaryMetric: "open_rate" | "click_rate" | "conversion_rate" | "revenue";
   secondaryMetrics?: string[];
-  winnerSelectionCriteria: 'statistical_significance' | 'minimum_improvement' | 'revenue_impact';
+  winnerSelectionCriteria: "statistical_significance" | "minimum_improvement" | "revenue_impact";
   minimumImprovement?: number; // Minimum improvement percentage
   createdBy: string;
   createdAt: Date;
@@ -84,12 +84,12 @@ export interface ABTestInsights {
   optimalVariant: string;
   confidenceLevel: number;
   expectedUplift: number;
-  riskAssessment: 'low' | 'medium' | 'high';
+  riskAssessment: "low" | "medium" | "high";
   implementationRecommendations: string[];
   followUpTests: Array<{
     testType: string;
     description: string;
-    priority: 'high' | 'medium' | 'low';
+    priority: "high" | "medium" | "low";
   }>;
 }
 
@@ -101,13 +101,13 @@ export class ABTestingService {
     @InjectRepository(ActionEntity)
     private readonly actionRepository: Repository<ActionEntity>,
     @InjectRepository(CampaignEntity)
-    private readonly campaignRepository: Repository<CampaignEntity>,
+    private readonly campaignRepository: Repository<CampaignEntity>
   ) {}
 
   /**
    * Create a new A/B test
    */
-  async createABTest(test: Omit<ABTest, 'id' | 'createdAt' | 'updatedAt'>): Promise<ABTest> {
+  async createABTest(test: Omit<ABTest, "id" | "createdAt" | "updatedAt">): Promise<ABTest> {
     // Validate test configuration
     this.validateABTest(test);
 
@@ -115,7 +115,7 @@ export class ABTestingService {
       ...test,
       id: this.generateTestId(),
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     };
 
     // In a real implementation, save to database
@@ -133,18 +133,18 @@ export class ABTestingService {
 
     return {
       id: testId,
-      name: 'Mock Test',
-      campaignId: 'campaign_123',
-      status: 'running',
-      testType: 'content',
+      name: "Mock Test",
+      campaignId: "campaign_123",
+      status: "running",
+      testType: "content",
       variants: [],
       targetSampleSize: 10000,
       confidenceThreshold: 0.95,
-      primaryMetric: 'open_rate',
-      winnerSelectionCriteria: 'statistical_significance',
-      createdBy: 'admin',
+      primaryMetric: "open_rate",
+      winnerSelectionCriteria: "statistical_significance",
+      createdBy: "admin",
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     };
   }
 
@@ -155,8 +155,8 @@ export class ABTestingService {
     // Mock results - in real implementation, calculate from action data
     const variants = [
       {
-        variantId: 'variant_a',
-        variantName: 'Control Subject Line',
+        variantId: "variant_a",
+        variantName: "Control Subject Line",
         sampleSize: 5000,
         metrics: {
           openRate: 0.245,
@@ -164,15 +164,15 @@ export class ABTestingService {
           conversionRate: 0.008,
           revenue: 1200,
           cost: 50,
-          roi: 23.0,
+          roi: 23.0
         },
         confidence: 0.95,
         statisticalSignificance: 0.99,
-        improvement: 0, // Baseline
+        improvement: 0 // Baseline
       },
       {
-        variantId: 'variant_b',
-        variantName: 'Personalized Subject',
+        variantId: "variant_b",
+        variantName: "Personalized Subject",
         sampleSize: 5000,
         metrics: {
           openRate: 0.312,
@@ -180,15 +180,15 @@ export class ABTestingService {
           conversionRate: 0.012,
           revenue: 1800,
           cost: 50,
-          roi: 35.0,
+          roi: 35.0
         },
         confidence: 0.95,
         statisticalSignificance: 0.99,
-        improvement: 27.3, // 27.3% improvement over control
+        improvement: 27.3 // 27.3% improvement over control
       },
       {
-        variantId: 'variant_c',
-        variantName: 'Urgency Subject',
+        variantId: "variant_c",
+        variantName: "Urgency Subject",
         sampleSize: 5000,
         metrics: {
           openRate: 0.278,
@@ -196,39 +196,41 @@ export class ABTestingService {
           conversionRate: 0.009,
           revenue: 1350,
           cost: 50,
-          roi: 26.0,
+          roi: 26.0
         },
         confidence: 0.95,
         statisticalSignificance: 0.99,
-        improvement: 13.5,
-      },
+        improvement: 13.5
+      }
     ];
 
-    const winner = variants.find(v => v.variantId === 'variant_b');
+    const winner = variants.find((v) => v.variantId === "variant_b");
 
     return {
       testId,
-      testName: 'Subject Line Optimization Test',
-      status: 'completed',
+      testName: "Subject Line Optimization Test",
+      status: "completed",
       totalSampleSize: 15000,
       variants,
-      winner: winner ? {
-        variantId: winner.variantId,
-        variantName: winner.variantName,
-        confidence: winner.confidence,
-        improvement: winner.improvement,
-        reason: 'Highest statistical significance and revenue impact',
-      } : undefined,
+      winner: winner
+        ? {
+            variantId: winner.variantId,
+            variantName: winner.variantName,
+            confidence: winner.confidence,
+            improvement: winner.improvement,
+            reason: "Highest statistical significance and revenue impact"
+          }
+        : undefined,
       statisticalSummary: {
         overallSignificance: 0.99,
         minimumDetectableEffect: 0.02,
-        testDuration: 14,
+        testDuration: 14
       },
       recommendations: [
-        'Implement Variant B as the winning subject line',
-        'Consider testing personalized content in email body',
-        'Monitor performance for 2 weeks post-implementation',
-      ],
+        "Implement Variant B as the winning subject line",
+        "Consider testing personalized content in email body",
+        "Monitor performance for 2 weeks post-implementation"
+      ]
     };
   }
 
@@ -240,81 +242,83 @@ export class ABTestingService {
 
     // Mock AI insights
     return {
-      optimalVariant: results.winner?.variantId || 'variant_a',
+      optimalVariant: results.winner?.variantId || "variant_a",
       confidenceLevel: results.winner?.confidence || 0.95,
       expectedUplift: results.winner?.improvement || 0,
-      riskAssessment: 'low',
+      riskAssessment: "low",
       implementationRecommendations: [
-        'Roll out winning variant to 100% of audience',
-        'Monitor key metrics for 2 weeks post-implementation',
-        'Consider follow-up test with email body personalization',
-        'Document insights for future campaign optimization',
+        "Roll out winning variant to 100% of audience",
+        "Monitor key metrics for 2 weeks post-implementation",
+        "Consider follow-up test with email body personalization",
+        "Document insights for future campaign optimization"
       ],
       followUpTests: [
         {
-          testType: 'content',
-          description: 'Test personalized email content blocks',
-          priority: 'high',
+          testType: "content",
+          description: "Test personalized email content blocks",
+          priority: "high"
         },
         {
-          testType: 'timing',
-          description: 'Optimize send time based on user behavior',
-          priority: 'medium',
+          testType: "timing",
+          description: "Optimize send time based on user behavior",
+          priority: "medium"
         },
         {
-          testType: 'audience',
-          description: 'Test different audience segmentation strategies',
-          priority: 'medium',
-        },
-      ],
+          testType: "audience",
+          description: "Test different audience segmentation strategies",
+          priority: "medium"
+        }
+      ]
     };
   }
 
   /**
    * Get recommended A/B test configurations for a campaign
    */
-  async getRecommendedTests(campaignId: string): Promise<Array<{
-    testType: string;
-    name: string;
-    description: string;
-    estimatedImpact: number;
-    difficulty: 'easy' | 'medium' | 'hard';
-    estimatedDuration: number; // Days
-  }>> {
+  async getRecommendedTests(campaignId: string): Promise<
+    Array<{
+      testType: string;
+      name: string;
+      description: string;
+      estimatedImpact: number;
+      difficulty: "easy" | "medium" | "hard";
+      estimatedDuration: number; // Days
+    }>
+  > {
     // Mock recommendations based on campaign type and historical data
     return [
       {
-        testType: 'content',
-        name: 'Subject Line Variations',
-        description: 'Test different subject lines to improve open rates',
+        testType: "content",
+        name: "Subject Line Variations",
+        description: "Test different subject lines to improve open rates",
         estimatedImpact: 0.25,
-        difficulty: 'easy',
-        estimatedDuration: 7,
+        difficulty: "easy",
+        estimatedDuration: 7
       },
       {
-        testType: 'creative',
-        name: 'Email Design Elements',
-        description: 'Test different layouts, images, and call-to-action buttons',
+        testType: "creative",
+        name: "Email Design Elements",
+        description: "Test different layouts, images, and call-to-action buttons",
         estimatedImpact: 0.18,
-        difficulty: 'medium',
-        estimatedDuration: 14,
+        difficulty: "medium",
+        estimatedDuration: 14
       },
       {
-        testType: 'timing',
-        name: 'Send Time Optimization',
-        description: 'Test different days and times for email delivery',
+        testType: "timing",
+        name: "Send Time Optimization",
+        description: "Test different days and times for email delivery",
         estimatedImpact: 0.15,
-        difficulty: 'easy',
-        estimatedDuration: 10,
+        difficulty: "easy",
+        estimatedDuration: 10
       },
       {
-        testType: 'audience',
-        name: 'Audience Segmentation',
-        description: 'Test different audience segments for targeted messaging',
-        estimatedImpact: 0.30,
-        difficulty: 'hard',
-        estimatedDuration: 21,
-      },
+        testType: "audience",
+        name: "Audience Segmentation",
+        description: "Test different audience segments for targeted messaging",
+        estimatedImpact: 0.3,
+        difficulty: "hard",
+        estimatedDuration: 21
+      }
     ];
   }
 
@@ -323,7 +327,7 @@ export class ABTestingService {
    */
   private calculateStatisticalSignificance(
     variantA: { sampleSize: number; conversions: number },
-    variantB: { sampleSize: number; conversions: number },
+    variantB: { sampleSize: number; conversions: number }
   ): number {
     // Simplified statistical significance calculation
     // In real implementation, use proper statistical tests (chi-square, t-test, etc.)
@@ -332,13 +336,14 @@ export class ABTestingService {
     const rateB = variantB.conversions / variantB.sampleSize;
 
     // Simple z-test approximation
-    const pooledRate = (variantA.conversions + variantB.conversions) /
-                       (variantA.sampleSize + variantB.sampleSize);
+    const pooledRate =
+      (variantA.conversions + variantB.conversions) / (variantA.sampleSize + variantB.sampleSize);
 
     if (pooledRate === 0 || pooledRate === 1) return 0;
 
-    const se = Math.sqrt(pooledRate * (1 - pooledRate) *
-                        (1 / variantA.sampleSize + 1 / variantB.sampleSize));
+    const se = Math.sqrt(
+      pooledRate * (1 - pooledRate) * (1 / variantA.sampleSize + 1 / variantB.sampleSize)
+    );
 
     const zScore = Math.abs(rateA - rateB) / se;
 
@@ -354,26 +359,26 @@ export class ABTestingService {
   /**
    * Validate A/B test configuration
    */
-  private validateABTest(test: Omit<ABTest, 'id' | 'createdAt' | 'updatedAt'>): void {
+  private validateABTest(test: Omit<ABTest, "id" | "createdAt" | "updatedAt">): void {
     if (!test.name || test.name.length < 3) {
-      throw new Error('Test name must be at least 3 characters');
+      throw new Error("Test name must be at least 3 characters");
     }
 
     if (!test.variants || test.variants.length < 2) {
-      throw new Error('A/B test must have at least 2 variants');
+      throw new Error("A/B test must have at least 2 variants");
     }
 
     const totalWeight = test.variants.reduce((sum, variant) => sum + variant.weight, 0);
     if (Math.abs(totalWeight - 100) > 0.1) {
-      throw new Error('Variant weights must sum to 100%');
+      throw new Error("Variant weights must sum to 100%");
     }
 
     if (test.confidenceThreshold < 0.8 || test.confidenceThreshold > 0.99) {
-      throw new Error('Confidence threshold must be between 0.8 and 0.99');
+      throw new Error("Confidence threshold must be between 0.8 and 0.99");
     }
 
     if (test.targetSampleSize < 1000) {
-      throw new Error('Target sample size must be at least 1000');
+      throw new Error("Target sample size must be at least 1000");
     }
   }
 
@@ -411,7 +416,7 @@ export class ABTestingService {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);
@@ -427,26 +432,26 @@ export class ABTestingService {
   } {
     return {
       general: [
-        'Test one variable at a time to isolate impact',
-        'Ensure adequate sample size for statistical significance',
-        'Run tests for sufficient duration to capture different user behaviors',
-        'Consider seasonal effects and external factors',
-        'Document test hypotheses and success criteria upfront',
+        "Test one variable at a time to isolate impact",
+        "Ensure adequate sample size for statistical significance",
+        "Run tests for sufficient duration to capture different user behaviors",
+        "Consider seasonal effects and external factors",
+        "Document test hypotheses and success criteria upfront"
       ],
       statistical: [
-        'Aim for 95% confidence level for most tests',
-        'Ensure minimum detectable effect is practical',
-        'Monitor for statistical significance, not just percentage differences',
-        'Consider both statistical and practical significance',
-        'Use proper statistical tests for your data type',
+        "Aim for 95% confidence level for most tests",
+        "Ensure minimum detectable effect is practical",
+        "Monitor for statistical significance, not just percentage differences",
+        "Consider both statistical and practical significance",
+        "Use proper statistical tests for your data type"
       ],
       implementation: [
-        'Implement proper randomization to avoid bias',
-        'Ensure consistent user experience across variants',
-        'Monitor system performance during testing',
-        'Have a rollback plan for failed tests',
-        'Communicate test results and learnings to the team',
-      ],
+        "Implement proper randomization to avoid bias",
+        "Ensure consistent user experience across variants",
+        "Monitor system performance during testing",
+        "Have a rollback plan for failed tests",
+        "Communicate test results and learnings to the team"
+      ]
     };
   }
 }

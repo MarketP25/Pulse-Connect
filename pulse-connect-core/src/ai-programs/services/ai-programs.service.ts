@@ -95,12 +95,12 @@ export class AIProgramsService {
           userId: request.user_id,
           programType: request.program_type,
           traceId,
-          cacheHit: true,
+          cacheHit: true
         },
         {
           riskScore: 8,
-          performanceScore: 94,
-        },
+          performanceScore: 94
+        }
       );
       return this.processCachedResult(cachedResult, request, traceId, regionCode);
     }
@@ -155,12 +155,12 @@ export class AIProgramsService {
           programType: request.program_type,
           tokensUsed: executionResult.total_tokens,
           provider: executionResult.provider,
-          traceId,
+          traceId
         },
         {
           riskScore: 20,
-          performanceScore: 88,
-        },
+          performanceScore: 88
+        }
       );
 
       return {
@@ -195,12 +195,12 @@ export class AIProgramsService {
           userId: request.user_id,
           programType: request.program_type,
           traceId,
-          reason: error instanceof Error ? error.message : "unknown_error",
+          reason: error instanceof Error ? error.message : "unknown_error"
         },
         {
           riskScore: 76,
-          performanceScore: 25,
-        },
+          performanceScore: 25
+        }
       );
 
       throw error;
@@ -339,12 +339,12 @@ export class AIProgramsService {
         "GLOBAL",
         {
           runId,
-          userId,
+          userId
         },
         {
           riskScore: 32,
-          performanceScore: 64,
-        },
+          performanceScore: 64
+        }
       );
     }
 

@@ -13,7 +13,10 @@ type Props = {
 
 export function IdentityPanel({ title, user, identity, loading, onEnableTwoFactor }: Props) {
   return (
-    <SectionCard title={title} subtitle="Identity lifecycle, 2FA posture, session visibility, and account history.">
+    <SectionCard
+      title={title}
+      subtitle="Identity lifecycle, 2FA posture, session visibility, and account history."
+    >
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-2 text-sm text-slate-700">
           <p className="font-semibold text-slate-900">Account Security</p>
@@ -62,4 +65,3 @@ export function IdentityPanel({ title, user, identity, loading, onEnableTwoFacto
     </SectionCard>
   );
 }
-

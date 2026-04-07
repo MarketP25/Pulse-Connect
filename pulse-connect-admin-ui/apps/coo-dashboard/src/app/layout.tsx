@@ -1,20 +1,17 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import '../../globals.css'
-import { PwaRegister } from '@pulsco/pwa'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "../../globals.css";
+import { PwaRegister } from "@pulsco/pwa";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'COO Dashboard - Pulse Connect',
-  description: 'Chief Operating Officer Dashboard for operational oversight, infrastructure management, and performance monitoring',
-}
+  title: "COO Dashboard - Pulsco",
+  description:
+    "Chief Operating Officer Dashboard for operational oversight, infrastructure management, and performance monitoring"
+};
 
-export default function COOLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function COOLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -30,13 +27,8 @@ export default function COOLayout({
       </head>
       <body className={inter.className}>
         <PwaRegister appId="@pulsco/coo-dashboard" />
-        <div className="min-h-screen bg-gray-50">
-          {children}
-        </div>
+        <div className="min-h-screen bg-gray-50">{children}</div>
       </body>
     </html>
-  )
+  );
 }
-
-
-

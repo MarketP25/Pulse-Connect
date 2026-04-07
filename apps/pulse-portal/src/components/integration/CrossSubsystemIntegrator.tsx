@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { SystemIntegrationVisualizer } from './SystemIntegrationVisualizer'
+import { SystemIntegrationVisualizer } from "./SystemIntegrationVisualizer";
 
 export function CrossSubsystemIntegrator() {
   return (
@@ -15,8 +15,7 @@ export function CrossSubsystemIntegrator() {
         <SystemIntegrationVisualizer showDetails />
       </div>
     </div>
-  )
+  );
 }
 
-export default CrossSubsystemIntegrator
-
+export default CrossSubsystemIntegrator;

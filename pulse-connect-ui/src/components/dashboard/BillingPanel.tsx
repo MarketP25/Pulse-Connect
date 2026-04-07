@@ -7,12 +7,18 @@ type Props = {
   title: string;
   billing?: DashboardBillingModule;
   loading: boolean;
-  onRunAction: (action: "create" | "renew" | "upgrade" | "cancel", payload?: Record<string, unknown>) => Promise<void>;
+  onRunAction: (
+    action: "create" | "renew" | "upgrade" | "cancel",
+    payload?: Record<string, unknown>
+  ) => Promise<void>;
 };
 
 export function BillingPanel({ title, billing, loading, onRunAction }: Props) {
   return (
-    <SectionCard title={title} subtitle="Subscription lifecycle actions, ledger visibility, and policy versions.">
+    <SectionCard
+      title={title}
+      subtitle="Subscription lifecycle actions, ledger visibility, and policy versions."
+    >
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-2 text-sm text-slate-700">
           <p className="font-semibold text-slate-900">Subscription</p>
@@ -20,7 +26,12 @@ export function BillingPanel({ title, billing, loading, onRunAction }: Props) {
             <p>Tier: {billing?.subscription.tier || "basic"}</p>
             <p>Status: {billing?.subscription.status || "active"}</p>
             <p>Region: {billing?.subscription.region || "US"}</p>
-            <p>Renewal: {billing?.subscription.renewalAt ? new Date(billing.subscription.renewalAt).toLocaleString() : "N/A"}</p>
+            <p>
+              Renewal:{" "}
+              {billing?.subscription.renewalAt
+                ? new Date(billing.subscription.renewalAt).toLocaleString()
+                : "N/A"}
+            </p>
           </article>
 
           <div className="flex flex-wrap gap-2">
@@ -53,7 +64,8 @@ export function BillingPanel({ title, billing, loading, onRunAction }: Props) {
           {(billing?.ledgerEntries || []).slice(0, 8).map((entry) => (
             <article key={entry.id} className="rounded-lg border border-slate-200 p-2">
               <p>
-                {entry.type} | ${entry.amountUsd.toLocaleString()} | Balance ${entry.balanceUsd.toLocaleString()}
+                {entry.type} | ${entry.amountUsd.toLocaleString()} | Balance $
+                {entry.balanceUsd.toLocaleString()}
               </p>
               <p className="text-xs text-slate-500">{new Date(entry.createdAt).toLocaleString()}</p>
             </article>
@@ -72,4 +84,3 @@ export function BillingPanel({ title, billing, loading, onRunAction }: Props) {
     </SectionCard>
   );
 }
-

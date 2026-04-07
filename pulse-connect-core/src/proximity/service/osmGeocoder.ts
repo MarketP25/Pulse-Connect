@@ -1,9 +1,9 @@
-import { GeocodeProvider, GeocodeResult } from './geocodeProvider';
+import { GeocodeProvider, GeocodeResult } from "./geocodeProvider";
 
 export class OSMGeocoder implements GeocodeProvider {
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'https://nominatim.openstreetmap.org') {
+  constructor(baseUrl: string = "https://nominatim.openstreetmap.org") {
     this.baseUrl = baseUrl;
   }
 
@@ -15,13 +15,13 @@ export class OSMGeocoder implements GeocodeProvider {
 
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Pulsco-Proximity/1.0'
+        "User-Agent": "Pulsco-Proximity/1.0"
       }
     });
     const data = await response.json();
 
     if (!data.length) {
-      throw new Error('OSM Geocoding failed: No results');
+      throw new Error("OSM Geocoding failed: No results");
     }
 
     const result = data[0];
@@ -34,7 +34,7 @@ export class OSMGeocoder implements GeocodeProvider {
       region: result.address?.state,
       locality: result.address?.city || result.address?.town || result.address?.village,
       postalCode: result.address?.postcode,
-      precision: 'approximate'
+      precision: "approximate"
     };
   }
 
@@ -43,7 +43,7 @@ export class OSMGeocoder implements GeocodeProvider {
 
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Pulsco-Proximity/1.0'
+        "User-Agent": "Pulsco-Proximity/1.0"
       }
     });
     const data = await response.json();
@@ -60,7 +60,7 @@ export class OSMGeocoder implements GeocodeProvider {
       region: data.address?.state,
       locality: data.address?.city || data.address?.town || data.address?.village,
       postalCode: data.address?.postcode,
-      precision: 'approximate'
+      precision: "approximate"
     };
   }
 
@@ -68,7 +68,7 @@ export class OSMGeocoder implements GeocodeProvider {
     try {
       const response = await fetch(`${this.baseUrl}/search?format=json&q=New+York&limit=1`, {
         headers: {
-          'User-Agent': 'Pulsco-Proximity/1.0'
+          "User-Agent": "Pulsco-Proximity/1.0"
         }
       });
       const data = await response.json();

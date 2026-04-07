@@ -24,27 +24,27 @@ async function run() {
     signedBy: "MARP",
     effectiveFrom: "2026-01-01T00:00:00Z",
     scope: "subscriptions",
-    payload: { notes: "Subscription pricing v1" },
+    payload: { notes: "Subscription pricing v1" }
   });
 
   policy.addOffer({
     offerId: "founding-500",
     policyId: "marp.offers",
     policyVersion: "v1",
-    scope: "subscriptions",
+    scope: "enterprise subscriptions",
     discountPercent: 20,
-    effectiveFrom: "2026-01-01T00:00:00Z",
+    effectiveFrom: "2026-01-01T00:00:00Z"
   });
 
   // create wallet
   const accountId = "U1";
   const walletId = "w-U1";
-  wallet.createWallet(walletId, accountId, 200); // pre-fund $200 to exercise flows
+  wallet.createWallet(walletId, accountId, 60); // pre-fund $60 to exercise flows
 
   const now = new Date().toISOString();
-  const FAST = process.env.SIMULATE_FAST === '1';
+  const FAST = process.env.SIMULATE_FAST === "1";
   const SEED = process.env.SIMULATE_SEED || String(Date.now());
-  const OUT_DIR = process.env.SIMULATE_OUTPUT_DIR || 'outputs';
+  const OUT_DIR = process.env.SIMULATE_OUTPUT_DIR || "outputs";
 
   // simple seeded RNG (LCG) for deterministic ids when SEED is set
   function seededRng(seed: string) {
@@ -60,55 +60,160 @@ async function run() {
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
   // A) Signup premium
-  const signupEntry = orch.chargeSubscription(accountId, walletId, "premium", 9.99, "Europe West 1", now, "signup-1");
+  const signupEntry = orch.chargeSubscription(
+    accountId,
+    walletId,
+    "premium",
+    9.99,
+    "Europe West 1",
+    now,
+    "signup-1"
+  );
   console.log("Signup ledger:", signupEntry);
 
   // B) E-Commerce weekly charge (seller)
   if (!FAST) {
-    const sellerPlanCharge = ecommerce.weeklyChargeForPlan('growth');
+    const sellerPlanCharge = ecommerce.weeklyChargeForPlan("growth");
     try {
       wallet.debit(walletId, sellerPlanCharge);
-      const e = ledger.append({ entryId: `ec-${Math.floor(rng()*1e9)}`, timestamp: new Date().toISOString(), accountId: 'seller-S1', walletId, type: 'ecommerce_subscription', amount: sellerPlanCharge, currency: 'USD', balanceAfter: wallet.get(walletId)!.balance, userExplanation: 'E-Commerce weekly plan charge' });
-      console.log('E-Commerce ledger:', e);
-    } catch (err: any) { console.error('E-Commerce charge failed', err.message); }
+      const e = ledger.append({
+        entryId: `ec-${Math.floor(rng() * 1e9)}`,
+        timestamp: new Date().toISOString(),
+        accountId: "seller-S1",
+        walletId,
+        type: "ecommerce_subscription",
+        amount: sellerPlanCharge,
+        currency: "USD",
+        balanceAfter: wallet.get(walletId)!.balance,
+        userExplanation: "E-Commerce weekly plan charge"
+      });
+      console.log("E-Commerce ledger:", e);
+    } catch (err: any) {
+      console.error("E-Commerce charge failed", err.message);
+    }
   }
 
   // C) Matchmaking transaction
-  const match = matchmaking.lockCommissionOnAcceptance('match-123', 120);
+  const match = matchmaking.lockCommissionOnAcceptance("match-123", 120);
   try {
     wallet.debit(walletId, match.commission);
-    const e = ledger.append({ entryId: `match-${Date.now()}`, timestamp: new Date().toISOString(), accountId: accountId, walletId, type: 'commission', amount: match.commission, currency: 'USD', balanceAfter: wallet.get(walletId)!.balance, userExplanation: 'Matchmaking commission (locked at acceptance)' });
-    console.log('Match commission ledger:', e);
-  } catch (err: any) { console.error('Match commission failed', err.message); }
+    const e = ledger.append({
+      entryId: `match-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      accountId: accountId,
+      walletId,
+      type: "commission",
+      amount: match.commission,
+      currency: "USD",
+      balanceAfter: wallet.get(walletId)!.balance,
+      userExplanation: "Matchmaking commission (locked at acceptance)"
+    });
+    console.log("Match commission ledger:", e);
+  } catch (err: any) {
+    console.error("Match commission failed", err.message);
+  }
 
   // D) Places booking
   const placeComm = places.placesCommission(5000);
-  try { wallet.debit(walletId, placeComm); ledger.append({ entryId: `place-${Date.now()}`, timestamp: new Date().toISOString(), accountId, walletId, type: 'places_commission', amount: placeComm, currency: 'USD', balanceAfter: wallet.get(walletId)!.balance, userExplanation: 'Places commission' }); } catch (e) { }
+  try {
+    wallet.debit(walletId, placeComm);
+    ledger.append({
+      entryId: `place-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      accountId,
+      walletId,
+      type: "places_commission",
+      amount: placeComm,
+      currency: "USD",
+      balanceAfter: wallet.get(walletId)!.balance,
+      userExplanation: "Places commission"
+    });
+  } catch (e) {}
 
   // E) Communication - 250 minutes
   const commCharge = communication.chargeMinutes(250);
-  try { wallet.debit(walletId, commCharge); ledger.append({ entryId: `comm-${Date.now()}`, timestamp: new Date().toISOString(), accountId, walletId, type: 'communication', amount: commCharge, currency: 'USD', balanceAfter: wallet.get(walletId)!.balance, userExplanation: 'Voice/video usage' }); } catch (e) { }
+  try {
+    wallet.debit(walletId, commCharge);
+    ledger.append({
+      entryId: `comm-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      accountId,
+      walletId,
+      type: "communication",
+      amount: commCharge,
+      currency: "USD",
+      balanceAfter: wallet.get(walletId)!.balance,
+      userExplanation: "Voice/video usage"
+    });
+  } catch (e) {}
 
   // F) PAPv1 token purchase and execution
-  const papPack = papv1.purchaseTokens('base');
-  try { wallet.debit(walletId, papPack.price); ledger.append({ entryId: `pap-${Date.now()}`, timestamp: new Date().toISOString(), accountId, walletId, type: 'pap_purchase', amount: papPack.price, currency: 'USD', balanceAfter: wallet.get(walletId)!.balance, userExplanation: 'PAPv1 base token purchase' }); } catch (e) { }
+  const papPack = papv1.purchaseTokens("base");
+  try {
+    wallet.debit(walletId, papPack.price);
+    ledger.append({
+      entryId: `pap-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      accountId,
+      walletId,
+      type: "pap_purchase",
+      amount: papPack.price,
+      currency: "USD",
+      balanceAfter: wallet.get(walletId)!.balance,
+      userExplanation: "PAPv1 base token purchase"
+    });
+  } catch (e) {}
 
   // G) AI program purchase
   if (!FAST) {
-    const aiPack = aiPrograms.aiProgramPurchase('medium');
-    try { wallet.debit(walletId, aiPack.price); ledger.append({ entryId: `ai-${Math.floor(rng()*1e9)}`, timestamp: new Date().toISOString(), accountId, walletId, type: 'ai_purchase', amount: aiPack.price, currency: 'USD', balanceAfter: wallet.get(walletId)!.balance, userExplanation: 'AI program token pack' }); } catch (e) { }
+    const aiPack = aiPrograms.aiProgramPurchase("medium");
+    try {
+      wallet.debit(walletId, aiPack.price);
+      ledger.append({
+        entryId: `ai-${Math.floor(rng() * 1e9)}`,
+        timestamp: new Date().toISOString(),
+        accountId,
+        walletId,
+        type: "ai_purchase",
+        amount: aiPack.price,
+        currency: "USD",
+        balanceAfter: wallet.get(walletId)!.balance,
+        userExplanation: "AI program token pack"
+      });
+    } catch (e) {}
   }
 
   // H) Localization request
   if (!FAST) {
-    const locPrice = localization.priceForLocalization(1200, 0, { type: 'text', tier: 'standard' });
-    try { wallet.debit(walletId, locPrice); ledger.append({ entryId: `loc-${Math.floor(rng()*1e9)}`, timestamp: new Date().toISOString(), accountId, walletId, type: 'localization', amount: locPrice, currency: 'USD', balanceAfter: wallet.get(walletId)!.balance, userExplanation: 'Localization text translation' }); } catch (e) { }
+    const locPrice = localization.priceForLocalization(1200, 0, { type: "text", tier: "standard" });
+    try {
+      wallet.debit(walletId, locPrice);
+      ledger.append({
+        entryId: `loc-${Math.floor(rng() * 1e9)}`,
+        timestamp: new Date().toISOString(),
+        accountId,
+        walletId,
+        type: "localization",
+        amount: locPrice,
+        currency: "USD",
+        balanceAfter: wallet.get(walletId)!.balance,
+        userExplanation: "Localization text translation"
+      });
+    } catch (e) {}
   }
 
   // Renewal simulation at +30 days
   const renewTime = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   try {
-    const renew = orch.chargeSubscription(accountId, walletId, "premium", 9.99, "Europe West 1", renewTime, "renew-1");
+    const renew = orch.chargeSubscription(
+      accountId,
+      walletId,
+      "premium",
+      99,
+      "Europe West 1",
+      renewTime,
+      "renew-1"
+    );
     console.log("Renewal ledger:", renew);
   } catch (e) {
     console.error("renewal failed", (e as any).message);
@@ -119,12 +224,12 @@ async function run() {
   // Export ledger to file for validation and produce a brief design summary
   const all = ledger.all();
   const ledgerPath = `${OUT_DIR}/ledger_export_${SEED}.json`;
-  fs.writeFileSync(ledgerPath, JSON.stringify(all, null, 2), 'utf8');
+  fs.writeFileSync(ledgerPath, JSON.stringify(all, null, 2), "utf8");
   const design = `Design summary:\n- Policies: ${JSON.stringify(policy, null, 2)}\n- Ledger entries: ${all.length}\n`;
   const designPath = `${OUT_DIR}/design_summary_${SEED}.txt`;
-  fs.writeFileSync(designPath, design, 'utf8');
+  fs.writeFileSync(designPath, design, "utf8");
 
-  console.log('Final wallet state:', wallet.get(walletId));
+  console.log("Final wallet state:", wallet.get(walletId));
   console.log(`All ledger entries exported to ${ledgerPath}`);
 
   // Validations
@@ -137,4 +242,7 @@ async function run() {
   console.log("Simulation completed: no duplicates, no negative balances.");
 }
 
-run().catch((e) => { console.error(e); process.exit(1); });
+run().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

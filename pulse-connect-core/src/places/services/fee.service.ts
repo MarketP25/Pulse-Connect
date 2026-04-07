@@ -116,9 +116,9 @@ export class FeeService {
       amount: referencePriceUsd,
       eventId: finalTraceId,
       details: {
-        mode: "posting",
+        mode: "posting"
       },
-      region: "global",
+      region: "global"
     });
     if (!billingQuote) {
       throw new Error("billing_engine_quote_failed");
@@ -147,9 +147,9 @@ export class FeeService {
       amount: bookingAmountUsd,
       eventId: finalTraceId,
       details: {
-        mode: "booking",
+        mode: "booking"
       },
-      region: "global",
+      region: "global"
     });
     if (!billingQuote) {
       throw new Error("billing_engine_quote_failed");

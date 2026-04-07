@@ -1,99 +1,104 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { RegistrationTier, MembershipLevel } from '../../types/membership'
+import { useState } from "react";
+import { RegistrationTier, MembershipLevel } from "../../types/membership";
 
 interface RegistrationFlowProps {
-  onRegistrationComplete: (user: any) => void
-  onSkipRegistration: () => void
+  onRegistrationComplete: (user: any) => void;
+  onSkipRegistration: () => void;
 }
 
-export function RegistrationFlow({ onRegistrationComplete, onSkipRegistration }: RegistrationFlowProps) {
-  const [currentStep, setCurrentStep] = useState<'welcome' | 'tier-selection' | 'registration' | 'verification'>('welcome')
-  const [selectedTier, setSelectedTier] = useState<RegistrationTier | null>(null)
+export function RegistrationFlow({
+  onRegistrationComplete,
+  onSkipRegistration
+}: RegistrationFlowProps) {
+  const [currentStep, setCurrentStep] = useState<
+    "welcome" | "tier-selection" | "registration" | "verification"
+  >("welcome");
+  const [selectedTier, setSelectedTier] = useState<RegistrationTier | null>(null);
 
   const membershipTiers: RegistrationTier[] = [
     {
-      id: 'public',
-      name: 'Public Explorer',
-      description: 'Free access to basic planetary features',
+      id: "public",
+      name: "Public Explorer",
+      description: "Free access to basic planetary features",
       features: [
-        'Browse places and venues',
-        'Basic localization services',
-        'Public information access',
-        'No registration required'
+        "Browse places and venues",
+        "Basic localization services",
+        "Public information access",
+        "No registration required"
       ],
       requirements: [],
-      accessLevel: 'public',
+      accessLevel: "public",
       price: 0
     },
     {
-      id: 'verified',
-      name: 'Verified Citizen',
-      description: 'Full consumer access with verification',
+      id: "verified",
+      name: "Verified Citizen",
+      description: "Full consumer access with verification",
       features: [
-        'All Public Explorer features',
-        'Personalized recommendations',
-        'Cross-subsystem data sharing',
-        'Priority customer support',
-        'Advanced proximity features'
+        "All Public Explorer features",
+        "Personalized recommendations",
+        "Cross-subsystem data sharing",
+        "Priority customer support",
+        "Advanced proximity features"
       ],
-      requirements: ['Email verification', 'Basic identity check'],
-      accessLevel: 'verified',
+      requirements: ["Email verification", "Basic identity check"],
+      accessLevel: "verified",
       price: 0
     },
     {
-      id: 'premium',
-      name: 'Premium Member',
-      description: 'Enhanced features and priority access',
+      id: "premium",
+      name: "Premium Member",
+      description: "Enhanced features and priority access",
       features: [
-        'All Verified Citizen features',
-        'Advanced matchmaking priority',
-        'Premium communication features',
-        'Analytics and insights',
-        'API access for integrations'
+        "All Verified Citizen features",
+        "Advanced matchmaking priority",
+        "Premium communication features",
+        "Analytics and insights",
+        "API access for integrations"
       ],
-      requirements: ['Email verification', 'Identity verification', 'Address confirmation'],
-      accessLevel: 'business',
+      requirements: ["Email verification", "Identity verification", "Address confirmation"],
+      accessLevel: "business",
       price: 9.99
     },
     {
-      id: 'enterprise',
-      name: 'Enterprise',
-      description: 'Complete business solution',
+      id: "enterprise",
+      name: "Enterprise",
+      description: "Complete business solution",
       features: [
-        'All Premium Member features',
-        'Multi-user management',
-        'Advanced analytics dashboard',
-        'Custom integrations',
-        'Dedicated support',
-        'SLA guarantees'
+        "All Premium Member features",
+        "Multi-user management",
+        "Advanced analytics dashboard",
+        "Custom integrations",
+        "Dedicated support",
+        "SLA guarantees"
       ],
-      requirements: ['Business verification', 'Legal entity validation', 'Contract agreement'],
-      accessLevel: 'business',
+      requirements: ["Business verification", "Legal entity validation", "Contract agreement"],
+      accessLevel: "business",
       price: 99
     }
-  ]
+  ];
 
   const handleTierSelection = (tier: RegistrationTier) => {
-    setSelectedTier(tier)
-    if (tier.id === 'public') {
-      onSkipRegistration()
+    setSelectedTier(tier);
+    if (tier.id === "public") {
+      onSkipRegistration();
     } else {
-      setCurrentStep('registration')
+      setCurrentStep("registration");
     }
-  }
+  };
 
-  if (currentStep === 'welcome') {
+  if (currentStep === "welcome") {
     return (
       <div className="max-w-2xl mx-auto text-center space-y-8">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-4">Welcome to PULSCO</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Welcome to Pulsco</h2>
           <p className="text-xl text-slate-300 mb-6">
             Choose how you want to experience the planetary nervous system
           </p>
           <p className="text-slate-400">
-            From free public access to enterprise-grade solutions, PULSCO adapts to your needs.
+            From free public access to enterprise-grade solutions, Pulsco adapts to your needs.
           </p>
         </div>
 
@@ -101,7 +106,7 @@ export function RegistrationFlow({ onRegistrationComplete, onSkipRegistration }:
           <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
             <h3 className="text-xl font-semibold text-white mb-3">Quick Access</h3>
             <p className="text-slate-300 mb-4">
-              Explore PULSCO without registration. Access public features immediately.
+              Explore Pulsco without registration. Access public features immediately.
             </p>
             <button
               onClick={onSkipRegistration}
@@ -117,7 +122,7 @@ export function RegistrationFlow({ onRegistrationComplete, onSkipRegistration }:
               Register for personalized access, enhanced features, and seamless integration.
             </p>
             <button
-              onClick={() => setCurrentStep('tier-selection')}
+              onClick={() => setCurrentStep("tier-selection")}
               className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-medium transition-colors"
             >
               Choose Membership
@@ -125,10 +130,10 @@ export function RegistrationFlow({ onRegistrationComplete, onSkipRegistration }:
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  if (currentStep === 'tier-selection') {
+  if (currentStep === "tier-selection") {
     return (
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
@@ -170,15 +175,15 @@ export function RegistrationFlow({ onRegistrationComplete, onSkipRegistration }:
 
               {tier.requirements.length > 0 && (
                 <div className="text-xs text-slate-400">
-                  Requires: {tier.requirements.join(', ')}
+                  Requires: {tier.requirements.join(", ")}
                 </div>
               )}
             </div>
           ))}
         </div>
       </div>
-    )
+    );
   }
 
-  return null
+  return null;
 }

@@ -1,18 +1,26 @@
-import { IsString, IsObject, IsOptional, IsBoolean, IsUUID, IsEnum, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsObject,
+  IsOptional,
+  IsBoolean,
+  IsUUID,
+  IsEnum,
+  IsNumber
+} from "class-validator";
 
 export enum ArbitrationStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-  ESCALATED = 'escalated',
-  EXPIRED = 'expired'
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  ESCALATED = "escalated",
+  EXPIRED = "expired"
 }
 
 export enum ArbitrationType {
-  FOUNDER_OVERRIDE = 'founder_override',
-  HIGH_RISK_OPERATION = 'high_risk_operation',
-  COMPLIANCE_VIOLATION = 'compliance_violation',
-  SECURITY_INCIDENT = 'security_incident'
+  FOUNDER_OVERRIDE = "founder_override",
+  HIGH_RISK_OPERATION = "high_risk_operation",
+  COMPLIANCE_VIOLATION = "compliance_violation",
+  SECURITY_INCIDENT = "security_incident"
 }
 
 /**

@@ -55,14 +55,14 @@ export interface AddressComponent {
 }
 
 export type AddressComponentType =
-  | 'street_number'
-  | 'street_name'
-  | 'locality'
-  | 'sublocality'
-  | 'administrative_area_level_1'
-  | 'administrative_area_level_2'
-  | 'country'
-  | 'postal_code';
+  | "street_number"
+  | "street_name"
+  | "locality"
+  | "sublocality"
+  | "administrative_area_level_1"
+  | "administrative_area_level_2"
+  | "country"
+  | "postal_code";
 
 export interface ContactInfo {
   phone?: string;
@@ -94,13 +94,13 @@ export interface SpecialHours {
 }
 
 export type DayOfWeek =
-  | 'monday'
-  | 'tuesday'
-  | 'wednesday'
-  | 'thursday'
-  | 'friday'
-  | 'saturday'
-  | 'sunday';
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
 
 export interface Amenity {
   id: string;
@@ -112,14 +112,14 @@ export interface Amenity {
 }
 
 export type AmenityCategory =
-  | 'accessibility'
-  | 'dining'
-  | 'entertainment'
-  | 'facilities'
-  | 'parking'
-  | 'services'
-  | 'technology'
-  | 'other';
+  | "accessibility"
+  | "dining"
+  | "entertainment"
+  | "facilities"
+  | "parking"
+  | "services"
+  | "technology"
+  | "other";
 
 export interface PricingInfo {
   currency: string;
@@ -129,15 +129,15 @@ export interface PricingInfo {
   dynamicPricing?: DynamicPricing;
 }
 
-export type PriceRange = '$' | '$$' | '$$$' | '$$$$';
+export type PriceRange = "$" | "$$" | "$$$" | "$$$$";
 
 export type PricingModel =
-  | 'free'
-  | 'fixed'
-  | 'per_person'
-  | 'per_hour'
-  | 'subscription'
-  | 'dynamic';
+  | "free"
+  | "fixed"
+  | "per_person"
+  | "per_hour"
+  | "subscription"
+  | "dynamic";
 
 export interface DynamicPricing {
   enabled: boolean;
@@ -152,13 +152,7 @@ export interface PricingFactor {
   multiplier: number;
 }
 
-export type PricingFactorType =
-  | 'demand'
-  | 'time'
-  | 'season'
-  | 'events'
-  | 'weather'
-  | 'competition';
+export type PricingFactorType = "demand" | "time" | "season" | "events" | "weather" | "competition";
 
 export interface Image {
   id: string;
@@ -228,12 +222,7 @@ export interface Reservation {
   createdAt: Date;
 }
 
-export type ReservationStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'cancelled'
-  | 'completed'
-  | 'no_show';
+export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
 
 export interface WaitlistEntry {
   id: string;
@@ -286,16 +275,16 @@ export interface Policy {
 }
 
 export type PolicyType =
-  | 'cancellation'
-  | 'refund'
-  | 'age_restriction'
-  | 'dress_code'
-  | 'pet_policy'
-  | 'smoking'
-  | 'noise'
-  | 'payment'
-  | 'reservation'
-  | 'other';
+  | "cancellation"
+  | "refund"
+  | "age_restriction"
+  | "dress_code"
+  | "pet_policy"
+  | "smoking"
+  | "noise"
+  | "payment"
+  | "reservation"
+  | "other";
 
 export interface PlaceMetadata {
   tags: string[];
@@ -331,32 +320,24 @@ export interface Partnership {
   endDate?: Date;
 }
 
-export type PlaceStatus =
-  | 'active'
-  | 'inactive'
-  | 'pending_review'
-  | 'suspended'
-  | 'closed';
+export type PlaceStatus = "active" | "inactive" | "pending_review" | "suspended" | "closed";
 
 export type PlaceCategory =
-  | 'restaurant'
-  | 'bar'
-  | 'cafe'
-  | 'hotel'
-  | 'attraction'
-  | 'shopping'
-  | 'entertainment'
-  | 'sports'
-  | 'health'
-  | 'education'
-  | 'office'
-  | 'residential'
-  | 'other';
+  | "restaurant"
+  | "bar"
+  | "cafe"
+  | "hotel"
+  | "attraction"
+  | "shopping"
+  | "entertainment"
+  | "sports"
+  | "health"
+  | "education"
+  | "office"
+  | "residential"
+  | "other";
 
-export type PlaceType =
-  | 'physical'
-  | 'virtual'
-  | 'hybrid';
+export type PlaceType = "physical" | "virtual" | "hybrid";
 
 // Search and filter interfaces
 export interface PlaceSearchQuery {
@@ -370,7 +351,7 @@ export interface PlaceSearchQuery {
   openNow?: boolean;
   distance?: number;
   sortBy?: PlaceSortOption;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   limit?: number;
   offset?: number;
 }
@@ -383,12 +364,12 @@ export interface LocationQuery {
 }
 
 export type PlaceSortOption =
-  | 'relevance'
-  | 'distance'
-  | 'rating'
-  | 'price'
-  | 'popularity'
-  | 'newest';
+  | "relevance"
+  | "distance"
+  | "rating"
+  | "price"
+  | "popularity"
+  | "newest";
 
 export interface PlaceSearchResult {
   places: Place[];
@@ -420,7 +401,7 @@ export interface PlaceAnalytics {
 export interface AnalyticsPeriod {
   start: Date;
   end: Date;
-  granularity: 'hour' | 'day' | 'week' | 'month';
+  granularity: "hour" | "day" | "week" | "month";
 }
 
 export interface PlaceMetrics {
@@ -447,17 +428,17 @@ export interface Insight {
   type: InsightType;
   title: string;
   description: string;
-  impact: 'high' | 'medium' | 'low';
+  impact: "high" | "medium" | "low";
   recommendation?: string;
 }
 
 export type InsightType =
-  | 'peak_hours'
-  | 'popular_days'
-  | 'demand_trends'
-  | 'competition'
-  | 'customer_feedback'
-  | 'revenue_opportunities';
+  | "peak_hours"
+  | "popular_days"
+  | "demand_trends"
+  | "competition"
+  | "customer_feedback"
+  | "revenue_opportunities";
 
 // Management interfaces
 export interface PlaceManager {
@@ -469,20 +450,16 @@ export interface PlaceManager {
   assignedAt: Date;
 }
 
-export type ManagerRole =
-  | 'owner'
-  | 'manager'
-  | 'staff'
-  | 'viewer';
+export type ManagerRole = "owner" | "manager" | "staff" | "viewer";
 
 export type Permission =
-  | 'read'
-  | 'write'
-  | 'delete'
-  | 'manage_staff'
-  | 'manage_finances'
-  | 'manage_reservations'
-  | 'publish';
+  | "read"
+  | "write"
+  | "delete"
+  | "manage_staff"
+  | "manage_finances"
+  | "manage_reservations"
+  | "publish";
 
 // API interfaces
 export interface CreatePlaceRequest {
@@ -496,7 +473,7 @@ export interface CreatePlaceRequest {
   businessHours: BusinessHours[];
   amenities: Amenity[];
   pricing: PricingInfo;
-  images: Omit<Image, 'id' | 'uploadedAt'>[];
+  images: Omit<Image, "id" | "uploadedAt">[];
   capacity: Capacity;
   accessibility: Accessibility;
   policies: Policy[];

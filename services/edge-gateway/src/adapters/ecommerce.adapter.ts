@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { SubsystemAdapter, AdapterResult, AdapterContext } from './subsystem-adapter.interface';
-import { ExecuteRequestDto } from '../dto/execute-request.dto';
+import { Injectable, Logger } from "@nestjs/common";
+import { SubsystemAdapter, AdapterResult, AdapterContext } from "./subsystem-adapter.interface";
+import { ExecuteRequestDto } from "../dto/execute-request.dto";
 
 @Injectable()
 export class EcommerceAdapter implements SubsystemAdapter {
   private readonly logger = new Logger(EcommerceAdapter.name);
 
-  readonly subsystemType = 'ecommerce';
+  readonly subsystemType = "ecommerce";
 
   /**
    * Execute ecommerce operations under Edge governance
@@ -16,13 +16,13 @@ export class EcommerceAdapter implements SubsystemAdapter {
 
     try {
       switch (request.action) {
-        case 'purchase':
+        case "purchase":
           return await this.handlePurchase(request, context);
-        case 'add_to_cart':
+        case "add_to_cart":
           return await this.handleAddToCart(request, context);
-        case 'checkout':
+        case "checkout":
           return await this.handleCheckout(request, context);
-        case 'refund':
+        case "refund":
           return await this.handleRefund(request, context);
         default:
           throw new Error(`Unsupported ecommerce action: ${request.action}`);
@@ -32,12 +32,12 @@ export class EcommerceAdapter implements SubsystemAdapter {
       return {
         success: false,
         error: error.message,
-        riskFactors: ['adapter_error'],
+        riskFactors: ["adapter_error"],
         metadata: {
-          adapter: 'ecommerce',
+          adapter: "ecommerce",
           action: request.action,
-          timestamp: new Date().toISOString(),
-        },
+          timestamp: new Date().toISOString()
+        }
       };
     }
   }
@@ -45,7 +45,10 @@ export class EcommerceAdapter implements SubsystemAdapter {
   /**
    * Handle purchase transactions with consent and fraud checks
    */
-  private async handlePurchase(request: ExecuteRequestDto, context: AdapterContext): Promise<AdapterResult> {
+  private async handlePurchase(
+    request: ExecuteRequestDto,
+    context: AdapterContext
+  ): Promise<AdapterResult> {
     const { amount, items, paymentMethod } = request.context || {};
 
     // Consent verification
@@ -53,9 +56,9 @@ export class EcommerceAdapter implements SubsystemAdapter {
     if (!consentValid) {
       return {
         success: false,
-        error: 'Purchase consent not granted',
-        riskFactors: ['consent_denied'],
-        metadata: { reason: 'user_consent_required' },
+        error: "Purchase consent not granted",
+        riskFactors: ["consent_denied"],
+        metadata: { reason: "user_consent_required" }
       };
     }
 
@@ -64,9 +67,9 @@ export class EcommerceAdapter implements SubsystemAdapter {
     if (fraudRisk.score > 0.8) {
       return {
         success: false,
-        error: 'Transaction flagged for fraud review',
-        riskFactors: ['high_fraud_risk', 'requires_review'],
-        metadata: { fraudScore: fraudRisk.score, reasons: fraudRisk.reasons },
+        error: "Transaction flagged for fraud review",
+        riskFactors: ["high_fraud_risk", "requires_review"],
+        metadata: { fraudScore: fraudRisk.score, reasons: fraudRisk.reasons }
       };
     }
 
@@ -75,9 +78,9 @@ export class EcommerceAdapter implements SubsystemAdapter {
     if (!complianceResult.compliant) {
       return {
         success: false,
-        error: 'Transaction violates compliance rules',
-        riskFactors: ['compliance_violation'],
-        metadata: { violations: complianceResult.violations },
+        error: "Transaction violates compliance rules",
+        riskFactors: ["compliance_violation"],
+        metadata: { violations: complianceResult.violations }
       };
     }
 
@@ -87,28 +90,31 @@ export class EcommerceAdapter implements SubsystemAdapter {
     return {
       success: true,
       data: purchaseResult,
-      riskFactors: fraudRisk.score > 0.3 ? ['moderate_risk'] : [],
+      riskFactors: fraudRisk.score > 0.3 ? ["moderate_risk"] : [],
       metadata: {
         orderId: purchaseResult.orderId,
         amount: amount,
         items: items?.length || 0,
-        fraudScore: fraudRisk.score,
-      },
+        fraudScore: fraudRisk.score
+      }
     };
   }
 
   /**
    * Handle add to cart with basic validation
    */
-  private async handleAddToCart(request: ExecuteRequestDto, context: AdapterContext): Promise<AdapterResult> {
+  private async handleAddToCart(
+    request: ExecuteRequestDto,
+    context: AdapterContext
+  ): Promise<AdapterResult> {
     const { productId, quantity } = request.context || {};
 
     // Basic validation
     if (!productId || quantity <= 0) {
       return {
         success: false,
-        error: 'Invalid product or quantity',
-        riskFactors: ['invalid_input'],
+        error: "Invalid product or quantity",
+        riskFactors: ["invalid_input"]
       };
     }
 
@@ -117,8 +123,8 @@ export class EcommerceAdapter implements SubsystemAdapter {
     if (!productCheck.available) {
       return {
         success: false,
-        error: productCheck.reason || 'Product unavailable',
-        riskFactors: ['product_unavailable'],
+        error: productCheck.reason || "Product unavailable",
+        riskFactors: ["product_unavailable"]
       };
     }
 
@@ -126,14 +132,17 @@ export class EcommerceAdapter implements SubsystemAdapter {
       success: true,
       data: { cartId: this.generateCartId(), productId, quantity },
       riskFactors: [],
-      metadata: { productId, quantity, price: productCheck.price },
+      metadata: { productId, quantity, price: productCheck.price }
     };
   }
 
   /**
    * Handle checkout process
    */
-  private async handleCheckout(request: ExecuteRequestDto, context: AdapterContext): Promise<AdapterResult> {
+  private async handleCheckout(
+    request: ExecuteRequestDto,
+    context: AdapterContext
+  ): Promise<AdapterResult> {
     const { cartId, shippingAddress, billingAddress } = request.context || {};
 
     // Validate cart
@@ -141,8 +150,8 @@ export class EcommerceAdapter implements SubsystemAdapter {
     if (!cartValid) {
       return {
         success: false,
-        error: 'Invalid or expired cart',
-        riskFactors: ['invalid_cart'],
+        error: "Invalid or expired cart",
+        riskFactors: ["invalid_cart"]
       };
     }
 
@@ -151,8 +160,8 @@ export class EcommerceAdapter implements SubsystemAdapter {
     if (!addressValid) {
       return {
         success: false,
-        error: 'Invalid shipping or billing address',
-        riskFactors: ['invalid_address'],
+        error: "Invalid shipping or billing address",
+        riskFactors: ["invalid_address"]
       };
     }
 
@@ -160,14 +169,17 @@ export class EcommerceAdapter implements SubsystemAdapter {
       success: true,
       data: { checkoutId: this.generateCheckoutId(), cartId },
       riskFactors: [],
-      metadata: { cartId, readyForPayment: true },
+      metadata: { cartId, readyForPayment: true }
     };
   }
 
   /**
    * Handle refund requests
    */
-  private async handleRefund(request: ExecuteRequestDto, context: AdapterContext): Promise<AdapterResult> {
+  private async handleRefund(
+    request: ExecuteRequestDto,
+    context: AdapterContext
+  ): Promise<AdapterResult> {
     const { orderId, amount, reason } = request.context || {};
 
     // Validate refund eligibility
@@ -175,8 +187,8 @@ export class EcommerceAdapter implements SubsystemAdapter {
     if (!refundEligible.eligible) {
       return {
         success: false,
-        error: refundEligible.reason || 'Refund not eligible',
-        riskFactors: ['refund_ineligible'],
+        error: refundEligible.reason || "Refund not eligible",
+        riskFactors: ["refund_ineligible"]
       };
     }
 
@@ -187,7 +199,7 @@ export class EcommerceAdapter implements SubsystemAdapter {
       success: true,
       data: refundResult,
       riskFactors: [],
-      metadata: { orderId, refundAmount: amount, refundId: refundResult.refundId },
+      metadata: { orderId, refundAmount: amount, refundId: refundResult.refundId }
     };
   }
 
@@ -199,7 +211,10 @@ export class EcommerceAdapter implements SubsystemAdapter {
     return amount < 1000 || Math.random() > 0.1; // 90% consent for high-value purchases
   }
 
-  private async performFraudCheck(request: ExecuteRequestDto, context: AdapterContext): Promise<{ score: number; reasons: string[] }> {
+  private async performFraudCheck(
+    request: ExecuteRequestDto,
+    context: AdapterContext
+  ): Promise<{ score: number; reasons: string[] }> {
     let score = 0;
     const reasons = [];
 
@@ -208,52 +223,55 @@ export class EcommerceAdapter implements SubsystemAdapter {
     // Amount-based risk
     if (amount > 5000) {
       score += 0.4;
-      reasons.push('high_amount');
+      reasons.push("high_amount");
     }
 
     // Payment method risk
-    if (paymentMethod === 'crypto' || paymentMethod === 'wire') {
+    if (paymentMethod === "crypto" || paymentMethod === "wire") {
       score += 0.3;
-      reasons.push('high_risk_payment_method');
+      reasons.push("high_risk_payment_method");
     }
 
     // Location risk
     if (location && context.policy?.content?.restrictedRegions?.includes(location.country)) {
       score += 0.5;
-      reasons.push('restricted_region');
+      reasons.push("restricted_region");
     }
 
     // User history (simulated)
     if (request.userId && Math.random() < 0.1) {
       score += 0.2;
-      reasons.push('user_history');
+      reasons.push("user_history");
     }
 
     return { score: Math.min(score, 1), reasons };
   }
 
-  private async checkCompliance(request: ExecuteRequestDto, context: AdapterContext): Promise<{ compliant: boolean; violations: string[] }> {
+  private async checkCompliance(
+    request: ExecuteRequestDto,
+    context: AdapterContext
+  ): Promise<{ compliant: boolean; violations: string[] }> {
     const violations = [];
     const { amount, items } = request.context || {};
 
     // Check export controls
     if (items && context.policy?.content?.exportControlledItems) {
-      const controlledItems = items.filter(item =>
+      const controlledItems = items.filter((item) =>
         context.policy.content.exportControlledItems.includes(item.category)
       );
       if (controlledItems.length > 0) {
-        violations.push('export_control_violation');
+        violations.push("export_control_violation");
       }
     }
 
     // Check sanctions
     if (request.userId && context.policy?.content?.sanctionedUsers?.includes(request.userId)) {
-      violations.push('sanctions_violation');
+      violations.push("sanctions_violation");
     }
 
     return {
       compliant: violations.length === 0,
-      violations,
+      violations
     };
   }
 
@@ -261,15 +279,19 @@ export class EcommerceAdapter implements SubsystemAdapter {
     // Simulate purchase execution
     return {
       orderId: this.generateOrderId(),
-      status: 'confirmed',
-      estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "confirmed",
+      estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     };
   }
 
-  private async validateProduct(productId: string, quantity: number): Promise<{ available: boolean; price?: number; reason?: string }> {
+  private async validateProduct(
+    productId: string,
+    quantity: number
+  ): Promise<{ available: boolean; price?: number; reason?: string }> {
     // Simulate product validation
-    if (Math.random() < 0.05) { // 5% out of stock
-      return { available: false, reason: 'out_of_stock' };
+    if (Math.random() < 0.05) {
+      // 5% out of stock
+      return { available: false, reason: "out_of_stock" };
     }
     return { available: true, price: Math.floor(Math.random() * 100) + 10 };
   }
@@ -284,10 +306,14 @@ export class EcommerceAdapter implements SubsystemAdapter {
     return shipping?.country && billing?.country;
   }
 
-  private async checkRefundEligibility(orderId: string, amount: number): Promise<{ eligible: boolean; reason?: string }> {
+  private async checkRefundEligibility(
+    orderId: string,
+    amount: number
+  ): Promise<{ eligible: boolean; reason?: string }> {
     // Simulate refund eligibility check
-    if (Math.random() < 0.1) { // 10% ineligible
-      return { eligible: false, reason: 'refund_window_expired' };
+    if (Math.random() < 0.1) {
+      // 10% ineligible
+      return { eligible: false, reason: "refund_window_expired" };
     }
     return { eligible: true };
   }
@@ -295,9 +321,9 @@ export class EcommerceAdapter implements SubsystemAdapter {
   private async processRefund(orderId: string, amount: number, reason: string): Promise<any> {
     return {
       refundId: this.generateRefundId(),
-      status: 'processed',
+      status: "processed",
       amount: amount,
-      processedAt: new Date().toISOString(),
+      processedAt: new Date().toISOString()
     };
   }
 

@@ -3,7 +3,7 @@
   getDashboardSnapshot,
   purchaseEcommerceProduct,
   updateOnboarding,
-  updateSubscriptionTier,
+  updateSubscriptionTier
 } from "@/server/dashboard/service";
 
 describe("dashboard service integration", () => {
@@ -17,12 +17,12 @@ describe("dashboard service integration", () => {
 
     await expect(purchaseEcommerceProduct(userId, "prd-smart-commerce")).rejects.toMatchObject({
       code: "paid_tier_kyc_required",
-      status: 403,
+      status: 403
     });
 
     await completeKyc(userId, true);
     await expect(purchaseEcommerceProduct(userId, "prd-smart-commerce")).resolves.toMatchObject({
-      purchase: expect.any(Object),
+      purchase: expect.any(Object)
     });
   });
 

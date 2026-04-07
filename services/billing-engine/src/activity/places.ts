@@ -1,4 +1,4 @@
-import { ActivityEngine, UsageEvent } from '../types';
+import { ActivityEngine, UsageEvent } from "../types";
 
 // places: supports booking amount fee mode and simple per-unit fallback mode
 export const calculate: ActivityEngine = (event: UsageEvent, region, atIso, policy) => {
@@ -23,10 +23,18 @@ export const calculate: ActivityEngine = (event: UsageEvent, region, atIso, poli
   }
 
   const units = event.units || 1;
-  let perUnit = 0.10;
-  if (policy && policy.payload && typeof policy.payload.perUnit === "number") perUnit = policy.payload.perUnit;
+  let perUnit = 0.1;
+  if (policy && policy.payload && typeof policy.payload.perUnit === "number")
+    perUnit = policy.payload.perUnit;
   const base = +(units * perUnit);
-  return { base, fees: 0, subtotal: base, tax: 0, total: base, description: `Places ${units} units` };
+  return {
+    base,
+    fees: 0,
+    subtotal: base,
+    tax: 0,
+    total: base,
+    description: `Places ${units} units`
+  };
 };
 
 export default { calculate };

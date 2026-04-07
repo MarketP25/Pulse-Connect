@@ -12,7 +12,7 @@ describe("geocodeWithProximity", () => {
   it("uses proximity response when geocoding succeeds", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ lat: 1.23, lng: 4.56, formatted_address: "Mock Address" }),
+      json: async () => ({ lat: 1.23, lng: 4.56, formatted_address: "Mock Address" })
     } as Response);
 
     const result = await geocodeWithProximity("Test City, US");

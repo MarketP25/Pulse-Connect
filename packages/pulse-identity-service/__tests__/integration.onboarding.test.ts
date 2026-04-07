@@ -14,7 +14,7 @@ class TrackingBillingClient implements BillingClient {
       linked: true,
       provider: "billing-engine" as const,
       planId: input.tier === "enterprise" ? "enterprise-monthly" : "premium-monthly",
-      externalResult: { ok: true },
+      externalResult: { ok: true }
     };
   }
 }
@@ -27,12 +27,12 @@ describe("PulseIdentityService onboarding integration", () => {
         storage: new InMemoryIdentityStorageAdapter(),
         kycService: new PulseKycService(new InMemoryKycRepository()),
         billingClient: billing,
-        eventPublisher: new NoopIdentityEventPublisher(),
+        eventPublisher: new NoopIdentityEventPublisher()
       },
       {
         exposeDebugTokens: true,
-        jwtSecret: "integration-secret",
-      },
+        jwtSecret: "integration-secret"
+      }
     );
 
     const registered = await service.registerUser({
@@ -46,11 +46,11 @@ describe("PulseIdentityService onboarding integration", () => {
       consents: {
         privacyPolicy: { accepted: true, version: "2026.03" },
         termsOfService: { accepted: true, version: "2026.03" },
-        dataProcessing: { accepted: true, version: "2026.03" },
+        dataProcessing: { accepted: true, version: "2026.03" }
       },
       deviceFingerprint: "integration-device-1",
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     expect(registered.kycStatus).toBe("pending");
@@ -58,11 +58,11 @@ describe("PulseIdentityService onboarding integration", () => {
     await service.verifyEmail({
       token: registered.debug!.verificationToken,
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     await expect(service.activateAccount(registered.userId)).rejects.toMatchObject<IdentityError>({
-      code: "activation_prerequisites_not_met",
+      code: "activation_prerequisites_not_met"
     } as IdentityError);
 
     await service.completeKycWorkflow(registered.userId, true, "kyc-provider");
@@ -72,7 +72,7 @@ describe("PulseIdentityService onboarding integration", () => {
     expect(activated.pulscoInternalId).toContain("PUL-");
 
     expect(billing.calls).toEqual(
-      expect.arrayContaining([{ accountId: registered.userId, tier: "premium" }]),
+      expect.arrayContaining([{ accountId: registered.userId, tier: "premium" }])
     );
   });
 
@@ -83,13 +83,13 @@ describe("PulseIdentityService onboarding integration", () => {
         storage: new InMemoryIdentityStorageAdapter(),
         kycService: new PulseKycService(new InMemoryKycRepository()),
         billingClient: billing,
-        eventPublisher: new NoopIdentityEventPublisher(),
+        eventPublisher: new NoopIdentityEventPublisher()
       },
       {
         exposeDebugTokens: true,
         jwtSecret: "integration-secret",
-        autoKycEnabled: true,
-      },
+        autoKycEnabled: true
+      }
     );
 
     const registered = await service.registerUser({
@@ -103,11 +103,11 @@ describe("PulseIdentityService onboarding integration", () => {
       consents: {
         privacyPolicy: { accepted: true, version: "2026.03" },
         termsOfService: { accepted: true, version: "2026.03" },
-        dataProcessing: { accepted: true, version: "2026.03" },
+        dataProcessing: { accepted: true, version: "2026.03" }
       },
       deviceFingerprint: "integration-device-2",
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     expect(registered.kycStatus).toBe("verified");
@@ -115,7 +115,7 @@ describe("PulseIdentityService onboarding integration", () => {
     await service.verifyEmail({
       token: registered.debug!.verificationToken,
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     const activated = await service.activateAccount(registered.userId);
@@ -129,13 +129,13 @@ describe("PulseIdentityService onboarding integration", () => {
         storage: new InMemoryIdentityStorageAdapter(),
         kycService: new PulseKycService(new InMemoryKycRepository()),
         billingClient: billing,
-        eventPublisher: new NoopIdentityEventPublisher(),
+        eventPublisher: new NoopIdentityEventPublisher()
       },
       {
         exposeDebugTokens: true,
         jwtSecret: "integration-secret",
-        autoKycEnabled: true,
-      },
+        autoKycEnabled: true
+      }
     );
 
     const registered = await service.registerUser({
@@ -149,11 +149,11 @@ describe("PulseIdentityService onboarding integration", () => {
       consents: {
         privacyPolicy: { accepted: true, version: "2026.03" },
         termsOfService: { accepted: true, version: "2026.03" },
-        dataProcessing: { accepted: true, version: "2026.03" },
+        dataProcessing: { accepted: true, version: "2026.03" }
       },
       deviceFingerprint: "integration-device-3",
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     expect(registered.kycStatus).toBe("verified");
@@ -161,7 +161,7 @@ describe("PulseIdentityService onboarding integration", () => {
     await service.verifyEmail({
       token: registered.debug!.verificationToken,
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
 
     const activated = await service.activateAccount(registered.userId);

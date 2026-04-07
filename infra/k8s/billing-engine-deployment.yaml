@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-engine
+  namespace: planetary-pulse
+  labels:
+    app: billing-engine
+    component: financial-core
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: billing-engine
+  template:
+    metadata:
+      labels:
+        app: billing-engine
+        component: financial-core
+    spec:
+      containers:
+      - name: billing-engine
+        image: planetary/billing-engine:latest
+        ports:
+        - containerPort: 3100
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3100"
+        - name: ADMIN_GATEWAY_URL
+          value: "http://admin-gateway-service.planetary-pulse.svc.cluster.local:3001"
+        - name: INTERNAL_SERVICE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: internal-service-token
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: database-url
+        - name: EMERGENCY_POLICY_CACHE_MS
+          value: "5000"
+        livenessProbe:
+          httpGet:
+            path: /docs
+            port: 3100
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /docs
+            port: 3100
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-engine-service
+  namespace: planetary-pulse
+  labels:
+    app: billing-engine
+spec:
+  selector:
+    app: billing-engine
+  ports:
+  - name: http
+    port: 3100
+    targetPort: 3100
+  type: ClusterIP

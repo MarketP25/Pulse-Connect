@@ -1,8 +1,13 @@
 // Admin Lifecycle Management for Pulsco Admin Governance System
 // Handles onboarding, suspension, role transitions, and decommissioning
 
-import { AdminRole, AdminRoleType, ADMIN_EMAILS, MAX_ADMIN_COUNT } from '@pulsco/admin-shared-types';
-import { AdminAuthClient } from '@pulsco/admin-auth-client';
+import {
+  AdminRole,
+  AdminRoleType,
+  ADMIN_EMAILS,
+  MAX_ADMIN_COUNT
+} from "@pulsco/admin-shared-types";
+import { AdminAuthClient } from "@pulsco/admin-auth-client";
 
 export interface OnboardingRequest {
   email: string;
@@ -11,7 +16,7 @@ export interface OnboardingRequest {
   justification: string;
   backgroundCheck?: {
     completed: boolean;
-    clearanceLevel: 'standard' | 'enhanced' | 'top-secret';
+    clearanceLevel: "standard" | "enhanced" | "top-secret";
     expiryDate?: Date;
   };
   trainingCompleted?: boolean;
@@ -29,8 +34,13 @@ export interface OnboardingApproval {
 export interface SuspensionRequest {
   adminId: string;
   adminRole: AdminRoleType;
-  reason: 'security-incident' | 'policy-violation' | 'performance-issue' | 'investigation' | 'other';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  reason:
+    | "security-incident"
+    | "policy-violation"
+    | "performance-issue"
+    | "investigation"
+    | "other";
+  severity: "low" | "medium" | "high" | "critical";
   requestedBy: AdminRoleType;
   details: string;
   immediate: boolean; // instant suspension vs. pending approval
@@ -47,7 +57,7 @@ export interface SuspensionRecord {
   suspensionDate: Date;
   plannedLiftDate?: Date;
   actualLiftDate?: Date;
-  status: 'pending' | 'active' | 'lifted' | 'permanent';
+  status: "pending" | "active" | "lifted" | "permanent";
   details: string;
   remediationRequired: string[];
 }
@@ -65,13 +75,13 @@ export interface RoleTransition {
     accessChanges: string[];
     trainingRequired: string[];
   };
-  status: 'pending' | 'approved' | 'completed' | 'rejected';
+  status: "pending" | "approved" | "completed" | "rejected";
 }
 
 export interface DecommissionRequest {
   adminId: string;
   adminRole: AdminRoleType;
-  reason: 'resignation' | 'termination' | 'role-elimination' | 'performance' | 'other';
+  reason: "resignation" | "termination" | "role-elimination" | "performance" | "other";
   requestedBy: AdminRoleType;
   details: string;
   handoverPlan: {
@@ -90,7 +100,7 @@ export interface DecommissionRecord {
   requestedBy: AdminRoleType;
   approvedBy?: AdminRoleType;
   decommissionDate: Date;
-  status: 'pending' | 'in-progress' | 'completed';
+  status: "pending" | "in-progress" | "completed";
   handoverCompletion: number; // percentage
   cryptographicRevocation: {
     certificatesRevoked: boolean;
@@ -139,13 +149,13 @@ export class AdminLifecycleManager {
   async initiateOnboarding(request: OnboardingRequest): Promise<string> {
     // Validate request
     if (!this.validateOnboardingRequest(request)) {
-      throw new Error('Invalid onboarding request');
+      throw new Error("Invalid onboarding request");
     }
 
     // Check admin count limit
     const currentCount = await this.getActiveAdminCount();
     if (currentCount >= MAX_ADMIN_COUNT) {
-      throw new Error('Maximum admin count reached');
+      throw new Error("Maximum admin count reached");
     }
 
     // Generate request ID
@@ -156,10 +166,10 @@ export class AdminLifecycleManager {
 
     // If approval required, create approval workflow
     if (this.config.approvalWorkflow.onboardingRequiresApproval) {
-      await this.createApprovalWorkflow(requestId, 'onboarding', request.requestedBy);
+      await this.createApprovalWorkflow(requestId, "onboarding", request.requestedBy);
     } else {
       // Auto-approve and proceed
-      await this.approveOnboarding(requestId, request.requestedBy, 'Auto-approved');
+      await this.approveOnboarding(requestId, request.requestedBy, "Auto-approved");
     }
 
     return requestId;
@@ -176,7 +186,7 @@ export class AdminLifecycleManager {
   ): Promise<boolean> {
     const request = this.onboardingRequests.get(requestId);
     if (!request) {
-      throw new Error('Onboarding request not found');
+      throw new Error("Onboarding request not found");
     }
 
     const approval: OnboardingApproval = {
@@ -205,7 +215,7 @@ export class AdminLifecycleManager {
   async suspendAdmin(suspensionRequest: SuspensionRequest): Promise<string> {
     // Validate request
     if (!this.validateSuspensionRequest(suspensionRequest)) {
-      throw new Error('Invalid suspension request');
+      throw new Error("Invalid suspension request");
     }
 
     // Generate suspension ID
@@ -219,7 +229,7 @@ export class AdminLifecycleManager {
       severity: suspensionRequest.severity,
       requestedBy: suspensionRequest.requestedBy,
       suspensionDate: new Date(),
-      status: suspensionRequest.immediate ? 'active' : 'pending',
+      status: suspensionRequest.immediate ? "active" : "pending",
       details: suspensionRequest.details,
       remediationRequired: this.generateRemediationSteps(suspensionRequest)
     };
@@ -231,11 +241,11 @@ export class AdminLifecycleManager {
     if (suspensionRequest.immediate) {
       await this.executeSuspension(suspensionRecord);
     } else if (this.config.approvalWorkflow.suspensionRequiresApproval) {
-      await this.createApprovalWorkflow(suspensionId, 'suspension', suspensionRequest.requestedBy);
+      await this.createApprovalWorkflow(suspensionId, "suspension", suspensionRequest.requestedBy);
     }
 
     // Escalate if critical
-    if (suspensionRequest.severity === 'critical') {
+    if (suspensionRequest.severity === "critical") {
       await this.escalateSuspension(suspensionRecord);
     }
 
@@ -252,11 +262,11 @@ export class AdminLifecycleManager {
   ): Promise<boolean> {
     const suspension = this.suspensionRecords.get(suspensionId);
     if (!suspension) {
-      throw new Error('Suspension record not found');
+      throw new Error("Suspension record not found");
     }
 
     suspension.actualLiftDate = new Date();
-    suspension.status = 'lifted';
+    suspension.status = "lifted";
 
     // Execute lift
     const success = await this.executeSuspensionLift(suspension, reason);
@@ -267,10 +277,10 @@ export class AdminLifecycleManager {
   /**
    * Initiate role transition
    */
-  async initiateRoleTransition(transition: Omit<RoleTransition, 'status'>): Promise<string> {
+  async initiateRoleTransition(transition: Omit<RoleTransition, "status">): Promise<string> {
     // Validate transition
     if (!this.validateRoleTransition(transition)) {
-      throw new Error('Invalid role transition');
+      throw new Error("Invalid role transition");
     }
 
     // Generate transition ID
@@ -278,7 +288,7 @@ export class AdminLifecycleManager {
 
     const fullTransition: RoleTransition = {
       ...transition,
-      status: 'pending'
+      status: "pending"
     };
 
     // Store transition
@@ -286,7 +296,7 @@ export class AdminLifecycleManager {
 
     // Create approval workflow if required
     if (this.config.approvalWorkflow.roleTransitionRequiresApproval) {
-      await this.createApprovalWorkflow(transitionId, 'role-transition', transition.requestedBy);
+      await this.createApprovalWorkflow(transitionId, "role-transition", transition.requestedBy);
     } else {
       await this.approveRoleTransition(transitionId, transition.requestedBy);
     }
@@ -297,23 +307,20 @@ export class AdminLifecycleManager {
   /**
    * Approve role transition
    */
-  async approveRoleTransition(
-    transitionId: string,
-    approvedBy: AdminRoleType
-  ): Promise<boolean> {
+  async approveRoleTransition(transitionId: string, approvedBy: AdminRoleType): Promise<boolean> {
     const transition = this.roleTransitions.get(transitionId);
     if (!transition) {
-      throw new Error('Role transition not found');
+      throw new Error("Role transition not found");
     }
 
     transition.approvedBy = approvedBy;
-    transition.status = 'approved';
+    transition.status = "approved";
 
     // Execute transition
     const success = await this.executeRoleTransition(transition);
 
     if (success) {
-      transition.status = 'completed';
+      transition.status = "completed";
     }
 
     return success;
@@ -325,7 +332,7 @@ export class AdminLifecycleManager {
   async initiateDecommission(decommissionRequest: DecommissionRequest): Promise<string> {
     // Validate request
     if (!this.validateDecommissionRequest(decommissionRequest)) {
-      throw new Error('Invalid decommission request');
+      throw new Error("Invalid decommission request");
     }
 
     // Generate decommission ID
@@ -338,7 +345,7 @@ export class AdminLifecycleManager {
       reason: decommissionRequest.reason,
       requestedBy: decommissionRequest.requestedBy,
       decommissionDate: new Date(),
-      status: 'pending',
+      status: "pending",
       handoverCompletion: 0,
       cryptographicRevocation: {
         certificatesRevoked: false,
@@ -352,7 +359,11 @@ export class AdminLifecycleManager {
 
     // Create approval workflow if required
     if (this.config.approvalWorkflow.decommissionRequiresApproval) {
-      await this.createApprovalWorkflow(decommissionId, 'decommission', decommissionRequest.requestedBy);
+      await this.createApprovalWorkflow(
+        decommissionId,
+        "decommission",
+        decommissionRequest.requestedBy
+      );
     } else {
       await this.approveDecommission(decommissionId, decommissionRequest.requestedBy);
     }
@@ -363,23 +374,20 @@ export class AdminLifecycleManager {
   /**
    * Approve decommission request
    */
-  async approveDecommission(
-    decommissionId: string,
-    approvedBy: AdminRoleType
-  ): Promise<boolean> {
+  async approveDecommission(decommissionId: string, approvedBy: AdminRoleType): Promise<boolean> {
     const decommission = this.decommissionRecords.get(decommissionId);
     if (!decommission) {
-      throw new Error('Decommission record not found');
+      throw new Error("Decommission record not found");
     }
 
     decommission.approvedBy = approvedBy;
-    decommission.status = 'in-progress';
+    decommission.status = "in-progress";
 
     // Start decommissioning process
     const success = await this.executeDecommission(decommission);
 
     if (success) {
-      decommission.status = 'completed';
+      decommission.status = "completed";
     }
 
     return success;
@@ -396,14 +404,17 @@ export class AdminLifecycleManager {
     pendingDecommissions: number;
     recentActivity: any[];
   } {
-    const activeAdmins = 10; // Would be fetched from API
-    const suspendedAdmins = Array.from(this.suspensionRecords.values())
-      .filter(s => s.status === 'active').length;
+    const activeAdmins = 11; // Would be fetched from API
+    const suspendedAdmins = Array.from(this.suspensionRecords.values()).filter(
+      (s) => s.status === "active"
+    ).length;
     const pendingOnboardings = this.onboardingRequests.size;
-    const pendingTransitions = Array.from(this.roleTransitions.values())
-      .filter(t => t.status === 'pending').length;
-    const pendingDecommissions = Array.from(this.decommissionRecords.values())
-      .filter(d => d.status === 'pending').length;
+    const pendingTransitions = Array.from(this.roleTransitions.values()).filter(
+      (t) => t.status === "pending"
+    ).length;
+    const pendingDecommissions = Array.from(this.decommissionRecords.values()).filter(
+      (d) => d.status === "pending"
+    ).length;
 
     // Recent activity (simplified)
     const recentActivity = [
@@ -411,8 +422,16 @@ export class AdminLifecycleManager {
       ...Array.from(this.suspensionRecords.values()).slice(-3),
       ...Array.from(this.roleTransitions.values()).slice(-3),
       ...Array.from(this.decommissionRecords.values()).slice(-3)
-    ].sort((a, b) => new Date(b.createdAt || b.suspensionDate || b.effectiveDate || b.decommissionDate).getTime() -
-                     new Date(a.createdAt || a.suspensionDate || a.effectiveDate || a.decommissionDate).getTime())
+    ]
+      .sort(
+        (a, b) =>
+          new Date(
+            b.createdAt || b.suspensionDate || b.effectiveDate || b.decommissionDate
+          ).getTime() -
+          new Date(
+            a.createdAt || a.suspensionDate || a.effectiveDate || a.decommissionDate
+          ).getTime()
+      )
       .slice(0, 10);
 
     return {
@@ -453,7 +472,7 @@ export class AdminLifecycleManager {
     );
   }
 
-  private validateRoleTransition(transition: Omit<RoleTransition, 'status'>): boolean {
+  private validateRoleTransition(transition: Omit<RoleTransition, "status">): boolean {
     return !!(
       transition.adminId &&
       transition.fromRole &&
@@ -478,25 +497,25 @@ export class AdminLifecycleManager {
     const steps: string[] = [];
 
     switch (request.reason) {
-      case 'security-incident':
-        steps.push('Complete security awareness training');
-        steps.push('Change all passwords and revoke compromised tokens');
-        steps.push('Review access logs for unauthorized activity');
+      case "security-incident":
+        steps.push("Complete security awareness training");
+        steps.push("Change all passwords and revoke compromised tokens");
+        steps.push("Review access logs for unauthorized activity");
         break;
-      case 'policy-violation':
-        steps.push('Review company policies and procedures');
-        steps.push('Complete ethics and compliance training');
-        steps.push('Implement additional oversight measures');
+      case "policy-violation":
+        steps.push("Review company policies and procedures");
+        steps.push("Complete ethics and compliance training");
+        steps.push("Implement additional oversight measures");
         break;
-      case 'performance-issue':
-        steps.push('Complete performance improvement plan');
-        steps.push('Receive additional training in deficient areas');
-        steps.push('Demonstrate sustained improvement');
+      case "performance-issue":
+        steps.push("Complete performance improvement plan");
+        steps.push("Receive additional training in deficient areas");
+        steps.push("Demonstrate sustained improvement");
         break;
       default:
-        steps.push('Address underlying issues identified');
-        steps.push('Implement corrective action plan');
-        steps.push('Receive approval from supervising admin');
+        steps.push("Address underlying issues identified");
+        steps.push("Implement corrective action plan");
+        steps.push("Receive approval from supervising admin");
     }
 
     return steps;
@@ -504,7 +523,7 @@ export class AdminLifecycleManager {
 
   private async createApprovalWorkflow(
     itemId: string,
-    type: 'onboarding' | 'suspension' | 'role-transition' | 'decommission',
+    type: "onboarding" | "suspension" | "role-transition" | "decommission",
     requestedBy: AdminRoleType
   ): Promise<void> {
     // In real implementation, create approval workflow
@@ -513,7 +532,7 @@ export class AdminLifecycleManager {
 
   private async submitOnboardingApproval(approval: OnboardingApproval): Promise<boolean> {
     // In real implementation, submit to API
-    console.log('Submitted onboarding approval:', approval);
+    console.log("Submitted onboarding approval:", approval);
     return true;
   }
 
@@ -522,12 +541,12 @@ export class AdminLifecycleManager {
     approval: OnboardingApproval
   ): Promise<void> {
     // In real implementation, complete onboarding process
-    console.log('Completed onboarding for:', request.email);
+    console.log("Completed onboarding for:", request.email);
   }
 
   private async executeSuspension(suspension: SuspensionRecord): Promise<void> {
     // In real implementation, execute suspension
-    console.log('Executed suspension for admin:', suspension.adminId);
+    console.log("Executed suspension for admin:", suspension.adminId);
   }
 
   private async executeSuspensionLift(
@@ -535,25 +554,28 @@ export class AdminLifecycleManager {
     reason: string
   ): Promise<boolean> {
     // In real implementation, lift suspension
-    console.log('Lifted suspension for admin:', suspension.adminId);
+    console.log("Lifted suspension for admin:", suspension.adminId);
     return true;
   }
 
   private async executeRoleTransition(transition: RoleTransition): Promise<boolean> {
     // In real implementation, execute role transition
-    console.log('Executed role transition for admin:', transition.adminId);
+    console.log("Executed role transition for admin:", transition.adminId);
     return true;
   }
 
   private async executeDecommission(decommission: DecommissionRecord): Promise<boolean> {
     // In real implementation, execute decommissioning
-    console.log('Executed decommissioning for admin:', decommission.adminId);
+    console.log("Executed decommissioning for admin:", decommission.adminId);
     return true;
   }
 
   private async escalateSuspension(suspension: SuspensionRecord): Promise<void> {
     // Escalate to configured role
-    console.log('Escalated suspension to:', this.config.escalationRules.criticalSuspensionEscalation);
+    console.log(
+      "Escalated suspension to:",
+      this.config.escalationRules.criticalSuspensionEscalation
+    );
   }
 }
 

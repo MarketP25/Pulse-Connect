@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash } from "crypto";
 
 /**
  * Hash Chaining Utility for Immutable Ledgers
@@ -14,7 +14,7 @@ export class HashChain {
    * @returns Hex string hash
    */
   static hash(data: string): string {
-    return createHash('sha256').update(data).digest('hex');
+    return createHash("sha256").update(data).digest("hex");
   }
 
   /**
@@ -43,7 +43,9 @@ export class HashChain {
    * @param records - Array of records with hash fields
    * @returns true if chain is valid
    */
-  static validateChain(records: Array<{ prev_hash?: string; curr_hash?: string; [key: string]: any }>): boolean {
+  static validateChain(
+    records: Array<{ prev_hash?: string; curr_hash?: string; [key: string]: any }>
+  ): boolean {
     for (let i = 0; i < records.length; i++) {
       const record = records[i];
       const { prev_hash, curr_hash, ...data } = record;
@@ -66,7 +68,7 @@ export class HashChain {
     // Include timestamp in audit hash for uniqueness
     const dataWithTimestamp = {
       ...auditData,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
     return this.computeHash(prevHash, dataWithTimestamp);
   }

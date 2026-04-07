@@ -29,7 +29,7 @@ export class BillingService {
     const record: BillingChargeRecord = {
       ...request,
       id: randomUUID(),
-      createdAt: Date.now(),
+      createdAt: Date.now()
     };
 
     this.records.push(record);
@@ -42,28 +42,31 @@ export class BillingService {
         amountUsd: request.amountUsd,
         currency: request.currency,
         reason: request.reason,
-        traceId: request.traceId || null,
+        traceId: request.traceId || null
       },
       {
         riskScore: request.amountUsd > 10_000 ? 68 : 24,
-        performanceScore: 90,
-      },
+        performanceScore: 90
+      }
     );
 
     return record;
   }
 
   async generateSnapshot(region = "GLOBAL"): Promise<BillingSnapshot> {
-    const scoped = this.records.filter((record) => (region === "GLOBAL" ? true : record.region === region));
+    const scoped = this.records.filter((record) =>
+      region === "GLOBAL" ? true : record.region === region
+    );
     const totalAmountUsd = scoped.reduce((sum, record) => sum + record.amountUsd, 0);
     const totalCharges = scoped.length;
-    const averageAmountUsd = totalCharges === 0 ? 0 : Number((totalAmountUsd / totalCharges).toFixed(2));
+    const averageAmountUsd =
+      totalCharges === 0 ? 0 : Number((totalAmountUsd / totalCharges).toFixed(2));
 
     const snapshot: BillingSnapshot = {
       totalCharges,
       totalAmountUsd: Number(totalAmountUsd.toFixed(2)),
       averageAmountUsd,
-      region,
+      region
     };
 
     emitBillingEvent(
@@ -72,12 +75,12 @@ export class BillingService {
       {
         totalCharges: snapshot.totalCharges,
         totalAmountUsd: snapshot.totalAmountUsd,
-        averageAmountUsd: snapshot.averageAmountUsd,
+        averageAmountUsd: snapshot.averageAmountUsd
       },
       {
         riskScore: totalCharges === 0 ? 30 : 14,
-        performanceScore: 88,
-      },
+        performanceScore: 88
+      }
     );
 
     return snapshot;

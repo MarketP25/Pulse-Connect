@@ -67,7 +67,7 @@ export class CSIGovernanceEngine {
   async evaluateProposal(
     proposal: GovernanceProposal,
     context: VaultAuthContext,
-    options: GovernanceEvaluationOptions = {},
+    options: GovernanceEvaluationOptions = {}
   ): Promise<GovernanceDecision> {
     const level = this.determineLevel(proposal);
     const decisionId = randomUUID();
@@ -94,7 +94,11 @@ export class CSIGovernanceEngine {
 
     let simulationReport: CSISimulationReport | undefined;
     if (options.runSimulation && options.historicalEvents) {
-      const { report } = await this.simulation.runAndPersist(proposal, options.historicalEvents, context);
+      const { report } = await this.simulation.runAndPersist(
+        proposal,
+        options.historicalEvents,
+        context
+      );
       simulationReport = report;
       rationale.push(`Simulation outcome: ${report.outcome}`);
     }
@@ -109,7 +113,7 @@ export class CSIGovernanceEngine {
       rationale,
       advisoryOnly: true,
       simulationReport,
-      createdAt: now,
+      createdAt: now
     };
 
     this.decisions.set(decisionId, decision);
@@ -117,9 +121,9 @@ export class CSIGovernanceEngine {
       {
         type: "governance_decision",
         proposal,
-        decision,
+        decision
       },
-      context,
+      context
     );
 
     return decision;
@@ -128,7 +132,7 @@ export class CSIGovernanceEngine {
   async approveStrategicDecision(
     decisionId: string,
     approver: { approverId: string; approverRole: string; founderApproval: boolean },
-    context: VaultAuthContext,
+    context: VaultAuthContext
   ): Promise<GovernanceDecision> {
     const decision = this.decisions.get(decisionId);
     if (!decision) {
@@ -148,16 +152,16 @@ export class CSIGovernanceEngine {
       status: "approved",
       approvedBy: approver.approverId,
       approvedAt: Date.now(),
-      rationale: [...decision.rationale, "Strategic approval granted by Founder/Superadmin."],
+      rationale: [...decision.rationale, "Strategic approval granted by Founder/Superadmin."]
     };
 
     this.decisions.set(decisionId, approvedDecision);
     await this.vault.storeHistoricalDecision(
       {
         type: "governance_approval",
-        decision: approvedDecision,
+        decision: approvedDecision
       },
-      context,
+      context
     );
 
     return approvedDecision;
@@ -166,7 +170,7 @@ export class CSIGovernanceEngine {
   async runManualSimulation(
     change: CSISimulationChange,
     historicalEvents: CSIEvent[],
-    context: VaultAuthContext,
+    context: VaultAuthContext
   ): Promise<CSISimulationReport> {
     const { report } = await this.simulation.runAndPersist(change, historicalEvents, context);
     return report;

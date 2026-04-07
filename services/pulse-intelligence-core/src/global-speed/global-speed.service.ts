@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { Injectable } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
 
 @Injectable()
 export class GlobalSpeedService {
@@ -25,7 +25,7 @@ export class GlobalSpeedService {
     };
 
     // Emit routing event for monitoring
-    await this.kafkaClient.emit('routing-decisions', {
+    await this.kafkaClient.emit("routing-decisions", {
       key: request.id,
       value: JSON.stringify(routingDecision)
     });
@@ -109,7 +109,7 @@ export class GlobalSpeedService {
   private async selectOptimalNode(request: any): Promise<any> {
     const candidates = Array.from(this.regionalNodes.values());
     const scoredCandidates = await Promise.all(
-      candidates.map(async node => ({
+      candidates.map(async (node) => ({
         node,
         score: await this.scoreNode(node, request)
       }))
@@ -145,29 +145,33 @@ export class GlobalSpeedService {
     const reasons = [];
 
     const distance = this.calculateGeoDistance(request.origin, node.location);
-    if (distance < 500) reasons.push('geographic_proximity');
-    if (node.currentLoad < node.capacity * 0.7) reasons.push('low_load');
-    if (node.avgLatency < 100) reasons.push('low_latency');
-    if (this.checkDataLocality(request, node)) reasons.push('data_locality');
+    if (distance < 500) reasons.push("geographic_proximity");
+    if (node.currentLoad < node.capacity * 0.7) reasons.push("low_load");
+    if (node.avgLatency < 100) reasons.push("low_latency");
+    if (this.checkDataLocality(request, node)) reasons.push("data_locality");
 
-    return reasons.join(', ');
+    return reasons.join(", ");
   }
 
   private predictLatency(request: any, node: any): number {
     const baseLatency = this.calculateGeoDistance(request.origin, node.location) * 0.1; // ~0.1ms per km
-    const loadPenalty = node.currentLoad / node.capacity * 50; // Up to 50ms penalty
+    const loadPenalty = (node.currentLoad / node.capacity) * 50; // Up to 50ms penalty
     const networkPenalty = node.networkCongestion * 20; // Up to 20ms penalty
 
     return baseLatency + loadPenalty + networkPenalty;
   }
 
   private getFailoverNodes(primaryNode: any): any[] {
-    const candidates = Array.from(this.regionalNodes.values())
-      .filter(node => node.id !== primaryNode.id);
+    const candidates = Array.from(this.regionalNodes.values()).filter(
+      (node) => node.id !== primaryNode.id
+    );
 
     return candidates
-      .sort((a, b) => this.calculateGeoDistance(primaryNode.location, a.location) -
-                      this.calculateGeoDistance(primaryNode.location, b.location))
+      .sort(
+        (a, b) =>
+          this.calculateGeoDistance(primaryNode.location, a.location) -
+          this.calculateGeoDistance(primaryNode.location, b.location)
+      )
       .slice(0, 2); // Two closest failover nodes
   }
 
@@ -176,8 +180,8 @@ export class GlobalSpeedService {
     const requiredCapabilities = this.analyzeTaskRequirements(task);
     const availablePools = this.getAvailableWorkerPools();
 
-    return availablePools.filter(pool =>
-      requiredCapabilities.every(cap => pool.capabilities.includes(cap))
+    return availablePools.filter((pool) =>
+      requiredCapabilities.every((cap) => pool.capabilities.includes(cap))
     );
   }
 
@@ -187,8 +191,8 @@ export class GlobalSpeedService {
     const taskSize = task.data.length || task.complexity || 100;
 
     for (let i = 0; i < numPools; i++) {
-      const startIndex = Math.floor(i * taskSize / numPools);
-      const endIndex = Math.floor((i + 1) * taskSize / numPools);
+      const startIndex = Math.floor((i * taskSize) / numPools);
+      const endIndex = Math.floor(((i + 1) * taskSize) / numPools);
 
       subtasks.push({
         id: `${task.id}_subtask_${i}`,
@@ -213,7 +217,7 @@ export class GlobalSpeedService {
 
   private async executeOnWorkerPool(subtask: any, pool: any): Promise<any> {
     // Simulate distributed execution
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));
     const result = await this.processSubtask(subtask);
     const endTime = Date.now();
 
@@ -228,31 +232,31 @@ export class GlobalSpeedService {
 
   private aggregateResults(results: any[]): any {
     // Aggregate results from parallel execution
-    if (results[0]?.result?.type === 'numeric') {
+    if (results[0]?.result?.type === "numeric") {
       return results.reduce((sum, r) => sum + r.result.value, 0);
     }
 
-    if (results[0]?.result?.type === 'array') {
-      return results.flatMap(r => r.result.items);
+    if (results[0]?.result?.type === "array") {
+      return results.flatMap((r) => r.result.items);
     }
 
     // Default aggregation
     return {
       totalResults: results.length,
-      successful: results.filter(r => r.result.success).length,
+      successful: results.filter((r) => r.result.success).length,
       averageExecutionTime: results.reduce((sum, r) => sum + r.executionTime, 0) / results.length
     };
   }
 
   private calculateProcessingTime(results: any[]): number {
-    const startTime = Math.min(...results.map(r => r.startTime || Date.now()));
-    const endTime = Math.max(...results.map(r => r.endTime || Date.now()));
+    const startTime = Math.min(...results.map((r) => r.startTime || Date.now()));
+    const endTime = Math.max(...results.map((r) => r.endTime || Date.now()));
     return endTime - startTime;
   }
 
   private measureEfficiency(results: any[]): number {
     const totalExecutionTime = results.reduce((sum, r) => sum + r.executionTime, 0);
-    const parallelTime = Math.max(...results.map(r => r.executionTime));
+    const parallelTime = Math.max(...results.map((r) => r.executionTime));
     const sequentialTime = totalExecutionTime;
 
     return sequentialTime / parallelTime; // Efficiency ratio
@@ -287,14 +291,14 @@ export class GlobalSpeedService {
     return {
       cacheSize: predictions.optimalCacheSize,
       ttlStrategy: this.generateTTLStrategy(predictions),
-      evictionPolicy: 'LRU with predictive boost',
+      evictionPolicy: "LRU with predictive boost",
       preloadingStrategy: this.generatePreloadingStrategy(predictions),
-      replicationStrategy: 'geo-distributed with consistency'
+      replicationStrategy: "geo-distributed with consistency"
     };
   }
 
   private calculateCurrentHitRate(cacheMetrics: any[]): number {
-    const hits = cacheMetrics.filter(m => m.cacheHit).length;
+    const hits = cacheMetrics.filter((m) => m.cacheHit).length;
     return hits / cacheMetrics.length;
   }
 
@@ -302,15 +306,15 @@ export class GlobalSpeedService {
     const recommendations = [];
 
     if (strategy.cacheSize > 1000) {
-      recommendations.push('Consider cache partitioning for better performance');
+      recommendations.push("Consider cache partitioning for better performance");
     }
 
-    if (strategy.ttlStrategy.type === 'dynamic') {
-      recommendations.push('Implement adaptive TTL based on access patterns');
+    if (strategy.ttlStrategy.type === "dynamic") {
+      recommendations.push("Implement adaptive TTL based on access patterns");
     }
 
-    recommendations.push('Enable cache compression for large objects');
-    recommendations.push('Implement cache warming for predicted high-traffic periods');
+    recommendations.push("Enable cache compression for large objects");
+    recommendations.push("Implement cache warming for predicted high-traffic periods");
 
     return recommendations;
   }
@@ -319,14 +323,14 @@ export class GlobalSpeedService {
   private async discoverNetworkPaths(origin: any): Promise<any[]> {
     // Discover available network paths
     const paths = [
-      { id: 'direct', latency: 50, bandwidth: 100, reliability: 0.99, hops: 2 },
-      { id: 'satellite', latency: 100, bandwidth: 50, reliability: 0.95, hops: 1 },
-      { id: 'cdn', latency: 30, bandwidth: 200, reliability: 0.999, hops: 3 },
-      { id: 'edge', latency: 20, bandwidth: 150, reliability: 0.998, hops: 1 }
+      { id: "direct", latency: 50, bandwidth: 100, reliability: 0.99, hops: 2 },
+      { id: "satellite", latency: 100, bandwidth: 50, reliability: 0.95, hops: 1 },
+      { id: "cdn", latency: 30, bandwidth: 200, reliability: 0.999, hops: 3 },
+      { id: "edge", latency: 20, bandwidth: 150, reliability: 0.998, hops: 1 }
     ];
 
     // Filter by availability and add real-time metrics
-    return paths.map(path => ({
+    return paths.map((path) => ({
       ...path,
       currentLatency: path.latency + Math.random() * 10,
       congestion: Math.random() * 0.3
@@ -334,7 +338,7 @@ export class GlobalSpeedService {
   }
 
   private selectOptimalPath(paths: any[], request: any): any {
-    const scoredPaths = paths.map(path => ({
+    const scoredPaths = paths.map((path) => ({
       ...path,
       score: this.scoreNetworkPath(path, request)
     }));
@@ -367,16 +371,16 @@ export class GlobalSpeedService {
 
   private optimizeProtocol(request: any, path: any): any {
     // Protocol selection and optimization
-    let protocol = 'HTTP/2';
+    let protocol = "HTTP/2";
     let bandwidth = path.bandwidth;
 
     if (request.requiresLowLatency) {
-      protocol = 'QUIC';
+      protocol = "QUIC";
       bandwidth *= 1.2; // QUIC typically improves throughput
     }
 
     if (request.isStreaming) {
-      protocol = 'WebRTC';
+      protocol = "WebRTC";
       bandwidth *= 0.8; // WebRTC has some overhead
     }
 
@@ -387,7 +391,7 @@ export class GlobalSpeedService {
   private analyzePerformance(metrics: any[]): any {
     return {
       avgLatency: metrics.reduce((sum, m) => sum + m.latency, 0) / metrics.length,
-      errorRate: metrics.filter(m => m.error).length / metrics.length,
+      errorRate: metrics.filter((m) => m.error).length / metrics.length,
       throughput: metrics.length / ((Date.now() - metrics[0].timestamp) / 1000),
       resourceUtilization: this.calculateResourceUtilization(metrics),
       bottlenecks: this.identifyBottlenecks(metrics)
@@ -399,28 +403,28 @@ export class GlobalSpeedService {
 
     if (analysis.avgLatency > 100) {
       opportunities.push({
-        type: 'latency_optimization',
-        description: 'Implement edge caching and CDN optimization',
-        impact: 'high',
-        complexity: 'medium'
+        type: "latency_optimization",
+        description: "Implement edge caching and CDN optimization",
+        impact: "high",
+        complexity: "medium"
       });
     }
 
     if (analysis.errorRate > 0.05) {
       opportunities.push({
-        type: 'reliability_improvement',
-        description: 'Add circuit breakers and retry logic',
-        impact: 'high',
-        complexity: 'low'
+        type: "reliability_improvement",
+        description: "Add circuit breakers and retry logic",
+        impact: "high",
+        complexity: "low"
       });
     }
 
     if (analysis.resourceUtilization.cpu > 0.8) {
       opportunities.push({
-        type: 'scaling_optimization',
-        description: 'Implement horizontal pod autoscaling',
-        impact: 'medium',
-        complexity: 'medium'
+        type: "scaling_optimization",
+        description: "Implement horizontal pod autoscaling",
+        impact: "medium",
+        complexity: "medium"
       });
     }
 
@@ -433,8 +437,11 @@ export class GlobalSpeedService {
       const impactOrder = { high: 3, medium: 2, low: 1 };
       const complexityOrder = { low: 3, medium: 2, high: 1 };
 
-      return (impactOrder[b.impact] * 2 + complexityOrder[b.complexity]) -
-             (impactOrder[a.impact] * 2 + complexityOrder[a.complexity]);
+      return (
+        impactOrder[b.impact] * 2 +
+        complexityOrder[b.complexity] -
+        (impactOrder[a.impact] * 2 + complexityOrder[a.complexity])
+      );
     });
 
     return {
@@ -447,8 +454,9 @@ export class GlobalSpeedService {
 
   private predictImprovement(plan: any): any {
     // Estimate improvement from optimization plan
-    const latencyImprovement = plan.phases.filter(p => p.type.includes('latency')).length * 20;
-    const reliabilityImprovement = plan.phases.filter(p => p.type.includes('reliability')).length * 15;
+    const latencyImprovement = plan.phases.filter((p) => p.type.includes("latency")).length * 20;
+    const reliabilityImprovement =
+      plan.phases.filter((p) => p.type.includes("reliability")).length * 15;
 
     return {
       latencyReduction: `${latencyImprovement}%`,
@@ -458,25 +466,27 @@ export class GlobalSpeedService {
   }
 
   private prioritizeOptimizations(plan: any): any[] {
-    return plan.phases.map(phase => ({
-      ...phase,
-      priority: this.calculatePriority(phase),
-      effort: this.estimateEffort(phase),
-      risk: this.assessRisk(phase)
-    })).sort((a, b) => b.priority - a.priority);
+    return plan.phases
+      .map((phase) => ({
+        ...phase,
+        priority: this.calculatePriority(phase),
+        effort: this.estimateEffort(phase),
+        risk: this.assessRisk(phase)
+      }))
+      .sort((a, b) => b.priority - a.priority);
   }
 
   // Helper methods
   private initializeRegionalNodes(): void {
     // Initialize global regional nodes
     const regions = [
-      { id: 'us-east', location: { lat: 39.8283, lng: -98.5795 }, capacity: 1000 },
-      { id: 'eu-west', location: { lat: 54.5260, lng: 15.2551 }, capacity: 800 },
-      { id: 'asia-east', location: { lat: 35.6762, lng: 139.6503 }, capacity: 600 },
-      { id: 'africa-south', location: { lat: -30.5595, lng: 22.9375 }, capacity: 400 }
+      { id: "us-east", location: { lat: 39.8283, lng: -98.5795 }, capacity: 1000 },
+      { id: "eu-west", location: { lat: 54.526, lng: 15.2551 }, capacity: 800 },
+      { id: "asia-east", location: { lat: 35.6762, lng: 139.6503 }, capacity: 600 },
+      { id: "africa-south", location: { lat: -30.5595, lng: 22.9375 }, capacity: 400 }
     ];
 
-    regions.forEach(region => {
+    regions.forEach((region) => {
       this.regionalNodes.set(region.id, {
         ...region,
         currentLoad: Math.random() * region.capacity,
@@ -488,7 +498,7 @@ export class GlobalSpeedService {
 
   private initializeLoadBalancer(): void {
     this.loadBalancer = {
-      algorithm: 'weighted_round_robin',
+      algorithm: "weighted_round_robin",
       healthChecks: true,
       sessionAffinity: false,
       sslTermination: true
@@ -498,14 +508,17 @@ export class GlobalSpeedService {
   private calculateGeoDistance(loc1: any, loc2: any): number {
     // Haversine distance calculation
     const R = 6371; // Earth's radius in km
-    const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
-    const dLng = (loc2.lng - loc1.lng) * Math.PI / 180;
+    const dLat = ((loc2.lat - loc1.lat) * Math.PI) / 180;
+    const dLng = ((loc2.lng - loc1.lng) * Math.PI) / 180;
 
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((loc1.lat * Math.PI) / 180) *
+        Math.cos((loc2.lat * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
 
@@ -521,10 +534,10 @@ export class GlobalSpeedService {
     // Analyze task requirements for worker pool selection
     const requirements = [];
 
-    if (task.complexity > 100) requirements.push('high_compute');
-    if (task.data?.length > 1000) requirements.push('high_memory');
-    if (task.requiresNetwork) requirements.push('network_access');
-    if (task.requiresStorage) requirements.push('storage_access');
+    if (task.complexity > 100) requirements.push("high_compute");
+    if (task.data?.length > 1000) requirements.push("high_memory");
+    if (task.requiresNetwork) requirements.push("network_access");
+    if (task.requiresStorage) requirements.push("storage_access");
 
     return requirements;
   }
@@ -532,23 +545,23 @@ export class GlobalSpeedService {
   private getAvailableWorkerPools(): any[] {
     // Return available worker pools
     return [
-      { id: 'cpu_pool', capabilities: ['high_compute'], nodes: 10 },
-      { id: 'memory_pool', capabilities: ['high_memory'], nodes: 5 },
-      { id: 'network_pool', capabilities: ['network_access'], nodes: 8 },
-      { id: 'storage_pool', capabilities: ['storage_access'], nodes: 6 }
+      { id: "cpu_pool", capabilities: ["high_compute"], nodes: 10 },
+      { id: "memory_pool", capabilities: ["high_memory"], nodes: 5 },
+      { id: "network_pool", capabilities: ["network_access"], nodes: 8 },
+      { id: "storage_pool", capabilities: ["storage_access"], nodes: 6 }
     ];
   }
 
   private async processSubtask(subtask: any): Promise<any> {
     // Simulate subtask processing
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));
     return { success: true, value: Math.random() };
   }
 
   private analyzeTemporalPatterns(metrics: any[]): any {
     // Analyze when cache accesses happen
     const hourlyAccess = new Array(24).fill(0);
-    metrics.forEach(metric => {
+    metrics.forEach((metric) => {
       const hour = new Date(metric.timestamp).getHours();
       hourlyAccess[hour]++;
     });
@@ -559,8 +572,8 @@ export class GlobalSpeedService {
   private analyzeSpatialPatterns(metrics: any[]): any {
     // Analyze where requests come from
     const regions = {};
-    metrics.forEach(metric => {
-      const region = metric.region || 'unknown';
+    metrics.forEach((metric) => {
+      const region = metric.region || "unknown";
       regions[region] = (regions[region] || 0) + 1;
     });
 
@@ -570,18 +583,18 @@ export class GlobalSpeedService {
   private analyzeFrequencyPatterns(metrics: any[]): any {
     // Analyze how often items are accessed
     const frequencyMap = {};
-    metrics.forEach(metric => {
+    metrics.forEach((metric) => {
       frequencyMap[metric.key] = (frequencyMap[metric.key] || 0) + 1;
     });
 
     return Object.entries(frequencyMap)
-      .sort(([,a]: any, [,b]: any) => b - a)
+      .sort(([, a]: any, [, b]: any) => b - a)
       .slice(0, 10); // Top 10 most frequent
   }
 
   private analyzeSizePatterns(metrics: any[]): any {
     // Analyze cache item sizes
-    const sizes = metrics.map(m => m.size || 0).filter(s => s > 0);
+    const sizes = metrics.map((m) => m.size || 0).filter((s) => s > 0);
     return {
       avgSize: sizes.reduce((sum, s) => sum + s, 0) / sizes.length,
       maxSize: Math.max(...sizes),
@@ -597,7 +610,7 @@ export class GlobalSpeedService {
 
     for (let i = 0; i < hours; i++) {
       forecasts.push(lastValue);
-      lastValue = lastValue * (1 - alpha) + (lastValue * alpha);
+      lastValue = lastValue * (1 - alpha) + lastValue * alpha;
     }
 
     return forecasts;
@@ -613,8 +626,8 @@ export class GlobalSpeedService {
 
   private predictCacheMisses(predictions: any): number[] {
     // Predict cache misses over time
-    return predictions.predictedAccess.map(access =>
-      access * (1 - this.calculateExpectedHitRate(predictions, {}))
+    return predictions.predictedAccess.map(
+      (access) => access * (1 - this.calculateExpectedHitRate(predictions, {}))
     );
   }
 
@@ -628,17 +641,17 @@ export class GlobalSpeedService {
 
   private generateTTLStrategy(predictions: any): any {
     return {
-      type: 'dynamic',
+      type: "dynamic",
       baseTTL: 3600, // 1 hour
       adaptive: true,
-      factors: ['access_frequency', 'item_age', 'storage_pressure']
+      factors: ["access_frequency", "item_age", "storage_pressure"]
     };
   }
 
   private generatePreloadingStrategy(predictions: any): any {
     return {
       enabled: true,
-      trigger: 'prediction_based',
+      trigger: "prediction_based",
       threshold: 0.8, // Preload if predicted access > 80%
       maxPreloadSize: 10 * 1024 * 1024 // 10MB
     };
@@ -658,12 +671,12 @@ export class GlobalSpeedService {
 
     const avgLatency = metrics.reduce((sum, m) => sum + m.latency, 0) / metrics.length;
     if (avgLatency > 100) {
-      bottlenecks.push({ type: 'latency', severity: 'high', location: 'network' });
+      bottlenecks.push({ type: "latency", severity: "high", location: "network" });
     }
 
-    const errorRate = metrics.filter(m => m.error).length / metrics.length;
+    const errorRate = metrics.filter((m) => m.error).length / metrics.length;
     if (errorRate > 0.05) {
-      bottlenecks.push({ type: 'errors', severity: 'medium', location: 'application' });
+      bottlenecks.push({ type: "errors", severity: "medium", location: "application" });
     }
 
     return bottlenecks;
@@ -674,7 +687,7 @@ export class GlobalSpeedService {
     return opportunities.map((opp, index) => ({
       ...opp,
       phase: Math.floor(index / 2) + 1, // 2 optimizations per phase
-      estimatedDuration: opp.complexity === 'low' ? 1 : opp.complexity === 'medium' ? 2 : 4
+      estimatedDuration: opp.complexity === "low" ? 1 : opp.complexity === "medium" ? 2 : 4
     }));
   }
 
@@ -682,7 +695,7 @@ export class GlobalSpeedService {
     const timeline = {};
     let currentWeek = 1;
 
-    phases.forEach(phase => {
+    phases.forEach((phase) => {
       timeline[`week_${currentWeek}`] = [phase.description];
       currentWeek += phase.estimatedDuration;
     });
@@ -693,15 +706,15 @@ export class GlobalSpeedService {
   private identifyDependencies(phases: any[]): any {
     const dependencies = {};
 
-    phases.forEach(phase => {
+    phases.forEach((phase) => {
       dependencies[phase.type] = [];
 
-      if (phase.type.includes('scaling')) {
-        dependencies[phase.type].push('infrastructure_setup');
+      if (phase.type.includes("scaling")) {
+        dependencies[phase.type].push("infrastructure_setup");
       }
 
-      if (phase.type.includes('latency')) {
-        dependencies[phase.type].push('monitoring_setup');
+      if (phase.type.includes("latency")) {
+        dependencies[phase.type].push("monitoring_setup");
       }
     });
 
@@ -709,32 +722,36 @@ export class GlobalSpeedService {
   }
 
   private generateRollbackPlan(phases: any[]): any {
-    return phases.map(phase => ({
+    return phases.map((phase) => ({
       optimization: phase.description,
       rollbackSteps: [
-        'Stop new traffic routing',
-        'Revert to previous configuration',
-        'Monitor system stability',
-        'Gradually increase traffic'
+        "Stop new traffic routing",
+        "Revert to previous configuration",
+        "Monitor system stability",
+        "Gradually increase traffic"
       ],
-      rollbackTime: phase.complexity === 'low' ? 15 : phase.complexity === 'medium' ? 30 : 60 // minutes
+      rollbackTime: phase.complexity === "low" ? 15 : phase.complexity === "medium" ? 30 : 60 // minutes
     }));
   }
 
   private calculatePriority(phase: any): number {
-    const impactScore = phase.impact === 'high' ? 3 : phase.impact === 'medium' ? 2 : 1;
-    const complexityScore = phase.complexity === 'low' ? 3 : phase.complexity === 'medium' ? 2 : 1;
+    const impactScore = phase.impact === "high" ? 3 : phase.impact === "medium" ? 2 : 1;
+    const complexityScore = phase.complexity === "low" ? 3 : phase.complexity === "medium" ? 2 : 1;
 
     return impactScore * 2 + complexityScore;
   }
 
   private estimateEffort(phase: any): string {
-    return phase.complexity === 'low' ? '1-2 days' : phase.complexity === 'medium' ? '1-2 weeks' : '1-2 months';
+    return phase.complexity === "low"
+      ? "1-2 days"
+      : phase.complexity === "medium"
+        ? "1-2 weeks"
+        : "1-2 months";
   }
 
   private assessRisk(phase: any): string {
-    if (phase.impact === 'high' && phase.complexity === 'high') return 'high';
-    if (phase.impact === 'high' || phase.complexity === 'high') return 'medium';
-    return 'low';
+    if (phase.impact === "high" && phase.complexity === "high") return "high";
+    if (phase.impact === "high" || phase.complexity === "high") return "medium";
+    return "low";
   }
 }

@@ -1,21 +1,34 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { useEffect, useState } from "react";
+import { Card, Button, Badge, Alert, LoadingSpinner } from "@pulsco/admin-ui-core";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell
+} from "recharts";
 
 interface CommercialMetrics {
-  marketPenetration: number
-  userAcquisition: number
-  conversionRate: number
-  customerLifetimeValue: number
-  churnRate: number
-  regionalGrowth: { region: string; growth: number }[]
-  channelPerformance: { channel: string; conversions: number }[]
-  campaignROI: { campaign: string; roi: number }[]
+  marketPenetration: number;
+  userAcquisition: number;
+  conversionRate: number;
+  customerLifetimeValue: number;
+  churnRate: number;
+  regionalGrowth: { region: string; growth: number }[];
+  channelPerformance: { channel: string; conversions: number }[];
+  campaignROI: { campaign: string; roi: number }[];
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 const FALLBACK_METRICS: CommercialMetrics = {
   marketPenetration: 12.5,
@@ -24,94 +37,105 @@ const FALLBACK_METRICS: CommercialMetrics = {
   customerLifetimeValue: 1250,
   churnRate: 2.1,
   regionalGrowth: [
-    { region: 'North America', growth: 15.2 },
-    { region: 'Europe', growth: 8.7 },
-    { region: 'Asia Pacific', growth: 22.1 },
-    { region: 'Latin America', growth: 12.8 }
+    { region: "North America", growth: 15.2 },
+    { region: "Europe", growth: 8.7 },
+    { region: "Asia Pacific", growth: 22.1 },
+    { region: "Latin America", growth: 12.8 }
   ],
   channelPerformance: [
-    { channel: 'Organic Search', conversions: 1250 },
-    { channel: 'Paid Ads', conversions: 890 },
-    { channel: 'Social Media', conversions: 567 },
-    { channel: 'Email', conversions: 340 }
+    { channel: "Organic Search", conversions: 1250 },
+    { channel: "Paid Ads", conversions: 890 },
+    { channel: "Social Media", conversions: 567 },
+    { channel: "Email", conversions: 340 }
   ],
   campaignROI: [
-    { campaign: 'Q4 Launch', roi: 3.2 },
-    { campaign: 'Holiday Promo', roi: 2.8 },
-    { campaign: 'Partnership Drive', roi: 4.1 },
-    { campaign: 'Retention Campaign', roi: 1.9 }
+    { campaign: "Q4 Launch", roi: 3.2 },
+    { campaign: "Holiday Promo", roi: 2.8 },
+    { campaign: "Partnership Drive", roi: 4.1 },
+    { campaign: "Retention Campaign", roi: 1.9 }
   ]
-}
+};
 
 const FALLBACK_ALERTS = [
   {
-    id: '1',
-    type: 'warning',
-    title: 'Low Conversion Rate',
-    description: 'Conversion rate below target threshold',
-    severity: 'medium'
+    id: "1",
+    type: "warning",
+    title: "Low Conversion Rate",
+    description: "Conversion rate below target threshold",
+    severity: "medium"
   }
-]
+];
 
 export default function CommercialDashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [metrics, setMetrics] = useState<CommercialMetrics | null>(null)
-  const [alerts, setAlerts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<CommercialMetrics | null>(null);
+  const [alerts, setAlerts] = useState<any[]>([]);
 
   useEffect(() => {
     const loadMetrics = async () => {
       try {
-        const headers = { 'x-admin-role': 'commercial-outreach' }
+        const headers = { "x-admin-role": "commercial-outreach" };
         const [metricsRes, anomaliesRes] = await Promise.all([
-          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
-        ])
+          fetch("api/admin/intelligence?action=metrics", { headers, cache: "no-store" }),
+          fetch("api/admin/intelligence?action=anomalies", { headers, cache: "no-store" })
+        ]);
 
         if (!metricsRes.ok) {
-          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+          throw new Error(`Metrics request failed with ${metricsRes.status}`);
         }
 
-        const metricsPayload = await metricsRes.json()
-        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        const metricsPayload = await metricsRes.json();
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {};
 
         setMetrics({
           ...FALLBACK_METRICS,
           ...rawMetrics,
-          regionalGrowth: Array.isArray(rawMetrics.regionalGrowth) ? rawMetrics.regionalGrowth : FALLBACK_METRICS.regionalGrowth,
-          channelPerformance: Array.isArray(rawMetrics.channelPerformance) ? rawMetrics.channelPerformance : FALLBACK_METRICS.channelPerformance,
-          campaignROI: Array.isArray(rawMetrics.campaignROI) ? rawMetrics.campaignROI : FALLBACK_METRICS.campaignROI
-        })
+          regionalGrowth: Array.isArray(rawMetrics.regionalGrowth)
+            ? rawMetrics.regionalGrowth
+            : FALLBACK_METRICS.regionalGrowth,
+          channelPerformance: Array.isArray(rawMetrics.channelPerformance)
+            ? rawMetrics.channelPerformance
+            : FALLBACK_METRICS.channelPerformance,
+          campaignROI: Array.isArray(rawMetrics.campaignROI)
+            ? rawMetrics.campaignROI
+            : FALLBACK_METRICS.campaignROI
+        });
 
         if (anomaliesRes.ok) {
-          const anomaliesPayload = await anomaliesRes.json()
-          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          const anomaliesPayload = await anomaliesRes.json();
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || [];
           if (Array.isArray(anomalies) && anomalies.length > 0) {
             setAlerts(
               anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
                 id: String(index + 1),
-                type: anomaly.severity === 'critical' ? 'error' : anomaly.severity === 'high' ? 'warning' : 'warning',
-                title: anomaly.title || `Commercial anomaly in ${anomaly.metric || 'metric'}`,
-                description: anomaly.description || 'CSI reported an unexpected commercial signal.',
-                severity: anomaly.severity || 'medium'
+                type:
+                  anomaly.severity === "critical"
+                    ? "error"
+                    : anomaly.severity === "high"
+                      ? "warning"
+                      : "warning",
+                title: anomaly.title || `Commercial anomaly in ${anomaly.metric || "metric"}`,
+                description: anomaly.description || "CSI reported an unexpected commercial signal.",
+                severity: anomaly.severity || "medium"
               }))
-            )
+            );
           } else {
-            setAlerts(FALLBACK_ALERTS)
+            setAlerts(FALLBACK_ALERTS);
           }
         } else {
-          setAlerts(FALLBACK_ALERTS)
+          setAlerts(FALLBACK_ALERTS);
         }
       } catch (error) {
-        console.error('Failed to load commercial intelligence', error)
-        setMetrics(FALLBACK_METRICS)
-        setAlerts(FALLBACK_ALERTS)
+        console.error("Failed to load commercial intelligence", error);
+        setMetrics(FALLBACK_METRICS);
+        setAlerts(FALLBACK_ALERTS);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadMetrics()
-  }, [])
+    loadMetrics();
+  }, []);
 
   if (isLoading) {
     return (
@@ -121,7 +145,7 @@ export default function CommercialDashboard() {
           <p className="mt-4 text-gray-600">Loading Commercial Dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -136,8 +160,12 @@ export default function CommercialDashboard() {
                 <p className="text-gray-600">Market growth, acquisition, and outreach metrics</p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="secondary" size="sm">Export Report</Button>
-                <Button variant="primary" size="sm">New Campaign</Button>
+                <Button variant="secondary" size="sm">
+                  Export Report
+                </Button>
+                <Button variant="primary" size="sm">
+                  New Campaign
+                </Button>
               </div>
             </div>
           </div>
@@ -148,16 +176,20 @@ export default function CommercialDashboard() {
         {/* Alerts Panel */}
         {alerts.length > 0 && (
           <div className="mb-8">
-            {alerts.map(alert => (
-              <Alert key={alert.id} type={alert.type === 'warning' ? 'warning' : 'error'}>
+            {alerts.map((alert) => (
+              <Alert key={alert.id} type={alert.type === "warning" ? "warning" : "error"}>
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-medium">{alert.title}</h4>
                     <p className="text-sm">{alert.description}</p>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="secondary">Acknowledge</Button>
-                    <Button size="sm" variant="primary">Escalate</Button>
+                    <Button size="sm" variant="secondary">
+                      Acknowledge
+                    </Button>
+                    <Button size="sm" variant="primary">
+                      Escalate
+                    </Button>
                   </div>
                 </div>
               </Alert>
@@ -181,7 +213,9 @@ export default function CommercialDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">User Acquisition</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.userAcquisition.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.userAcquisition.toLocaleString()}
+                </p>
               </div>
               <Badge variant="success">+15.3%</Badge>
             </div>
@@ -201,7 +235,9 @@ export default function CommercialDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Customer LTV</p>
-                <p className="text-2xl font-bold text-gray-900">${metrics?.customerLifetimeValue}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${metrics?.customerLifetimeValue}
+                </p>
               </div>
               <Badge variant="success">+8.2%</Badge>
             </div>
@@ -277,12 +313,22 @@ export default function CommercialDashboard() {
                       {campaign.roi}x
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={campaign.roi > 3 ? 'success' : campaign.roi > 2 ? 'warning' : 'error'}>
-                        {campaign.roi > 3 ? 'Excellent' : campaign.roi > 2 ? 'Good' : 'Needs Attention'}
+                      <Badge
+                        variant={
+                          campaign.roi > 3 ? "success" : campaign.roi > 2 ? "warning" : "error"
+                        }
+                      >
+                        {campaign.roi > 3
+                          ? "Excellent"
+                          : campaign.roi > 2
+                            ? "Good"
+                            : "Needs Attention"}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button size="sm" variant="secondary">View Details</Button>
+                      <Button size="sm" variant="secondary">
+                        View Details
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -292,5 +338,5 @@ export default function CommercialDashboard() {
         </Card>
       </main>
     </div>
-  )
+  );
 }

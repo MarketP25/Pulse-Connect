@@ -1,14 +1,20 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn
+} from "typeorm";
 
-@Entity('pap_templates')
+@Entity("pap_templates")
 export class TemplateEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 255 })
   name: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description: string;
 
   @Column({ length: 50 })
@@ -17,19 +23,19 @@ export class TemplateEntity {
   @Column({ length: 50 })
   channel: string; // email, sms, push, etc.
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   subject: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   body: string;
 
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   variables: any[]; // TemplateVariable[]
 
-  @Column({ type: 'jsonb', default: { enabled: false, languages: [], fallbackLanguage: 'en' } })
+  @Column({ type: "jsonb", default: { enabled: false, languages: [], fallbackLanguage: "en" } })
   localization: any; // TemplateLocalization
 
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   tags: string[];
 
   @Column({ length: 255 })

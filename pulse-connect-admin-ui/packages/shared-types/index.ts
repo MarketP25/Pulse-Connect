@@ -5,7 +5,7 @@ export interface AdminRole {
   id: string;
   email: string;
   role: AdminRoleType;
-  status: 'active' | 'suspended' | 'decommissioned';
+  status: "active" | "suspended" | "decommissioned";
   deviceFingerprint?: string;
   lastLogin?: Date;
   sessionExpiry?: Date;
@@ -13,31 +13,31 @@ export interface AdminRole {
   updatedAt: Date;
 }
 
-export type AdminRoleType = 
-  | 'superadmin'
-  | 'coo'
-  | 'business-ops'
-  | 'people-risk'
-  | 'procurement-partnerships'
-  | 'legal-finance'
-  | 'commercial-outreach'
-  | 'tech-security'
-  | 'customer-experience'
-  | 'governance-registrar'
-  | 'dpo';
+export type AdminRoleType =
+  | "superadmin"
+  | "coo"
+  | "business-ops"
+  | "people-risk"
+  | "procurement-partnerships"
+  | "legal-finance"
+  | "commercial-outreach"
+  | "tech-security"
+  | "customer-experience"
+  | "governance-registrar"
+  | "dpo";
 
 export const ADMIN_EMAILS: Record<AdminRoleType, string> = {
-  'superadmin': 'superadmin@pulsco.com',
-  'coo': 'coo@pulsco.com',
-  'business-ops': 'business-ops@pulsco.com',
-  'people-risk': 'people-risk@pulsco.com',
-  'procurement-partnerships': 'procurement-partnerships@pulsco.com',
-  'legal-finance': 'legal-finance@pulsco.com',
-  'commercial-outreach': 'commercial-outreach@pulsco.com',
-  'tech-security': 'tech-security@pulsco.com',
-  'customer-experience': 'customer-experience@pulsco.com',
-  'governance-registrar': 'governance-registrar@pulsco.com',
-  'dpo': 'dpo@pulsco.com'
+  superadmin: "superadmin@pulsco.global",
+  coo: "coo@pulsco.global",
+  "business-ops": "business-ops@pulsco.global",
+  "people-risk": "people-risk@pulsco.global",
+  "procurement-partnerships": "procurement-partnerships@pulsco.global",
+  "legal-finance": "legal-finance@pulsco.global",
+  "commercial-outreach": "commercial-outreach@pulsco.global",
+  "tech-security": "tech-security@pulsco.global",
+  "customer-experience": "customer-experience@pulsco.global",
+  "governance-registrar": "governance-registrar@pulsco.global",
+  dpo: "dpo@pulsco.global"
 };
 
 export const MAX_ADMIN_COUNT = 11;
@@ -66,7 +66,7 @@ export interface SignedMetricBundle {
   id: string;
   metrics: Record<string, any>;
   signature: string;
-  signer: 'marp-governance-core' | 'csi-intelligence';
+  signer: "marp-governance-core" | "csi-intelligence";
   timestamp: Date;
   scope: AdminRoleType[];
   confidenceScore?: number;
@@ -92,13 +92,13 @@ export interface EscalationRule {
   condition: string;
   targetRole: AdminRoleType;
   timeoutMinutes: number;
-  action: 'notify' | 'escalate' | 'freeze' | 'audit';
+  action: "notify" | "escalate" | "freeze" | "audit";
 }
 
 export interface Alert {
   id: string;
-  type: 'csi-anomaly' | 'threshold-breach' | 'policy-violation' | 'system-degraded';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "csi-anomaly" | "threshold-breach" | "policy-violation" | "system-degraded";
+  severity: "low" | "medium" | "high" | "critical";
   title: string;
   description: string;
   source: string;
@@ -138,8 +138,8 @@ export interface MetricLineage {
 
 export interface ComplianceFlag {
   id: string;
-  type: 'data-residency' | 'legal-hold' | 'jurisdiction-conflict';
-  severity: 'info' | 'warning' | 'error';
+  type: "data-residency" | "legal-hold" | "jurisdiction-conflict";
+  severity: "info" | "warning" | "error";
   description: string;
   affectedMetrics: string[];
   jurisdiction: string;
@@ -149,13 +149,20 @@ export interface ComplianceFlag {
 
 export interface AuditEvent {
   id: string;
-  type: 'admin-login' | 'metric-access' | 'dashboard-view' | 'alert-acknowledge' | 'export' | 'freeze' | 'escalate';
+  type:
+    | "admin-login"
+    | "metric-access"
+    | "dashboard-view"
+    | "alert-acknowledge"
+    | "export"
+    | "freeze"
+    | "escalate";
   adminId: string;
   adminEmail: string;
   adminRole: AdminRoleType;
   resource?: string;
   action: string;
-  result: 'success' | 'failure' | 'blocked';
+  result: "success" | "failure" | "blocked";
   reason?: string;
   deviceFingerprint: string;
   ipAddress?: string;
@@ -165,8 +172,8 @@ export interface AuditEvent {
 }
 
 export interface SystemHealth {
-  component: 'csi' | 'marp' | 'edge-gateway' | 'dashboard';
-  status: 'healthy' | 'degraded' | 'critical' | 'offline';
+  component: "csi" | "marp" | "edge-gateway" | "dashboard";
+  status: "healthy" | "degraded" | "critical" | "offline";
   lastCheck: Date;
   metrics: Record<string, number>;
   alerts: string[];

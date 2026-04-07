@@ -15,10 +15,22 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const userId = getDashboardUserId(req);
-    const body = await parseJsonBody<{ consents?: Partial<Record<"privacyPolicy" | "termsOfService" | "dataProcessing" | "marketing" | "locationServices" | "profiling", boolean>> }>(req);
+    const body = await parseJsonBody<{
+      consents?: Partial<
+        Record<
+          | "privacyPolicy"
+          | "termsOfService"
+          | "dataProcessing"
+          | "marketing"
+          | "locationServices"
+          | "profiling",
+          boolean
+        >
+      >;
+    }>(req);
 
     const result = await updateSecurityModule(userId, {
-      consents: body.consents,
+      consents: body.consents
     });
 
     return noStoreJson(result);

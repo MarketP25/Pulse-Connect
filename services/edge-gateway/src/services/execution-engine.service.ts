@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ExecuteRequestDto, DecisionType, ExecutionDecision } from '../dto/execute-request.dto';
-import { PolicySnapshot } from './policy-cache.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { ExecuteRequestDto, DecisionType, ExecutionDecision } from "../dto/execute-request.dto";
+import { PolicySnapshot } from "./policy-cache.service";
 
 @Injectable()
 export class ExecutionEngineService {
@@ -30,14 +30,13 @@ export class ExecutionEngineService {
 
       // Step 3: Apply AI-driven risk assessment if no rules match
       return await this.performRiskAssessment(request, policy);
-
     } catch (error) {
       this.logger.error(`Policy evaluation failed: ${error.message}`);
       return {
         type: DecisionType.BLOCK,
         rationale: `Policy evaluation error: ${error.message}`,
         riskScore: 1.0,
-        ruleId: 'error-fallback',
+        ruleId: "error-fallback"
       };
     }
   }
@@ -45,7 +44,10 @@ export class ExecutionEngineService {
   /**
    * Evaluate individual policy rule
    */
-  private async evaluateRule(request: ExecuteRequestDto, rule: any): Promise<ExecutionDecision | null> {
+  private async evaluateRule(
+    request: ExecuteRequestDto,
+    rule: any
+  ): Promise<ExecutionDecision | null> {
     try {
       // Check if rule conditions match
       const conditionsMet = await this.evaluateConditions(request, rule.conditions || []);
@@ -55,41 +57,40 @@ export class ExecutionEngineService {
       }
 
       // Rule matches - determine action
-      const action = rule.action || 'allow';
+      const action = rule.action || "allow";
       const riskScore = this.calculateRiskScore(request, rule);
 
       switch (action) {
-        case 'allow':
+        case "allow":
           return {
             type: DecisionType.ALLOW,
-            rationale: rule.rationale || `Allowed by rule: ${rule.id || 'unnamed'}`,
+            rationale: rule.rationale || `Allowed by rule: ${rule.id || "unnamed"}`,
             riskScore,
-            ruleId: rule.id,
+            ruleId: rule.id
           };
 
-        case 'block':
+        case "block":
           return {
             type: DecisionType.BLOCK,
-            rationale: rule.rationale || `Blocked by rule: ${rule.id || 'unnamed'}`,
+            rationale: rule.rationale || `Blocked by rule: ${rule.id || "unnamed"}`,
             riskScore,
-            ruleId: rule.id,
+            ruleId: rule.id
           };
 
-        case 'quarantine':
+        case "quarantine":
           return {
             type: DecisionType.QUARANTINE,
-            rationale: rule.rationale || `Quarantined by rule: ${rule.id || 'unnamed'}`,
+            rationale: rule.rationale || `Quarantined by rule: ${rule.id || "unnamed"}`,
             riskScore,
             ruleId: rule.id,
             quarantineReason: rule.quarantineReason,
             quarantineDuration: rule.quarantineDuration,
-            escalationRequired: rule.escalationRequired,
+            escalationRequired: rule.escalationRequired
           };
 
         default:
           return null;
       }
-
     } catch (error) {
       this.logger.warn(`Rule evaluation failed: ${error.message}`);
       return null;
@@ -99,7 +100,10 @@ export class ExecutionEngineService {
   /**
    * Evaluate rule conditions against request
    */
-  private async evaluateConditions(request: ExecuteRequestDto, conditions: any[]): Promise<boolean> {
+  private async evaluateConditions(
+    request: ExecuteRequestDto,
+    conditions: any[]
+  ): Promise<boolean> {
     for (const condition of conditions) {
       const met = await this.evaluateCondition(request, condition);
       if (!met) {
@@ -120,19 +124,19 @@ export class ExecutionEngineService {
 
     // Apply operator
     switch (operator) {
-      case 'equals':
+      case "equals":
         return fieldValue === value;
-      case 'not_equals':
+      case "not_equals":
         return fieldValue !== value;
-      case 'contains':
+      case "contains":
         return String(fieldValue).includes(String(value));
-      case 'greater_than':
+      case "greater_than":
         return Number(fieldValue) > Number(value);
-      case 'less_than':
+      case "less_than":
         return Number(fieldValue) < Number(value);
-      case 'in':
+      case "in":
         return Array.isArray(value) && value.includes(fieldValue);
-      case 'not_in':
+      case "not_in":
         return Array.isArray(value) && !value.includes(fieldValue);
       default:
         return false;
@@ -143,11 +147,11 @@ export class ExecutionEngineService {
    * Extract field value from request using dot notation
    */
   private extractFieldValue(request: ExecuteRequestDto, fieldPath: string): any {
-    const parts = fieldPath.split('.');
+    const parts = fieldPath.split(".");
     let value: any = request;
 
     for (const part of parts) {
-      if (value && typeof value === 'object') {
+      if (value && typeof value === "object") {
         value = value[part];
       } else {
         return undefined;
@@ -183,10 +187,10 @@ export class ExecutionEngineService {
         type: DecisionType.QUARANTINE,
         rationale: `High risk score (${riskScore.toFixed(2)}) exceeds threshold`,
         riskScore,
-        ruleId: 'ai-risk-assessment',
-        quarantineReason: 'AI-detected high risk',
+        ruleId: "ai-risk-assessment",
+        quarantineReason: "AI-detected high risk",
         quarantineDuration: 3600000, // 1 hour
-        escalationRequired: riskScore > 0.9,
+        escalationRequired: riskScore > 0.9
       };
     }
 
@@ -194,7 +198,7 @@ export class ExecutionEngineService {
       type: DecisionType.ALLOW,
       rationale: `AI risk assessment passed (score: ${riskScore.toFixed(2)})`,
       riskScore,
-      ruleId: 'ai-risk-assessment',
+      ruleId: "ai-risk-assessment"
     };
   }
 
@@ -205,22 +209,22 @@ export class ExecutionEngineService {
     let risk = baseRisk;
 
     switch (request.subsystem) {
-      case 'payments':
+      case "payments":
         if (request.context?.amount > 5000) risk += 0.3;
-        if (request.context?.destination === 'high-risk') risk += 0.2;
+        if (request.context?.destination === "high-risk") risk += 0.2;
         break;
 
-      case 'ai-engine-chatbot':
-        if (request.context?.intent === 'unsafe') risk += 0.4;
+      case "ai-engine-chatbot":
+        if (request.context?.intent === "unsafe") risk += 0.4;
         if (request.context?.contentLength > 1000) risk += 0.1;
         break;
 
-      case 'matchmaking':
+      case "matchmaking":
         if (request.context?.crossRegion) risk += 0.2;
         if (request.context?.ageDifference > 10) risk += 0.1;
         break;
 
-      case 'automated-marketing':
+      case "automated-marketing":
         if (request.context?.frequency > 5) risk += 0.3;
         if (!request.context?.consent) risk += 0.5;
         break;
@@ -237,7 +241,7 @@ export class ExecutionEngineService {
     let score = rule.riskScore || 0.5;
 
     // Adjust based on request context
-    if (request.context?.urgency === 'high') score += 0.1;
+    if (request.context?.urgency === "high") score += 0.1;
     if (request.context?.verified === false) score += 0.2;
 
     return Math.min(Math.max(score, 0), 1);

@@ -1,6 +1,6 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EventEmitter2 } from 'eventemitter2';
+import { Injectable, Logger, Inject } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EventEmitter2 } from "eventemitter2";
 
 export interface IntelligenceEvent {
   eventId: string;
@@ -29,7 +29,7 @@ export interface EventSubscription {
 }
 
 export interface DecisionEvent extends IntelligenceEvent {
-  eventType: 'decision.made' | 'decision.updated' | 'decision.reversed';
+  eventType: "decision.made" | "decision.updated" | "decision.reversed";
   payload: {
     decisionId: string;
     userId: string;
@@ -42,7 +42,7 @@ export interface DecisionEvent extends IntelligenceEvent {
 }
 
 export interface PolicyEvent extends IntelligenceEvent {
-  eventType: 'policy.activated' | 'policy.deactivated' | 'policy.updated';
+  eventType: "policy.activated" | "policy.deactivated" | "policy.updated";
   payload: {
     policyId: string;
     version: string;
@@ -54,7 +54,11 @@ export interface PolicyEvent extends IntelligenceEvent {
 }
 
 export interface TransactionEvent extends IntelligenceEvent {
-  eventType: 'transaction.started' | 'transaction.completed' | 'transaction.failed' | 'transaction.reversed';
+  eventType:
+    | "transaction.started"
+    | "transaction.completed"
+    | "transaction.failed"
+    | "transaction.reversed";
   payload: {
     transactionId: string;
     type: string;
@@ -71,8 +75,8 @@ export class EventBusService {
   private readonly logger = new Logger(EventBusService.name);
   private readonly eventEmitter = new EventEmitter2({
     wildcard: true,
-    delimiter: '.',
-    maxListeners: 100,
+    delimiter: ".",
+    maxListeners: 100
   });
   private readonly subscriptions = new Map<string, EventSubscription[]>();
   private readonly eventHistory: IntelligenceEvent[] = [];
@@ -80,9 +84,7 @@ export class EventBusService {
   private readonly decisionCache = new Map<string, DecisionEvent>();
   private readonly policyCache = new Map<string, PolicyEvent>();
 
-  constructor(
-    @Inject('KAFKA_CLIENT') private readonly kafkaClient: ClientKafka,
-  ) {
+  constructor(@Inject("KAFKA_CLIENT") private readonly kafkaClient: ClientKafka) {
     this.initializeEventHandlers();
     this.initializeDecisionEngine();
     this.initializePolicyEngine();
@@ -93,32 +95,32 @@ export class EventBusService {
    */
   private initializeEventHandlers() {
     // Handle decision events
-    this.subscribe('decision.*', async (event) => {
+    this.subscribe("decision.*", async (event) => {
       await this.handleDecisionEvent(event as DecisionEvent);
     });
 
     // Handle policy events
-    this.subscribe('policy.*', async (event) => {
+    this.subscribe("policy.*", async (event) => {
       await this.handlePolicyEvent(event as PolicyEvent);
     });
 
     // Handle transaction events
-    this.subscribe('transaction.*', async (event) => {
+    this.subscribe("transaction.*", async (event) => {
       await this.handleTransactionEvent(event as TransactionEvent);
     });
 
     // Handle system events
-    this.subscribe('system.*', async (event) => {
+    this.subscribe("system.*", async (event) => {
       this.logger.debug(`System event received: ${event.eventType}`);
     });
 
     // Handle error events
-    this.subscribe('error.*', async (event) => {
+    this.subscribe("error.*", async (event) => {
       this.logger.error(`Error event: ${event.eventType}`, event.payload);
     });
 
     // Handle telemetry events
-    this.subscribe('telemetry.*', async (event) => {
+    this.subscribe("telemetry.*", async (event) => {
       await this.forwardToTelemetry(event);
     });
   }
@@ -127,12 +129,12 @@ export class EventBusService {
    * Initialize decision engine event handlers
    */
   private initializeDecisionEngine() {
-    this.subscribe('decision.made', async (event: DecisionEvent) => {
+    this.subscribe("decision.made", async (event: DecisionEvent) => {
       this.decisionCache.set(event.payload.decisionId, event);
       await this.evaluateDecisionImpact(event);
     });
 
-    this.subscribe('decision.reversed', async (event: DecisionEvent) => {
+    this.subscribe("decision.reversed", async (event: DecisionEvent) => {
       const originalDecision = this.decisionCache.get(event.payload.decisionId);
       if (originalDecision) {
         await this.handleDecisionReversal(originalDecision, event);
@@ -144,12 +146,12 @@ export class EventBusService {
    * Initialize policy engine event handlers
    */
   private initializePolicyEngine() {
-    this.subscribe('policy.activated', async (event: PolicyEvent) => {
+    this.subscribe("policy.activated", async (event: PolicyEvent) => {
       this.policyCache.set(event.payload.policyId, event);
       await this.applyPolicyRules(event);
     });
 
-    this.subscribe('policy.deactivated', async (event: PolicyEvent) => {
+    this.subscribe("policy.deactivated", async (event: PolicyEvent) => {
       this.policyCache.delete(event.payload.policyId);
       await this.removePolicyRules(event);
     });
@@ -180,7 +182,6 @@ export class EventBusService {
 
       // Forward to Kafka for distributed processing
       await this.forwardToKafka(event);
-
     } catch (error) {
       this.logger.error(`Failed to publish event ${event.eventType}: ${error.message}`);
       throw error;
@@ -190,12 +191,17 @@ export class EventBusService {
   /**
    * Subscribe to events
    */
-  subscribe(eventPattern: string, handler: (event: IntelligenceEvent) => Promise<void>, filter?: (event: IntelligenceEvent) => boolean, priority: number = 0): void {
+  subscribe(
+    eventPattern: string,
+    handler: (event: IntelligenceEvent) => Promise<void>,
+    filter?: (event: IntelligenceEvent) => boolean,
+    priority: number = 0
+  ): void {
     const subscription: EventSubscription = {
       eventType: eventPattern,
       handler,
       filter,
-      priority,
+      priority
     };
 
     if (!this.subscriptions.has(eventPattern)) {
@@ -231,7 +237,7 @@ export class EventBusService {
       // Remove specific handler
       const subs = this.subscriptions.get(eventPattern);
       if (subs) {
-        const index = subs.findIndex(sub => sub.handler === handler);
+        const index = subs.findIndex((sub) => sub.handler === handler);
         if (index > -1) {
           subs.splice(index, 1);
         }
@@ -286,12 +292,12 @@ export class EventBusService {
     const responseEvent: IntelligenceEvent = {
       eventId: this.generateEventId(),
       eventType: `response.${correlationId}`,
-      source: 'intelligence-core',
+      source: "intelligence-core",
       payload,
       metadata: {
         correlationId,
-        timestamp: new Date().toISOString(),
-      },
+        timestamp: new Date().toISOString()
+      }
     };
 
     await this.publish(responseEvent);
@@ -300,18 +306,20 @@ export class EventBusService {
   /**
    * Publish decision event
    */
-  async publishDecision(decision: Omit<DecisionEvent['payload'], 'decisionId'> & { decisionId?: string }): Promise<string> {
+  async publishDecision(
+    decision: Omit<DecisionEvent["payload"], "decisionId"> & { decisionId?: string }
+  ): Promise<string> {
     const decisionId = decision.decisionId || this.generateDecisionId();
     const event: DecisionEvent = {
       eventId: this.generateEventId(),
-      eventType: 'decision.made',
-      source: 'intelligence-core',
+      eventType: "decision.made",
+      source: "intelligence-core",
       payload: { ...decision, decisionId },
       metadata: {
         timestamp: new Date().toISOString(),
         decisionId,
-        userId: decision.userId,
-      },
+        userId: decision.userId
+      }
     };
 
     await this.publish(event);
@@ -321,16 +329,16 @@ export class EventBusService {
   /**
    * Publish policy event
    */
-  async publishPolicy(policy: PolicyEvent['payload']): Promise<void> {
+  async publishPolicy(policy: PolicyEvent["payload"]): Promise<void> {
     const event: PolicyEvent = {
       eventId: this.generateEventId(),
-      eventType: 'policy.activated',
-      source: 'intelligence-core',
+      eventType: "policy.activated",
+      source: "intelligence-core",
       payload: policy,
       metadata: {
         timestamp: new Date().toISOString(),
-        policyId: policy.policyId,
-      },
+        policyId: policy.policyId
+      }
     };
 
     await this.publish(event);
@@ -339,17 +347,17 @@ export class EventBusService {
   /**
    * Publish transaction event
    */
-  async publishTransaction(transaction: TransactionEvent['payload']): Promise<void> {
+  async publishTransaction(transaction: TransactionEvent["payload"]): Promise<void> {
     const event: TransactionEvent = {
       eventId: this.generateEventId(),
       eventType: `transaction.${transaction.status}`,
-      source: 'intelligence-core',
+      source: "intelligence-core",
       payload: transaction,
       metadata: {
         timestamp: new Date().toISOString(),
         transactionId: transaction.transactionId,
-        userId: transaction.parties[0], // Primary party
-      },
+        userId: transaction.parties[0] // Primary party
+      }
     };
 
     await this.publish(event);
@@ -367,7 +375,9 @@ export class EventBusService {
    */
   getDecisionHistory(userId: string, limit: number = 50): DecisionEvent[] {
     return this.eventHistory
-      .filter(event => event.eventType.startsWith('decision.') && event.metadata?.userId === userId)
+      .filter(
+        (event) => event.eventType.startsWith("decision.") && event.metadata?.userId === userId
+      )
       .slice(-limit) as DecisionEvent[];
   }
 
@@ -377,7 +387,7 @@ export class EventBusService {
   getSubscriptions(): Array<{ pattern: string; count: number }> {
     return Array.from(this.subscriptions.entries()).map(([pattern, subs]) => ({
       pattern,
-      count: subs.length,
+      count: subs.length
     }));
   }
 
@@ -392,8 +402,8 @@ export class EventBusService {
    * Get active policies
    */
   getActivePolicies(): PolicyEvent[] {
-    return Array.from(this.policyCache.values()).filter(policy =>
-      !policy.payload.effectiveTo || new Date(policy.payload.effectiveTo) > new Date()
+    return Array.from(this.policyCache.values()).filter(
+      (policy) => !policy.payload.effectiveTo || new Date(policy.payload.effectiveTo) > new Date()
     );
   }
 
@@ -410,7 +420,7 @@ export class EventBusService {
    */
   private async handlePolicyEvent(event: PolicyEvent): Promise<void> {
     // Implement policy rule application
-    if (event.eventType === 'policy.activated') {
+    if (event.eventType === "policy.activated") {
       await this.applyPolicyRules(event);
     }
   }
@@ -420,7 +430,7 @@ export class EventBusService {
    */
   private async handleTransactionEvent(event: TransactionEvent): Promise<void> {
     // Implement transaction monitoring
-    if (event.eventType === 'transaction.failed') {
+    if (event.eventType === "transaction.failed") {
       await this.handleFailedTransaction(event);
     }
   }
@@ -441,7 +451,10 @@ export class EventBusService {
   /**
    * Handle decision reversal
    */
-  private async handleDecisionReversal(original: DecisionEvent, reversal: DecisionEvent): Promise<void> {
+  private async handleDecisionReversal(
+    original: DecisionEvent,
+    reversal: DecisionEvent
+  ): Promise<void> {
     this.logger.warn(`Decision reversed: ${original.payload.decisionId}`);
     // Implement reversal logic
   }
@@ -483,14 +496,16 @@ export class EventBusService {
   private async forwardToKafka(event: IntelligenceEvent): Promise<void> {
     try {
       const kafkaMessage = {
-        topic: 'intelligence.events',
-        messages: [{
-          key: event.eventId,
-          value: JSON.stringify({
-            ...event,
-            forwardedAt: new Date().toISOString(),
-          }),
-        }],
+        topic: "intelligence.events",
+        messages: [
+          {
+            key: event.eventId,
+            value: JSON.stringify({
+              ...event,
+              forwardedAt: new Date().toISOString()
+            })
+          }
+        ]
       };
 
       // In production: await this.kafkaClient.send(kafkaMessage);
@@ -546,14 +561,17 @@ export class EventBusService {
     const metrics = {
       totalEvents: this.eventHistory.length,
       activeSubscriptions: this.subscriptions.size,
-      totalHandlers: Array.from(this.subscriptions.values()).reduce((sum, subs) => sum + subs.length, 0),
+      totalHandlers: Array.from(this.subscriptions.values()).reduce(
+        (sum, subs) => sum + subs.length,
+        0
+      ),
       cachedDecisions: this.decisionCache.size,
-      activePolicies: this.policyCache.size,
+      activePolicies: this.policyCache.size
     };
 
     return {
       healthy: true, // Basic health check
-      metrics,
+      metrics
     };
   }
 }

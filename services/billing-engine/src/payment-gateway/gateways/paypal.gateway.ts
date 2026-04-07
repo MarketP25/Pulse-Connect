@@ -2,13 +2,13 @@
  * PayPal Payment Gateway Implementation
  */
 
-import { PaymentGateway } from '../gateway.interface';
-import { verifyWebhookSignatureHmacSha256 } from '../utils/webhook-signature';
-import { 
-  GatewayConfig, 
-  PaymentRequest, 
-  PaymentResponse, 
-  RefundRequest, 
+import { PaymentGateway } from "../gateway.interface";
+import { verifyWebhookSignatureHmacSha256 } from "../utils/webhook-signature";
+import {
+  GatewayConfig,
+  PaymentRequest,
+  PaymentResponse,
+  RefundRequest,
   RefundResponse,
   Customer,
   CustomerResponse,
@@ -16,10 +16,10 @@ import {
   WebhookEvent,
   GatewayCapabilities,
   PaymentStatus
-} from '../types';
+} from "../types";
 
 export default class PayPalGateway implements PaymentGateway {
-  readonly name = 'paypal';
+  readonly name = "paypal";
   readonly config: GatewayConfig;
 
   constructor(config: GatewayConfig) {
@@ -29,29 +29,29 @@ export default class PayPalGateway implements PaymentGateway {
   async createPayment(request: PaymentRequest): Promise<PaymentResponse> {
     try {
       const transactionId = `PP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       return {
         success: true,
         transactionId,
-        status: 'captured' as PaymentStatus,
+        status: "captured" as PaymentStatus,
         amount: request.amount,
         currency: request.currency.toUpperCase(),
         gateway: this.name,
         gatewayTransactionId: transactionId,
-        message: 'PayPal payment successful',
+        message: "PayPal payment successful",
         metadata: { customerId: request.customerId },
-        createdAt: new Date(),
+        createdAt: new Date()
       };
     } catch (error: any) {
       return {
         success: false,
-        status: 'failed' as PaymentStatus,
+        status: "failed" as PaymentStatus,
         amount: request.amount,
         currency: request.currency.toUpperCase(),
         gateway: this.name,
-        errorCode: 'paypal_error',
-        errorMessage: error.message || 'PayPal payment failed',
-        createdAt: new Date(),
+        errorCode: "paypal_error",
+        errorMessage: error.message || "PayPal payment failed",
+        createdAt: new Date()
       };
     }
   }
@@ -60,12 +60,12 @@ export default class PayPalGateway implements PaymentGateway {
     return {
       success: true,
       transactionId,
-      status: 'captured' as PaymentStatus,
+      status: "captured" as PaymentStatus,
       amount: 0,
-      currency: 'USD',
+      currency: "USD",
       gateway: this.name,
       gatewayTransactionId: transactionId,
-      createdAt: new Date(),
+      createdAt: new Date()
     };
   }
 
@@ -74,11 +74,11 @@ export default class PayPalGateway implements PaymentGateway {
     return {
       success: true,
       refundId,
-      status: 'succeeded',
+      status: "succeeded",
       amount: request.amount || 0,
-      currency: 'USD',
+      currency: "USD",
       gateway: this.name,
-      message: 'PayPal refund processed',
+      message: "PayPal refund processed"
     };
   }
 
@@ -92,7 +92,7 @@ export default class PayPalGateway implements PaymentGateway {
   }
 
   async getCustomer(customerId: string): Promise<CustomerResponse> {
-    return { success: true, customerId, gateway: this.name, email: 'customer@example.com' };
+    return { success: true, customerId, gateway: this.name, email: "customer@example.com" };
   }
 
   async createPaymentIntent(request: PaymentRequest): Promise<PaymentIntent> {
@@ -102,17 +102,17 @@ export default class PayPalGateway implements PaymentGateway {
       clientSecret,
       amount: request.amount,
       currency: request.currency,
-      status: 'pending' as PaymentStatus,
+      status: "pending" as PaymentStatus
     };
   }
 
   async handleWebhook(payload: any): Promise<WebhookEvent> {
     return {
       id: `PP_EVT_${Date.now()}`,
-      type: payload.event_type || 'payment.success',
+      type: payload.event_type || "payment.success",
       data: payload.resource || {},
       timestamp: new Date(),
-      processed: false,
+      processed: false
     };
   }
 
@@ -134,7 +134,7 @@ export default class PayPalGateway implements PaymentGateway {
       maximumRefundPercentage: 100,
       supportsMultiCurrency: true,
       maxTransactionAmount: 1000000,
-      minTransactionAmount: 100,
+      minTransactionAmount: 100
     };
   }
 

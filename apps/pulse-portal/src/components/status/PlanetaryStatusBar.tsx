@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
 type StatusItem = {
-  label: string
-  value: string | number
-  status: 'online' | 'warning' | 'offline'
-}
+  label: string;
+  value: string | number;
+  status: "online" | "warning" | "offline";
+};
 
 const STATUSES: StatusItem[] = [
-  { label: 'API Gateway', value: '99.9%', status: 'online' },
-  { label: 'Database', value: '99.8%', status: 'online' },
-  { label: 'AI Engine', value: '98.5%', status: 'online' },
-  { label: 'Firewall', value: '100%', status: 'online' },
-]
+  { label: "API Gateway", value: "99.9%", status: "online" },
+  { label: "Database", value: "99.8%", status: "online" },
+  { label: "AI Engine", value: "98.5%", status: "online" },
+  { label: "Firewall", value: "100%", status: "online" }
+];
 
-function getStatusColor(status: StatusItem['status']) {
+function getStatusColor(status: StatusItem["status"]) {
   switch (status) {
-    case 'online':
-      return 'bg-green-500'
-    case 'warning':
-      return 'bg-yellow-500'
-    case 'offline':
-      return 'bg-red-500'
+    case "online":
+      return "bg-green-500";
+    case "warning":
+      return "bg-yellow-500";
+    case "offline":
+      return "bg-red-500";
     default:
-      return 'bg-gray-500'
+      return "bg-gray-500";
   }
 }
 
@@ -42,13 +42,14 @@ export function PlanetaryStatusBar() {
             ))}
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-xs text-gray-500">Last Updated: {new Date().toLocaleTimeString()}</span>
+            <span className="text-xs text-gray-500">
+              Last Updated: {new Date().toLocaleTimeString()}
+            </span>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default PlanetaryStatusBar
-
+export default PlanetaryStatusBar;

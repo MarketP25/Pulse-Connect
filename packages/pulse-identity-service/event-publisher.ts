@@ -16,7 +16,7 @@ export class AdminGatewayIdentityEventPublisher implements IdentityEventPublishe
   constructor(
     adminGatewayUrl = process.env.ADMIN_GATEWAY_URL || "http://localhost:3001",
     serviceRole = process.env.IDENTITY_SERVICE_ADMIN_ROLE || "superadmin",
-    attestation = process.env.IDENTITY_SERVICE_PC365_ATTESTATION || "identity-service-attestation",
+    attestation = process.env.IDENTITY_SERVICE_PC365_ATTESTATION || "identity-service-attestation"
   ) {
     this.adminGatewayUrl = adminGatewayUrl;
     this.serviceRole = serviceRole;
@@ -29,18 +29,18 @@ export class AdminGatewayIdentityEventPublisher implements IdentityEventPublishe
       headers: {
         "Content-Type": "application/json",
         "x-admin-role": this.serviceRole,
-        "x-pc365-attestation": this.attestation,
+        "x-pc365-attestation": this.attestation
       },
       body: JSON.stringify({
         eventType: event.eventType,
         payload: {
           userId: event.userId,
           region: event.region,
-          ...event.payload,
+          ...event.payload
         },
         source: "pulse-identity-service",
-        timestamp: new Date().toISOString(),
-      }),
+        timestamp: new Date().toISOString()
+      })
     });
 
     if (!response.ok) {

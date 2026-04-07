@@ -69,7 +69,7 @@ As outlined in our Terms of Service, we will enforce this AUP at our sole discre
 
 If you become aware of any violation of this AUP, you are obligated to report it to our governance team immediately. Retaliation against any user for reporting a violation is itself a serious violation of this policy.
 
-**To report a violation, please contact: dto@pulsco.com**
+**To report a violation, please contact: dpo@pulsco.com**
 
 ***
 

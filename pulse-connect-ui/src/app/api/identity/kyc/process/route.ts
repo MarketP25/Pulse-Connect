@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { code: "missing_user_id", message: "userId is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -36,12 +36,14 @@ export async function POST(req: NextRequest) {
       userId,
       {
         ipRiskScore: typeof body.ipRiskScore === "number" ? body.ipRiskScore : undefined,
-        deviceConsistency: typeof body.deviceConsistency === "boolean" ? body.deviceConsistency : undefined,
-        referralTrusted: typeof body.referralTrusted === "boolean" ? body.referralTrusted : undefined,
+        deviceConsistency:
+          typeof body.deviceConsistency === "boolean" ? body.deviceConsistency : undefined,
+        referralTrusted:
+          typeof body.referralTrusted === "boolean" ? body.referralTrusted : undefined,
         documentCompleteness:
-          typeof body.documentCompleteness === "number" ? body.documentCompleteness : undefined,
+          typeof body.documentCompleteness === "number" ? body.documentCompleteness : undefined
       },
-      body.actorId || "kyc-automation-bot",
+      body.actorId || "kyc-automation-bot"
     );
 
     return NextResponse.json(result);

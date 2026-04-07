@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { emitCommunicationEvent } from '../../csi/instrumentation';
+import { Injectable, Logger } from "@nestjs/common";
+import { emitCommunicationEvent } from "../../csi/instrumentation";
 
 export interface Message {
   messageId: string;
@@ -7,13 +7,13 @@ export interface Message {
   senderId: string;
   recipientId: string;
   content: {
-    type: 'text' | 'image' | 'video' | 'file' | 'location' | 'contact';
+    type: "text" | "image" | "video" | "file" | "location" | "contact";
     text?: string;
     mediaUrl?: string;
     metadata?: any;
   };
   timestamp: Date;
-  status: 'sent' | 'delivered' | 'read' | 'failed';
+  status: "sent" | "delivered" | "read" | "failed";
   encryption: {
     algorithm: string;
     keyId: string;
@@ -25,7 +25,7 @@ export interface Message {
 export interface Conversation {
   conversationId: string;
   participants: string[];
-  type: 'direct' | 'group' | 'channel';
+  type: "direct" | "group" | "channel";
   name?: string;
   description?: string;
   avatar?: string;
@@ -42,7 +42,7 @@ export interface Conversation {
 
 export interface RealTimeEvent {
   eventId: string;
-  type: 'message' | 'typing' | 'presence' | 'reaction' | 'call';
+  type: "message" | "typing" | "presence" | "reaction" | "call";
   conversationId: string;
   userId: string;
   data: any;
@@ -55,17 +55,17 @@ export class RealTimeMessagingService {
 
   // PULSCO Planetary Messaging Infrastructure
   private planetaryConfig = {
-    regions: ['africa-south1', 'us-central1', 'europe-west1', 'asia-east1'],
+    regions: ["africa-south1", "us-central1", "europe-west1", "asia-east1"],
     encryption: {
-      algorithm: 'quantum_resistant_aes_256',
+      algorithm: "quantum_resistant_aes_256",
       keyRotation: 24 * 60 * 60 * 1000, // 24 hours
-      forwardSecrecy: true,
+      forwardSecrecy: true
     },
     scaling: {
       maxConnectionsPerNode: 10000,
       messageThroughput: 100000, // messages per second
-      storageRetention: 365, // days
-    },
+      storageRetention: 365 // days
+    }
   };
 
   // In-memory storage for demo (would be Redis/Kafka in production)
@@ -76,9 +76,13 @@ export class RealTimeMessagingService {
   /**
    * Send message with planetary routing and encryption
    */
-  async sendMessage(message: Omit<Message, 'messageId' | 'timestamp' | 'status' | 'encryption'>): Promise<Message> {
+  async sendMessage(
+    message: Omit<Message, "messageId" | "timestamp" | "status" | "encryption">
+  ): Promise<Message> {
     try {
-      this.logger.log(`Sending planetary message from ${message.senderId} to ${message.recipientId}`);
+      this.logger.log(
+        `Sending planetary message from ${message.senderId} to ${message.recipientId}`
+      );
 
       // Generate message ID and timestamp
       const messageId = this.generateMessageId();
@@ -92,8 +96,8 @@ export class RealTimeMessagingService {
         ...message,
         messageId,
         timestamp,
-        status: 'sent',
-        encryption,
+        status: "sent",
+        encryption
       };
 
       // Store message
@@ -108,34 +112,35 @@ export class RealTimeMessagingService {
       // Emit real-time event
       await this.emitRealTimeEvent({
         eventId: this.generateEventId(),
-        type: 'message',
+        type: "message",
         conversationId: message.conversationId,
         userId: message.senderId,
         data: { message: fullMessage },
-        timestamp,
+        timestamp
       });
 
       emitCommunicationEvent(
-        'message.sent',
-        message.region || 'GLOBAL',
+        "message.sent",
+        message.region || "GLOBAL",
         {
           messageId: fullMessage.messageId,
           conversationId: message.conversationId,
           senderId: message.senderId,
           recipientId: message.recipientId,
-          contentType: message.content.type,
+          contentType: message.content.type
         },
         {
           riskScore: 14,
-          performanceScore: 89,
-        },
+          performanceScore: 89
+        }
       );
 
       return fullMessage;
-
     } catch (error) {
-      this.logger.error('Message sending failed:', error);
-      throw new Error(`Message sending error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Message sending failed:", error);
+      throw new Error(
+        `Message sending error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -145,8 +150,8 @@ export class RealTimeMessagingService {
   async createConversation(
     creatorId: string,
     participants: string[],
-    type: Conversation['type'],
-    settings?: Partial<Conversation['settings']>
+    type: Conversation["type"],
+    settings?: Partial<Conversation["settings"]>
   ): Promise<Conversation> {
     try {
       const conversationId = this.generateConversationId();
@@ -157,13 +162,13 @@ export class RealTimeMessagingService {
         type,
         settings: {
           isEncrypted: true,
-          allowInvites: type !== 'direct',
+          allowInvites: type !== "direct",
           messageRetention: 365,
-          maxParticipants: type === 'group' ? 100 : type === 'channel' ? 1000 : 2,
-          ...settings,
+          maxParticipants: type === "group" ? 100 : type === "channel" ? 1000 : 2,
+          ...settings
         },
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       };
 
       // Store conversation
@@ -176,25 +181,26 @@ export class RealTimeMessagingService {
       await this.notifyConversationCreation(conversation);
 
       emitCommunicationEvent(
-        'conversation.created',
-        'GLOBAL',
+        "conversation.created",
+        "GLOBAL",
         {
           conversationId,
           creatorId,
           participantCount: conversation.participants.length,
-          type,
+          type
         },
         {
           riskScore: 16,
-          performanceScore: 86,
-        },
+          performanceScore: 86
+        }
       );
 
       return conversation;
-
     } catch (error) {
-      this.logger.error('Conversation creation failed:', error);
-      throw new Error(`Conversation creation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Conversation creation failed:", error);
+      throw new Error(
+        `Conversation creation error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -218,7 +224,7 @@ export class RealTimeMessagingService {
       // Verify user has access to conversation
       const conversation = this.conversations.get(conversationId);
       if (!conversation || !conversation.participants.includes(userId)) {
-        throw new Error('Access denied');
+        throw new Error("Access denied");
       }
 
       const allMessages = this.messages.get(conversationId) || [];
@@ -227,10 +233,10 @@ export class RealTimeMessagingService {
       // Apply time filters
       let filteredMessages = allMessages;
       if (options?.before) {
-        filteredMessages = filteredMessages.filter(m => m.timestamp < options.before!);
+        filteredMessages = filteredMessages.filter((m) => m.timestamp < options.before!);
       }
       if (options?.after) {
-        filteredMessages = filteredMessages.filter(m => m.timestamp > options.after!);
+        filteredMessages = filteredMessages.filter((m) => m.timestamp > options.after!);
       }
 
       // Sort by timestamp descending and limit
@@ -241,12 +247,13 @@ export class RealTimeMessagingService {
       return {
         messages,
         hasMore: filteredMessages.length > limit,
-        totalCount: filteredMessages.length,
+        totalCount: filteredMessages.length
       };
-
     } catch (error) {
-      this.logger.error('Message retrieval failed:', error);
-      throw new Error(`Message retrieval error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Message retrieval failed:", error);
+      throw new Error(
+        `Message retrieval error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -258,56 +265,62 @@ export class RealTimeMessagingService {
       this.onlineUsers.set(userId, {
         status,
         lastSeen: new Date(),
-        region,
+        region
       });
 
       // Emit presence event
       await this.emitRealTimeEvent({
         eventId: this.generateEventId(),
-        type: 'presence',
-        conversationId: '', // Global event
+        type: "presence",
+        conversationId: "", // Global event
         userId,
         data: { status, region },
-        timestamp: new Date(),
+        timestamp: new Date()
       });
 
       emitCommunicationEvent(
-        'presence.updated',
+        "presence.updated",
         region,
         {
           userId,
           status,
-          region,
+          region
         },
         {
           riskScore: 10,
-          performanceScore: 92,
-        },
+          performanceScore: 92
+        }
       );
-
     } catch (error) {
-      this.logger.error('Presence update failed:', error);
-      throw new Error(`Presence update error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Presence update failed:", error);
+      throw new Error(
+        `Presence update error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
   /**
    * Send typing indicator with planetary coordination
    */
-  async sendTypingIndicator(conversationId: string, userId: string, isTyping: boolean): Promise<void> {
+  async sendTypingIndicator(
+    conversationId: string,
+    userId: string,
+    isTyping: boolean
+  ): Promise<void> {
     try {
       await this.emitRealTimeEvent({
         eventId: this.generateEventId(),
-        type: 'typing',
+        type: "typing",
         conversationId,
         userId,
         data: { isTyping },
-        timestamp: new Date(),
+        timestamp: new Date()
       });
-
     } catch (error) {
-      this.logger.error('Typing indicator failed:', error);
-      throw new Error(`Typing indicator error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Typing indicator failed:", error);
+      throw new Error(
+        `Typing indicator error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -321,7 +334,7 @@ export class RealTimeMessagingService {
       let conversationId: string | undefined;
 
       for (const [convId, messages] of this.messages) {
-        const message = messages.find(m => m.messageId === messageId);
+        const message = messages.find((m) => m.messageId === messageId);
         if (message) {
           targetMessage = message;
           conversationId = convId;
@@ -330,7 +343,7 @@ export class RealTimeMessagingService {
       }
 
       if (!targetMessage || !conversationId) {
-        throw new Error('Message not found');
+        throw new Error("Message not found");
       }
 
       // Add reaction to message metadata
@@ -348,16 +361,17 @@ export class RealTimeMessagingService {
       // Emit reaction event
       await this.emitRealTimeEvent({
         eventId: this.generateEventId(),
-        type: 'reaction',
+        type: "reaction",
         conversationId,
         userId,
         data: { messageId, reaction },
-        timestamp: new Date(),
+        timestamp: new Date()
       });
-
     } catch (error) {
-      this.logger.error('Reaction addition failed:', error);
-      throw new Error(`Reaction addition error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Reaction addition failed:", error);
+      throw new Error(
+        `Reaction addition error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -369,11 +383,14 @@ export class RealTimeMessagingService {
     activeConversations: number;
     activeUsers: number;
     messagesPerSecond: number;
-    regionalBreakdown: Record<string, {
-      messages: number;
-      users: number;
-      conversations: number;
-    }>;
+    regionalBreakdown: Record<
+      string,
+      {
+        messages: number;
+        users: number;
+        conversations: number;
+      }
+    >;
     messageTypes: Record<string, number>;
     engagement: {
       avgMessagesPerConversation: number;
@@ -386,10 +403,11 @@ export class RealTimeMessagingService {
       const analytics = await this.aggregateMessagingData(timeRange);
 
       return analytics;
-
     } catch (error) {
-      this.logger.error('Messaging analytics failed:', error);
-      throw new Error(`Analytics error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Messaging analytics failed:", error);
+      throw new Error(
+        `Analytics error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -429,17 +447,23 @@ export class RealTimeMessagingService {
 
         for (const message of messages) {
           if (options?.dateRange) {
-            if (message.timestamp < options.dateRange.start || message.timestamp > options.dateRange.end) {
+            if (
+              message.timestamp < options.dateRange.start ||
+              message.timestamp > options.dateRange.end
+            ) {
               continue;
             }
           }
 
           // Simple text search (would use full-text search in production)
-          if (message.content.text && message.content.text.toLowerCase().includes(query.toLowerCase())) {
+          if (
+            message.content.text &&
+            message.content.text.toLowerCase().includes(query.toLowerCase())
+          ) {
             results.push({
               message,
               conversationId,
-              highlights: [message.content.text], // Would highlight matching parts
+              highlights: [message.content.text] // Would highlight matching parts
             });
           }
         }
@@ -451,12 +475,11 @@ export class RealTimeMessagingService {
       return {
         results: limitedResults,
         totalCount: results.length,
-        hasMore: results.length > limit,
+        hasMore: results.length > limit
       };
-
     } catch (error) {
-      this.logger.error('Message search failed:', error);
-      throw new Error(`Search error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Message search failed:", error);
+      throw new Error(`Search error: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -474,12 +497,12 @@ export class RealTimeMessagingService {
     return `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private async encryptMessage(content: any): Promise<Message['encryption']> {
+  private async encryptMessage(content: any): Promise<Message["encryption"]> {
     // Mock encryption - would use actual quantum-resistant encryption
     return {
       algorithm: this.planetaryConfig.encryption.algorithm,
       keyId: `key_${Date.now()}`,
-      signature: `sig_${Math.random().toString(36).substr(2, 9)}`,
+      signature: `sig_${Math.random().toString(36).substr(2, 9)}`
     };
   }
 
@@ -489,7 +512,10 @@ export class RealTimeMessagingService {
     this.messages.set(message.conversationId, conversationMessages);
   }
 
-  private async updateConversationLastMessage(conversationId: string, message: Message): Promise<void> {
+  private async updateConversationLastMessage(
+    conversationId: string,
+    message: Message
+  ): Promise<void> {
     const conversation = this.conversations.get(conversationId);
     if (conversation) {
       conversation.lastMessage = message;
@@ -516,11 +542,11 @@ export class RealTimeMessagingService {
     for (const participantId of conversation.participants) {
       await this.emitRealTimeEvent({
         eventId: this.generateEventId(),
-        type: 'message',
+        type: "message",
         conversationId: conversation.conversationId,
         userId: participantId,
         data: { conversation },
-        timestamp: new Date(),
+        timestamp: new Date()
       });
     }
   }
@@ -535,14 +561,14 @@ export class RealTimeMessagingService {
       const conversation = this.conversations.get(conversationId);
       if (!conversation) continue;
 
-      const conversationMessages = messages.filter(m =>
-        m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
+      const conversationMessages = messages.filter(
+        (m) => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
       );
 
       totalMessages += conversationMessages.length;
 
       // Aggregate by region (mock)
-      const region = 'us-central1'; // Would be determined by conversation metadata
+      const region = "us-central1"; // Would be determined by conversation metadata
       if (!regionalBreakdown[region]) {
         regionalBreakdown[region] = { messages: 0, users: 0, conversations: 0 };
       }
@@ -559,14 +585,15 @@ export class RealTimeMessagingService {
       totalMessages,
       activeConversations: this.conversations.size,
       activeUsers: this.onlineUsers.size,
-      messagesPerSecond: totalMessages / ((timeRange.end.getTime() - timeRange.start.getTime()) / 1000),
+      messagesPerSecond:
+        totalMessages / ((timeRange.end.getTime() - timeRange.start.getTime()) / 1000),
       regionalBreakdown,
       messageTypes,
       engagement: {
         avgMessagesPerConversation: totalMessages / Math.max(this.conversations.size, 1),
         avgResponseTime: 300, // seconds (mock)
-        conversationDuration: 86400, // seconds (mock)
-      },
+        conversationDuration: 86400 // seconds (mock)
+      }
     };
   }
 }

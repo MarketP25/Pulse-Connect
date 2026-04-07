@@ -1,5 +1,5 @@
-declare module 'supertest' {
-  import { SuperAgent, SuperAgentRequest, SuperAgentTest } from 'superagent';
+declare module "supertest" {
+  import { SuperAgent, SuperAgentRequest, SuperAgentTest } from "superagent";
 
   export = supertest;
 

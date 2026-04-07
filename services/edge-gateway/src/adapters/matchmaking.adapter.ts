@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EdgeTelemetryService } from '../services/telemetry.service';
-import { AiRuleInterpreter } from '@/shared/lib/src/ai-rule-interpreter';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EdgeTelemetryService } from "../services/telemetry.service";
+import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
 
 export interface MatchmakingRequest {
   matchId: string;
   userId: string;
-  action: 'find_matches' | 'create_contract' | 'accept_match' | 'decline_match';
+  action: "find_matches" | "create_contract" | "accept_match" | "decline_match";
   context?: {
     criteria?: any;
     contractTerms?: any;
@@ -36,7 +36,7 @@ export class MatchmakingAdapter {
   constructor(
     private readonly kafkaClient: ClientKafka,
     private readonly telemetryService: EdgeTelemetryService,
-    private readonly aiRuleInterpreter: AiRuleInterpreter,
+    private readonly aiRuleInterpreter: AiRuleInterpreter
   ) {}
 
   /**
@@ -49,18 +49,18 @@ export class MatchmakingAdapter {
       // 1. Validate matchmaking request and user eligibility
       const eligibilityCheck = await this.validateMatchmakingEligibility(request);
       if (!eligibilityCheck.allowed) {
-        await this.telemetryService.recordEvent('matchmaking_blocked', {
+        await this.telemetryService.recordEvent("matchmaking_blocked", {
           matchId: request.matchId,
           userId: request.userId,
           action: request.action,
-          reason: eligibilityCheck.blockedReason,
+          reason: eligibilityCheck.blockedReason
         });
         return {
           matchId: request.matchId,
           allowed: false,
           blockedReason: eligibilityCheck.blockedReason,
           complianceFlags: eligibilityCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -72,7 +72,7 @@ export class MatchmakingAdapter {
           allowed: false,
           blockedReason: compatibilityCheck.blockedReason,
           complianceFlags: compatibilityCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -84,7 +84,7 @@ export class MatchmakingAdapter {
           allowed: false,
           blockedReason: contractCheck.blockedReason,
           complianceFlags: contractCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -92,7 +92,7 @@ export class MatchmakingAdapter {
       const result = await this.executeMatchmakingOperation(request);
 
       // 5. Record telemetry
-      await this.telemetryService.recordEvent('matchmaking_operation', {
+      await this.telemetryService.recordEvent("matchmaking_operation", {
         matchId: request.matchId,
         userId: request.userId,
         action: request.action,
@@ -101,9 +101,9 @@ export class MatchmakingAdapter {
         complianceFlags: [
           ...eligibilityCheck.flags,
           ...compatibilityCheck.flags,
-          ...contractCheck.flags,
+          ...contractCheck.flags
         ].length,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
@@ -113,27 +113,26 @@ export class MatchmakingAdapter {
         complianceFlags: [
           ...eligibilityCheck.flags,
           ...compatibilityCheck.flags,
-          ...contractCheck.flags,
+          ...contractCheck.flags
         ],
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       };
-
     } catch (error) {
       this.logger.error(`Matchmaking processing failed: ${error.message}`, error.stack);
-      await this.telemetryService.recordEvent('matchmaking_error', {
+      await this.telemetryService.recordEvent("matchmaking_error", {
         matchId: request.matchId,
         userId: request.userId,
         action: request.action,
         error: error.message,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
         matchId: request.matchId,
         allowed: false,
-        blockedReason: 'System error during matchmaking',
-        complianceFlags: ['error'],
-        processingTime: Date.now() - startTime,
+        blockedReason: "System error during matchmaking",
+        complianceFlags: ["error"],
+        processingTime: Date.now() - startTime
       };
     }
   }
@@ -153,24 +152,24 @@ export class MatchmakingAdapter {
     if (!userVerified) {
       return {
         allowed: false,
-        blockedReason: 'User verification required for matchmaking',
-        flags: ['user_not_verified'],
+        blockedReason: "User verification required for matchmaking",
+        flags: ["user_not_verified"]
       };
     }
 
-    flags.push('user_verified');
+    flags.push("user_verified");
 
     // Check matchmaking permissions
     const permissionsGranted = await this.checkMatchmakingPermissions(request.userId);
     if (!permissionsGranted) {
       return {
         allowed: false,
-        blockedReason: 'Insufficient permissions for matchmaking',
-        flags: ['permissions_denied'],
+        blockedReason: "Insufficient permissions for matchmaking",
+        flags: ["permissions_denied"]
       };
     }
 
-    flags.push('permissions_granted');
+    flags.push("permissions_granted");
     return { allowed: true, flags };
   }
 
@@ -184,19 +183,19 @@ export class MatchmakingAdapter {
   }> {
     const flags = [];
 
-    if (request.action === 'find_matches') {
+    if (request.action === "find_matches") {
       // Apply AI-driven compatibility analysis
       const compatibilityAnalysis = await this.aiRuleInterpreter.analyzeCompatibility({
         userId: request.userId,
         criteria: request.context?.criteria,
-        preferences: request.context?.matchPreferences,
+        preferences: request.context?.matchPreferences
       });
 
       if (!compatibilityAnalysis.allowed) {
         return {
           allowed: false,
           blockedReason: compatibilityAnalysis.blockedReason,
-          flags: compatibilityAnalysis.flags,
+          flags: compatibilityAnalysis.flags
         };
       }
 
@@ -209,7 +208,7 @@ export class MatchmakingAdapter {
       return {
         allowed: false,
         blockedReason: userStatus.blockedReason,
-        flags: userStatus.flags,
+        flags: userStatus.flags
       };
     }
 
@@ -227,33 +226,33 @@ export class MatchmakingAdapter {
   }> {
     const flags = [];
 
-    if (request.action === 'create_contract' || request.action === 'accept_match') {
+    if (request.action === "create_contract" || request.action === "accept_match") {
       // Validate contract terms
       const contractValid = await this.validateContractTerms(request.context?.contractTerms);
       if (!contractValid) {
         return {
           allowed: false,
-          blockedReason: 'Invalid contract terms',
-          flags: ['invalid_contract_terms'],
+          blockedReason: "Invalid contract terms",
+          flags: ["invalid_contract_terms"]
         };
       }
 
-      flags.push('contract_terms_valid');
+      flags.push("contract_terms_valid");
 
       // Check legal compliance
       const legalCompliant = await this.checkLegalCompliance(request);
       if (!legalCompliant) {
         return {
           allowed: false,
-          blockedReason: 'Contract violates legal requirements',
-          flags: ['legal_violation'],
+          blockedReason: "Contract violates legal requirements",
+          flags: ["legal_violation"]
         };
       }
 
-      flags.push('legal_compliant');
+      flags.push("legal_compliant");
     }
 
-    flags.push('contract_check_passed');
+    flags.push("contract_check_passed");
     return { allowed: true, flags };
   }
 
@@ -261,14 +260,16 @@ export class MatchmakingAdapter {
    * Execute matchmaking operation
    */
   private async executeMatchmakingOperation(request: MatchmakingRequest): Promise<any> {
-    const result = await this.kafkaClient.send('matchmaking.execute', {
-      matchId: request.matchId,
-      userId: request.userId,
-      action: request.action,
-      context: request.context,
-      edgeValidated: true,
-      timestamp: new Date().toISOString(),
-    }).toPromise();
+    const result = await this.kafkaClient
+      .send("matchmaking.execute", {
+        matchId: request.matchId,
+        userId: request.userId,
+        action: request.action,
+        context: request.context,
+        edgeValidated: true,
+        timestamp: new Date().toISOString()
+      })
+      .toPromise();
 
     return result;
   }
@@ -298,7 +299,7 @@ export class MatchmakingAdapter {
     flags: string[];
   }> {
     // Would check for suspensions, blocks, etc.
-    return { allowed: true, flags: ['user_active'] };
+    return { allowed: true, flags: ["user_active"] };
   }
 
   /**
@@ -306,7 +307,7 @@ export class MatchmakingAdapter {
    */
   private async validateContractTerms(terms: any): Promise<boolean> {
     // Would validate contract structure and terms
-    return terms && typeof terms === 'object';
+    return terms && typeof terms === "object";
   }
 
   /**

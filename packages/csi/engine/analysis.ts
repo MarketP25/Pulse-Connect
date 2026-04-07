@@ -88,9 +88,11 @@ export function detectPatterns(events: CSIEvent[]): DetectedPattern[] {
 
     const frequency = bucket.length / events.length;
     const avgLatency =
-      bucket.reduce((sum, event) => sum + (toNumber(event.metrics.latencyMs) ?? 0), 0) / bucket.length;
+      bucket.reduce((sum, event) => sum + (toNumber(event.metrics.latencyMs) ?? 0), 0) /
+      bucket.length;
     const avgErrorRate =
-      bucket.reduce((sum, event) => sum + (toNumber(event.metrics.errorRate) ?? 0), 0) / bucket.length;
+      bucket.reduce((sum, event) => sum + (toNumber(event.metrics.errorRate) ?? 0), 0) /
+      bucket.length;
 
     patterns.push({
       id: `pattern_${subsystem}_${eventType}`,
@@ -101,8 +103,8 @@ export function detectPatterns(events: CSIEvent[]): DetectedPattern[] {
       confidence: clamp(0.4 + frequency + (trend === "stable" ? 0.05 : 0.15), 0, 0.99),
       supportingMetrics: {
         averageLatencyMs: Number(avgLatency.toFixed(2)),
-        averageErrorRate: Number(avgErrorRate.toFixed(4)),
-      },
+        averageErrorRate: Number(avgErrorRate.toFixed(4))
+      }
     });
   }
 
@@ -154,7 +156,7 @@ export function detectRiskSignals(events: CSIEvent[]): RiskSignal[] {
       severity: toSeverity(clamped),
       score: Number(clamped.toFixed(2)),
       reason: reasons.join(", ") || "risk signal from model baseline",
-      timestamp: event.timestamp,
+      timestamp: event.timestamp
     });
   }
 
@@ -185,10 +187,11 @@ export function analyzeEvents(events: CSIEvent[]): AnalysisResult {
     riskMap,
     summary: {
       totalEvents: events.length,
-      highRiskSignals: riskSignals.filter((signal) => signal.severity === "high" || signal.severity === "critical")
-        .length,
-      analyzedAt: Date.now(),
-    },
+      highRiskSignals: riskSignals.filter(
+        (signal) => signal.severity === "high" || signal.severity === "critical"
+      ).length,
+      analyzedAt: Date.now()
+    }
   };
 }
 

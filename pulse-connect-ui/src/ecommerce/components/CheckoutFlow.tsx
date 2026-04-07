@@ -596,8 +596,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <div className="bg-blue-50 border border-blue-200 rounded p-4">
           <h4 className="font-medium text-blue-900 mb-2">Transaction Fee</h4>
           <p className="text-sm text-blue-800">
-            Platform fees are computed from the active billing policy at payment time. This
-            supports platform operations and seller payouts.
+            Platform fees are computed from the active billing policy at payment time. This supports
+            platform operations and seller payouts.
           </p>
         </div>
 

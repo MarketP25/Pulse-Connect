@@ -13,7 +13,7 @@ const createDroplet = async (clientName) => {
         image: "ubuntu-22-04-x64",
         backups: true,
         ipv6: true,
-        tags: ["pulse-connect"]
+        tags: ["pulsco"]
       },
       {
         headers: {

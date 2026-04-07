@@ -2,13 +2,13 @@
  * Stripe Payment Gateway Implementation
  */
 
-import { PaymentGateway } from '../gateway.interface';
-import { verifyWebhookSignatureHmacSha256 } from '../utils/webhook-signature';
-import { 
-  GatewayConfig, 
-  PaymentRequest, 
-  PaymentResponse, 
-  RefundRequest, 
+import { PaymentGateway } from "../gateway.interface";
+import { verifyWebhookSignatureHmacSha256 } from "../utils/webhook-signature";
+import {
+  GatewayConfig,
+  PaymentRequest,
+  PaymentResponse,
+  RefundRequest,
   RefundResponse,
   Customer,
   CustomerResponse,
@@ -16,10 +16,10 @@ import {
   WebhookEvent,
   GatewayCapabilities,
   PaymentStatus
-} from '../types';
+} from "../types";
 
 export default class StripeGateway implements PaymentGateway {
-  readonly name = 'stripe';
+  readonly name = "stripe";
   readonly config: GatewayConfig;
 
   constructor(config: GatewayConfig) {
@@ -31,35 +31,35 @@ export default class StripeGateway implements PaymentGateway {
       // In production, this would use the Stripe SDK:
       // const stripe = require('stripe')(this.config.apiKey);
       // const paymentIntent = await stripe.paymentIntents.create({...});
-      
+
       // For now, return a mock response with the expected structure
       const transactionId = `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       return {
         success: true,
         transactionId,
-        status: 'captured' as PaymentStatus,
+        status: "captured" as PaymentStatus,
         amount: request.amount,
         currency: request.currency.toUpperCase(),
         gateway: this.name,
         gatewayTransactionId: transactionId,
-        message: 'Payment successful',
+        message: "Payment successful",
         metadata: {
           customerId: request.customerId,
-          idempotencyKey: request.idempotencyKey,
+          idempotencyKey: request.idempotencyKey
         },
-        createdAt: new Date(),
+        createdAt: new Date()
       };
     } catch (error: any) {
       return {
         success: false,
-        status: 'failed' as PaymentStatus,
+        status: "failed" as PaymentStatus,
         amount: request.amount,
         currency: request.currency.toUpperCase(),
         gateway: this.name,
-        errorCode: error.code || 'stripe_error',
-        errorMessage: error.message || 'Payment failed',
-        createdAt: new Date(),
+        errorCode: error.code || "stripe_error",
+        errorMessage: error.message || "Payment failed",
+        createdAt: new Date()
       };
     }
   }
@@ -69,12 +69,12 @@ export default class StripeGateway implements PaymentGateway {
     return {
       success: true,
       transactionId,
-      status: 'captured' as PaymentStatus,
+      status: "captured" as PaymentStatus,
       amount: 0,
-      currency: 'USD',
+      currency: "USD",
       gateway: this.name,
       gatewayTransactionId: transactionId,
-      createdAt: new Date(),
+      createdAt: new Date()
     };
   }
 
@@ -83,11 +83,11 @@ export default class StripeGateway implements PaymentGateway {
     return {
       success: true,
       refundId,
-      status: 'succeeded',
+      status: "succeeded",
       amount: request.amount || 0,
-      currency: 'USD',
+      currency: "USD",
       gateway: this.name,
-      message: 'Refund processed successfully',
+      message: "Refund processed successfully"
     };
   }
 
@@ -98,7 +98,7 @@ export default class StripeGateway implements PaymentGateway {
       customerId,
       gateway: this.name,
       email: customer.email,
-      metadata: customer.metadata,
+      metadata: customer.metadata
     };
   }
 
@@ -108,7 +108,7 @@ export default class StripeGateway implements PaymentGateway {
       customerId,
       gateway: this.name,
       email: customer.email,
-      metadata: customer.metadata,
+      metadata: customer.metadata
     };
   }
 
@@ -117,7 +117,7 @@ export default class StripeGateway implements PaymentGateway {
       success: true,
       customerId,
       gateway: this.name,
-      email: 'customer@example.com',
+      email: "customer@example.com"
     };
   }
 
@@ -128,8 +128,8 @@ export default class StripeGateway implements PaymentGateway {
       clientSecret,
       amount: request.amount,
       currency: request.currency,
-      status: 'pending' as PaymentStatus,
-      metadata: request.metadata,
+      status: "pending" as PaymentStatus,
+      metadata: request.metadata
     };
   }
 
@@ -137,10 +137,10 @@ export default class StripeGateway implements PaymentGateway {
     // In production: stripe.webhooks.constructEvent(payload, signature, this.config.webhookSecret)
     return {
       id: `evt_${Date.now()}`,
-      type: payload.type || 'payment.success',
+      type: payload.type || "payment.success",
       data: payload.data || {},
       timestamp: new Date(),
-      processed: false,
+      processed: false
     };
   }
 
@@ -162,7 +162,7 @@ export default class StripeGateway implements PaymentGateway {
       maximumRefundPercentage: 100,
       supportsMultiCurrency: true,
       maxTransactionAmount: 99999999,
-      minTransactionAmount: 50, // $0.50
+      minTransactionAmount: 50 // $0.50
     };
   }
 

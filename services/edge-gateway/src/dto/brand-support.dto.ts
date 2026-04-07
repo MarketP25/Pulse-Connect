@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
   ArrayMaxSize,
   IsArray,
@@ -8,8 +8,8 @@ import {
   IsNumber,
   MaxLength,
   Min,
-  ValidateNested,
-} from 'class-validator';
+  ValidateNested
+} from "class-validator";
 
 export class BrandSupportEventDto {
   @IsString()
@@ -57,4 +57,3 @@ export class BrandSupportRequestDto {
   @MaxLength(64)
   requestId?: string;
 }
-

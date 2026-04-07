@@ -28,17 +28,17 @@ export function toErrorResponse(error: unknown): NextResponse {
       {
         code: error.code,
         message: error.message,
-        details: error.details,
+        details: error.details
       },
-      { status: error.status },
+      { status: error.status }
     );
   }
 
   return NextResponse.json(
     {
       code: "identity_route_error",
-      message: error instanceof Error ? error.message : "Unknown route error",
+      message: error instanceof Error ? error.message : "Unknown route error"
     },
-    { status: 500 },
+    { status: 500 }
   );
 }

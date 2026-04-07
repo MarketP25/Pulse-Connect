@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       body.userId,
       Boolean(body.approved),
       body.actorId || "kyc-provider",
-      body.reason,
+      body.reason
     );
     return NextResponse.json(result);
   } catch (error) {

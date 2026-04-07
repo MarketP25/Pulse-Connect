@@ -3,16 +3,16 @@
  * Handles verification for premium and enterprise users with 4-week re-verification
  */
 
-import { WalletRecord } from './types';
+import { WalletRecord } from "./types";
 
-export type KYCSessionStatus = 'pending' | 'approved' | 'rejected' | 'expired';
+export type KYCSessionStatus = "pending" | "approved" | "rejected" | "expired";
 
 export interface KYCSession {
   sessionId: string;
   userId: string;
-  tier: 'premium' | 'enterprise';
+  tier: "premium" | "enterprise";
   status: KYCSessionStatus;
-  level: 'basic' | 'enhanced' | 'full';
+  level: "basic" | "enhanced" | "full";
   submittedAt: string;
   verifiedAt?: string;
   expiryDate?: string;
@@ -24,7 +24,7 @@ export interface KYCSession {
 export interface KYCNotification {
   userId: string;
   walletId: string;
-  type: 'reminder' | 'expiry_warning' | 'verification_required' | 'verification_complete';
+  type: "reminder" | "expiry_warning" | "verification_required" | "verification_complete";
   message: string;
   sentAt: string;
   expiresAt?: string;
@@ -37,7 +37,7 @@ export interface KYCNotification {
 export class KYCService {
   private kycSessions = new Map<string, KYCSession>();
   private notifications: KYCNotification[] = [];
-  
+
   // 4 weeks in milliseconds
   private readonly REVERIFICATION_INTERVAL_MS = 4 * 7 * 24 * 60 * 60 * 1000;
 
@@ -48,7 +48,7 @@ export class KYCService {
    * Basic users can ONLY verify when upgrading to premium/enterprise
    */
   requiresKYC(tier: string): boolean {
-    return tier !== 'basic';
+    return tier !== "basic";
   }
 
   /**
@@ -59,11 +59,11 @@ export class KYCService {
    */
   canInitiateKYC(currentTier: string, targetTier?: string): boolean {
     // If already premium or enterprise, can always initiate
-    if (currentTier === 'premium' || currentTier === 'enterprise') {
+    if (currentTier === "premium" || currentTier === "enterprise") {
       return true;
     }
     // Basic users can only initiate if they're upgrading to premium/enterprise
-    if (targetTier === 'premium' || targetTier === 'enterprise') {
+    if (targetTier === "premium" || targetTier === "enterprise") {
       return true;
     }
     // Basic users cannot initiate KYC without upgrading
@@ -74,10 +74,10 @@ export class KYCService {
    * Get message explaining why KYC cannot be initiated
    */
   getKYCRestrictionMessage(currentTier: string, targetTier?: string): string {
-    if (currentTier === 'basic' && !targetTier) {
-      return 'KYC verification is only available when you upgrade to Premium or Enterprise tier. Please upgrade your account to complete verification.';
+    if (currentTier === "basic" && !targetTier) {
+      return "KYC verification is only available when you upgrade to Premium or Enterprise tier. Please upgrade your account to complete verification.";
     }
-    return 'Unable to initiate KYC verification. Please contact support.';
+    return "Unable to initiate KYC verification. Please contact support.";
   }
 
   /**
@@ -85,7 +85,7 @@ export class KYCService {
    */
   isKYCVerified(wallet: WalletRecord): boolean {
     // Basic tier doesn't need KYC
-    if (wallet.tier === 'basic') {
+    if (wallet.tier === "basic") {
       return true;
     }
 
@@ -109,7 +109,7 @@ export class KYCService {
    * Check if KYC re-verification is needed (every 4 weeks)
    */
   requiresReverification(wallet: WalletRecord): boolean {
-    if (wallet.tier === 'basic' || !wallet.kycVerifiedAt) {
+    if (wallet.tier === "basic" || !wallet.kycVerifiedAt) {
       return false;
     }
 
@@ -125,7 +125,7 @@ export class KYCService {
    * Get days remaining until re-verification is needed
    */
   getDaysUntilReverification(wallet: WalletRecord): number | null {
-    if (wallet.tier === 'basic' || !wallet.kycVerifiedAt) {
+    if (wallet.tier === "basic" || !wallet.kycVerifiedAt) {
       return null;
     }
 
@@ -139,7 +139,13 @@ export class KYCService {
   /**
    * Send notification to user about KYC status
    */
-  private sendNotification(userId: string, walletId: string, type: KYCNotification['type'], message: string, expiresAt?: string): void {
+  private sendNotification(
+    userId: string,
+    walletId: string,
+    type: KYCNotification["type"],
+    message: string,
+    expiresAt?: string
+  ): void {
     const notification: KYCNotification = {
       userId,
       walletId,
@@ -159,23 +165,33 @@ export class KYCService {
   checkAndNotifyReverification(wallet: WalletRecord): KYCNotification[] {
     const sentNotifications: KYCNotification[] = [];
 
-    if (wallet.tier === 'basic') {
+    if (wallet.tier === "basic") {
       return sentNotifications;
     }
 
     const daysRemaining = this.getDaysUntilReverification(wallet);
-    
+
     // Send notification 1 week before expiry
     if (daysRemaining !== null && daysRemaining <= 7 && daysRemaining > 0) {
       const notificationMessage = `Your KYC verification expires in ${daysRemaining} day(s). Please re-verify to continue using premium features.`;
-      this.sendNotification(wallet.accountId, wallet.walletId, 'expiry_warning', notificationMessage);
+      this.sendNotification(
+        wallet.accountId,
+        wallet.walletId,
+        "expiry_warning",
+        notificationMessage
+      );
       sentNotifications.push(this.notifications[this.notifications.length - 1]);
     }
 
     // Send notification if re-verification is due
     if (this.requiresReverification(wallet)) {
       const notificationMessage = `Your KYC verification has expired. Please complete re-verification to continue using premium features.`;
-      this.sendNotification(wallet.accountId, wallet.walletId, 'verification_required', notificationMessage);
+      this.sendNotification(
+        wallet.accountId,
+        wallet.walletId,
+        "verification_required",
+        notificationMessage
+      );
       sentNotifications.push(this.notifications[this.notifications.length - 1]);
     }
 
@@ -185,16 +201,16 @@ export class KYCService {
   /**
    * Get the required KYC level based on tier
    */
-  getRequiredKYCLevel(tier: string): 'none' | 'basic' | 'enhanced' | 'full' {
+  getRequiredKYCLevel(tier: string): "none" | "basic" | "enhanced" | "full" {
     switch (tier) {
-      case 'basic':
-        return 'none';
-      case 'premium':
-        return 'basic';
-      case 'enterprise':
-        return 'enhanced';
+      case "basic":
+        return "none";
+      case "premium":
+        return "basic";
+      case "enterprise":
+        return "enhanced";
       default:
-        return 'none';
+        return "none";
     }
   }
 
@@ -204,7 +220,11 @@ export class KYCService {
    * @param tier - the target tier (premium or enterprise)
    * @param currentTier - the user's current tier (required to check if basic user can initiate)
    */
-  initiateKYC(userId: string, tier: 'premium' | 'enterprise', currentTier: string): KYCSession | { error: string; allowed: false } {
+  initiateKYC(
+    userId: string,
+    tier: "premium" | "enterprise",
+    currentTier: string
+  ): KYCSession | { error: string; allowed: false } {
     // Check if user can initiate KYC based on their current tier
     if (!this.canInitiateKYC(currentTier, tier)) {
       return {
@@ -214,24 +234,25 @@ export class KYCService {
     }
 
     const sessionId = `kyc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const level = tier === 'premium' ? 'basic' : 'enhanced';
+    const level = tier === "premium" ? "basic" : "enhanced";
 
     const session: KYCSession = {
       sessionId,
       userId,
       tier,
-      status: 'pending',
+      status: "pending",
       level,
-      submittedAt: new Date().toISOString(),
+      submittedAt: new Date().toISOString()
     };
 
     this.kycSessions.set(sessionId, session);
-    
+
     // Send notification about verification requirement
-    const message = tier === 'enterprise' 
-      ? 'Enterprise tier requires enhanced KYC verification. Please complete your verification.'
-      : 'Premium tier requires KYC verification. Please complete your verification.';
-    this.sendNotification(userId, '', 'verification_required', message);
+    const message =
+      tier === "enterprise"
+        ? "Enterprise tier requires enhanced KYC verification. Please complete your verification."
+        : "Premium tier requires KYC verification. Please complete your verification.";
+    this.sendNotification(userId, "", "verification_required", message);
 
     return session;
   }
@@ -246,10 +267,10 @@ export class KYCService {
     }
 
     if (approved) {
-      session.status = 'approved';
+      session.status = "approved";
       session.verifiedAt = new Date().toISOString();
       session.lastVerifiedAt = new Date().toISOString();
-      
+
       // Set expiry to 4 weeks from now for re-verification cycle
       const expiryDate = new Date();
       expiryDate.setTime(expiryDate.getTime() + this.REVERIFICATION_INTERVAL_MS);
@@ -257,14 +278,20 @@ export class KYCService {
 
       // Send confirmation notification
       const message = `Your KYC verification is complete. You will need to re-verify every 4 weeks.`;
-      this.sendNotification(session.userId, '', 'verification_complete', message, session.expiryDate);
+      this.sendNotification(
+        session.userId,
+        "",
+        "verification_complete",
+        message,
+        session.expiryDate
+      );
     } else {
-      session.status = 'rejected';
+      session.status = "rejected";
       session.rejectionReason = reason;
-      
+
       // Send rejection notification
-      const message = `Your KYC verification was rejected. Reason: ${reason || 'Please contact support'}`;
-      this.sendNotification(session.userId, '', 'verification_required', message);
+      const message = `Your KYC verification was rejected. Reason: ${reason || "Please contact support"}`;
+      this.sendNotification(session.userId, "", "verification_required", message);
     }
 
     this.kycSessions.set(sessionId, session);
@@ -282,7 +309,7 @@ export class KYCService {
    * Get all notifications for a user
    */
   getUserNotifications(userId: string): KYCNotification[] {
-    return this.notifications.filter(n => n.userId === userId);
+    return this.notifications.filter((n) => n.userId === userId);
   }
 
   /**
@@ -291,7 +318,7 @@ export class KYCService {
    */
   checkPaymentEligibility(wallet: WalletRecord): { allowed: boolean; reason?: string } {
     // Basic users can use platform without KYC
-    if (wallet.tier === 'basic') {
+    if (wallet.tier === "basic") {
       return { allowed: true };
     }
 
@@ -299,7 +326,7 @@ export class KYCService {
     if (this.requiresReverification(wallet)) {
       // Send notification if not already sent
       this.checkAndNotifyReverification(wallet);
-      
+
       return {
         allowed: false,
         reason: `KYC re-verification required. Your verification expired. Please re-verify to continue.`
@@ -310,8 +337,8 @@ export class KYCService {
     if (!this.isKYCVerified(wallet)) {
       // Send notification
       const message = `KYC verification required for ${wallet.tier} tier. Please complete verification to proceed.`;
-      this.sendNotification(wallet.accountId, wallet.walletId, 'verification_required', message);
-      
+      this.sendNotification(wallet.accountId, wallet.walletId, "verification_required", message);
+
       return {
         allowed: false,
         reason: `KYC verification required for ${wallet.tier} tier. Please complete verification to proceed.`

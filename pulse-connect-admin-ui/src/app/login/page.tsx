@@ -1,97 +1,97 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { AdminAuthClient, LoginRequest, VerifyCodeRequest } from '@pulsco/admin-auth-client'
-import { Button, Input, Card, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
-import { ADMIN_EMAILS } from '@pulsco/admin-shared-types'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { AdminAuthClient, LoginRequest, VerifyCodeRequest } from "@pulsco/admin-auth-client";
+import { Button, Input, Card, Alert, LoadingSpinner } from "@pulsco/admin-ui-core";
+import { ADMIN_EMAILS } from "@pulsco/admin-shared-types";
 
 export default function LoginPage() {
-  const [step, setStep] = useState<'email' | 'code'>('email')
-  const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [deviceFingerprint, setDeviceFingerprint] = useState('')
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [deviceFingerprint, setDeviceFingerprint] = useState("");
 
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
     // Generate device fingerprint on mount
-    setDeviceFingerprint(AdminAuthClient.generateDeviceFingerprint())
-  }, [])
+    setDeviceFingerprint(AdminAuthClient.generateDeviceFingerprint());
+  }, []);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     const authClient = new AdminAuthClient({
-      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001',
+      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
       sessionDurationMinutes: 15,
       codeExpirySeconds: 60,
       maxRetries: 3
-    })
+    });
 
     try {
       const request: LoginRequest = {
         email: email.trim(),
         deviceFingerprint
-      }
+      };
 
-      const response = await authClient.initiateLogin(request)
+      const response = await authClient.initiateLogin(request);
 
       if (response.success && response.requiresCode) {
-        setStep('code')
+        setStep("code");
       } else {
-        setError(response.error || 'Login failed')
+        setError(response.error || "Login failed");
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      setError("Network error. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     const authClient = new AdminAuthClient({
-      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001',
+      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001",
       sessionDurationMinutes: 15,
       codeExpirySeconds: 60,
       maxRetries: 3
-    })
+    });
 
     try {
       const request: VerifyCodeRequest = {
         email: email.trim(),
         code: code.trim(),
         deviceFingerprint
-      }
+      };
 
-      const response = await authClient.verifyCode(request)
+      const response = await authClient.verifyCode(request);
 
       if (response.success && response.session) {
         // Store session in localStorage
-        localStorage.setItem('admin_session', JSON.stringify(response.session))
+        localStorage.setItem("admin_session", JSON.stringify(response.session));
 
         // Redirect to appropriate dashboard
-        const role = response.session.role
-        router.push(`/${role}-dashboard`)
+        const role = response.session.role;
+        router.push(`/${role}-dashboard`);
       } else {
-        setError(response.error || 'Verification failed')
+        setError(response.error || "Verification failed");
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      setError("Network error. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const isValidEmail = ADMIN_EMAILS[email as keyof typeof ADMIN_EMAILS] !== undefined
+  const isValidEmail = ADMIN_EMAILS[email as keyof typeof ADMIN_EMAILS] !== undefined;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -106,7 +106,7 @@ export default function LoginPage() {
         </div>
 
         <Card className="p-8">
-          {step === 'email' ? (
+          {step === "email" ? (
             <form onSubmit={handleEmailSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -117,7 +117,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@pulsco.com"
+                  placeholder="admin@pulsco.global"
                   required
                   className="mt-1"
                 />
@@ -164,16 +164,12 @@ export default function LoginPage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setStep('email')}
+                  onClick={() => setStep("email")}
                   className="flex-1"
                 >
                   Back
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={loading || code.length !== 6}
-                  className="flex-1"
-                >
+                <Button type="submit" disabled={loading || code.length !== 6} className="flex-1">
                   {loading ? <LoadingSpinner size="sm" className="mr-2" /> : null}
                   Verify Code
                 </Button>
@@ -183,5 +179,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

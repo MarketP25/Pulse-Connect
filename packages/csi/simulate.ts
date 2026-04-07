@@ -36,7 +36,7 @@ export interface CSISimulationReport {
 function cloneEvent(event: CSIEvent): CSIEvent {
   return {
     ...event,
-    metrics: { ...event.metrics },
+    metrics: { ...event.metrics }
   };
 }
 
@@ -71,15 +71,17 @@ function applySimulationChange(event: CSIEvent, change: CSISimulationChange): CS
 
 export function simulateChangeAgainstHistory(
   change: CSISimulationChange,
-  historicalEvents: CSIEvent[],
+  historicalEvents: CSIEvent[]
 ): CSISimulationReport {
   const baselineScores = computeGlobalScores(computeSubsystemScores(historicalEvents));
   const simulatedEvents = historicalEvents.map((event) => applySimulationChange(event, change));
   const predictedScores = computeGlobalScores(computeSubsystemScores(simulatedEvents));
 
-  const trustDelta = Number((predictedScores.globalTrustScore - baselineScores.globalTrustScore).toFixed(2));
+  const trustDelta = Number(
+    (predictedScores.globalTrustScore - baselineScores.globalTrustScore).toFixed(2)
+  );
   const performanceDelta = Number(
-    (predictedScores.globalPerformanceScore - baselineScores.globalPerformanceScore).toFixed(2),
+    (predictedScores.globalPerformanceScore - baselineScores.globalPerformanceScore).toFixed(2)
   );
 
   let outcome: CSISimulationReport["outcome"] = "neutral";
@@ -91,7 +93,7 @@ export function simulateChangeAgainstHistory(
 
   const notes: string[] = [
     "Simulation was computed from historical CSI events; no subsystem was auto-controlled.",
-    `Analyzed ${historicalEvents.length} historical events.`,
+    `Analyzed ${historicalEvents.length} historical events.`
   ];
 
   if (outcome === "regress") {
@@ -104,18 +106,18 @@ export function simulateChangeAgainstHistory(
     proposal: change,
     baseline: {
       globalTrustScore: baselineScores.globalTrustScore,
-      globalPerformanceScore: baselineScores.globalPerformanceScore,
+      globalPerformanceScore: baselineScores.globalPerformanceScore
     },
     predicted: {
       globalTrustScore: predictedScores.globalTrustScore,
-      globalPerformanceScore: predictedScores.globalPerformanceScore,
+      globalPerformanceScore: predictedScores.globalPerformanceScore
     },
     deltas: {
       trustDelta,
-      performanceDelta,
+      performanceDelta
     },
     outcome,
-    notes,
+    notes
   };
 }
 
@@ -133,7 +135,7 @@ export class CSISimulationEnvironment {
   async runAndPersist(
     change: CSISimulationChange,
     historicalEvents: CSIEvent[],
-    context: VaultAuthContext,
+    context: VaultAuthContext
   ): Promise<{ report: CSISimulationReport; vaultRecord?: VaultDocument }> {
     const report = this.run(change, historicalEvents);
 
@@ -144,9 +146,9 @@ export class CSISimulationEnvironment {
     const vaultRecord = await this.vault.storeAnalyticsResult(
       {
         type: "simulation_report",
-        report,
+        report
       },
-      context,
+      context
     );
 
     return { report, vaultRecord };

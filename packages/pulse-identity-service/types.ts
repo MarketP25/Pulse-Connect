@@ -1,5 +1,15 @@
-import { KycAutomationSignals, KycStatus, OnboardingRole, SubscriptionTier } from "@pulsco/pulse-kyc-service";
-export type { KycAutomationSignals, KycStatus, OnboardingRole, SubscriptionTier } from "@pulsco/pulse-kyc-service";
+import {
+  KycAutomationSignals,
+  KycStatus,
+  OnboardingRole,
+  SubscriptionTier
+} from "@pulsco/pulse-kyc-service";
+export type {
+  KycAutomationSignals,
+  KycStatus,
+  OnboardingRole,
+  SubscriptionTier
+} from "@pulsco/pulse-kyc-service";
 
 export type UserLifecycleStatus = "pending_verification" | "pending_kyc" | "active" | "suspended";
 

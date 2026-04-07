@@ -1,7 +1,7 @@
 import React from "react";
 
 export const metadata = {
-  title: "Legal | Pulsco",
+  title: "Legal | Pulsco"
 };
 
 type LegalDoc = {
@@ -15,17 +15,37 @@ const DOCS: LegalDoc[] = [
   { id: "terms", title: "Terms of Service", endpoint: "terms", anchor: "terms-of-service" },
   { id: "privacy", title: "Privacy Policy", endpoint: "privacy", anchor: "privacy-policy" },
   { id: "aup", title: "Acceptable Use Policy", endpoint: "aup", anchor: "acceptable-use-policy" },
-  { id: "marketplace-seller", title: "Marketplace Seller Agreement", endpoint: "marketplace-seller", anchor: "marketplace-seller-agreement" },
-  { id: "ai-disclosure", title: "AI & Automation Disclosure", endpoint: "ai-disclosure", anchor: "ai-automation-disclosure" },
-  { id: "governance-charter", title: "Platform Governance & Enforcement Charter", endpoint: "governance-charter", anchor: "platform-governance-charter" },
-  { id: "compliance-disclaimer", title: "Global Compliance Disclaimer", endpoint: "compliance-disclaimer", anchor: "global-compliance-disclaimer" },
+  {
+    id: "marketplace-seller",
+    title: "Marketplace Seller Agreement",
+    endpoint: "marketplace-seller",
+    anchor: "marketplace-seller-agreement"
+  },
+  {
+    id: "ai-disclosure",
+    title: "AI & Automation Disclosure",
+    endpoint: "ai-disclosure",
+    anchor: "ai-automation-disclosure"
+  },
+  {
+    id: "governance-charter",
+    title: "Platform Governance & Enforcement Charter",
+    endpoint: "governance-charter",
+    anchor: "platform-governance-charter"
+  },
+  {
+    id: "compliance-disclaimer",
+    title: "Global Compliance Disclaimer",
+    endpoint: "compliance-disclaimer",
+    anchor: "global-compliance-disclaimer"
+  }
 ];
 
 async function fetchFromCandidates(paths: string[]) {
   let lastError: unknown = null;
   for (const url of paths) {
     try {
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(url, { cache: "no-store" });
       if (res.ok) return res.json();
       lastError = new Error(`HTTP ${res.status}`);
     } catch (err) {
@@ -33,15 +53,16 @@ async function fetchFromCandidates(paths: string[]) {
       continue;
     }
   }
-  throw lastError ?? new Error('Unable to fetch legal document');
+  throw lastError ?? new Error("Unable to fetch legal document");
 }
 
 async function fetchDoc(endpoint: string) {
   const roots: string[] = [];
-  if (process.env.EDGE_GATEWAY_URL) roots.push(process.env.EDGE_GATEWAY_URL.replace(/\/$/, ''));
-  if (process.env.NEXT_PUBLIC_EDGE_GATEWAY_URL) roots.push(process.env.NEXT_PUBLIC_EDGE_GATEWAY_URL.replace(/\/$/, ''));
+  if (process.env.EDGE_GATEWAY_URL) roots.push(process.env.EDGE_GATEWAY_URL.replace(/\/$/, ""));
+  if (process.env.NEXT_PUBLIC_EDGE_GATEWAY_URL)
+    roots.push(process.env.NEXT_PUBLIC_EDGE_GATEWAY_URL.replace(/\/$/, ""));
   // Unified origin fallback (Nginx proxies /edge/* to edge-gateway)
-  roots.push('/edge');
+  roots.push("/edge");
 
   const candidates = roots.map((r) => `${r}/legal/${endpoint}`);
   return fetchFromCandidates(candidates);
@@ -84,19 +105,29 @@ export default async function LegalCenterPage() {
             <>
               <div className="text-xs opacity-70 mb-2">
                 {r.data?.effectiveDate ? (
-                  <span className="mr-4"><strong>Effective Date:</strong> {r.data.effectiveDate}</span>
+                  <span className="mr-4">
+                    <strong>Effective Date:</strong> {r.data.effectiveDate}
+                  </span>
                 ) : null}
                 {r.data?.legalEntity ? (
-                  <span className="mr-4"><strong>Entity:</strong> {r.data.legalEntity}</span>
+                  <span className="mr-4">
+                    <strong>Entity:</strong> {r.data.legalEntity}
+                  </span>
                 ) : null}
                 {r.data?.governingLaw ? (
-                  <span className="mr-4"><strong>Law:</strong> {r.data.governingLaw}</span>
+                  <span className="mr-4">
+                    <strong>Law:</strong> {r.data.governingLaw}
+                  </span>
                 ) : null}
                 {r.data?.version ? (
-                  <span className="mr-4"><strong>Version:</strong> {r.data.version}</span>
+                  <span className="mr-4">
+                    <strong>Version:</strong> {r.data.version}
+                  </span>
                 ) : null}
               </div>
-              <pre className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">{r.data?.contentMarkdown || `# ${r.title} unavailable.`}</pre>
+              <pre className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
+                {r.data?.contentMarkdown || `# ${r.title} unavailable.`}
+              </pre>
             </>
           ) : (
             <div className="text-red-400 text-sm">Failed to load: {r.error}</div>

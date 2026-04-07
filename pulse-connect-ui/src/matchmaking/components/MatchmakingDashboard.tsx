@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMatchmaking } from '../hooks/useMatchmaking';
-import { MatchmakingProfile, MatchmakingPreferences, MatchResult } from '../types/matchmaking';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { useMatchmaking } from "../hooks/useMatchmaking";
+import { MatchmakingProfile, MatchmakingPreferences, MatchResult } from "../types/matchmaking";
 
 export function MatchmakingDashboard() {
   const {
@@ -22,10 +28,10 @@ export function MatchmakingDashboard() {
     updatePreferences,
     findMatches,
     acceptMatch,
-    rejectMatch,
+    rejectMatch
   } = useMatchmaking();
 
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
 
   if (loading) {
     return (
@@ -39,7 +45,7 @@ export function MatchmakingDashboard() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Matchmaking Dashboard</h1>
-        <p className="text-gray-600 mt-2">Find your perfect connections in the PULSCO ecosystem</p>
+        <p className="text-gray-600 mt-2">Find your perfect connections in the Pulsco ecosystem</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -75,7 +81,13 @@ export function MatchmakingDashboard() {
   );
 }
 
-function ProfileTab({ profile, onUpdate }: { profile: MatchmakingProfile | null; onUpdate: (profile: Partial<MatchmakingProfile>) => void }) {
+function ProfileTab({
+  profile,
+  onUpdate
+}: {
+  profile: MatchmakingProfile | null;
+  onUpdate: (profile: Partial<MatchmakingProfile>) => void;
+}) {
   const [formData, setFormData] = useState<Partial<MatchmakingProfile>>(profile || {});
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -94,7 +106,7 @@ function ProfileTab({ profile, onUpdate }: { profile: MatchmakingProfile | null;
             <div>
               <label className="block text-sm font-medium text-gray-700">Display Name</label>
               <Input
-                value={formData.displayName || ''}
+                value={formData.displayName || ""}
                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                 placeholder="Your display name"
               />
@@ -102,7 +114,7 @@ function ProfileTab({ profile, onUpdate }: { profile: MatchmakingProfile | null;
             <div>
               <label className="block text-sm font-medium text-gray-700">Location</label>
               <Input
-                value={formData.location || ''}
+                value={formData.location || ""}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="City, Country"
               />
@@ -114,7 +126,7 @@ function ProfileTab({ profile, onUpdate }: { profile: MatchmakingProfile | null;
             <textarea
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               rows={4}
-              value={formData.bio || ''}
+              value={formData.bio || ""}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               placeholder="Tell others about yourself..."
             />
@@ -123,8 +135,10 @@ function ProfileTab({ profile, onUpdate }: { profile: MatchmakingProfile | null;
           <div>
             <label className="block text-sm font-medium text-gray-700">Skills & Interests</label>
             <Input
-              value={formData.skills?.join(', ') || ''}
-              onChange={(e) => setFormData({ ...formData, skills: e.target.value.split(',').map(s => s.trim()) })}
+              value={formData.skills?.join(", ") || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, skills: e.target.value.split(",").map((s) => s.trim()) })
+              }
               placeholder="React, Node.js, AI, Blockchain (comma-separated)"
             />
           </div>
@@ -136,7 +150,13 @@ function ProfileTab({ profile, onUpdate }: { profile: MatchmakingProfile | null;
   );
 }
 
-function PreferencesTab({ preferences, onUpdate }: { preferences: MatchmakingPreferences | null; onUpdate: (preferences: Partial<MatchmakingPreferences>) => void }) {
+function PreferencesTab({
+  preferences,
+  onUpdate
+}: {
+  preferences: MatchmakingPreferences | null;
+  onUpdate: (preferences: Partial<MatchmakingPreferences>) => void;
+}) {
   const [formData, setFormData] = useState<Partial<MatchmakingPreferences>>(preferences || {});
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -154,7 +174,10 @@ function PreferencesTab({ preferences, onUpdate }: { preferences: MatchmakingPre
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Match Type</label>
-              <Select value={formData.matchType || 'professional'} onValueChange={(value) => setFormData({ ...formData, matchType: value })}>
+              <Select
+                value={formData.matchType || "professional"}
+                onValueChange={(value) => setFormData({ ...formData, matchType: value })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -170,7 +193,9 @@ function PreferencesTab({ preferences, onUpdate }: { preferences: MatchmakingPre
               <Input
                 type="number"
                 value={formData.maxDistance || 100}
-                onChange={(e) => setFormData({ ...formData, maxDistance: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({ ...formData, maxDistance: parseInt(e.target.value) })
+                }
               />
             </div>
           </div>
@@ -178,15 +203,23 @@ function PreferencesTab({ preferences, onUpdate }: { preferences: MatchmakingPre
           <div>
             <label className="block text-sm font-medium text-gray-700">Preferred Skills</label>
             <Input
-              value={formData.preferredSkills?.join(', ') || ''}
-              onChange={(e) => setFormData({ ...formData, preferredSkills: e.target.value.split(',').map(s => s.trim()) })}
+              value={formData.preferredSkills?.join(", ") || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  preferredSkills: e.target.value.split(",").map((s) => s.trim())
+                })
+              }
               placeholder="AI, Blockchain, UI/UX (comma-separated)"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Availability</label>
-            <Select value={formData.availability || 'full-time'} onValueChange={(value) => setFormData({ ...formData, availability: value })}>
+            <Select
+              value={formData.availability || "full-time"}
+              onValueChange={(value) => setFormData({ ...formData, availability: value })}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -205,7 +238,12 @@ function PreferencesTab({ preferences, onUpdate }: { preferences: MatchmakingPre
   );
 }
 
-function MatchesTab({ matches, onAccept, onReject, onFindMore }: {
+function MatchesTab({
+  matches,
+  onAccept,
+  onReject,
+  onFindMore
+}: {
   matches: MatchResult[];
   onAccept: (matchId: string) => void;
   onReject: (matchId: string) => void;
@@ -221,7 +259,9 @@ function MatchesTab({ matches, onAccept, onReject, onFindMore }: {
       {matches.length === 0 ? (
         <Card>
           <CardContent className="text-center py-8">
-            <p className="text-gray-500">No matches found yet. Update your profile and preferences to get started!</p>
+            <p className="text-gray-500">
+              No matches found yet. Update your profile and preferences to get started!
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -243,7 +283,9 @@ function MatchesTab({ matches, onAccept, onReject, onFindMore }: {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" onClick={() => onReject(match.id)}>Pass</Button>
+                    <Button variant="outline" onClick={() => onReject(match.id)}>
+                      Pass
+                    </Button>
                     <Button onClick={() => onAccept(match.id)}>Connect</Button>
                   </div>
                 </div>

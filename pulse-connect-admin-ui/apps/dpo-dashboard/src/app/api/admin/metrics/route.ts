@@ -6,7 +6,8 @@ function resolvePc365Token(req: NextRequest): string {
   const headerToken = req.headers.get("x-pc365-attestation");
   if (headerToken) return headerToken;
 
-  const serviceToken = process.env.DASHBOARD_PC365_ATTESTATION || process.env.PC365_ATTESTATION_TOKEN;
+  const serviceToken =
+    process.env.DASHBOARD_PC365_ATTESTATION || process.env.PC365_ATTESTATION_TOKEN;
   if (serviceToken) return serviceToken;
 
   if (process.env.NODE_ENV !== "production") {
@@ -33,23 +34,26 @@ export async function GET(req: NextRequest) {
 
   try {
     const gatewayUrl = process.env.ADMIN_GATEWAY_URL || "http://localhost:3001";
-    const response = await fetch(`${gatewayUrl}/api/admin/intelligence?role=${DASHBOARD_ROLE}&action=metrics`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-role": DASHBOARD_ROLE,
-        "x-pc365-attestation": pc365Token,
-      },
-      cache: "no-store",
-    });
+    const response = await fetch(
+      `${gatewayUrl}/api/admin/intelligence?role=${DASHBOARD_ROLE}&action=metrics`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-role": DASHBOARD_ROLE,
+          "x-pc365-attestation": pc365Token
+        },
+        cache: "no-store"
+      }
+    );
 
     const payload = await response.text();
     return new NextResponse(payload, {
       status: response.status,
       headers: {
         "Content-Type": response.headers.get("content-type") || "application/json",
-        "Cache-Control": "no-store",
-      },
+        "Cache-Control": "no-store"
+      }
     });
   } catch (error) {
     console.error("dpo-dashboard metrics GET failed", error);
@@ -70,7 +74,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const gatewayUrl = process.env.ADMIN_GATEWAY_URL || "http://localhost:3001";
-    const founderApproved = req.headers.get("x-founder-approved") || process.env.DASHBOARD_FOUNDER_APPROVED || "false";
+    const founderApproved =
+      req.headers.get("x-founder-approved") || process.env.DASHBOARD_FOUNDER_APPROVED || "false";
 
     const response = await fetch(`${gatewayUrl}/api/admin/events`, {
       method: "POST",
@@ -78,14 +83,14 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
         "x-admin-role": DASHBOARD_ROLE,
         "x-pc365-attestation": pc365Token,
-        "x-founder-approved": founderApproved,
+        "x-founder-approved": founderApproved
       },
       body: JSON.stringify({
         ...body,
         source: "dpo-dashboard",
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       }),
-      cache: "no-store",
+      cache: "no-store"
     });
 
     const payload = await response.text();
@@ -93,8 +98,8 @@ export async function POST(req: NextRequest) {
       status: response.status,
       headers: {
         "Content-Type": response.headers.get("content-type") || "application/json",
-        "Cache-Control": "no-store",
-      },
+        "Cache-Control": "no-store"
+      }
     });
   } catch (error) {
     console.error("dpo-dashboard metrics POST failed", error);

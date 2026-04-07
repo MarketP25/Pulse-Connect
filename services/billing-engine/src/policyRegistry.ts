@@ -32,12 +32,18 @@ export class PolicyRegistry {
       .filter((x) => x.scope === p.scope)
       .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())[0];
 
-    if (newestForScope && new Date(p.effectiveFrom).getTime() < new Date(newestForScope.effectiveFrom).getTime()) {
+    if (
+      newestForScope &&
+      new Date(p.effectiveFrom).getTime() < new Date(newestForScope.effectiveFrom).getTime()
+    ) {
       throw new Error("policy_retroactive_effective_from");
     }
 
     // basic validation
-    if (p.effectiveUntil && new Date(p.effectiveUntil).getTime() <= new Date(p.effectiveFrom).getTime()) {
+    if (
+      p.effectiveUntil &&
+      new Date(p.effectiveUntil).getTime() <= new Date(p.effectiveFrom).getTime()
+    ) {
       throw new Error("policy_invalid_effective_range");
     }
 
@@ -59,7 +65,9 @@ export class PolicyRegistry {
   getPolicyFor(scope: string, atIso: string): Policy | null {
     const at = new Date(atIso).getTime();
     const candidates = this.policies.filter((p) => p.scope === scope);
-    candidates.sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime());
+    candidates.sort(
+      (a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime()
+    );
     for (const c of candidates) {
       const from = new Date(c.effectiveFrom).getTime();
       const until = c.effectiveUntil ? new Date(c.effectiveUntil).getTime() : Infinity;
@@ -83,7 +91,7 @@ export class PolicyRegistry {
 
     // generic activity policies that include payload.engine
     const generic = this.policies
-      .filter((p) => p.scope === 'activity' && p.payload && p.payload.engine === engine)
+      .filter((p) => p.scope === "activity" && p.payload && p.payload.engine === engine)
       .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime());
     for (const c of generic) {
       const from = new Date(c.effectiveFrom).getTime();
@@ -96,7 +104,10 @@ export class PolicyRegistry {
 
   addOffer(o: Offer) {
     // offers should also be validated for effective ranges
-    if (o.effectiveUntil && new Date(o.effectiveUntil).getTime() <= new Date(o.effectiveFrom).getTime()) {
+    if (
+      o.effectiveUntil &&
+      new Date(o.effectiveUntil).getTime() <= new Date(o.effectiveFrom).getTime()
+    ) {
       throw new Error("offer_invalid_effective_range");
     }
     this.offers.push(o);
@@ -123,6 +134,8 @@ export class PolicyRegistry {
 
   // Return policy history for a given scope
   getPolicyHistory(scope: string) {
-    return this.policies.filter((p) => p.scope === scope).sort((a, b) => new Date(a.effectiveFrom).getTime() - new Date(b.effectiveFrom).getTime());
+    return this.policies
+      .filter((p) => p.scope === scope)
+      .sort((a, b) => new Date(a.effectiveFrom).getTime() - new Date(b.effectiveFrom).getTime());
   }
 }

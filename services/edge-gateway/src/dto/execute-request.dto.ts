@@ -1,11 +1,19 @@
-import { IsString, IsEnum, IsOptional, IsObject, IsNumber, IsUUID, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { SubsystemType } from './policy-version.dto';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsObject,
+  IsNumber,
+  IsUUID,
+  ValidateNested
+} from "class-validator";
+import { Type } from "class-transformer";
+import { SubsystemType } from "./policy-version.dto";
 
 export enum DecisionType {
-  ALLOW = 'allow',
-  BLOCK = 'block',
-  QUARANTINE = 'quarantine',
+  ALLOW = "allow",
+  BLOCK = "block",
+  QUARANTINE = "quarantine"
 }
 
 export class ExecuteRequestDto {

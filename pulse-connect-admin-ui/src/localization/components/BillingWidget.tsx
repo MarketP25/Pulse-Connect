@@ -4,7 +4,9 @@ export const BillingWidget: React.FC<{ accountId: string }> = ({ accountId }) =>
   const [entries, setEntries] = useState<any[]>([]);
   useEffect(() => {
     let mounted = true;
-    fetch(`${process.env.NEXT_PUBLIC_BILLING_URL || "http://localhost:3100"}/marp/ledger/${accountId}`)
+    fetch(
+      `${process.env.NEXT_PUBLIC_BILLING_URL || "http://localhost:3100"}/marp/ledger/${accountId}`
+    )
       .then((r) => r.json())
       .then((data) => {
         if (mounted) setEntries(data);
@@ -12,7 +14,9 @@ export const BillingWidget: React.FC<{ accountId: string }> = ({ accountId }) =>
       .catch(() => {
         if (mounted) setEntries([]);
       });
-    return () => { mounted = false };
+    return () => {
+      mounted = false;
+    };
   }, [accountId]);
 
   return (
@@ -22,8 +26,12 @@ export const BillingWidget: React.FC<{ accountId: string }> = ({ accountId }) =>
       <ul>
         {entries.map((e) => (
           <li key={e.entryId}>
-            <strong>{e.type}</strong>: {e.amount} {e.currency} — {new Date(e.timestamp).toLocaleString()}<br />
-            <small>{e.userExplanation} {e.policyId ? `(policy ${e.policyId}@${e.policyVersion})` : null}</small>
+            <strong>{e.type}</strong>: {e.amount} {e.currency} —{" "}
+            {new Date(e.timestamp).toLocaleString()}
+            <br />
+            <small>
+              {e.userExplanation} {e.policyId ? `(policy ${e.policyId}@${e.policyVersion})` : null}
+            </small>
           </li>
         ))}
       </ul>

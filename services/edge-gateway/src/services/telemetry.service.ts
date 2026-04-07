@@ -1,6 +1,6 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { Pool } from 'pg';
+import { Injectable, Logger, Inject } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { Pool } from "pg";
 
 export interface TelemetryEvent {
   requestId: string;
@@ -35,8 +35,8 @@ export class TelemetryService {
   private readonly logger = new Logger(TelemetryService.name);
 
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
-    @Inject('KAFKA_CLIENT') private readonly kafkaClient: ClientKafka,
+    @Inject("DATABASE_CONNECTION") private readonly db: Pool,
+    @Inject("KAFKA_CLIENT") private readonly kafkaClient: ClientKafka
   ) {}
 
   /**
@@ -51,7 +51,6 @@ export class TelemetryService {
       await this.sendToMARP(event);
 
       this.logger.debug(`Telemetry sent for request ${event.requestId}`);
-
     } catch (error) {
       this.logger.error(`Failed to send telemetry: ${error.message}`);
       // Don't throw - telemetry failures shouldn't break the main flow
@@ -70,7 +69,6 @@ export class TelemetryService {
       await this.sendAnomalyToMARP(anomaly);
 
       this.logger.warn(`Anomaly reported: ${anomaly.anomalyType} - ${anomaly.description}`);
-
     } catch (error) {
       this.logger.error(`Failed to send anomaly: ${error.message}`);
     }
@@ -98,12 +96,12 @@ export class TelemetryService {
       event.executionTime,
       event.hash,
       event.reasonCode,
-      event.sourceApp || 'unknown',
+      event.sourceApp || "unknown",
       JSON.stringify(event.originalRequest || {}),
       event.policySnapshot || null,
       event.regionCode || null,
-      event.instanceId || process.env.EDGE_INSTANCE_ID || 'unknown',
-      event.timestamp,
+      event.instanceId || process.env.EDGE_INSTANCE_ID || "unknown",
+      event.timestamp
     ]);
   }
 
@@ -125,7 +123,7 @@ export class TelemetryService {
       anomaly.subsystem || null,
       anomaly.description,
       JSON.stringify(anomaly.context || {}),
-      anomaly.timestamp,
+      anomaly.timestamp
     ]);
   }
 
@@ -134,20 +132,33 @@ export class TelemetryService {
    */
   private async sendToMARP(event: TelemetryEvent) {
     const kafkaMessage = {
-      topic: 'marp.telemetry.edge',
-      messages: [{
-        key: event.requestId,
-        value: JSON.stringify({
-          ...event,
-          source: 'edge-gateway',
-          region: process.env.REGION_CODE || 'unknown',
-          instance: process.env.EDGE_INSTANCE_ID || 'unknown',
-        }),
-      }],
+      topic: "marp.telemetry.edge",
+      messages: [
+        {
+          key: event.requestId,
+          value: JSON.stringify({
+            ...event,
+            source: "edge-gateway",
+            region: process.env.REGION_CODE || "unknown",
+            instance: process.env.EDGE_INSTANCE_ID || "unknown"
+          })
+        }
+      ]
     };
 
-    // In production: await this.kafkaClient.send(kafkaMessage);
-    this.logger.debug(`Kafka telemetry message prepared for ${event.requestId}`);
+    const sender = (
+      this.kafkaClient as unknown as { send?: (pattern: unknown, data: unknown) => unknown }
+    ).send;
+    if (typeof sender === "function") {
+      const result = sender.call(this.kafkaClient, kafkaMessage.topic, kafkaMessage.messages[0]);
+      if (
+        result &&
+        typeof (result as { toPromise?: () => Promise<unknown> }).toPromise === "function"
+      ) {
+        await (result as { toPromise: () => Promise<unknown> }).toPromise();
+      }
+    }
+    this.logger.debug(`Kafka telemetry dispatched for ${event.requestId}`);
   }
 
   /**
@@ -155,20 +166,33 @@ export class TelemetryService {
    */
   private async sendAnomalyToMARP(anomaly: AnomalyEvent) {
     const kafkaMessage = {
-      topic: 'marp.anomalies.edge',
-      messages: [{
-        key: anomaly.requestId || `anomaly_${Date.now()}`,
-        value: JSON.stringify({
-          ...anomaly,
-          source: 'edge-gateway',
-          region: process.env.REGION_CODE || 'unknown',
-          instance: process.env.EDGE_INSTANCE_ID || 'unknown',
-        }),
-      }],
+      topic: "marp.anomalies.edge",
+      messages: [
+        {
+          key: anomaly.requestId || `anomaly_${Date.now()}`,
+          value: JSON.stringify({
+            ...anomaly,
+            source: "edge-gateway",
+            region: process.env.REGION_CODE || "unknown",
+            instance: process.env.EDGE_INSTANCE_ID || "unknown"
+          })
+        }
+      ]
     };
 
-    // In production: await this.kafkaClient.send(kafkaMessage);
-    this.logger.debug(`Kafka anomaly message prepared: ${anomaly.anomalyType}`);
+    const sender = (
+      this.kafkaClient as unknown as { send?: (pattern: unknown, data: unknown) => unknown }
+    ).send;
+    if (typeof sender === "function") {
+      const result = sender.call(this.kafkaClient, kafkaMessage.topic, kafkaMessage.messages[0]);
+      if (
+        result &&
+        typeof (result as { toPromise?: () => Promise<unknown> }).toPromise === "function"
+      ) {
+        await (result as { toPromise: () => Promise<unknown> }).toPromise();
+      }
+    }
+    this.logger.debug(`Kafka anomaly dispatched: ${anomaly.anomalyType}`);
   }
 
   /**

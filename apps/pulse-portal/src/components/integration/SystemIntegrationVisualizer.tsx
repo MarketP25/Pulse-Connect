@@ -1,99 +1,101 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
 interface SystemIntegrationVisualizerProps {
-  showDetails?: boolean
+  showDetails?: boolean;
 }
 
-export function SystemIntegrationVisualizer({ showDetails = false }: SystemIntegrationVisualizerProps) {
-  const [activeComponent, setActiveComponent] = useState<string | null>(null)
+export function SystemIntegrationVisualizer({
+  showDetails = false
+}: SystemIntegrationVisualizerProps) {
+  const [activeComponent, setActiveComponent] = useState<string | null>(null);
 
   const systemComponents = {
     portal: {
-      name: 'PULSCO Portal',
-      role: 'User Interface & Access Control',
-      color: 'bg-blue-500',
+      name: "PULSCO Portal",
+      role: "User Interface & Access Control",
+      color: "bg-blue-500",
       functions: [
-        'User authentication & registration',
-        'Subsystem launcher & navigation',
-        'Cross-subsystem analytics',
-        'Unified user experience'
+        "User authentication & registration",
+        "Subsystem launcher & navigation",
+        "Cross-subsystem analytics",
+        "Unified user experience"
       ]
     },
     edge: {
-      name: 'Edge Gateway',
-      role: 'Global Routing & Security',
-      color: 'bg-green-500',
+      name: "Edge Gateway",
+      role: "Global Routing & Security",
+      color: "bg-green-500",
       functions: [
-        'Request routing & load balancing',
-        'Subsystem adapter registry',
-        'Security enforcement',
-        'Performance monitoring'
+        "Request routing & load balancing",
+        "Subsystem adapter registry",
+        "Security enforcement",
+        "Performance monitoring"
       ]
     },
     marp: {
-      name: 'MARP Governance',
-      role: 'Policy & Compliance',
-      color: 'bg-purple-500',
+      name: "MARP Governance",
+      role: "Policy & Compliance",
+      color: "bg-purple-500",
       functions: [
-        'Policy evaluation & enforcement',
-        'Audit trail generation',
-        'Consent management',
-        'Compliance verification'
+        "Policy evaluation & enforcement",
+        "Audit trail generation",
+        "Consent management",
+        "Compliance verification"
       ]
     },
     pulsco: {
-      name: 'PULSCO Subsystems',
-      role: 'Business Logic & Services',
-      color: 'bg-orange-500',
+      name: "PULSCO Subsystems",
+      role: "Business Logic & Services",
+      color: "bg-orange-500",
       functions: [
-        'Domain-specific operations',
-        'Data processing & storage',
-        'AI/ML processing',
-        'Business rule execution'
+        "Domain-specific operations",
+        "Data processing & storage",
+        "AI/ML processing",
+        "Business rule execution"
       ]
     }
-  }
+  };
 
   const integrationFlows = [
     {
-      title: 'User Request Flow',
+      title: "User Request Flow",
       steps: [
-        { component: 'portal', action: 'User clicks subsystem card' },
-        { component: 'portal', action: 'Portal requests access token from Edge' },
-        { component: 'edge', action: 'Edge validates user permissions' },
-        { component: 'marp', action: 'MARP evaluates policies & consent' },
-        { component: 'edge', action: 'Edge generates subsystem-specific token' },
-        { component: 'portal', action: 'Portal launches subsystem with token' },
-        { component: 'pulsco', action: 'Subsystem processes request with governance' }
+        { component: "portal", action: "User clicks subsystem card" },
+        { component: "portal", action: "Portal requests access token from Edge" },
+        { component: "edge", action: "Edge validates user permissions" },
+        { component: "marp", action: "MARP evaluates policies & consent" },
+        { component: "edge", action: "Edge generates subsystem-specific token" },
+        { component: "portal", action: "Portal launches subsystem with token" },
+        { component: "pulsco", action: "Subsystem processes request with governance" }
       ]
     },
     {
-      title: 'Policy Enforcement Flow',
+      title: "Policy Enforcement Flow",
       steps: [
-        { component: 'pulsco', action: 'Subsystem receives request with token' },
-        { component: 'edge', action: 'Edge validates token & context' },
-        { component: 'marp', action: 'MARP checks policy compliance' },
-        { component: 'marp', action: 'MARP generates audit events' },
-        { component: 'edge', action: 'Edge routes to appropriate adapter' },
-        { component: 'pulsco', action: 'Subsystem executes with governance' },
-        { component: 'portal', action: 'Results displayed with compliance status' }
+        { component: "pulsco", action: "Subsystem receives request with token" },
+        { component: "edge", action: "Edge validates token & context" },
+        { component: "marp", action: "MARP checks policy compliance" },
+        { component: "marp", action: "MARP generates audit events" },
+        { component: "edge", action: "Edge routes to appropriate adapter" },
+        { component: "pulsco", action: "Subsystem executes with governance" },
+        { component: "portal", action: "Results displayed with compliance status" }
       ]
     },
     {
-      title: 'Cross-Subsystem Data Flow',
+      title: "Cross-Subsystem Data Flow",
       steps: [
-        { component: 'portal', action: 'User requests cross-subsystem analytics' },
-        { component: 'edge', action: 'Edge aggregates data from multiple subsystems' },
-        { component: 'marp', action: 'MARP validates data access permissions' },
-        { component: 'pulsco', action: 'Subsystems provide consented data' },
-        { component: 'edge', action: 'Edge correlates & anonymizes data' },
-        { component: 'portal', action: 'Portal displays unified analytics' },
-        { component: 'marp', action: 'Audit trail captures data usage' }
+        { component: "portal", action: "User requests cross-subsystem analytics" },
+        { component: "edge", action: "Edge aggregates data from multiple subsystems" },
+        { component: "marp", action: "MARP validates data access permissions" },
+        { component: "pulsco", action: "Subsystems provide consented data" },
+        { component: "edge", action: "Edge correlates & anonymizes data" },
+        { component: "portal", action: "Portal displays unified analytics" },
+        { component: "marp", action: "Audit trail captures data usage" }
       ]
     }
-  ]
+  ];
 
   return (
     <div className="space-y-8">
@@ -102,9 +104,9 @@ export function SystemIntegrationVisualizer({ showDetails = false }: SystemInteg
           PULSCO System Integration Architecture
         </h2>
         <p className="text-slate-300 max-w-4xl mx-auto">
-          The Portal, Edge Gateway, MARP Governance, and PULSCO subsystems work together
-          as an integrated planetary nervous system, each component playing a critical role
-          in delivering secure, governed, and intelligent planetary services.
+          The Portal, Edge Gateway, MARP Governance, and PULSCO subsystems work together as an
+          integrated planetary nervous system, each component playing a critical role in delivering
+          secure, governed, and intelligent planetary services.
         </p>
       </div>
 
@@ -149,7 +151,7 @@ export function SystemIntegrationVisualizer({ showDetails = false }: SystemInteg
             <h3 className="text-xl font-semibold text-white mb-6 text-center">{flow.title}</h3>
             <div className="space-y-4">
               {flow.steps.map((step, stepIndex) => {
-                const component = systemComponents[step.component as keyof typeof systemComponents]
+                const component = systemComponents[step.component as keyof typeof systemComponents];
                 return (
                   <div key={stepIndex} className="flex items-center space-x-4">
                     <div className={`w-4 h-4 rounded-full ${component.color} flex-shrink-0`}></div>
@@ -161,7 +163,7 @@ export function SystemIntegrationVisualizer({ showDetails = false }: SystemInteg
                       <div className="text-slate-500 text-xl">↓</div>
                     )}
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -223,7 +225,7 @@ export function SystemIntegrationVisualizer({ showDetails = false }: SystemInteg
             <div>
               <h4 className="text-lg font-medium text-white mb-3">Authentication Flow</h4>
               <pre className="bg-slate-900 p-4 rounded text-sm text-slate-300 overflow-x-auto">
-{`Portal → Edge Gateway (JWT Request)
+                {`Portal → Edge Gateway (JWT Request)
 Edge → MARP (Policy Validation)
 MARP → Edge (Policy Decision)
 Edge → Portal (Subsystem Tokens)
@@ -233,7 +235,7 @@ Portal → Subsystems (Authenticated Requests)`}
             <div>
               <h4 className="text-lg font-medium text-white mb-3">Data Flow Architecture</h4>
               <pre className="bg-slate-900 p-4 rounded text-sm text-slate-300 overflow-x-auto">
-{`User Request → Portal
+                {`User Request → Portal
 Portal → Edge Gateway (Load Balancing)
 Edge → MARP (Policy Check)
 MARP → Subsystem Adapters (Governed Access)
@@ -245,7 +247,7 @@ Edge → Portal (Formatted Response)`}
             <div>
               <h4 className="text-lg font-medium text-white mb-3">Event-Driven Communication</h4>
               <pre className="bg-slate-900 p-4 rounded text-sm text-slate-300 overflow-x-auto">
-{`Subsystem Events → Edge Event Bus
+                {`Subsystem Events → Edge Event Bus
 Edge → MARP (Policy Evaluation)
 MARP → Portal (Real-time Updates)
 Portal → User Interface (Live Notifications)
@@ -256,5 +258,5 @@ Audit → MARP Governance (Compliance Records)`}
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,5 +1,8 @@
 import { NextRequest } from "next/server";
-import { getMatchmakingOperationsModule, runMatchmakingOperationsAction } from "@/server/dashboard/service";
+import {
+  getMatchmakingOperationsModule,
+  runMatchmakingOperationsAction
+} from "@/server/dashboard/service";
 import { getDashboardUserId, mapDashboardError, noStoreJson, parseJsonBody } from "../_utils";
 
 export async function GET(req: NextRequest) {
@@ -30,4 +33,3 @@ export async function POST(req: NextRequest) {
     return mapDashboardError(error);
   }
 }
-

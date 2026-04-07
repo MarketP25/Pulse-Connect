@@ -1,6 +1,6 @@
 # PULSCO Portal - Unified Planetary Access
 
-The **PULSCO Portal** is your single entry point to access all planetary subsystems across multiple monorepos. It provides unified authentication, navigation, and cross-subsystem integration while maintaining the independence of each subsystem.
+The **PULSCO Portal** is your single entry point for guests to explore and access all planetary subsystems across multiple monorepos. It provides unified authentication, navigation, and cross-subsystem integration while maintaining the independence of each subsystem.
 
 ## 🏗️ Architecture Overview
 
@@ -228,8 +228,8 @@ docker run -p 3000:3000 \
 ## 📞 Support
 
 - **Documentation**: [Portal Docs](./docs/)
-- **Issues**: [GitHub Issues](https://github.com/MarketP25/Pulse-Connect/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/MarketP25/Pulse-Connect/discussions)
+- **Issues**: [GitHub Issues](https://github.com/MarketP25/Pulsco/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/MarketP25/Pulsco/discussions)
 
 ---
 

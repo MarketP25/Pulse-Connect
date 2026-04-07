@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EdgeTelemetryService } from '../services/telemetry.service';
-import { AiRuleInterpreter } from '@/shared/lib/src/ai-rule-interpreter';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EdgeTelemetryService } from "../services/telemetry.service";
+import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
 
 export interface LocalizationRequest {
   requestId: string;
   userId: string;
-  action: 'translate' | 'localize_content' | 'detect_language' | 'get_translations';
+  action: "translate" | "localize_content" | "detect_language" | "get_translations";
   context?: {
     sourceLanguage?: string;
     targetLanguage?: string;
@@ -37,7 +37,7 @@ export class LocalizationAdapter {
   constructor(
     private readonly kafkaClient: ClientKafka,
     private readonly telemetryService: EdgeTelemetryService,
-    private readonly aiRuleInterpreter: AiRuleInterpreter,
+    private readonly aiRuleInterpreter: AiRuleInterpreter
   ) {}
 
   /**
@@ -50,18 +50,18 @@ export class LocalizationAdapter {
       // 1. Validate localization request parameters
       const requestCheck = await this.validateLocalizationRequest(request);
       if (!requestCheck.allowed) {
-        await this.telemetryService.recordEvent('localization_blocked', {
+        await this.telemetryService.recordEvent("localization_blocked", {
           requestId: request.requestId,
           userId: request.userId,
           action: request.action,
-          reason: requestCheck.blockedReason,
+          reason: requestCheck.blockedReason
         });
         return {
           requestId: request.requestId,
           allowed: false,
           blockedReason: requestCheck.blockedReason,
           complianceFlags: requestCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -73,7 +73,7 @@ export class LocalizationAdapter {
           allowed: false,
           blockedReason: contentCheck.blockedReason,
           complianceFlags: contentCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -85,7 +85,7 @@ export class LocalizationAdapter {
           allowed: false,
           blockedReason: regionalCheck.blockedReason,
           complianceFlags: regionalCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -93,49 +93,41 @@ export class LocalizationAdapter {
       const result = await this.executeLocalizationOperation(request);
 
       // 5. Record telemetry
-      await this.telemetryService.recordEvent('localization_operation', {
+      await this.telemetryService.recordEvent("localization_operation", {
         requestId: request.requestId,
         userId: request.userId,
         action: request.action,
         sourceLanguage: request.context?.sourceLanguage,
         targetLanguage: request.context?.targetLanguage,
         allowed: true,
-        complianceFlags: [
-          ...requestCheck.flags,
-          ...contentCheck.flags,
-          ...regionalCheck.flags,
-        ].length,
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...requestCheck.flags, ...contentCheck.flags, ...regionalCheck.flags]
+          .length,
+        processingTime: Date.now() - startTime
       });
 
       return {
         requestId: request.requestId,
         allowed: true,
         localizationData: result.localizationData,
-        complianceFlags: [
-          ...requestCheck.flags,
-          ...contentCheck.flags,
-          ...regionalCheck.flags,
-        ],
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...requestCheck.flags, ...contentCheck.flags, ...regionalCheck.flags],
+        processingTime: Date.now() - startTime
       };
-
     } catch (error) {
       this.logger.error(`Localization processing failed: ${error.message}`, error.stack);
-      await this.telemetryService.recordEvent('localization_error', {
+      await this.telemetryService.recordEvent("localization_error", {
         requestId: request.requestId,
         userId: request.userId,
         action: request.action,
         error: error.message,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
         requestId: request.requestId,
         allowed: false,
-        blockedReason: 'System error during localization',
-        complianceFlags: ['error'],
-        processingTime: Date.now() - startTime,
+        blockedReason: "System error during localization",
+        complianceFlags: ["error"],
+        processingTime: Date.now() - startTime
       };
     }
   }
@@ -151,36 +143,42 @@ export class LocalizationAdapter {
     const flags = [];
 
     // Validate supported languages
-    const supportedLanguages = ['en', 'es', 'fr', 'de', 'zh', 'ja', 'ar', 'hi', 'pt', 'ru'];
+    const supportedLanguages = ["en", "es", "fr", "de", "zh", "ja", "ar", "hi", "pt", "ru"];
 
-    if (request.context?.sourceLanguage && !supportedLanguages.includes(request.context.sourceLanguage)) {
+    if (
+      request.context?.sourceLanguage &&
+      !supportedLanguages.includes(request.context.sourceLanguage)
+    ) {
       return {
         allowed: false,
-        blockedReason: 'Unsupported source language',
-        flags: ['unsupported_source_language'],
+        blockedReason: "Unsupported source language",
+        flags: ["unsupported_source_language"]
       };
     }
 
-    if (request.context?.targetLanguage && !supportedLanguages.includes(request.context.targetLanguage)) {
+    if (
+      request.context?.targetLanguage &&
+      !supportedLanguages.includes(request.context.targetLanguage)
+    ) {
       return {
         allowed: false,
-        blockedReason: 'Unsupported target language',
-        flags: ['unsupported_target_language'],
+        blockedReason: "Unsupported target language",
+        flags: ["unsupported_target_language"]
       };
     }
 
-    flags.push('languages_supported');
+    flags.push("languages_supported");
 
     // Validate content length
     if (request.context?.content && request.context.content.length > 50000) {
       return {
         allowed: false,
-        blockedReason: 'Content too long for translation',
-        flags: ['content_too_long'],
+        blockedReason: "Content too long for translation",
+        flags: ["content_too_long"]
       };
     }
 
-    flags.push('content_length_valid');
+    flags.push("content_length_valid");
     return { allowed: true, flags };
   }
 
@@ -199,23 +197,23 @@ export class LocalizationAdapter {
       const sensitivePatterns = [
         /\b\d{4}[- ]\d{4}[- ]\d{4}[- ]\d{4}\b/g, // Credit cards
         /\b\d{3}[- ]\d{3}[- ]\d{4}\b/g, // Phone numbers
-        /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, // Emails
+        /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g // Emails
       ];
 
       for (const pattern of sensitivePatterns) {
         if (pattern.test(request.context.content)) {
           return {
             allowed: false,
-            blockedReason: 'Content contains sensitive information',
-            flags: ['sensitive_content'],
+            blockedReason: "Content contains sensitive information",
+            flags: ["sensitive_content"]
           };
         }
       }
 
-      flags.push('content_appropriate');
+      flags.push("content_appropriate");
     }
 
-    flags.push('appropriateness_checked');
+    flags.push("appropriateness_checked");
     return { allowed: true, flags };
   }
 
@@ -238,11 +236,11 @@ export class LocalizationAdapter {
       if (!regionAllowed) {
         return {
           allowed: false,
-          blockedReason: 'Translation not allowed for this region',
-          flags: ['regional_restriction'],
+          blockedReason: "Translation not allowed for this region",
+          flags: ["regional_restriction"]
         };
       }
-      flags.push('region_compliant');
+      flags.push("region_compliant");
     }
 
     // Apply cultural sensitivity checks
@@ -251,7 +249,7 @@ export class LocalizationAdapter {
       return {
         allowed: false,
         blockedReason: culturalCheck.blockedReason,
-        flags: culturalCheck.flags,
+        flags: culturalCheck.flags
       };
     }
 
@@ -263,14 +261,16 @@ export class LocalizationAdapter {
    * Execute localization operation
    */
   private async executeLocalizationOperation(request: LocalizationRequest): Promise<any> {
-    const result = await this.kafkaClient.send('localization.execute', {
-      requestId: request.requestId,
-      userId: request.userId,
-      action: request.action,
-      context: request.context,
-      edgeValidated: true,
-      timestamp: new Date().toISOString(),
-    }).toPromise();
+    const result = await this.kafkaClient
+      .send("localization.execute", {
+        requestId: request.requestId,
+        userId: request.userId,
+        action: request.action,
+        context: request.context,
+        edgeValidated: true,
+        timestamp: new Date().toISOString()
+      })
+      .toPromise();
 
     return result;
   }
@@ -278,7 +278,10 @@ export class LocalizationAdapter {
   /**
    * Check regional translation restrictions
    */
-  private async checkRegionalTranslationRestrictions(regionCode: string, targetLanguage?: string): Promise<boolean> {
+  private async checkRegionalTranslationRestrictions(
+    regionCode: string,
+    targetLanguage?: string
+  ): Promise<boolean> {
     // Would check regional compliance rules
     return true; // Simplified
   }
@@ -292,6 +295,6 @@ export class LocalizationAdapter {
     flags: string[];
   }> {
     // Would analyze content for cultural appropriateness
-    return { allowed: true, flags: ['culturally_sensitive'] };
+    return { allowed: true, flags: ["culturally_sensitive"] };
   }
 }

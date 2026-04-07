@@ -1,29 +1,29 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
 
-@Entity('correlated_events')
+@Entity("correlated_events")
 export class CorrelatedEvent {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column('jsonb')
+  @Column("jsonb")
   primaryEvent: any;
 
-  @Column('jsonb')
+  @Column("jsonb")
   relatedEvents: any[];
 
   @Column()
   correlationType: string;
 
-  @Column('decimal', { precision: 3, scale: 2 })
+  @Column("decimal", { precision: 3, scale: 2 })
   strength: number;
 
-  @Column('text')
+  @Column("text")
   description: string;
 
-  @Column('jsonb')
+  @Column("jsonb")
   affectedSubsystems: string[];
 
-  @Column('jsonb', { nullable: true })
+  @Column("jsonb", { nullable: true })
   metadata: any;
 
   @CreateDateColumn()

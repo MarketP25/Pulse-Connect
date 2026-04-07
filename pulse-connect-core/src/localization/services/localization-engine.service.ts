@@ -1,26 +1,26 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UserPreferences } from '../entities/user-preferences.entity';
-import { LocalizationStrings } from '../entities/localization-strings.entity';
-import { TranslationEvents } from '../entities/translation-events.entity';
-import { MachineTranslationService } from './machine-translation.service';
-import { SpeechTranslationService } from './speech-translation.service';
-import { SignLanguageService } from './sign-language.service';
-import { GeoRouterService } from './geo-router.service';
-import { WalletFeesService } from './wallet-fees.service';
-import { emitLocalizationEvent } from '../../csi/instrumentation';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { UserPreferences } from "../entities/user-preferences.entity";
+import { LocalizationStrings } from "../entities/localization-strings.entity";
+import { TranslationEvents } from "../entities/translation-events.entity";
+import { MachineTranslationService } from "./machine-translation.service";
+import { SpeechTranslationService } from "./speech-translation.service";
+import { SignLanguageService } from "./sign-language.service";
+import { GeoRouterService } from "./geo-router.service";
+import { WalletFeesService } from "./wallet-fees.service";
+import { emitLocalizationEvent } from "../../csi/instrumentation";
 
 export interface TranslationRequest {
   userId: string;
   sourceLanguage: string;
   targetLanguage: string;
   content: string;
-  contentType: 'text' | 'speech' | 'video' | 'sign';
-  quality?: 'fast' | 'standard' | 'premium';
+  contentType: "text" | "speech" | "video" | "sign";
+  quality?: "fast" | "standard" | "premium";
   context?: {
     domain?: string;
-    urgency?: 'low' | 'normal' | 'high';
+    urgency?: "low" | "normal" | "high";
     audience?: string;
   };
 }
@@ -69,7 +69,7 @@ export class LocalizationEngineService {
     private readonly speechTranslationService: SpeechTranslationService,
     private readonly signLanguageService: SignLanguageService,
     private readonly geoRouterService: GeoRouterService,
-    private readonly walletFeesService: WalletFeesService,
+    private readonly walletFeesService: WalletFeesService
   ) {}
 
   /**
@@ -84,7 +84,7 @@ export class LocalizationEngineService {
         userId: request.userId,
         source: request.sourceLanguage,
         target: request.targetLanguage,
-        type: request.contentType,
+        type: request.contentType
       });
 
       // 1. Get user preferences and context
@@ -94,16 +94,16 @@ export class LocalizationEngineService {
       let translationResult: TranslationResponse;
 
       switch (request.contentType) {
-        case 'text':
+        case "text":
           translationResult = await this.handleTextTranslation(request, context, traceId);
           break;
-        case 'speech':
+        case "speech":
           translationResult = await this.handleSpeechTranslation(request, context, traceId);
           break;
-        case 'video':
+        case "video":
           translationResult = await this.handleVideoTranslation(request, context, traceId);
           break;
-        case 'sign':
+        case "sign":
           translationResult = await this.handleSignTranslation(request, context, traceId);
           break;
         default:
@@ -117,7 +117,7 @@ export class LocalizationEngineService {
         contentType: request.contentType,
         processingTime,
         contentLength: request.content.length,
-        quality: request.quality || 'standard',
+        quality: request.quality || "standard"
       });
 
       // 4. Log translation event for audit and analytics
@@ -131,15 +131,15 @@ export class LocalizationEngineService {
         cost: finalCost,
         quality: translationResult.quality,
         provider: translationResult.metadata.provider,
-        model: translationResult.metadata.model,
+        model: translationResult.metadata.model
       });
 
       // 5. Update wallet balance
       await this.walletFeesService.deductCredits(request.userId, finalCost, traceId);
 
       emitLocalizationEvent(
-        'translation.completed',
-        context.region || 'GLOBAL',
+        "translation.completed",
+        context.region || "GLOBAL",
         {
           traceId,
           userId: request.userId,
@@ -148,12 +148,12 @@ export class LocalizationEngineService {
           contentType: request.contentType,
           processingTimeMs: processingTime,
           costUsd: finalCost,
-          provider: translationResult.metadata.provider,
+          provider: translationResult.metadata.provider
         },
         {
           riskScore: 18,
-          performanceScore: translationResult.quality.score,
-        },
+          performanceScore: translationResult.quality.score
+        }
       );
 
       return {
@@ -161,16 +161,15 @@ export class LocalizationEngineService {
         metadata: {
           ...translationResult.metadata,
           processingTime,
-          cost: finalCost,
+          cost: finalCost
         },
-        traceId,
+        traceId
       };
-
     } catch (error) {
       this.logger.error(`Translation failed: ${traceId}`, error);
 
       emitLocalizationEvent(
-        'translation.failed',
+        "translation.failed",
         request.targetLanguage.toUpperCase(),
         {
           traceId,
@@ -178,12 +177,12 @@ export class LocalizationEngineService {
           sourceLanguage: request.sourceLanguage,
           targetLanguage: request.targetLanguage,
           contentType: request.contentType,
-          reason: error instanceof Error ? error.message : 'unknown_error',
+          reason: error instanceof Error ? error.message : "unknown_error"
         },
         {
           riskScore: 74,
-          performanceScore: 28,
-        },
+          performanceScore: 28
+        }
       );
 
       // Log failed translation event
@@ -195,7 +194,7 @@ export class LocalizationEngineService {
         contentType: request.contentType,
         processingTime: Date.now() - startTime,
         cost: 0,
-        error: error.message,
+        error: error.message
       });
 
       throw error;
@@ -207,8 +206,8 @@ export class LocalizationEngineService {
    */
   async getLocalizedStrings(
     userId: string,
-    namespace: string = 'ui',
-    language?: string,
+    namespace: string = "ui",
+    language?: string
   ): Promise<Record<string, string>> {
     const context = await this.getLocalizationContext(userId);
     const targetLanguage = language || context.language;
@@ -217,14 +216,17 @@ export class LocalizationEngineService {
       where: {
         languageCode: targetLanguage,
         namespace,
-        isApproved: true,
-      },
+        isApproved: true
+      }
     });
 
-    return strings.reduce((acc, str) => {
-      acc[str.key] = str.value;
-      return acc;
-    }, {} as Record<string, string>);
+    return strings.reduce(
+      (acc, str) => {
+        acc[str.key] = str.value;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
   }
 
   /**
@@ -232,20 +234,20 @@ export class LocalizationEngineService {
    */
   async updateUserPreferences(
     userId: string,
-    preferences: Partial<UserPreferences>,
+    preferences: Partial<UserPreferences>
   ): Promise<UserPreferences> {
     let userPrefs = await this.userPreferencesRepository.findOne({
-      where: { userId },
+      where: { userId }
     });
 
     if (!userPrefs) {
       userPrefs = this.userPreferencesRepository.create({
         userId,
-        preferredLanguage: 'en',
-        fallbackLanguage: 'en',
+        preferredLanguage: "en",
+        fallbackLanguage: "en",
         autoTranslate: true,
         showOriginal: false,
-        ...preferences,
+        ...preferences
       });
     } else {
       Object.assign(userPrefs, preferences);
@@ -261,8 +263,8 @@ export class LocalizationEngineService {
   async getTranslationStats(timeRange: { start: Date; end: Date }) {
     const events = await this.translationEventsRepository.find({
       where: {
-        createdAt: Between(timeRange.start, timeRange.end),
-      },
+        createdAt: Between(timeRange.start, timeRange.end)
+      }
     });
 
     const stats = {
@@ -271,11 +273,11 @@ export class LocalizationEngineService {
       totalCost: events.reduce((sum, e) => sum + parseFloat(e.costUsd.toString()), 0),
       translationsByType: {} as Record<string, number>,
       translationsByLanguage: {} as Record<string, number>,
-      errorRate: events.filter(e => e.errorCode).length / events.length,
+      errorRate: events.filter((e) => e.errorCode).length / events.length
     };
 
     // Group by type and language
-    events.forEach(event => {
+    events.forEach((event) => {
       stats.translationsByType[event.translationType] =
         (stats.translationsByType[event.translationType] || 0) + 1;
 
@@ -290,31 +292,31 @@ export class LocalizationEngineService {
 
   private async getLocalizationContext(userId: string): Promise<LocalizationContext> {
     const prefs = await this.userPreferencesRepository.findOne({
-      where: { userId },
+      where: { userId }
     });
 
     return {
       userId,
-      language: prefs?.preferredLanguage || 'en',
+      language: prefs?.preferredLanguage || "en",
       region: prefs?.regionCode,
       signLanguage: prefs?.signLanguageType,
       preferences: {
         autoTranslate: prefs?.autoTranslate ?? true,
         showOriginal: prefs?.showOriginal ?? false,
-        quality: prefs?.translationQuality || 'standard',
-      },
+        quality: prefs?.translationQuality || "standard"
+      }
     };
   }
 
   private async handleTextTranslation(
     request: TranslationRequest,
     context: LocalizationContext,
-    traceId: string,
+    traceId: string
   ): Promise<TranslationResponse> {
     // Route to optimal region for this language pair
     const region = await this.geoRouterService.getOptimalRegion(
       request.sourceLanguage,
-      request.targetLanguage,
+      request.targetLanguage
     );
 
     // Perform machine translation
@@ -322,8 +324,8 @@ export class LocalizationEngineService {
       sourceLanguage: request.sourceLanguage,
       targetLanguage: request.targetLanguage,
       text: request.content,
-      quality: request.quality || context.preferences.quality as any,
-      region,
+      quality: request.quality || (context.preferences.quality as any),
+      region
     });
 
     return {
@@ -335,16 +337,16 @@ export class LocalizationEngineService {
         processingTime: result.processingTime,
         cost: result.cost,
         provider: result.provider,
-        model: result.model,
+        model: result.model
       },
-      traceId,
+      traceId
     };
   }
 
   private async handleSpeechTranslation(
     request: TranslationRequest,
     context: LocalizationContext,
-    traceId: string,
+    traceId: string
   ): Promise<TranslationResponse> {
     // This would handle ASR -> Translation -> TTS pipeline
     const result = await this.speechTranslationService.translateSpeech({
@@ -353,8 +355,8 @@ export class LocalizationEngineService {
       targetLanguage: request.targetLanguage,
       voicePreferences: {
         gender: context.preferences.voiceGender,
-        speed: context.preferences.voiceSpeed,
-      },
+        speed: context.preferences.voiceSpeed
+      }
     });
 
     return {
@@ -366,16 +368,16 @@ export class LocalizationEngineService {
         processingTime: result.processingTime,
         cost: result.cost,
         provider: result.provider,
-        model: result.model,
+        model: result.model
       },
-      traceId,
+      traceId
     };
   }
 
   private async handleVideoTranslation(
     request: TranslationRequest,
     context: LocalizationContext,
-    traceId: string,
+    traceId: string
   ): Promise<TranslationResponse> {
     // Handle video with speech translation and subtitles
     const result = await this.speechTranslationService.translateVideo({
@@ -383,7 +385,7 @@ export class LocalizationEngineService {
       sourceLanguage: request.sourceLanguage,
       targetLanguage: request.targetLanguage,
       includeSubtitles: true,
-      includeVoiceover: true,
+      includeVoiceover: true
     });
 
     return {
@@ -395,22 +397,22 @@ export class LocalizationEngineService {
         processingTime: result.processingTime,
         cost: result.cost,
         provider: result.provider,
-        model: result.model,
+        model: result.model
       },
-      traceId,
+      traceId
     };
   }
 
   private async handleSignTranslation(
     request: TranslationRequest,
     context: LocalizationContext,
-    traceId: string,
+    traceId: string
   ): Promise<TranslationResponse> {
     const result = await this.signLanguageService.translateSign({
       gestureData: request.content, // Gesture tracking data
-      sourceSignLanguage: context.signLanguage || 'asl',
+      sourceSignLanguage: context.signLanguage || "asl",
       targetLanguage: request.targetLanguage,
-      outputType: 'text', // Could also be 'voice' or 'avatar'
+      outputType: "text" // Could also be 'voice' or 'avatar'
     });
 
     return {
@@ -422,9 +424,9 @@ export class LocalizationEngineService {
         processingTime: result.processingTime,
         cost: result.cost,
         provider: result.provider,
-        model: result.model,
+        model: result.model
       },
-      traceId,
+      traceId
     };
   }
 
@@ -452,8 +454,8 @@ export class LocalizationEngineService {
       accuracyScore: eventData.quality?.score,
       provider: eventData.provider,
       modelVersion: eventData.model,
-      errorCode: eventData.error ? 'TRANSLATION_ERROR' : null,
-      metadata: eventData.quality ? { quality: eventData.quality } : {},
+      errorCode: eventData.error ? "TRANSLATION_ERROR" : null,
+      metadata: eventData.quality ? { quality: eventData.quality } : {}
     });
 
     await this.translationEventsRepository.save(event);

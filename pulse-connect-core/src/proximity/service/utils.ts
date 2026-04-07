@@ -18,10 +18,10 @@ export interface NormalizedAddress {
  */
 export function normalizeAddress(address: string): NormalizedAddress {
   // Unicode fold to handle special characters
-  let normalized = address.normalize('NFKD');
+  let normalized = address.normalize("NFKD");
 
   // Trim and collapse whitespace
-  normalized = normalized.trim().replace(/\s+/g, ' ');
+  normalized = normalized.trim().replace(/\s+/g, " ");
 
   // Lowercase except country/locality codes (simplified)
   normalized = normalized.toLowerCase();
@@ -31,7 +31,7 @@ export function normalizeAddress(address: string): NormalizedAddress {
   const postalCode = postalCodeMatch ? postalCodeMatch[0] : undefined;
 
   // Remove postal code from address for canonical form
-  const withoutPostal = postalCode ? normalized.replace(postalCode, '').trim() : normalized;
+  const withoutPostal = postalCode ? normalized.replace(postalCode, "").trim() : normalized;
 
   return {
     canonical: withoutPostal,
@@ -69,7 +69,11 @@ export function isValidCoordinates(lat: number, lng: number): boolean {
 /**
  * Calculate bounding box for radius search
  */
-export function calculateBoundingBox(centerLat: number, centerLng: number, radiusKm: number): {
+export function calculateBoundingBox(
+  centerLat: number,
+  centerLng: number,
+  radiusKm: number
+): {
   minLat: number;
   maxLat: number;
   minLng: number;
@@ -111,7 +115,7 @@ export class RateLimiter {
     const windowStart = now - this.windowMs;
 
     const userRequests = this.requests.get(key) || [];
-    const recentRequests = userRequests.filter(timestamp => timestamp > windowStart);
+    const recentRequests = userRequests.filter((timestamp) => timestamp > windowStart);
 
     if (recentRequests.length >= this.limit) {
       return false;
@@ -128,7 +132,7 @@ export class RateLimiter {
     const windowStart = now - this.windowMs;
 
     const userRequests = this.requests.get(key) || [];
-    const recentRequests = userRequests.filter(timestamp => timestamp > windowStart);
+    const recentRequests = userRequests.filter((timestamp) => timestamp > windowStart);
 
     return Math.max(0, this.limit - recentRequests.length);
   }

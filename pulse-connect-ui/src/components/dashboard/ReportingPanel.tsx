@@ -11,9 +11,14 @@ type Props = {
 
 export function ReportingPanel({ title, reporting, fraud, enabled, disabledReason }: Props) {
   return (
-    <SectionCard title={title} subtitle="Revenue reporting, performance latency, and fraud risk analytics.">
+    <SectionCard
+      title={title}
+      subtitle="Revenue reporting, performance latency, and fraud risk analytics."
+    >
       {!enabled ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">{disabledReason || "Reporting is restricted for this account."}</p>
+        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">
+          {disabledReason || "Reporting is restricted for this account."}
+        </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-2 text-sm text-slate-700">
@@ -55,4 +60,3 @@ export function ReportingPanel({ title, reporting, fraud, enabled, disabledReaso
     </SectionCard>
   );
 }
-

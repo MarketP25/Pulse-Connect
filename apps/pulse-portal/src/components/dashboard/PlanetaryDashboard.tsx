@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { AccessPatternVisualizer } from '../access/AccessPatternVisualizer'
-import { SystemIntegrationVisualizer } from '../integration/SystemIntegrationVisualizer'
+import { AccessPatternVisualizer } from "../access/AccessPatternVisualizer";
+import { SystemIntegrationVisualizer } from "../integration/SystemIntegrationVisualizer";
 
 export function PlanetaryDashboard() {
   return (
@@ -9,7 +9,8 @@ export function PlanetaryDashboard() {
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-white">Planetary Dashboard</h2>
         <p className="text-slate-300">
-          Safe offline mode: read-only visuals only (no billing, wallet, admin, auth, edge, or MARP interactions).
+          Safe offline mode: read-only visuals only (no billing, wallet, admin, auth, edge, or MARP
+          interactions).
         </p>
       </div>
 
@@ -22,8 +23,7 @@ export function PlanetaryDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default PlanetaryDashboard
-
+export default PlanetaryDashboard;

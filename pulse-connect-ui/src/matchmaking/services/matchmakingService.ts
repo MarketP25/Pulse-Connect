@@ -1,27 +1,33 @@
-import { MatchmakingProfile, MatchmakingPreferences, MatchResult, MatchmakingContract, MatchmakingStats } from '../types/matchmaking';
+import {
+  MatchmakingProfile,
+  MatchmakingPreferences,
+  MatchResult,
+  MatchmakingContract,
+  MatchmakingStats
+} from "../types/matchmaking";
 
 class MatchmakingService {
-  private baseUrl = '/api/matchmaking';
+  private baseUrl = "/api/matchmaking";
 
   async getProfile(): Promise<MatchmakingProfile> {
     const response = await fetch(`${this.baseUrl}/profile`);
     if (!response.ok) {
-      throw new Error('Failed to fetch profile');
+      throw new Error("Failed to fetch profile");
     }
     return response.json();
   }
 
   async updateProfile(updates: Partial<MatchmakingProfile>): Promise<MatchmakingProfile> {
     const response = await fetch(`${this.baseUrl}/profile`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(updates),
+      body: JSON.stringify(updates)
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update profile');
+      throw new Error("Failed to update profile");
     }
 
     return response.json();
@@ -30,22 +36,24 @@ class MatchmakingService {
   async getPreferences(): Promise<MatchmakingPreferences> {
     const response = await fetch(`${this.baseUrl}/preferences`);
     if (!response.ok) {
-      throw new Error('Failed to fetch preferences');
+      throw new Error("Failed to fetch preferences");
     }
     return response.json();
   }
 
-  async updatePreferences(updates: Partial<MatchmakingPreferences>): Promise<MatchmakingPreferences> {
+  async updatePreferences(
+    updates: Partial<MatchmakingPreferences>
+  ): Promise<MatchmakingPreferences> {
     const response = await fetch(`${this.baseUrl}/preferences`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(updates),
+      body: JSON.stringify(updates)
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update preferences');
+      throw new Error("Failed to update preferences");
     }
 
     return response.json();
@@ -54,7 +62,7 @@ class MatchmakingService {
   async getMatches(): Promise<MatchResult[]> {
     const response = await fetch(`${this.baseUrl}/matches`);
     if (!response.ok) {
-      throw new Error('Failed to fetch matches');
+      throw new Error("Failed to fetch matches");
     }
     const data = await response.json();
     return data.matches || [];
@@ -62,11 +70,11 @@ class MatchmakingService {
 
   async findMatches(): Promise<MatchResult[]> {
     const response = await fetch(`${this.baseUrl}/matches/find`, {
-      method: 'POST',
+      method: "POST"
     });
 
     if (!response.ok) {
-      throw new Error('Failed to find matches');
+      throw new Error("Failed to find matches");
     }
 
     const data = await response.json();
@@ -75,60 +83,65 @@ class MatchmakingService {
 
   async acceptMatch(matchId: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/matches/${matchId}/accept`, {
-      method: 'POST',
+      method: "POST"
     });
 
     if (!response.ok) {
-      throw new Error('Failed to accept match');
+      throw new Error("Failed to accept match");
     }
   }
 
   async rejectMatch(matchId: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/matches/${matchId}/reject`, {
-      method: 'POST',
+      method: "POST"
     });
 
     if (!response.ok) {
-      throw new Error('Failed to reject match');
+      throw new Error("Failed to reject match");
     }
   }
 
   async getContracts(): Promise<MatchmakingContract[]> {
     const response = await fetch(`${this.baseUrl}/contracts`);
     if (!response.ok) {
-      throw new Error('Failed to fetch contracts');
+      throw new Error("Failed to fetch contracts");
     }
     const data = await response.json();
     return data.contracts || [];
   }
 
-  async createContract(contract: Omit<MatchmakingContract, 'id' | 'createdAt' | 'updatedAt'>): Promise<MatchmakingContract> {
+  async createContract(
+    contract: Omit<MatchmakingContract, "id" | "createdAt" | "updatedAt">
+  ): Promise<MatchmakingContract> {
     const response = await fetch(`${this.baseUrl}/contracts`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(contract),
+      body: JSON.stringify(contract)
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create contract');
+      throw new Error("Failed to create contract");
     }
 
     return response.json();
   }
 
-  async updateContract(contractId: string, updates: Partial<MatchmakingContract>): Promise<MatchmakingContract> {
+  async updateContract(
+    contractId: string,
+    updates: Partial<MatchmakingContract>
+  ): Promise<MatchmakingContract> {
     const response = await fetch(`${this.baseUrl}/contracts/${contractId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(updates),
+      body: JSON.stringify(updates)
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update contract');
+      throw new Error("Failed to update contract");
     }
 
     return response.json();
@@ -137,42 +150,42 @@ class MatchmakingService {
   async getStats(): Promise<MatchmakingStats> {
     const response = await fetch(`${this.baseUrl}/stats`);
     if (!response.ok) {
-      throw new Error('Failed to fetch stats');
+      throw new Error("Failed to fetch stats");
     }
     return response.json();
   }
 
   async reportMatch(matchId: string, reason: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/matches/${matchId}/report`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason })
     });
 
     if (!response.ok) {
-      throw new Error('Failed to report match');
+      throw new Error("Failed to report match");
     }
   }
 
   async blockUser(userId: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/users/${userId}/block`, {
-      method: 'POST',
+      method: "POST"
     });
 
     if (!response.ok) {
-      throw new Error('Failed to block user');
+      throw new Error("Failed to block user");
     }
   }
 
   async unblockUser(userId: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/users/${userId}/unblock`, {
-      method: 'DELETE',
+      method: "DELETE"
     });
 
     if (!response.ok) {
-      throw new Error('Failed to unblock user');
+      throw new Error("Failed to unblock user");
     }
   }
 
@@ -186,12 +199,12 @@ class MatchmakingService {
   // Search and filter matches
   async searchMatches(query: string, filters?: any): Promise<MatchResult[]> {
     const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (filters) params.append('filters', JSON.stringify(filters));
+    if (query) params.append("q", query);
+    if (filters) params.append("filters", JSON.stringify(filters));
 
     const response = await fetch(`${this.baseUrl}/matches/search?${params}`);
     if (!response.ok) {
-      throw new Error('Failed to search matches');
+      throw new Error("Failed to search matches");
     }
 
     const data = await response.json();
@@ -202,7 +215,7 @@ class MatchmakingService {
   async getRecommendations(): Promise<MatchResult[]> {
     const response = await fetch(`${this.baseUrl}/recommendations`);
     if (!response.ok) {
-      throw new Error('Failed to fetch recommendations');
+      throw new Error("Failed to fetch recommendations");
     }
 
     const data = await response.json();

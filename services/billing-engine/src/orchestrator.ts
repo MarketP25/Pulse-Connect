@@ -8,23 +8,28 @@ const REGION_MULTIPLIERS: Record<Region, number> = {
   "Europe West 1": 1.0,
   "Asia East 1": 0.9,
   "South America East 1": 0.85,
-  "Middle East Central 1": 0.95,
+  "Middle East Central 1": 0.95
 };
 
 const REGION_TAX: Record<string, number> = {
-  "Europe West 1": 0.20,
-  "USA": 0.0,
+  "Europe West 1": 0.2,
+  USA: 0.0,
   "Africa South 1": 0.15,
-  "Asia East 1": 0.10,
+  "Asia East 1": 0.1,
   "South America East 1": 0.15,
-  "Middle East Central 1": 0.10,
+  "Middle East Central 1": 0.1
 };
 
 export class Orchestrator {
   // very small in-memory subscription store for access billing rules
   private subscriptions: Map<string, any> = new Map(); // key = accountId
 
-  constructor(private policy: PolicyRegistry, private ledger: LedgerService, private wallet: WalletService, private persistence?: any) {}
+  constructor(
+    private policy: PolicyRegistry,
+    private ledger: LedgerService,
+    private wallet: WalletService,
+    private persistence?: any
+  ) {}
 
   calculateCharge(base: number, region: Region, offers: any[], atIso: string): ChargeBreakdown {
     const multiplier = REGION_MULTIPLIERS[region] ?? 1;
@@ -32,7 +37,9 @@ export class Orchestrator {
     // apply percent discounts first
     let discountPercent = 0;
     const discounts: { offerId: string; amount: number }[] = [];
-    const eligible = this.policy.eligibleOffers("all", atIso).concat(this.policy.eligibleOffers("subscriptions", atIso));
+    const eligible = this.policy
+      .eligibleOffers("all", atIso)
+      .concat(this.policy.eligibleOffers("subscriptions", atIso));
     for (const o of eligible) {
       if (o.discountPercent) discountPercent += o.discountPercent;
     }
@@ -53,18 +60,29 @@ export class Orchestrator {
       subtotal,
       tax,
       total,
-      appliedPolicy: policy as Policy | undefined,
+      appliedPolicy: policy as Policy | undefined
     } as ChargeBreakdown;
   }
   // create a subscription (signup). By default subscriptions do not auto-renew to avoid surprise renewals.
-  createSubscription(accountId: string, walletId: string, planId: string, planPrice: number, region: Region, atIso: string, idempotencyKey?: string, autoRenew = false) {
+  createSubscription(
+    accountId: string,
+    walletId: string,
+    planId: string,
+    planPrice: number,
+    region: Region,
+    atIso: string,
+    idempotencyKey?: string,
+    autoRenew = false
+  ) {
     const breakdown = this.calculateCharge(planPrice, region, [], atIso);
     const before = this.wallet.get(walletId);
-    if (!before) throw new Error('wallet-not-found');
+    if (!before) throw new Error("wallet-not-found");
 
     // idempotency: check ledger for same idempotencyKey
     if (idempotencyKey) {
-      const existing = this.ledger.all().find((e) => e.idempotencyKey === idempotencyKey && e.walletId === walletId);
+      const existing = this.ledger
+        .all()
+        .find((e) => e.idempotencyKey === idempotencyKey && e.walletId === walletId);
       if (existing) return existing;
     }
 
@@ -77,16 +95,18 @@ export class Orchestrator {
       timestamp: atIso,
       accountId,
       walletId,
-      type: 'subscription_signup',
+      type: "subscription_signup",
       amount: breakdown.total,
-      currency: 'USD',
+      currency: "USD",
       balanceAfter: after.balance,
       policyId: breakdown.appliedPolicy?.policyId,
       policyVersion: breakdown.appliedPolicy?.version,
       region,
-      taxBreakdown: [{ region, rate: breakdown.tax > 0 ? REGION_TAX[region] ?? 0 : 0, amount: breakdown.tax }],
+      taxBreakdown: [
+        { region, rate: breakdown.tax > 0 ? (REGION_TAX[region] ?? 0) : 0, amount: breakdown.tax }
+      ],
       userExplanation: `Signup charge for ${planId}`,
-      idempotencyKey,
+      idempotencyKey
     });
 
     // create subscription record valid for 30 days
@@ -100,8 +120,8 @@ export class Orchestrator {
       region,
       periodStart: periodStart.toISOString(),
       periodEnd: periodEnd.toISOString(),
-      status: 'active',
-      autoRenew,
+      status: "active",
+      autoRenew
     };
     this.subscriptions.set(accountId, record);
     if (this.persistence && this.persistence.saveSubscription) {
@@ -113,12 +133,14 @@ export class Orchestrator {
   // renew an existing subscription — must be explicit (no surprise renewals)
   renewSubscription(accountId: string, atIso: string, idempotencyKey?: string) {
     const sub = this.subscriptions.get(accountId);
-    if (!sub) throw new Error('subscription_not_found');
-    if (sub.status !== 'active') throw new Error('subscription_not_active');
+    if (!sub) throw new Error("subscription_not_found");
+    if (sub.status !== "active") throw new Error("subscription_not_active");
 
     // idempotency
     if (idempotencyKey) {
-      const existing = this.ledger.all().find((e) => e.idempotencyKey === idempotencyKey && e.accountId === accountId);
+      const existing = this.ledger
+        .all()
+        .find((e) => e.idempotencyKey === idempotencyKey && e.accountId === accountId);
       if (existing) return existing;
     }
 
@@ -131,16 +153,22 @@ export class Orchestrator {
       timestamp: atIso,
       accountId: sub.accountId,
       walletId: sub.walletId,
-      type: 'subscription_renewal',
+      type: "subscription_renewal",
       amount: breakdown.total,
-      currency: 'USD',
+      currency: "USD",
       balanceAfter: after.balance,
       policyId: breakdown.appliedPolicy?.policyId,
       policyVersion: breakdown.appliedPolicy?.version,
       region: sub.region,
-      taxBreakdown: [{ region: sub.region, rate: breakdown.tax > 0 ? REGION_TAX[sub.region] ?? 0 : 0, amount: breakdown.tax }],
+      taxBreakdown: [
+        {
+          region: sub.region,
+          rate: breakdown.tax > 0 ? (REGION_TAX[sub.region] ?? 0) : 0,
+          amount: breakdown.tax
+        }
+      ],
       userExplanation: `Renewal charge for ${sub.planId}`,
-      idempotencyKey,
+      idempotencyKey
     });
 
     // advance period
@@ -156,16 +184,23 @@ export class Orchestrator {
   }
 
   // upgrade mid-period: charge prorated difference for remainder of period
-  upgradeSubscription(accountId: string, walletId: string, newPlanId: string, newPrice: number, atIso: string, idempotencyKey?: string) {
+  upgradeSubscription(
+    accountId: string,
+    walletId: string,
+    newPlanId: string,
+    newPrice: number,
+    atIso: string,
+    idempotencyKey?: string
+  ) {
     const sub = this.subscriptions.get(accountId);
-    if (!sub) throw new Error('subscription_not_found');
-    if (sub.walletId !== walletId) throw new Error('wallet_mismatch');
+    if (!sub) throw new Error("subscription_not_found");
+    if (sub.walletId !== walletId) throw new Error("wallet_mismatch");
 
     // calculate prorated amount for remainder of current period
     const now = new Date(atIso).getTime();
     const periodStart = new Date(sub.periodStart).getTime();
     const periodEnd = new Date(sub.periodEnd).getTime();
-    if (now >= periodEnd) throw new Error('period_already_ended');
+    if (now >= periodEnd) throw new Error("period_already_ended");
     const remaining = periodEnd - now;
     const periodLen = periodEnd - periodStart;
     const ratio = remaining / periodLen;
@@ -177,7 +212,9 @@ export class Orchestrator {
     if (delta > 0) {
       // charge additional prorated amount
       if (idempotencyKey) {
-        const existing = this.ledger.all().find((e) => e.idempotencyKey === idempotencyKey && e.accountId === accountId);
+        const existing = this.ledger
+          .all()
+          .find((e) => e.idempotencyKey === idempotencyKey && e.accountId === accountId);
         if (existing) return existing;
       }
       this.wallet.debit(walletId, delta);
@@ -187,15 +224,15 @@ export class Orchestrator {
         timestamp: atIso,
         accountId,
         walletId,
-        type: 'subscription_prorate_charge',
+        type: "subscription_prorate_charge",
         amount: delta,
-        currency: 'USD',
+        currency: "USD",
         balanceAfter: after.balance,
         policyId: undefined,
         policyVersion: undefined,
         region: sub.region,
         userExplanation: `Prorated upgrade from ${sub.planId} -> ${newPlanId}`,
-        idempotencyKey,
+        idempotencyKey
       });
       // apply new plan for remainder
       sub.planId = newPlanId;
@@ -209,20 +246,20 @@ export class Orchestrator {
       // downgrade — schedule at period end to avoid retroactive refunds
       sub.pendingPlan = { planId: newPlanId, price: newPrice };
       sub.pendingEffective = sub.periodEnd;
-      sub.status = 'pending_change';
+      sub.status = "pending_change";
       this.subscriptions.set(accountId, sub);
       if (this.persistence && this.persistence.saveSubscription) {
         this.persistence.saveSubscription(sub).catch(() => {});
       }
-      return { note: 'downgrade_scheduled', effective: sub.pendingEffective } as any;
+      return { note: "downgrade_scheduled", effective: sub.pendingEffective } as any;
     }
   }
 
   // cancel: mark cancel effective at period end (no immediate refund)
   cancelSubscription(accountId: string) {
     const sub = this.subscriptions.get(accountId);
-    if (!sub) throw new Error('subscription_not_found');
-    sub.status = 'canceled';
+    if (!sub) throw new Error("subscription_not_found");
+    sub.status = "canceled";
     sub.canceledEffective = sub.periodEnd;
     this.subscriptions.set(accountId, sub);
     if (this.persistence && this.persistence.saveSubscription) {
@@ -240,10 +277,10 @@ export class Orchestrator {
       sub.price = sub.pendingPlan.price;
       delete sub.pendingPlan;
       delete sub.pendingEffective;
-      sub.status = 'active';
+      sub.status = "active";
     }
-    if (sub.status === 'canceled' && sub.canceledEffective === sub.periodEnd) {
-      sub.status = 'closed';
+    if (sub.status === "canceled" && sub.canceledEffective === sub.periodEnd) {
+      sub.status = "closed";
     }
     this.subscriptions.set(accountId, sub);
     if (this.persistence && this.persistence.saveSubscription) {
@@ -263,14 +300,37 @@ export class Orchestrator {
   }
 
   // Alias for createSubscription - used by tests
-  chargeSubscription(accountId: string, walletId: string, planId: string, planPrice: number, region: Region, atIso: string, idempotencyKey?: string) {
-    return this.createSubscription(accountId, walletId, planId, planPrice, region, atIso, idempotencyKey);
+  chargeSubscription(
+    accountId: string,
+    walletId: string,
+    planId: string,
+    planPrice: number,
+    region: Region,
+    atIso: string,
+    idempotencyKey?: string
+  ) {
+    return this.createSubscription(
+      accountId,
+      walletId,
+      planId,
+      planPrice,
+      region,
+      atIso,
+      idempotencyKey
+    );
   }
 
   // Activity Billing: record usage events and charge via appropriate engine
-  async recordUsage(accountId: string, walletId: string, event: any, region: Region, atIso: string, idempotencyKey?: string) {
+  async recordUsage(
+    accountId: string,
+    walletId: string,
+    event: any,
+    region: Region,
+    atIso: string,
+    idempotencyKey?: string
+  ) {
     // lazy-load activity engines to avoid adding heavy deps to core module
-    const { getEngine } = await import('./activity');
+    const { getEngine } = await import("./activity");
     const engine = getEngine(event.engine);
     // fetch activity-specific policy if present (scope activity:<engine>)
     const policyScope = `activity:${event.engine}`;
@@ -279,7 +339,9 @@ export class Orchestrator {
 
     // idempotency: check ledger for same event idempotency or sourceEventId
     if (idempotencyKey) {
-      const existing = this.ledger.all().find((e) => e.idempotencyKey === idempotencyKey && e.accountId === accountId);
+      const existing = this.ledger
+        .all()
+        .find((e) => e.idempotencyKey === idempotencyKey && e.accountId === accountId);
       if (existing) return existing;
     }
 
@@ -294,16 +356,20 @@ export class Orchestrator {
       walletId,
       type: `activity_${event.engine}`,
       amount: charge.total,
-      currency: 'USD',
+      currency: "USD",
       balanceAfter: after.balance,
       sourceEngine: event.engine,
       sourceEventId: event.eventId,
       userExplanation: charge.description,
-      idempotencyKey,
+      idempotencyKey
     } as any);
 
     if (this.persistence && this.persistence.saveLedgerEntry) {
-      try { await this.persistence.saveLedgerEntry(entry); } catch (e) { /* bubble handled by caller */ }
+      try {
+        await this.persistence.saveLedgerEntry(entry);
+      } catch (e) {
+        /* bubble handled by caller */
+      }
     }
 
     return entry;

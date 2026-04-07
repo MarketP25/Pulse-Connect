@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource } from "typeorm";
 import {
   ConsentRecord,
   ConsentRequest,
@@ -8,10 +8,10 @@ import {
   MarketingPurpose,
   ConsentScope,
   ConsentSource,
-  ConsentError,
-} from '../types/pap';
-import { ConsentEntity } from '../entities/consent.entity';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+  ConsentError
+} from "../types/pap";
+import { ConsentEntity } from "../entities/consent.entity";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Injectable()
 export class ConsentService {
@@ -21,7 +21,7 @@ export class ConsentService {
     @InjectRepository(ConsentEntity)
     private readonly consentRepository: Repository<ConsentEntity>,
     private readonly eventEmitter: EventEmitter2,
-    private readonly dataSource: DataSource,
+    private readonly dataSource: DataSource
   ) {}
 
   /**
@@ -39,8 +39,8 @@ export class ConsentService {
           userId: request.userId,
           channel: request.channel,
           purpose: request.purpose,
-          revokedAt: null,
-        },
+          revokedAt: null
+        }
       });
 
       if (existingConsent) {
@@ -52,7 +52,7 @@ export class ConsentService {
         const updatedConsent = await queryRunner.manager.save(ConsentEntity, existingConsent);
         await queryRunner.commitTransaction();
 
-        this.eventEmitter.emit('consent.updated', { consent: updatedConsent });
+        this.eventEmitter.emit("consent.updated", { consent: updatedConsent });
         return this.mapEntityToConsent(updatedConsent);
       }
 
@@ -67,13 +67,13 @@ export class ConsentService {
         source: request.source,
         metadata: request.metadata || {},
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       });
 
       const savedConsent = await queryRunner.manager.save(ConsentEntity, consentEntity);
       await queryRunner.commitTransaction();
 
-      this.eventEmitter.emit('consent.granted', { consent: savedConsent });
+      this.eventEmitter.emit("consent.granted", { consent: savedConsent });
       return this.mapEntityToConsent(savedConsent);
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -99,39 +99,39 @@ export class ConsentService {
 
     try {
       const query = this.consentRepository
-        .createQueryBuilder('consent')
+        .createQueryBuilder("consent")
         .update(ConsentEntity)
         .set({
           revokedAt: new Date(),
-          updatedAt: new Date(),
+          updatedAt: new Date()
         })
-        .where('userId = :userId', { userId })
-        .andWhere('revokedAt IS NULL');
+        .where("userId = :userId", { userId })
+        .andWhere("revokedAt IS NULL");
 
       if (channel) {
-        query.andWhere('channel = :channel', { channel });
+        query.andWhere("channel = :channel", { channel });
       }
 
       if (purpose) {
-        query.andWhere('purpose = :purpose', { purpose });
+        query.andWhere("purpose = :purpose", { purpose });
       }
 
       if (scope && scope.length > 0) {
         // Revoke only specific scopes - this is complex, may need to create new records
         // For simplicity, we'll revoke the entire consent
-        query.andWhere('scope && :scope', { scope });
+        query.andWhere("scope && :scope", { scope });
       }
 
       const result = await query.execute();
 
       if (result.affected && result.affected > 0) {
         await queryRunner.commitTransaction();
-        this.eventEmitter.emit('consent.revoked', {
+        this.eventEmitter.emit("consent.revoked", {
           userId,
           channel,
           purpose,
           scope,
-          revokedCount: result.affected,
+          revokedCount: result.affected
         });
       } else {
         await queryRunner.rollbackTransaction();
@@ -159,8 +159,8 @@ export class ConsentService {
         userId,
         channel,
         purpose,
-        revokedAt: null,
-      },
+        revokedAt: null
+      }
     });
 
     if (!consent) {
@@ -174,7 +174,7 @@ export class ConsentService {
 
     // Check if required scope is granted
     if (scope.length > 0) {
-      const hasRequiredScope = scope.every(s => consent.scope.includes(s));
+      const hasRequiredScope = scope.every((s) => consent.scope.includes(s));
       if (!hasRequiredScope) {
         return false;
       }
@@ -189,10 +189,10 @@ export class ConsentService {
   async getUserConsents(userId: string): Promise<ConsentRecord[]> {
     const consents = await this.consentRepository.find({
       where: { userId },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" }
     });
 
-    return consents.map(c => this.mapEntityToConsent(c));
+    return consents.map((c) => this.mapEntityToConsent(c));
   }
 
   /**
@@ -208,43 +208,49 @@ export class ConsentService {
     const [totalConsents, activeConsents, revokedConsents] = await Promise.all([
       this.consentRepository.count(),
       this.consentRepository.count({ where: { revokedAt: null } }),
-      this.consentRepository.count({ where: { revokedAt: { $ne: null } } }),
+      this.consentRepository.count({ where: { revokedAt: { $ne: null } } })
     ]);
 
     // Get breakdown by channel
     const channelStats = await this.consentRepository
-      .createQueryBuilder('consent')
-      .select('consent.channel', 'channel')
-      .addSelect('COUNT(*)', 'count')
-      .where('consent.revokedAt IS NULL')
-      .groupBy('consent.channel')
+      .createQueryBuilder("consent")
+      .select("consent.channel", "channel")
+      .addSelect("COUNT(*)", "count")
+      .where("consent.revokedAt IS NULL")
+      .groupBy("consent.channel")
       .getRawMany();
 
-    const consentsByChannel = channelStats.reduce((acc, stat) => {
-      acc[stat.channel] = parseInt(stat.count);
-      return acc;
-    }, {} as Record<MarketingChannel, number>);
+    const consentsByChannel = channelStats.reduce(
+      (acc, stat) => {
+        acc[stat.channel] = parseInt(stat.count);
+        return acc;
+      },
+      {} as Record<MarketingChannel, number>
+    );
 
     // Get breakdown by purpose
     const purposeStats = await this.consentRepository
-      .createQueryBuilder('consent')
-      .select('consent.purpose', 'purpose')
-      .addSelect('COUNT(*)', 'count')
-      .where('consent.revokedAt IS NULL')
-      .groupBy('consent.purpose')
+      .createQueryBuilder("consent")
+      .select("consent.purpose", "purpose")
+      .addSelect("COUNT(*)", "count")
+      .where("consent.revokedAt IS NULL")
+      .groupBy("consent.purpose")
       .getRawMany();
 
-    const consentsByPurpose = purposeStats.reduce((acc, stat) => {
-      acc[stat.purpose] = parseInt(stat.count);
-      return acc;
-    }, {} as Record<MarketingPurpose, number>);
+    const consentsByPurpose = purposeStats.reduce(
+      (acc, stat) => {
+        acc[stat.purpose] = parseInt(stat.count);
+        return acc;
+      },
+      {} as Record<MarketingPurpose, number>
+    );
 
     return {
       totalConsents,
       activeConsents,
       revokedConsents,
       consentsByChannel,
-      consentsByPurpose,
+      consentsByPurpose
     };
   }
 
@@ -253,37 +259,37 @@ export class ConsentService {
    */
   validateConsentRequest(request: ConsentRequest): void {
     if (!request.userId) {
-      throw new ConsentError('User ID is required');
+      throw new ConsentError("User ID is required");
     }
 
     if (!request.channel) {
-      throw new ConsentError('Marketing channel is required');
+      throw new ConsentError("Marketing channel is required");
     }
 
     if (!request.purpose) {
-      throw new ConsentError('Marketing purpose is required');
+      throw new ConsentError("Marketing purpose is required");
     }
 
     if (!request.scope || request.scope.length === 0) {
-      throw new ConsentError('Consent scope is required');
+      throw new ConsentError("Consent scope is required");
     }
 
     if (!request.source) {
-      throw new ConsentError('Consent source is required');
+      throw new ConsentError("Consent source is required");
     }
 
     // Validate scope values
     const validScopes: ConsentScope[] = [
-      'contact_info',
-      'location_data',
-      'behavioral_data',
-      'purchase_history',
-      'communication_preferences',
+      "contact_info",
+      "location_data",
+      "behavioral_data",
+      "purchase_history",
+      "communication_preferences"
     ];
 
-    const invalidScopes = request.scope.filter(s => !validScopes.includes(s));
+    const invalidScopes = request.scope.filter((s) => !validScopes.includes(s));
     if (invalidScopes.length > 0) {
-      throw new ConsentError(`Invalid consent scopes: ${invalidScopes.join(', ')}`);
+      throw new ConsentError(`Invalid consent scopes: ${invalidScopes.join(", ")}`);
     }
   }
 
@@ -296,15 +302,15 @@ export class ConsentService {
       .update(ConsentEntity)
       .set({
         revokedAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       })
-      .where('expiresAt < :now', { now: new Date() })
-      .andWhere('revokedAt IS NULL')
+      .where("expiresAt < :now", { now: new Date() })
+      .andWhere("revokedAt IS NULL")
       .execute();
 
     if (result.affected && result.affected > 0) {
       this.logger.log(`Cleaned up ${result.affected} expired consents`);
-      this.eventEmitter.emit('consent.expired_cleanup', { count: result.affected });
+      this.eventEmitter.emit("consent.expired_cleanup", { count: result.affected });
     }
 
     return result.affected || 0;
@@ -323,7 +329,7 @@ export class ConsentService {
     return {
       consents,
       exportDate: new Date(),
-      dataRetention: '7 years from consent revocation',
+      dataRetention: "7 years from consent revocation"
     };
   }
 
@@ -339,7 +345,7 @@ export class ConsentService {
       await queryRunner.manager.delete(ConsentEntity, { userId });
       await queryRunner.commitTransaction();
 
-      this.eventEmitter.emit('consent.data_deleted', { userId });
+      this.eventEmitter.emit("consent.data_deleted", { userId });
       this.logger.log(`Deleted all consent data for user ${userId}`);
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -361,7 +367,7 @@ export class ConsentService {
       expiresAt: entity.expiresAt,
       revokedAt: entity.revokedAt,
       source: entity.source,
-      metadata: entity.metadata,
+      metadata: entity.metadata
     };
   }
 }

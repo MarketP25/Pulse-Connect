@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIdentityService } from "../_service";
+import { setDashboardAuthCookiesFromAccessToken } from "../_auth-cookie";
 import { assertCsrf, getRequestIp, getUserAgent, toErrorResponse } from "../_utils";
 
 export async function POST(req: NextRequest) {
@@ -12,22 +13,27 @@ export async function POST(req: NextRequest) {
       password: body.password,
       deviceFingerprint: body.deviceFingerprint || "web-client-device",
       ipAddress: getRequestIp(req),
-      userAgent: getUserAgent(req),
+      userAgent: getUserAgent(req)
     });
 
     const response = NextResponse.json({
       accessToken: tokens.accessToken,
       tokenType: tokens.tokenType,
       accessExpiresInSec: tokens.accessExpiresInSec,
-      sessionId: tokens.sessionId,
+      sessionId: tokens.sessionId
     });
     response.cookies.set("refresh_token", tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/api/identity",
-      maxAge: tokens.refreshExpiresInSec,
+      maxAge: tokens.refreshExpiresInSec
     });
+    setDashboardAuthCookiesFromAccessToken(
+      response,
+      tokens.accessToken,
+      tokens.refreshExpiresInSec
+    );
     return response;
   } catch (error) {
     return toErrorResponse(error);

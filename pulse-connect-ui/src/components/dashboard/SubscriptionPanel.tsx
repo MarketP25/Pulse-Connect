@@ -24,10 +24,13 @@ export function SubscriptionPanel({
   user,
   onTierChange,
   onCompleteKyc,
-  loading,
+  loading
 }: Props) {
   return (
-    <SectionCard title={title} subtitle="Upgrade or downgrade tiers, view KYC state, and enforce paid-tier compliance.">
+    <SectionCard
+      title={title}
+      subtitle="Upgrade or downgrade tiers, view KYC state, and enforce paid-tier compliance."
+    >
       <div className="grid gap-3 md:grid-cols-3">
         {tiers.map((tier) => {
           const active = tier === user.tier;
@@ -39,15 +42,21 @@ export function SubscriptionPanel({
               disabled={loading}
             >
               <p className="text-sm font-semibold text-slate-900">
-                {tier === "basic" ? tierLabels.basic : tier === "premium" ? tierLabels.premium : tierLabels.enterprise}
+                {tier === "basic"
+                  ? tierLabels.basic
+                  : tier === "premium"
+                    ? tierLabels.premium
+                    : tierLabels.enterprise}
               </p>
-              <p className="mt-1 text-xs text-slate-600">{active ? "Current tier" : "Switch tier"}</p>
+              <p className="mt-1 text-xs text-slate-600">
+                {active ? "Current tier" : "Switch tier"}
+              </p>
             </button>
           );
         })}
       </div>
 
-      {(user.tier === "premium" || user.tier === "enterprise") && user.kycStatus !== "full_verified" ? (
+      {(user.tier === "premium" || user.tier === "enterprise") && user.kycStatus !== "verified" ? (
         <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
           <p>{kycRequiredLabel}</p>
           <button

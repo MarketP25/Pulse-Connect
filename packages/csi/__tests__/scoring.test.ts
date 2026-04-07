@@ -3,7 +3,7 @@ import {
   computeEventPerformanceScore,
   computeEventTrustScore,
   computeGlobalScores,
-  computeSubsystemScores,
+  computeSubsystemScores
 } from "../engine/scoring";
 
 describe("CSI scoring", () => {
@@ -13,7 +13,7 @@ describe("CSI scoring", () => {
     region: "US",
     metrics: { latencyMs: 120, successRate: 0.99, throughput: 500 },
     riskScore: 10,
-    performanceScore: 90,
+    performanceScore: 90
   });
 
   const unstableEvent = createCSIEvent({
@@ -22,7 +22,7 @@ describe("CSI scoring", () => {
     region: "US",
     metrics: { latencyMs: 2300, errorRate: 0.4, rejectionRate: 0.2 },
     riskScore: 82,
-    performanceScore: 24,
+    performanceScore: 24
   });
 
   it("computes event-level trust/performance scores", () => {

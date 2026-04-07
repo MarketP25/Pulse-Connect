@@ -8,12 +8,19 @@ import {
   DashboardPlacesOperationsModule,
   DashboardProximityAdvancedModule,
   DashboardReportingModule,
-  DashboardTier,
+  DashboardTier
 } from "@/types/dashboard";
 
 type JsonRecord = Record<string, unknown>;
 type BillingAction = "create" | "renew" | "upgrade" | "cancel";
-type BillingActivityEngine = "ecommerce" | "matchmaking" | "places" | "communication" | "pap_v1" | "ai_programs" | "localization";
+type BillingActivityEngine =
+  | "ecommerce"
+  | "matchmaking"
+  | "places"
+  | "communication"
+  | "pap_v1"
+  | "ai_programs"
+  | "localization";
 
 type BillingPlan = {
   tier: DashboardTier;
@@ -24,7 +31,7 @@ type BillingPlan = {
 const DEFAULT_BILLING_PLANS: BillingPlan[] = [
   { tier: "basic", planId: "basic", priceUsd: 29 },
   { tier: "premium", planId: "premium", priceUsd: 99 },
-  { tier: "enterprise", planId: "enterprise", priceUsd: 349 },
+  { tier: "enterprise", planId: "enterprise", priceUsd: 349 }
 ];
 
 const BILLING_REGION_BY_COUNTRY: Record<string, string> = {
@@ -37,7 +44,7 @@ const BILLING_REGION_BY_COUNTRY: Record<string, string> = {
   JP: "Asia East 1",
   SG: "Asia East 1",
   BR: "South America East 1",
-  AE: "Middle East Central 1",
+  AE: "Middle East Central 1"
 };
 
 function normalizeBaseUrl(url: string): string {
@@ -59,8 +66,8 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T | null
       headers: {
         "content-type": "application/json",
         "x-pulsco-source-app": "@pulsco/pulse-connect-ui",
-        ...(init?.headers || {}),
-      },
+        ...(init?.headers || {})
+      }
     });
     if (!response.ok) {
       return null;
@@ -78,8 +85,8 @@ async function requestJsonOrThrow<T>(url: string, init?: RequestInit): Promise<T
     headers: {
       "content-type": "application/json",
       "x-pulsco-source-app": "@pulsco/pulse-connect-ui",
-      ...(init?.headers || {}),
-    },
+      ...(init?.headers || {})
+    }
   });
 
   const payload = await response.json().catch(() => null);
@@ -120,7 +127,7 @@ function planIdToTier(planId: string): DashboardTier {
 }
 
 function toDashboardSubscriptionStatus(
-  value: unknown,
+  value: unknown
 ): "active" | "pending" | "cancelled" | "expired" {
   if (value === "active") {
     return "active";
@@ -185,7 +192,9 @@ function getPlacesBaseUrl(): string {
 }
 
 function getMatchmakingBaseUrl(): string {
-  return process.env.PULSCO_MATCHMAKING_API_URL || process.env.PULSE_CONNECT_CORE_MATCHMAKING_URL || "";
+  return (
+    process.env.PULSCO_MATCHMAKING_API_URL || process.env.PULSE_CONNECT_CORE_MATCHMAKING_URL || ""
+  );
 }
 
 function getMARPObservabilityBaseUrl(): string {
@@ -205,10 +214,16 @@ function getLocalizationBaseUrl(): string {
 }
 
 function getProximityBaseUrl(): string {
-  return process.env.PULSCO_PROXIMITY_API_URL || process.env.PROXIMITY_API_URL || "http://localhost:3002/api/v1/proximity";
+  return (
+    process.env.PULSCO_PROXIMITY_API_URL ||
+    process.env.PROXIMITY_API_URL ||
+    "http://localhost:3002/api/v1/proximity"
+  );
 }
 
-export async function fetchReportingServiceData(userId: string): Promise<Partial<DashboardReportingModule> | null> {
+export async function fetchReportingServiceData(
+  userId: string
+): Promise<Partial<DashboardReportingModule> | null> {
   const base = getReportingBaseUrl();
   if (!base) {
     return null;
@@ -219,7 +234,7 @@ export async function fetchReportingServiceData(userId: string): Promise<Partial
     requestJson<JsonRecord>(`${normalized}/reports/revenue/summary`),
     requestJson<JsonRecord>(`${normalized}/reports/revenue/trends`),
     requestJson<JsonRecord>(`${normalized}/reports/performance/latency`),
-    requestJson<JsonRecord>(`${normalized}/reports/fraud/anomalies`),
+    requestJson<JsonRecord>(`${normalized}/reports/fraud/anomalies`)
   ]);
 
   return {
@@ -230,10 +245,10 @@ export async function fetchReportingServiceData(userId: string): Promise<Partial
       netUsd: numberFrom(summary?.net ?? summary?.netUsd),
       orders: numberFrom(summary?.orders),
       currency: stringFrom(summary?.currency, "USD"),
-      period: stringFrom(summary?.period, "last_30_days"),
+      period: stringFrom(summary?.period, "last_30_days")
     },
     revenueTrends: Array.isArray(trends?.points)
-      ? trends.points
+      ? (trends.points
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -241,14 +256,14 @@ export async function fetchReportingServiceData(userId: string): Promise<Partial
             }
             return {
               label: stringFrom(value.label),
-              value: numberFrom(value.value),
+              value: numberFrom(value.value)
             };
           })
-          .filter(Boolean) as Array<{ label: string; value: number }>
+          .filter(Boolean) as Array<{ label: string; value: number }>)
       : [],
     performanceLatencyMs: numberFrom(latency?.avgLatencyMs ?? latency?.latencyMs),
     anomalies: Array.isArray(anomalies?.anomalies)
-      ? anomalies.anomalies
+      ? (anomalies.anomalies
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -258,21 +273,26 @@ export async function fetchReportingServiceData(userId: string): Promise<Partial
               id: stringFrom(value.id),
               type: stringFrom(value.type, "fraud"),
               severity:
-                value.severity === "low" || value.severity === "medium" || value.severity === "high" || value.severity === "critical"
+                value.severity === "low" ||
+                value.severity === "medium" ||
+                value.severity === "high" ||
+                value.severity === "critical"
                   ? value.severity
                   : "medium",
               message: stringFrom(value.message, "Fraud anomaly reported"),
-              detectedAt: stringFrom(value.detectedAt, toIsoNow()),
+              detectedAt: stringFrom(value.detectedAt, toIsoNow())
             };
           })
-          .filter(Boolean) as DashboardReportingModule["anomalies"]
+          .filter(Boolean) as DashboardReportingModule["anomalies"])
       : [],
     // Keep userId in payload for request tracing in log viewers.
-    ...(userId ? {} : {}),
+    ...(userId ? {} : {})
   };
 }
 
-export async function fetchFraudServiceData(userId: string): Promise<Partial<DashboardFraudModule> | null> {
+export async function fetchFraudServiceData(
+  userId: string
+): Promise<Partial<DashboardFraudModule> | null> {
   const base = getReportingBaseUrl();
   if (!base) {
     return null;
@@ -280,7 +300,7 @@ export async function fetchFraudServiceData(userId: string): Promise<Partial<Das
   const normalized = normalizeBaseUrl(base);
   const [riskScore, anomalies] = await Promise.all([
     requestJson<JsonRecord>(`${normalized}/fraud/risk-score/${encodeURIComponent(userId)}`),
-    requestJson<JsonRecord>(`${normalized}/fraud/anomalies`),
+    requestJson<JsonRecord>(`${normalized}/fraud/anomalies`)
   ]);
 
   return {
@@ -288,7 +308,7 @@ export async function fetchFraudServiceData(userId: string): Promise<Partial<Das
     refreshedAt: toIsoNow(),
     riskScore: numberFrom(riskScore?.riskScore, 0),
     anomalies: Array.isArray(anomalies?.anomalies)
-      ? anomalies.anomalies
+      ? (anomalies.anomalies
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -298,19 +318,24 @@ export async function fetchFraudServiceData(userId: string): Promise<Partial<Das
               id: stringFrom(value.id),
               type: stringFrom(value.type, "fraud"),
               severity:
-                value.severity === "low" || value.severity === "medium" || value.severity === "high" || value.severity === "critical"
+                value.severity === "low" ||
+                value.severity === "medium" ||
+                value.severity === "high" ||
+                value.severity === "critical"
                   ? value.severity
                   : "medium",
               message: stringFrom(value.message, "Fraud anomaly reported"),
-              detectedAt: stringFrom(value.detectedAt, toIsoNow()),
+              detectedAt: stringFrom(value.detectedAt, toIsoNow())
             };
           })
-          .filter(Boolean) as DashboardFraudModule["anomalies"]
-      : [],
+          .filter(Boolean) as DashboardFraudModule["anomalies"])
+      : []
   };
 }
 
-export async function fetchIdentityServiceData(userId: string): Promise<Partial<DashboardIdentityModule> | null> {
+export async function fetchIdentityServiceData(
+  userId: string
+): Promise<Partial<DashboardIdentityModule> | null> {
   const base = getIdentityBaseUrl();
   if (!base) {
     return null;
@@ -319,7 +344,7 @@ export async function fetchIdentityServiceData(userId: string): Promise<Partial<
 
   const [history, twoFactor] = await Promise.all([
     requestJson<JsonRecord>(`${normalized}/accounts/${encodeURIComponent(userId)}/history`),
-    requestJson<JsonRecord>(`${normalized}/auth/2fa/generate?userId=${encodeURIComponent(userId)}`),
+    requestJson<JsonRecord>(`${normalized}/auth/2fa/generate?userId=${encodeURIComponent(userId)}`)
   ]);
 
   return {
@@ -330,7 +355,7 @@ export async function fetchIdentityServiceData(userId: string): Promise<Partial<
       ? history.requiredActions.map((item) => String(item))
       : [],
     sessions: Array.isArray(history?.sessions)
-      ? history.sessions
+      ? (history.sessions
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -341,13 +366,13 @@ export async function fetchIdentityServiceData(userId: string): Promise<Partial<
               device: stringFrom(value.device, "Unknown device"),
               ipMasked: stringFrom(value.ipMasked, "0.0.xxx.xxx"),
               createdAt: stringFrom(value.createdAt, toIsoNow()),
-              lastSeenAt: stringFrom(value.lastSeenAt, toIsoNow()),
+              lastSeenAt: stringFrom(value.lastSeenAt, toIsoNow())
             };
           })
-          .filter(Boolean) as DashboardIdentityModule["sessions"]
+          .filter(Boolean) as DashboardIdentityModule["sessions"])
       : [],
     history: Array.isArray(history?.history)
-      ? history.history
+      ? (history.history
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -357,15 +382,17 @@ export async function fetchIdentityServiceData(userId: string): Promise<Partial<
               id: stringFrom(value.id),
               action: stringFrom(value.action),
               actor: stringFrom(value.actor, "identity-service"),
-              at: stringFrom(value.at, toIsoNow()),
+              at: stringFrom(value.at, toIsoNow())
             };
           })
-          .filter(Boolean) as DashboardIdentityModule["history"]
-      : [],
+          .filter(Boolean) as DashboardIdentityModule["history"])
+      : []
   };
 }
 
-export async function fetchBillingServiceData(userId: string): Promise<Partial<DashboardBillingModule> | null> {
+export async function fetchBillingServiceData(
+  userId: string
+): Promise<Partial<DashboardBillingModule> | null> {
   const base = getBillingBaseUrl();
   if (!base) {
     return null;
@@ -373,14 +400,14 @@ export async function fetchBillingServiceData(userId: string): Promise<Partial<D
   const normalized = normalizeBaseUrl(base);
   const [subscription, ledger] = await Promise.all([
     requestJson<JsonRecord>(`${normalized}/marp/subscription/${encodeURIComponent(userId)}`),
-    requestJson<unknown>(`${normalized}/marp/ledger/${encodeURIComponent(userId)}`),
+    requestJson<unknown>(`${normalized}/marp/ledger/${encodeURIComponent(userId)}`)
   ]);
 
   const ledgerList = Array.isArray(ledger)
     ? ledger
     : Array.isArray(parseJsonRecord(ledger)?.entries)
-    ? (parseJsonRecord(ledger)?.entries as unknown[])
-    : [];
+      ? (parseJsonRecord(ledger)?.entries as unknown[])
+      : [];
 
   const mappedLedger = ledgerList
     .map((item) => {
@@ -389,11 +416,14 @@ export async function fetchBillingServiceData(userId: string): Promise<Partial<D
         return null;
       }
       return {
-        id: stringFrom(value.entryId ?? value.id, `ledger-${Math.random().toString(36).slice(2, 9)}`),
+        id: stringFrom(
+          value.entryId ?? value.id,
+          `ledger-${Math.random().toString(36).slice(2, 9)}`
+        ),
         type: stringFrom(value.type, "charge"),
         amountUsd: numberFrom(value.amount ?? value.amountUsd),
         balanceUsd: numberFrom(value.balanceAfter ?? value.balanceUsd),
-        createdAt: stringFrom(value.timestamp ?? value.createdAt, toIsoNow()),
+        createdAt: stringFrom(value.timestamp ?? value.createdAt, toIsoNow())
       };
     })
     .filter(Boolean) as DashboardBillingModule["ledgerEntries"];
@@ -412,10 +442,13 @@ export async function fetchBillingServiceData(userId: string): Promise<Partial<D
     .map((version, index) => ({
       version,
       status: index === 0 ? ("active" as const) : ("deprecated" as const),
-      createdAt: toIsoNow(),
+      createdAt: toIsoNow()
     }));
 
-  const subscriptionPlanId = stringFrom(subscription?.planId ?? subscription?.tier, "basic").toLowerCase();
+  const subscriptionPlanId = stringFrom(
+    subscription?.planId ?? subscription?.tier,
+    "basic"
+  ).toLowerCase();
   const fallbackTier = planIdToTier(subscriptionPlanId);
 
   return {
@@ -425,10 +458,10 @@ export async function fetchBillingServiceData(userId: string): Promise<Partial<D
       tier: isKnownTier(subscription?.tier) ? subscription.tier : fallbackTier,
       status: toDashboardSubscriptionStatus(subscription?.status),
       region: stringFrom(subscription?.region, "Europe West 1"),
-      renewalAt: stringFrom(subscription?.periodEnd ?? subscription?.renewalAt),
+      renewalAt: stringFrom(subscription?.periodEnd ?? subscription?.renewalAt)
     },
     ledgerEntries: mappedLedger,
-    policyVersions,
+    policyVersions
   };
 }
 
@@ -458,7 +491,7 @@ export async function fetchBillingSubscriptionPlans(): Promise<BillingPlan[]> {
       return {
         tier: planIdToTier(planId.toLowerCase()),
         planId,
-        priceUsd,
+        priceUsd
       } as BillingPlan;
     })
     .filter(Boolean) as BillingPlan[];
@@ -466,7 +499,10 @@ export async function fetchBillingSubscriptionPlans(): Promise<BillingPlan[]> {
   return plans.length > 0 ? plans : DEFAULT_BILLING_PLANS;
 }
 
-export async function ensureBillingWallet(userId: string, seedBalanceUsd = 5000): Promise<string | null> {
+export async function ensureBillingWallet(
+  userId: string,
+  seedBalanceUsd = 5000
+): Promise<string | null> {
   const base = getBillingBaseUrl();
   if (!base) {
     return null;
@@ -478,8 +514,8 @@ export async function ensureBillingWallet(userId: string, seedBalanceUsd = 5000)
     body: JSON.stringify({
       walletId,
       accountId: userId,
-      balance: Number(seedBalanceUsd.toFixed(2)),
-    }),
+      balance: Number(seedBalanceUsd.toFixed(2))
+    })
   });
   return walletId;
 }
@@ -487,7 +523,7 @@ export async function ensureBillingWallet(userId: string, seedBalanceUsd = 5000)
 export async function performBillingServiceAction(
   userId: string,
   action: BillingAction,
-  payload?: JsonRecord,
+  payload?: JsonRecord
 ): Promise<JsonRecord | null> {
   const base = getBillingBaseUrl();
   if (!base) {
@@ -498,21 +534,26 @@ export async function performBillingServiceAction(
   const region = resolveBillingRegion(stringFrom(payload?.region, "US"));
   const tier = resolveBillingPlanTierInput(payload);
   const plans = await fetchBillingSubscriptionPlans();
-  const selectedPlan = plans.find((plan) => plan.tier === tier) || DEFAULT_BILLING_PLANS.find((plan) => plan.tier === tier)!;
+  const selectedPlan =
+    plans.find((plan) => plan.tier === tier) ||
+    DEFAULT_BILLING_PLANS.find((plan) => plan.tier === tier)!;
 
   await ensureBillingWallet(
     userId,
-    numberFrom(payload?.walletSeedUsd, Number(process.env.PULSCO_DASHBOARD_BILLING_WALLET_SEED_USD || 5000)),
+    numberFrom(
+      payload?.walletSeedUsd,
+      Number(process.env.PULSCO_DASHBOARD_BILLING_WALLET_SEED_USD || 5000)
+    )
   );
 
   const endpoint =
     action === "create"
       ? "/marp/subscription/create"
       : action === "renew"
-      ? "/marp/subscription/renew"
-      : action === "upgrade"
-      ? "/marp/subscription/upgrade"
-      : "/marp/subscription/cancel";
+        ? "/marp/subscription/renew"
+        : action === "upgrade"
+          ? "/marp/subscription/upgrade"
+          : "/marp/subscription/cancel";
 
   if (action === "create") {
     return requestJsonOrThrow<JsonRecord>(`${normalized}${endpoint}`, {
@@ -524,8 +565,8 @@ export async function performBillingServiceAction(
         price: numberFrom(payload?.price, selectedPlan.priceUsd),
         region,
         autoRenew: payload?.autoRenew === true,
-        idempotencyKey: stringFrom(payload?.idempotencyKey, `sub-create-${userId}-${Date.now()}`),
-      }),
+        idempotencyKey: stringFrom(payload?.idempotencyKey, `sub-create-${userId}-${Date.now()}`)
+      })
     });
   }
 
@@ -534,8 +575,8 @@ export async function performBillingServiceAction(
       method: "POST",
       body: JSON.stringify({
         accountId: userId,
-        idempotencyKey: stringFrom(payload?.idempotencyKey, `sub-renew-${userId}-${Date.now()}`),
-      }),
+        idempotencyKey: stringFrom(payload?.idempotencyKey, `sub-renew-${userId}-${Date.now()}`)
+      })
     });
   }
 
@@ -547,16 +588,16 @@ export async function performBillingServiceAction(
         walletId,
         newPlanId: stringFrom(payload?.newPlanId, selectedPlan.planId),
         newPrice: numberFrom(payload?.newPrice, selectedPlan.priceUsd),
-        idempotencyKey: stringFrom(payload?.idempotencyKey, `sub-upgrade-${userId}-${Date.now()}`),
-      }),
+        idempotencyKey: stringFrom(payload?.idempotencyKey, `sub-upgrade-${userId}-${Date.now()}`)
+      })
     });
   }
 
   return requestJsonOrThrow<JsonRecord>(`${normalized}${endpoint}`, {
     method: "POST",
     body: JSON.stringify({
-      accountId: userId,
-    }),
+      accountId: userId
+    })
   });
 }
 
@@ -582,8 +623,8 @@ export async function calculateBillingActivity(input: {
       accountId: input.userId,
       region: resolveBillingRegion(input.region),
       event: input.event,
-      at: toIsoNow(),
-    }),
+      at: toIsoNow()
+    })
   });
 }
 
@@ -606,7 +647,7 @@ export async function chargeBillingActivity(input: {
   const normalized = normalizeBaseUrl(base);
   const walletId = await ensureBillingWallet(
     input.userId,
-    Number(process.env.PULSCO_DASHBOARD_BILLING_WALLET_SEED_USD || 5000),
+    Number(process.env.PULSCO_DASHBOARD_BILLING_WALLET_SEED_USD || 5000)
   );
   if (!walletId) {
     return null;
@@ -619,12 +660,14 @@ export async function chargeBillingActivity(input: {
       region: resolveBillingRegion(input.region),
       event: input.event,
       at: toIsoNow(),
-      idempotencyKey: input.idempotencyKey || `${input.event.engine}-${input.userId}-${Date.now()}`,
-    }),
+      idempotencyKey: input.idempotencyKey || `${input.event.engine}-${input.userId}-${Date.now()}`
+    })
   });
 }
 
-export async function fetchPlacesServiceData(userId: string): Promise<Partial<DashboardPlacesOperationsModule> | null> {
+export async function fetchPlacesServiceData(
+  userId: string
+): Promise<Partial<DashboardPlacesOperationsModule> | null> {
   const base = getPlacesBaseUrl();
   if (!base) {
     return null;
@@ -632,14 +675,14 @@ export async function fetchPlacesServiceData(userId: string): Promise<Partial<Da
   const normalized = normalizeBaseUrl(base);
   const [places, bookings] = await Promise.all([
     requestJson<JsonRecord>(`${normalized}/places`),
-    requestJson<JsonRecord>(`${normalized}/bookings`),
+    requestJson<JsonRecord>(`${normalized}/bookings`)
   ]);
 
   return {
     source: "places-service",
     refreshedAt: toIsoNow(),
     places: Array.isArray(places?.data)
-      ? places.data
+      ? (places.data
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -650,16 +693,18 @@ export async function fetchPlacesServiceData(userId: string): Promise<Partial<Da
               name: stringFrom(value.name, "Place"),
               category: stringFrom(value.category, "workspace"),
               status:
-                value.status === "draft" || value.status === "published" || value.status === "archived"
+                value.status === "draft" ||
+                value.status === "published" ||
+                value.status === "archived"
                   ? value.status
                   : "published",
-              updatedAt: stringFrom(value.updatedAt, toIsoNow()),
+              updatedAt: stringFrom(value.updatedAt, toIsoNow())
             };
           })
-          .filter(Boolean) as DashboardPlacesOperationsModule["places"]
+          .filter(Boolean) as DashboardPlacesOperationsModule["places"])
       : [],
     bookings: Array.isArray(bookings?.data)
-      ? bookings.data
+      ? (bookings.data
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -669,23 +714,25 @@ export async function fetchPlacesServiceData(userId: string): Promise<Partial<Da
               id: stringFrom(value.id),
               placeId: stringFrom(value.placeId),
               status:
-                value.status === "pending" || value.status === "confirmed" || value.status === "cancelled"
+                value.status === "pending" ||
+                value.status === "confirmed" ||
+                value.status === "cancelled"
                   ? value.status
                   : "pending",
               startAt: stringFrom(value.startAt, toIsoNow()),
               endAt: stringFrom(value.endAt, toIsoNow()),
-              totalUsd: numberFrom(value.totalUsd),
+              totalUsd: numberFrom(value.totalUsd)
             };
           })
-          .filter(Boolean) as DashboardPlacesOperationsModule["bookings"]
+          .filter(Boolean) as DashboardPlacesOperationsModule["bookings"])
       : [],
-    transactions: [],
+    transactions: []
   };
 }
 
 export async function performPlacesServiceAction(
   action: "create_place" | "create_booking" | "cancel_booking",
-  payload: JsonRecord,
+  payload: JsonRecord
 ): Promise<JsonRecord | null> {
   const base = getPlacesBaseUrl();
   if (!base) {
@@ -696,13 +743,13 @@ export async function performPlacesServiceAction(
   if (action === "create_place") {
     return requestJson<JsonRecord>(`${normalized}/places`, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
   }
   if (action === "create_booking") {
     return requestJson<JsonRecord>(`${normalized}/bookings`, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
   }
   const bookingId = stringFrom(payload.bookingId);
@@ -711,22 +758,24 @@ export async function performPlacesServiceAction(
   }
   return requestJson<JsonRecord>(`${normalized}/bookings/${encodeURIComponent(bookingId)}`, {
     method: "DELETE",
-    body: JSON.stringify({ reason: payload.reason || "dashboard_cancelled" }),
+    body: JSON.stringify({ reason: payload.reason || "dashboard_cancelled" })
   });
 }
 
 export async function fetchMatchmakingServiceData(
-  userId: string,
+  userId: string
 ): Promise<Partial<DashboardMatchmakingOperationsModule> | null> {
   const base = getMatchmakingBaseUrl();
   if (!base) {
     return null;
   }
   const normalized = normalizeBaseUrl(base);
-  const reputation = await requestJson<JsonRecord>(`${normalized}/v1/users/${encodeURIComponent(userId)}/reputation`);
+  const reputation = await requestJson<JsonRecord>(
+    `${normalized}/v1/users/${encodeURIComponent(userId)}/reputation`
+  );
 
   const contracts: DashboardContract[] = Array.isArray(reputation?.contracts)
-    ? reputation.contracts
+    ? (reputation.contracts
         .map((item) => {
           const value = parseJsonRecord(item);
           if (!value) {
@@ -736,13 +785,16 @@ export async function fetchMatchmakingServiceData(
             id: stringFrom(value.id),
             proposalId: stringFrom(value.proposalId),
             status:
-              value.status === "draft" || value.status === "active" || value.status === "completed" || value.status === "cancelled"
+              value.status === "draft" ||
+              value.status === "active" ||
+              value.status === "completed" ||
+              value.status === "cancelled"
                 ? value.status
                 : "draft",
-            createdAt: stringFrom(value.createdAt, toIsoNow()),
+            createdAt: stringFrom(value.createdAt, toIsoNow())
           };
         })
-        .filter(Boolean) as DashboardContract[]
+        .filter(Boolean) as DashboardContract[])
     : [];
 
   return {
@@ -750,11 +802,13 @@ export async function fetchMatchmakingServiceData(
     refreshedAt: toIsoNow(),
     briefs: [],
     proposals: [],
-    contracts,
+    contracts
   };
 }
 
-export async function fetchGovernanceServiceData(userId: string): Promise<Partial<DashboardGovernanceModule> | null> {
+export async function fetchGovernanceServiceData(
+  userId: string
+): Promise<Partial<DashboardGovernanceModule> | null> {
   const observabilityBase = getMARPObservabilityBaseUrl();
   const governanceBase = getMARPGovernanceBaseUrl();
   const arbitrationBase = getMARPArbitrationBaseUrl();
@@ -771,8 +825,10 @@ export async function fetchGovernanceServiceData(userId: string): Promise<Partia
       ? requestJson<JsonRecord>(`${normalizeBaseUrl(governanceBase)}/marp/firewall/rules`)
       : Promise.resolve(null),
     arbitrationBase
-      ? requestJson<JsonRecord>(`${normalizeBaseUrl(arbitrationBase)}/marp/arbitration/status/${encodeURIComponent(userId)}`)
-      : Promise.resolve(null),
+      ? requestJson<JsonRecord>(
+          `${normalizeBaseUrl(arbitrationBase)}/marp/arbitration/status/${encodeURIComponent(userId)}`
+        )
+      : Promise.resolve(null)
   ]);
 
   return {
@@ -781,9 +837,11 @@ export async function fetchGovernanceServiceData(userId: string): Promise<Partia
     policyVersions: Array.isArray(summary?.policyVersions)
       ? summary.policyVersions.map((item) => String(item))
       : [],
-    firewallRuleCount: Array.isArray(firewallRules) ? firewallRules.length : numberFrom(firewallRules?.count),
+    firewallRuleCount: Array.isArray(firewallRules)
+      ? firewallRules.length
+      : numberFrom(firewallRules?.count),
     arbitrations: Array.isArray(arbitrations)
-      ? arbitrations
+      ? (arbitrations
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -792,14 +850,16 @@ export async function fetchGovernanceServiceData(userId: string): Promise<Partia
             return {
               id: stringFrom(value.id),
               status:
-                value.status === "pending" || value.status === "approved" || value.status === "rejected"
+                value.status === "pending" ||
+                value.status === "approved" ||
+                value.status === "rejected"
                   ? value.status
                   : "pending",
-              createdAt: stringFrom(value.createdAt, toIsoNow()),
+              createdAt: stringFrom(value.createdAt, toIsoNow())
             };
           })
-          .filter(Boolean) as DashboardGovernanceModule["arbitrations"]
-      : [],
+          .filter(Boolean) as DashboardGovernanceModule["arbitrations"])
+      : []
   };
 }
 
@@ -808,7 +868,7 @@ export async function fetchProximityServiceData(): Promise<Partial<DashboardProx
   const [health, metrics, rules] = await Promise.all([
     requestJson<JsonRecord>(`${base}/health`),
     requestJson<JsonRecord>(`${base}/metrics`),
-    requestJson<JsonRecord>(`${base}/rules`),
+    requestJson<JsonRecord>(`${base}/rules`)
   ]);
 
   if (!health && !metrics && !rules) {
@@ -820,13 +880,15 @@ export async function fetchProximityServiceData(): Promise<Partial<DashboardProx
     refreshedAt: toIsoNow(),
     health: {
       status:
-        health?.status === "healthy" || health?.status === "degraded" || health?.status === "unhealthy"
+        health?.status === "healthy" ||
+        health?.status === "degraded" ||
+        health?.status === "unhealthy"
           ? health.status
           : "healthy",
-      latencyMs: numberFrom(health?.latencyMs, 0),
+      latencyMs: numberFrom(health?.latencyMs, 0)
     },
     rules: Array.isArray(rules)
-      ? rules
+      ? (rules
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -835,13 +897,13 @@ export async function fetchProximityServiceData(): Promise<Partial<DashboardProx
             return {
               id: stringFrom(value.id),
               name: stringFrom(value.name),
-              value: String(value.value ?? ""),
+              value: String(value.value ?? "")
             };
           })
-          .filter(Boolean) as DashboardProximityAdvancedModule["rules"]
+          .filter(Boolean) as DashboardProximityAdvancedModule["rules"])
       : [],
     metrics: Array.isArray(metrics?.items)
-      ? metrics.items
+      ? (metrics.items
           .map((item) => {
             const value = parseJsonRecord(item);
             if (!value) {
@@ -849,17 +911,26 @@ export async function fetchProximityServiceData(): Promise<Partial<DashboardProx
             }
             return {
               name: stringFrom(value.name),
-              value: numberFrom(value.value),
+              value: numberFrom(value.value)
             };
           })
-          .filter(Boolean) as DashboardProximityAdvancedModule["metrics"]
-      : [],
+          .filter(Boolean) as DashboardProximityAdvancedModule["metrics"])
+      : []
   };
 }
 
 export async function fetchLocalizationHealthData(): Promise<{
-  providerHealth?: Array<{ provider: string; status: "healthy" | "degraded" | "unhealthy"; latencyMs: number; errorRate: number }>;
-  languageCoverage?: Array<{ language: string; regions: string[]; quality: "high" | "medium" | "low" }>;
+  providerHealth?: Array<{
+    provider: string;
+    status: "healthy" | "degraded" | "unhealthy";
+    latencyMs: number;
+    errorRate: number;
+  }>;
+  languageCoverage?: Array<{
+    language: string;
+    regions: string[];
+    quality: "high" | "medium" | "low";
+  }>;
 } | null> {
   const base = getLocalizationBaseUrl();
   if (!base) {
@@ -868,12 +939,12 @@ export async function fetchLocalizationHealthData(): Promise<{
   const normalized = normalizeBaseUrl(base);
   const [providerHealth, languages] = await Promise.all([
     requestJson<JsonRecord>(`${normalized}/providers/health`),
-    requestJson<JsonRecord>(`${normalized}/languages`),
+    requestJson<JsonRecord>(`${normalized}/languages`)
   ]);
 
   return {
     providerHealth: Array.isArray(providerHealth)
-      ? providerHealth
+      ? (providerHealth
           .map((entry) => {
             const value = parseJsonRecord(entry);
             if (!value) {
@@ -882,22 +953,24 @@ export async function fetchLocalizationHealthData(): Promise<{
             return {
               provider: stringFrom(value.provider),
               status:
-                value.status === "healthy" || value.status === "degraded" || value.status === "unhealthy"
+                value.status === "healthy" ||
+                value.status === "degraded" ||
+                value.status === "unhealthy"
                   ? value.status
                   : "healthy",
               latencyMs: numberFrom(value.latencyMs),
-              errorRate: numberFrom(value.errorRate),
+              errorRate: numberFrom(value.errorRate)
             };
           })
           .filter(Boolean) as Array<{
-            provider: string;
-            status: "healthy" | "degraded" | "unhealthy";
-            latencyMs: number;
-            errorRate: number;
-          }>
+          provider: string;
+          status: "healthy" | "degraded" | "unhealthy";
+          latencyMs: number;
+          errorRate: number;
+        }>)
       : [],
     languageCoverage: Array.isArray(languages)
-      ? languages
+      ? (languages
           .map((entry) => {
             const value = parseJsonRecord(entry);
             if (!value) {
@@ -905,15 +978,20 @@ export async function fetchLocalizationHealthData(): Promise<{
             }
             return {
               language: stringFrom(value.language),
-              regions: Array.isArray(value.regions) ? value.regions.map((region) => String(region)) : [],
-              quality: value.quality === "high" || value.quality === "medium" || value.quality === "low" ? value.quality : "medium",
+              regions: Array.isArray(value.regions)
+                ? value.regions.map((region) => String(region))
+                : [],
+              quality:
+                value.quality === "high" || value.quality === "medium" || value.quality === "low"
+                  ? value.quality
+                  : "medium"
             };
           })
           .filter(Boolean) as Array<{
-            language: string;
-            regions: string[];
-            quality: "high" | "medium" | "low";
-          }>
-      : [],
+          language: string;
+          regions: string[];
+          quality: "high" | "medium" | "low";
+        }>)
+      : []
   };
 }

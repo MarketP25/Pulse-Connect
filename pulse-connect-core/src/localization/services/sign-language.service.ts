@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 
 export interface SignLanguageTranslationRequest {
   gestureData: string; // Video stream or gesture sequence data
@@ -11,7 +11,7 @@ export interface SignLanguageTranslationRequest {
     clothing?: string;
     speed?: number; // 0.5 to 2.0
   };
-  outputFormat?: 'text' | 'speech' | 'avatar_video';
+  outputFormat?: "text" | "speech" | "avatar_video";
 }
 
 export interface GestureRecognitionResult {
@@ -48,60 +48,76 @@ export class SignLanguageService {
 
   // PULSCO Planetary Sign Language Engine
   private pulseSignEngine = {
-    name: 'PULSCO Planetary Sign Language Engine vX.100',
+    name: "Pulsco Planetary Sign Language Engine vX.100",
     supportedSignLanguages: [
-      'asl', // American Sign Language
-      'bsl', // British Sign Language
-      'ksl', // Kenyan Sign Language
-      'isl', // International Sign Language
-      'jsl', // Japanese Sign Language
-      'csl', // Chinese Sign Language
-      'dgs', // German Sign Language
-      'lsf', // French Sign Language
-      'lsp', // Spanish Sign Language
-      'libras', // Brazilian Sign Language
+      "asl", // American Sign Language
+      "bsl", // British Sign Language
+      "ksl", // Kenyan Sign Language
+      "isl", // International Sign Language
+      "jsl", // Japanese Sign Language
+      "csl", // Chinese Sign Language
+      "dgs", // German Sign Language
+      "lsf", // French Sign Language
+      "lsp", // Spanish Sign Language
+      "libras" // Brazilian Sign Language
     ],
     models: {
-      gesture_recognition: 'pulse-gesture-v3.0',
-      sign_to_text: 'pulse-sign2text-v3.0',
-      text_to_sign: 'pulse-text2sign-v3.0',
-      avatar_generation: 'pulse-avatar-v3.0',
+      gesture_recognition: "pulse-gesture-v3.0",
+      sign_to_text: "pulse-sign2text-v3.0",
+      text_to_sign: "pulse-text2sign-v3.0",
+      avatar_generation: "pulse-avatar-v3.0"
     },
     costs: {
       gesture_recognition: 0.00002, // per second of video
       translation: 0.00005, // per character
-      avatar_generation: 0.0001, // per second of output
+      avatar_generation: 0.0001 // per second of output
     },
-    regions: ['africa-south1', 'us-central1', 'europe-west1', 'asia-east1'],
+    regions: ["africa-south1", "us-central1", "europe-west1", "asia-east1"]
   };
 
   /**
    * Translate sign language gestures to text/speech
    */
-  async translateSignToText(request: SignLanguageTranslationRequest): Promise<SignLanguageTranslationResult> {
+  async translateSignToText(
+    request: SignLanguageTranslationRequest
+  ): Promise<SignLanguageTranslationResult> {
     const startTime = Date.now();
 
     try {
-      this.logger.log(`Starting planetary sign translation: ${request.sourceSignLanguage} -> ${request.targetLanguage}`);
+      this.logger.log(
+        `Starting planetary sign translation: ${request.sourceSignLanguage} -> ${request.targetLanguage}`
+      );
 
-      // Step 1: Gesture recognition using PULSCO computer vision models
-      const gestureResult = await this.recognizeGestures(request.gestureData, request.sourceSignLanguage);
+      // Step 1: Gesture recognition using Pulsco computer vision models
+      const gestureResult = await this.recognizeGestures(
+        request.gestureData,
+        request.sourceSignLanguage
+      );
 
       // Step 2: Convert gesture sequence to text
-      const textResult = await this.gesturesToText(gestureResult.gestureSequence, request.sourceSignLanguage);
+      const textResult = await this.gesturesToText(
+        gestureResult.gestureSequence,
+        request.sourceSignLanguage
+      );
 
       // Step 3: Translate to target language if different
-      const translationResult = await this.translateSignText(textResult.text, request.targetLanguage);
+      const translationResult = await this.translateSignText(
+        textResult.text,
+        request.targetLanguage
+      );
 
       // Step 4: Generate speech output if requested
       let translatedSpeechUrl: string | undefined;
-      if (request.outputFormat === 'speech' || request.outputFormat === 'avatar_video') {
-        translatedSpeechUrl = await this.generateSpeech(translationResult.translatedText, request.targetLanguage);
+      if (request.outputFormat === "speech" || request.outputFormat === "avatar_video") {
+        translatedSpeechUrl = await this.generateSpeech(
+          translationResult.translatedText,
+          request.targetLanguage
+        );
       }
 
       // Step 5: Generate avatar video if requested
       let avatarVideoUrl: string | undefined;
-      if (request.includeAvatar || request.outputFormat === 'avatar_video') {
+      if (request.includeAvatar || request.outputFormat === "avatar_video") {
         avatarVideoUrl = await this.generateAvatarVideo(
           gestureResult.gestureSequence,
           request.avatarPreferences
@@ -109,7 +125,13 @@ export class SignLanguageService {
       }
 
       const processingTime = Date.now() - startTime;
-      const totalCost = this.calculateCost(request, gestureResult, translationResult, !!translatedSpeechUrl, !!avatarVideoUrl);
+      const totalCost = this.calculateCost(
+        request,
+        gestureResult,
+        translationResult,
+        !!translatedSpeechUrl,
+        !!avatarVideoUrl
+      );
 
       return {
         translatedText: translationResult.translatedText,
@@ -119,17 +141,18 @@ export class SignLanguageService {
         quality: {
           score: Math.min(gestureResult.confidence, translationResult.confidence),
           confidence: (gestureResult.confidence + translationResult.confidence) / 2,
-          accuracy: gestureResult.confidence,
+          accuracy: gestureResult.confidence
         },
         processingTime,
         cost: totalCost,
-        provider: 'pulse_internal',
-        model: 'pulse-sign-translation-v3.0',
+        provider: "pulse_internal",
+        model: "pulse-sign-translation-v3.0"
       };
-
     } catch (error) {
-      this.logger.error('Planetary sign translation failed:', error);
-      throw new Error(`Sign language translation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Planetary sign translation failed:", error);
+      throw new Error(
+        `Sign language translation error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -140,7 +163,7 @@ export class SignLanguageService {
     text: string,
     targetSignLanguage: string,
     includeAvatar: boolean = true,
-    avatarPreferences?: SignLanguageTranslationRequest['avatarPreferences']
+    avatarPreferences?: SignLanguageTranslationRequest["avatarPreferences"]
   ): Promise<{
     gestureSequence: Array<{
       gesture: string;
@@ -173,12 +196,13 @@ export class SignLanguageService {
         gestureSequence,
         avatarVideoUrl,
         processingTime,
-        cost,
+        cost
       };
-
     } catch (error) {
-      this.logger.error('Text to sign translation failed:', error);
-      throw new Error(`Text to sign translation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Text to sign translation failed:", error);
+      throw new Error(
+        `Text to sign translation error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -188,7 +212,7 @@ export class SignLanguageService {
   async *interpretSignStream(
     videoStream: AsyncIterable<Buffer>,
     signLanguage: string,
-    targetLanguage: string,
+    targetLanguage: string
   ): AsyncIterable<{
     gesture: string;
     translatedText: string;
@@ -200,18 +224,22 @@ export class SignLanguageService {
       const gestureResult = await this.processVideoFrame(videoFrame, signLanguage);
 
       if (gestureResult.recognizedGesture) {
-        const translation = await this.translateGesture(gestureResult.recognizedGesture, signLanguage, targetLanguage);
+        const translation = await this.translateGesture(
+          gestureResult.recognizedGesture,
+          signLanguage,
+          targetLanguage
+        );
 
         yield {
           gesture: gestureResult.recognizedGesture,
           translatedText: translation.translatedText,
           confidence: gestureResult.confidence,
-          isFinal: gestureResult.isFinal,
+          isFinal: gestureResult.isFinal
         };
       }
 
       // Simulate processing delay for real-time feel
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
@@ -236,31 +264,111 @@ export class SignLanguageService {
   } {
     return {
       signLanguages: [
-        { code: 'asl', name: 'American Sign Language', region: 'us', gestures: 85000, accuracy: 0.94 },
-        { code: 'bsl', name: 'British Sign Language', region: 'gb', gestures: 78000, accuracy: 0.92 },
-        { code: 'ksl', name: 'Kenyan Sign Language', region: 'ke', gestures: 45000, accuracy: 0.89 },
-        { code: 'isl', name: 'International Sign Language', region: 'global', gestures: 65000, accuracy: 0.91 },
-        { code: 'jsl', name: 'Japanese Sign Language', region: 'jp', gestures: 72000, accuracy: 0.93 },
-        { code: 'csl', name: 'Chinese Sign Language', region: 'cn', gestures: 68000, accuracy: 0.90 },
-        { code: 'dgs', name: 'German Sign Language', region: 'de', gestures: 55000, accuracy: 0.88 },
-        { code: 'lsf', name: 'French Sign Language', region: 'fr', gestures: 60000, accuracy: 0.89 },
-        { code: 'lsp', name: 'Spanish Sign Language', region: 'es', gestures: 58000, accuracy: 0.87 },
-        { code: 'libras', name: 'Brazilian Sign Language', region: 'br', gestures: 52000, accuracy: 0.86 },
+        {
+          code: "asl",
+          name: "American Sign Language",
+          region: "us",
+          gestures: 85000,
+          accuracy: 0.94
+        },
+        {
+          code: "bsl",
+          name: "British Sign Language",
+          region: "gb",
+          gestures: 78000,
+          accuracy: 0.92
+        },
+        {
+          code: "ksl",
+          name: "Kenyan Sign Language",
+          region: "ke",
+          gestures: 45000,
+          accuracy: 0.89
+        },
+        {
+          code: "isl",
+          name: "International Sign Language",
+          region: "global",
+          gestures: 65000,
+          accuracy: 0.91
+        },
+        {
+          code: "jsl",
+          name: "Japanese Sign Language",
+          region: "jp",
+          gestures: 72000,
+          accuracy: 0.93
+        },
+        {
+          code: "csl",
+          name: "Chinese Sign Language",
+          region: "cn",
+          gestures: 68000,
+          accuracy: 0.9
+        },
+        {
+          code: "dgs",
+          name: "German Sign Language",
+          region: "de",
+          gestures: 55000,
+          accuracy: 0.88
+        },
+        {
+          code: "lsf",
+          name: "French Sign Language",
+          region: "fr",
+          gestures: 60000,
+          accuracy: 0.89
+        },
+        {
+          code: "lsp",
+          name: "Spanish Sign Language",
+          region: "es",
+          gestures: 58000,
+          accuracy: 0.87
+        },
+        {
+          code: "libras",
+          name: "Brazilian Sign Language",
+          region: "br",
+          gestures: 52000,
+          accuracy: 0.86
+        }
       ],
       capabilities: [
-        'gesture_recognition',
-        'sign_to_text',
-        'text_to_sign',
-        'avatar_generation',
-        'real_time_interpretation',
-        'multi_language_support',
+        "gesture_recognition",
+        "sign_to_text",
+        "text_to_sign",
+        "avatar_generation",
+        "real_time_interpretation",
+        "multi_language_support"
       ],
       avatarStyles: [
-        { id: 'professional', name: 'Professional', description: 'Business attire, neutral expression', customizable: true },
-        { id: 'casual', name: 'Casual', description: 'Everyday clothing, friendly expression', customizable: true },
-        { id: 'educational', name: 'Educational', description: 'Teacher style, clear and expressive', customizable: true },
-        { id: 'cultural', name: 'Cultural Representative', description: 'Traditional attire from sign language region', customizable: false },
-      ],
+        {
+          id: "professional",
+          name: "Professional",
+          description: "Business attire, neutral expression",
+          customizable: true
+        },
+        {
+          id: "casual",
+          name: "Casual",
+          description: "Everyday clothing, friendly expression",
+          customizable: true
+        },
+        {
+          id: "educational",
+          name: "Educational",
+          description: "Teacher style, clear and expressive",
+          customizable: true
+        },
+        {
+          id: "cultural",
+          name: "Cultural Representative",
+          description: "Traditional attire from sign language region",
+          customizable: false
+        }
+      ]
     };
   }
 
@@ -272,11 +380,14 @@ export class SignLanguageService {
     averageLatency: number;
     errorRate: number;
     gestureRecognitionRate: number;
-    regionalMetrics: Record<string, {
-      accuracy: number;
-      latency: number;
-      coverage: number;
-    }>;
+    regionalMetrics: Record<
+      string,
+      {
+        accuracy: number;
+        latency: number;
+        coverage: number;
+      }
+    >;
   }> {
     // Mock planetary metrics
     return {
@@ -285,81 +396,89 @@ export class SignLanguageService {
       errorRate: 0.04,
       gestureRecognitionRate: 0.88,
       regionalMetrics: {
-        'africa-south1': { accuracy: 0.89, latency: 1350, coverage: 0.85 },
-        'us-central1': { accuracy: 0.94, latency: 1100, coverage: 0.95 },
-        'europe-west1': { accuracy: 0.92, latency: 1150, coverage: 0.90 },
-        'asia-east1': { accuracy: 0.90, latency: 1250, coverage: 0.88 },
-      },
+        "africa-south1": { accuracy: 0.89, latency: 1350, coverage: 0.85 },
+        "us-central1": { accuracy: 0.94, latency: 1100, coverage: 0.95 },
+        "europe-west1": { accuracy: 0.92, latency: 1150, coverage: 0.9 },
+        "asia-east1": { accuracy: 0.9, latency: 1250, coverage: 0.88 }
+      }
     };
   }
 
   // Private helper methods
 
-  private async recognizeGestures(gestureData: string, signLanguage: string): Promise<GestureRecognitionResult> {
-    // PULSCO gesture recognition using computer vision models
+  private async recognizeGestures(
+    gestureData: string,
+    signLanguage: string
+  ): Promise<GestureRecognitionResult> {
+    // Pulsco gesture recognition using computer vision models
     const mockGestures: Record<string, GestureRecognitionResult> = {
-      'gesture_data_1': {
-        recognizedGesture: 'HELLO',
+      gesture_data_1: {
+        recognizedGesture: "HELLO",
         confidence: 0.96,
-        gestureSequence: [
-          { gesture: 'HELLO', startTime: 0, endTime: 1500, confidence: 0.96 },
-        ],
-        detectedSignLanguage: 'asl',
+        gestureSequence: [{ gesture: "HELLO", startTime: 0, endTime: 1500, confidence: 0.96 }],
+        detectedSignLanguage: "asl"
       },
-      'asl_hello_world': {
-        recognizedGesture: 'HELLO WORLD',
+      asl_hello_world: {
+        recognizedGesture: "HELLO WORLD",
         confidence: 0.93,
         gestureSequence: [
-          { gesture: 'HELLO', startTime: 0, endTime: 1200, confidence: 0.96 },
-          { gesture: 'WORLD', startTime: 1300, endTime: 2500, confidence: 0.90 },
+          { gesture: "HELLO", startTime: 0, endTime: 1200, confidence: 0.96 },
+          { gesture: "WORLD", startTime: 1300, endTime: 2500, confidence: 0.9 }
         ],
-        detectedSignLanguage: 'asl',
+        detectedSignLanguage: "asl"
       },
-      'ksl_habari': {
-        recognizedGesture: 'HABARI',
+      ksl_habari: {
+        recognizedGesture: "HABARI",
         confidence: 0.89,
-        gestureSequence: [
-          { gesture: 'HABARI', startTime: 0, endTime: 1800, confidence: 0.89 },
-        ],
-        detectedSignLanguage: 'ksl',
-      },
+        gestureSequence: [{ gesture: "HABARI", startTime: 0, endTime: 1800, confidence: 0.89 }],
+        detectedSignLanguage: "ksl"
+      }
     };
 
-    return mockGestures[gestureData as keyof typeof mockGestures] || {
-      recognizedGesture: 'UNKNOWN_GESTURE',
-      confidence: 0.5,
-      gestureSequence: [],
-      detectedSignLanguage: signLanguage,
-    };
+    return (
+      mockGestures[gestureData as keyof typeof mockGestures] || {
+        recognizedGesture: "UNKNOWN_GESTURE",
+        confidence: 0.5,
+        gestureSequence: [],
+        detectedSignLanguage: signLanguage
+      }
+    );
   }
 
-  private async gesturesToText(gestureSequence: any[], signLanguage: string): Promise<{ text: string; confidence: number }> {
+  private async gesturesToText(
+    gestureSequence: any[],
+    signLanguage: string
+  ): Promise<{ text: string; confidence: number }> {
     // Convert gesture sequence to natural language text
-    const gestureTexts = gestureSequence.map(g => g.gesture);
-    const text = gestureTexts.join(' ');
+    const gestureTexts = gestureSequence.map((g) => g.gesture);
+    const text = gestureTexts.join(" ");
 
     return {
       text: `Signed: ${text}`,
-      confidence: 0.92,
+      confidence: 0.92
     };
   }
 
-  private async translateSignText(text: string, targetLanguage: string): Promise<{ translatedText: string; confidence: number }> {
+  private async translateSignText(
+    text: string,
+    targetLanguage: string
+  ): Promise<{ translatedText: string; confidence: number }> {
     // Translate sign-derived text to target language
     const mockTranslations: Record<string, Record<string, string>> = {
-      'Signed: HELLO WORLD': {
-        es: 'Firmado: HOLA MUNDO',
-        fr: 'Signé: BONJOUR MONDE',
-        sw: 'Imetiwa saini: HABARI DUNIA',
-        ar: 'موقع: مرحبا بالعالم',
-      },
+      "Signed: HELLO WORLD": {
+        es: "Firmado: HOLA MUNDO",
+        fr: "Signé: BONJOUR MONDE",
+        sw: "Imetiwa saini: HABARI DUNIA",
+        ar: "موقع: مرحبا بالعالم"
+      }
     };
 
-    const translatedText = mockTranslations[text]?.[targetLanguage] || `[${targetLanguage.toUpperCase()}] ${text}`;
+    const translatedText =
+      mockTranslations[text]?.[targetLanguage] || `[${targetLanguage.toUpperCase()}] ${text}`;
 
     return {
       translatedText,
-      confidence: 0.94,
+      confidence: 0.94
     };
   }
 
@@ -370,21 +489,26 @@ export class SignLanguageService {
 
   private async generateAvatarVideo(
     gestureSequence: any[],
-    preferences?: SignLanguageTranslationRequest['avatarPreferences']
+    preferences?: SignLanguageTranslationRequest["avatarPreferences"]
   ): Promise<string> {
     // Generate avatar animation video
-    const avatarStyle = preferences ? 'custom' : 'professional';
+    const avatarStyle = preferences ? "custom" : "professional";
     return `https://storage.pulsco.internal/sign-avatar/${Date.now()}_${avatarStyle}.mp4`;
   }
 
-  private async textToGestures(text: string, signLanguage: string): Promise<Array<{
-    gesture: string;
-    startTime: number;
-    endTime: number;
-    description: string;
-  }>> {
+  private async textToGestures(
+    text: string,
+    signLanguage: string
+  ): Promise<
+    Array<{
+      gesture: string;
+      startTime: number;
+      endTime: number;
+      description: string;
+    }>
+  > {
     // Convert text to gesture sequence
-    const words = text.split(' ');
+    const words = text.split(" ");
     let currentTime = 0;
 
     return words.map((word, index) => {
@@ -396,29 +520,36 @@ export class SignLanguageService {
         gesture: word.toUpperCase(),
         startTime,
         endTime: startTime + duration,
-        description: `Sign for "${word}" in ${signLanguage}`,
+        description: `Sign for "${word}" in ${signLanguage}`
       };
     });
   }
 
-  private async translateGesture(gesture: string, sourceSignLanguage: string, targetLanguage: string): Promise<{ translatedText: string; confidence: number }> {
+  private async translateGesture(
+    gesture: string,
+    sourceSignLanguage: string,
+    targetLanguage: string
+  ): Promise<{ translatedText: string; confidence: number }> {
     // Translate individual gesture
     return {
       translatedText: gesture.toLowerCase(),
-      confidence: 0.88,
+      confidence: 0.88
     };
   }
 
-  private async processVideoFrame(frame: Buffer, signLanguage: string): Promise<{
+  private async processVideoFrame(
+    frame: Buffer,
+    signLanguage: string
+  ): Promise<{
     recognizedGesture: string;
     confidence: number;
     isFinal: boolean;
   }> {
     // Process individual video frame for real-time recognition
     return {
-      recognizedGesture: 'test_gesture',
+      recognizedGesture: "test_gesture",
       confidence: 0.85,
-      isFinal: false,
+      isFinal: false
     };
   }
 
@@ -443,10 +574,12 @@ export class SignLanguageService {
 
   private calculateTextToSignCost(text: string, includeAvatar: boolean): number {
     const textLength = text.length;
-    const estimatedDuration = text.split(' ').length * 1.5; // seconds
+    const estimatedDuration = text.split(" ").length * 1.5; // seconds
 
     const translationCost = textLength * this.pulseSignEngine.costs.translation;
-    const avatarCost = includeAvatar ? estimatedDuration * this.pulseSignEngine.costs.avatar_generation : 0;
+    const avatarCost = includeAvatar
+      ? estimatedDuration * this.pulseSignEngine.costs.avatar_generation
+      : 0;
 
     return translationCost + avatarCost;
   }

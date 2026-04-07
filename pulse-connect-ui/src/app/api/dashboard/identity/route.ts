@@ -22,7 +22,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.action !== "enable_2fa") {
-      return noStoreJson({ code: "unsupported_action", message: "Unsupported identity action" }, 400);
+      return noStoreJson(
+        { code: "unsupported_action", message: "Unsupported identity action" },
+        400
+      );
     }
 
     const result = await enableIdentityTwoFactor(userId);
@@ -31,4 +34,3 @@ export async function POST(req: NextRequest) {
     return mapDashboardError(error);
   }
 }
-

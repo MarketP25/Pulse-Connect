@@ -1,7 +1,7 @@
 // Matchmaking utility functions
 // Helper functions for matchmaking calculations, formatting, and validation
 
-import { MatchResult, MatchmakingProfile, MatchmakingPreferences } from '../types/matchmaking';
+import { MatchResult, MatchmakingProfile, MatchmakingPreferences } from "../types/matchmaking";
 
 /**
  * Calculate match compatibility score based on multiple factors
@@ -28,7 +28,7 @@ export function calculateMatchScore(
   if (preferences && preferences.maxDistance > 0) {
     const distance = calculateDistance(profile1.location, profile2.location);
     if (distance <= preferences.maxDistance) {
-      const proximityScore = Math.max(0, 1 - (distance / preferences.maxDistance));
+      const proximityScore = Math.max(0, 1 - distance / preferences.maxDistance);
       score += proximityScore * 0.2;
       totalWeight += 0.2;
     }
@@ -53,10 +53,10 @@ export function calculateMatchScore(
 function calculateSkillOverlap(skills1: string[], skills2: string[]): number {
   if (!skills1.length || !skills2.length) return 0;
 
-  const set1 = new Set(skills1.map(s => s.toLowerCase()));
-  const set2 = new Set(skills2.map(s => s.toLowerCase()));
+  const set1 = new Set(skills1.map((s) => s.toLowerCase()));
+  const set2 = new Set(skills2.map((s) => s.toLowerCase()));
 
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
+  const intersection = new Set([...set1].filter((x) => set2.has(x)));
   const union = new Set([...set1, ...set2]);
 
   return intersection.size / union.size;
@@ -68,10 +68,10 @@ function calculateSkillOverlap(skills1: string[], skills2: string[]): number {
 function calculateInterestOverlap(interests1: string[], interests2: string[]): number {
   if (!interests1.length || !interests2.length) return 0;
 
-  const set1 = new Set(interests1.map(s => s.toLowerCase()));
-  const set2 = new Set(interests2.map(s => s.toLowerCase()));
+  const set1 = new Set(interests1.map((s) => s.toLowerCase()));
+  const set2 = new Set(interests2.map((s) => s.toLowerCase()));
 
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
+  const intersection = new Set([...set1].filter((x) => set2.has(x)));
   const union = new Set([...set1, ...set2]);
 
   return intersection.size / union.size;
@@ -83,10 +83,10 @@ function calculateInterestOverlap(interests1: string[], interests2: string[]): n
 function calculateLanguageOverlap(languages1: string[], languages2: string[]): number {
   if (!languages1.length || !languages2.length) return 0;
 
-  const set1 = new Set(languages1.map(s => s.toLowerCase()));
-  const set2 = new Set(languages2.map(s => s.toLowerCase()));
+  const set1 = new Set(languages1.map((s) => s.toLowerCase()));
+  const set2 = new Set(languages2.map((s) => s.toLowerCase()));
 
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
+  const intersection = new Set([...set1].filter((x) => set2.has(x)));
 
   return intersection.size / Math.max(set1.size, set2.size);
 }
@@ -108,71 +108,80 @@ function calculateDistance(location1: string, location2: string): number {
  * Format match score for display
  */
 export function formatMatchScore(score: number): string {
-  if (score >= 90) return 'Excellent Match';
-  if (score >= 80) return 'Great Match';
-  if (score >= 70) return 'Good Match';
-  if (score >= 60) return 'Fair Match';
-  return 'Poor Match';
+  if (score >= 90) return "Excellent Match";
+  if (score >= 80) return "Great Match";
+  if (score >= 70) return "Good Match";
+  if (score >= 60) return "Fair Match";
+  return "Poor Match";
 }
 
 /**
  * Get match score color
  */
 export function getMatchScoreColor(score: number): string {
-  if (score >= 80) return 'text-green-600';
-  if (score >= 60) return 'text-yellow-600';
-  return 'text-red-600';
+  if (score >= 80) return "text-green-600";
+  if (score >= 60) return "text-yellow-600";
+  return "text-red-600";
 }
 
 /**
  * Validate matchmaking profile data
  */
-export function validateProfile(profile: Partial<MatchmakingProfile>): { isValid: boolean; errors: string[] } {
+export function validateProfile(profile: Partial<MatchmakingProfile>): {
+  isValid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   if (!profile.displayName || profile.displayName.trim().length === 0) {
-    errors.push('Display name is required');
+    errors.push("Display name is required");
   }
 
   if (!profile.location || profile.location.trim().length === 0) {
-    errors.push('Location is required');
+    errors.push("Location is required");
   }
 
   if (!profile.skills || profile.skills.length === 0) {
-    errors.push('At least one skill is required');
+    errors.push("At least one skill is required");
   }
 
   if (!profile.bio || profile.bio.trim().length < 10) {
-    errors.push('Bio must be at least 10 characters long');
+    errors.push("Bio must be at least 10 characters long");
   }
 
   return {
     isValid: errors.length === 0,
-    errors,
+    errors
   };
 }
 
 /**
  * Validate matchmaking preferences
  */
-export function validatePreferences(preferences: Partial<MatchmakingPreferences>): { isValid: boolean; errors: string[] } {
+export function validatePreferences(preferences: Partial<MatchmakingPreferences>): {
+  isValid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   if (!preferences.matchType) {
-    errors.push('Match type is required');
+    errors.push("Match type is required");
   }
 
   if (preferences.maxDistance !== undefined && preferences.maxDistance < 0) {
-    errors.push('Maximum distance must be positive');
+    errors.push("Maximum distance must be positive");
   }
 
-  if (preferences.minMatchScore !== undefined && (preferences.minMatchScore < 0 || preferences.minMatchScore > 100)) {
-    errors.push('Minimum match score must be between 0 and 100');
+  if (
+    preferences.minMatchScore !== undefined &&
+    (preferences.minMatchScore < 0 || preferences.minMatchScore > 100)
+  ) {
+    errors.push("Minimum match score must be between 0 and 100");
   }
 
   return {
     isValid: errors.length === 0,
-    errors,
+    errors
   };
 }
 
@@ -195,13 +204,13 @@ export function filterMatches(
     verifiedOnly?: boolean;
   }
 ): MatchResult[] {
-  return matches.filter(match => {
+  return matches.filter((match) => {
     if (filters.minScore && match.matchScore < filters.minScore) return false;
     if (filters.maxDistance && match.distance && match.distance > filters.maxDistance) return false;
     if (filters.verifiedOnly && !match.profile.verified) return false;
     if (filters.skills && filters.skills.length > 0) {
-      const hasMatchingSkill = filters.skills.some(skill =>
-        match.profile.skills.some(profileSkill =>
+      const hasMatchingSkill = filters.skills.some((skill) =>
+        match.profile.skills.some((profileSkill) =>
           profileSkill.toLowerCase().includes(skill.toLowerCase())
         )
       );
@@ -225,17 +234,17 @@ export function generateMatchRecommendations(
   recommendations = filterMatches(recommendations, {
     minScore: preferences.minMatchScore,
     maxDistance: preferences.maxDistance,
-    skills: preferences.preferredSkills,
+    skills: preferences.preferredSkills
   });
 
   // Boost matches with high compatibility in preferred areas
-  recommendations.forEach(match => {
+  recommendations.forEach((match) => {
     let boost = 0;
 
     // Boost for preferred skills
     if (preferences.preferredSkills) {
-      const preferredSkillMatch = preferences.preferredSkills.some(skill =>
-        match.profile.skills.some(profileSkill =>
+      const preferredSkillMatch = preferences.preferredSkills.some((skill) =>
+        match.profile.skills.some((profileSkill) =>
           profileSkill.toLowerCase().includes(skill.toLowerCase())
         )
       );

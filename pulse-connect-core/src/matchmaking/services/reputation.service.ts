@@ -50,7 +50,7 @@ export class ReputationService {
         timeliness_score: 0,
         communication_score: 0,
         total_events: 0,
-        last_updated: new Date(),
+        last_updated: new Date()
       };
     }
 
@@ -66,7 +66,7 @@ export class ReputationService {
       timeliness_score: timelinessScore,
       communication_score: communicationScore,
       total_events: rows.length,
-      last_updated: new Date(),
+      last_updated: new Date()
     };
   }
 
@@ -98,4 +98,3 @@ export class ReputationService {
     return Math.max(min, Math.min(max, value));
   }
 }
-

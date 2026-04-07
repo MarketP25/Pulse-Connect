@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto';
+import { createHmac } from "crypto";
 
 /**
  * PC365 Guard - Dual Control Security for Destructive Actions
@@ -12,9 +12,9 @@ import { createHmac } from 'crypto';
 
 export interface PC365Headers {
   authorization?: string; // Service token
-  'x-pc365'?: string; // Attestation token
-  'x-founder'?: string; // Founder email
-  'x-device'?: string; // Device fingerprint
+  "x-pc365"?: string; // Attestation token
+  "x-founder"?: string; // Founder email
+  "x-device"?: string; // Device fingerprint
 }
 
 export interface PC365Config {
@@ -37,18 +37,18 @@ export class PC365Guard {
    */
   validateDestructiveAction(headers: PC365Headers): boolean {
     // Validate founder email
-    if (headers['x-founder'] !== this.config.founderEmail) {
-      throw new Error('PC365: Invalid founder identity');
+    if (headers["x-founder"] !== this.config.founderEmail) {
+      throw new Error("PC365: Invalid founder identity");
     }
 
     // Validate device fingerprint
-    if (headers['x-device'] !== this.config.serviceDeviceFingerprint) {
-      throw new Error('PC365: Invalid device fingerprint');
+    if (headers["x-device"] !== this.config.serviceDeviceFingerprint) {
+      throw new Error("PC365: Invalid device fingerprint");
     }
 
     // Validate PC365 attestation (HMAC verification)
-    if (!this.verifyPC365Attestation(headers['x-pc365'] || '')) {
-      throw new Error('PC365: Invalid attestation token');
+    if (!this.verifyPC365Attestation(headers["x-pc365"] || "")) {
+      throw new Error("PC365: Invalid attestation token");
     }
 
     return true;
@@ -64,9 +64,9 @@ export class PC365Guard {
 
     // Simulate HMAC verification using PC365 master token
     // In production, this would verify against KMS/Vault managed token
-    const expected = createHmac('sha256', this.config.pc365MasterToken)
+    const expected = createHmac("sha256", this.config.pc365MasterToken)
       .update(`${this.config.founderEmail}:${this.config.serviceDeviceFingerprint}`)
-      .digest('hex');
+      .digest("hex");
 
     return attestation === expected;
   }
@@ -76,9 +76,9 @@ export class PC365Guard {
    * @returns attestation token
    */
   generateAttestation(): string {
-    return createHmac('sha256', this.config.pc365MasterToken)
+    return createHmac("sha256", this.config.pc365MasterToken)
       .update(`${this.config.founderEmail}:${this.config.serviceDeviceFingerprint}`)
-      .digest('hex');
+      .digest("hex");
   }
 }
 
@@ -87,15 +87,19 @@ export class PC365Guard {
  * @returns PC365Guard instance
  */
 export function createPC365Guard(): PC365Guard {
-  const config: PC365Config = {
-    pc365MasterToken: process.env.PC_365_MASTER_TOKEN || '',
-    founderEmail: process.env.FOUNDER_EMAIL || 'superadmin@pulsco.com',
-    serviceDeviceFingerprint: process.env.SERVICE_DEVICE_FINGERPRINT || '',
-  };
+  const pc365MasterToken = process.env.PC_365_MASTER_TOKEN;
+  const founderEmail = process.env.FOUNDER_EMAIL;
+  const serviceDeviceFingerprint = process.env.SERVICE_DEVICE_FINGERPRINT;
 
-  if (!config.pc365MasterToken) {
-    throw new Error('PC365: Master token not configured');
+  if (!pc365MasterToken || !founderEmail || !serviceDeviceFingerprint) {
+    throw new Error(
+      "PC365: Master token, founder email, and device fingerprint must be configured"
+    );
   }
 
-  return new PC365Guard(config);
+  return new PC365Guard({
+    pc365MasterToken,
+    founderEmail,
+    serviceDeviceFingerprint
+  });
 }

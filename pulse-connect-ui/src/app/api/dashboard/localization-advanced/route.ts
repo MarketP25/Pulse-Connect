@@ -1,5 +1,8 @@
 import { NextRequest } from "next/server";
-import { getLocalizedDashboardDictionary, getLocalizationAdvancedModule } from "@/server/dashboard/service";
+import {
+  getLocalizedDashboardDictionary,
+  getLocalizationAdvancedModule
+} from "@/server/dashboard/service";
 import { getDashboardUserId, mapDashboardError, noStoreJson } from "../_utils";
 
 export async function GET(req: NextRequest) {
@@ -9,17 +12,16 @@ export async function GET(req: NextRequest) {
     const language = url.searchParams.get("language") || undefined;
     const [dictionaryResult, advancedResult] = await Promise.all([
       getLocalizedDashboardDictionary(userId, language),
-      getLocalizationAdvancedModule(userId),
+      getLocalizationAdvancedModule(userId)
     ]);
 
     return noStoreJson({
       ...advancedResult,
       dictionary: dictionaryResult.dictionary,
       provider: dictionaryResult.provider,
-      language: dictionaryResult.language,
+      language: dictionaryResult.language
     });
   } catch (error) {
     return mapDashboardError(error);
   }
 }
-

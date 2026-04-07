@@ -1,0 +1,17 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block branding %}
+<div id="site-name">
+    <img src="{% static 'img/pulsco-logo.jpeg' %}" 
+         alt="Pulsco Logo" 
+         style="height:40px; vertical-align:middle;">
+    <span style="margin-left:10px;">Pulsco Global Ltd Administration</span>
+</div>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding:10px; font-size:12px; color:#666;">
+    © Pulsco Global Ltd — All rights reserved
+</div>
+{% endblock %}

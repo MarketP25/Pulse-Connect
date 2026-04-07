@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     return noStoreJson({
       tier: snapshot.user.tier,
       kycStatus: snapshot.user.kycStatus,
-      access: snapshot.access,
+      access: snapshot.access
     });
   } catch (error) {
     return mapDashboardError(error);

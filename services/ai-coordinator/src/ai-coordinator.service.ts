@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PlanetaryEvent } from './entities/planetary-event.entity';
-import { UserPrediction } from './entities/user-prediction.entity';
-import { ThreatAnalysis } from './entities/threat-analysis.entity';
-import { AICoordinationResult } from './interfaces/ai-coordination.interface';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { PlanetaryEvent } from "./entities/planetary-event.entity";
+import { UserPrediction } from "./entities/user-prediction.entity";
+import { ThreatAnalysis } from "./entities/threat-analysis.entity";
+import { AICoordinationResult } from "./interfaces/ai-coordination.interface";
 
 @Injectable()
 export class AICoordinatorService {
@@ -18,7 +18,7 @@ export class AICoordinatorService {
     @InjectRepository(UserPrediction)
     private readonly userPredictionRepository: Repository<UserPrediction>,
     @InjectRepository(ThreatAnalysis)
-    private readonly threatAnalysisRepository: Repository<ThreatAnalysis>,
+    private readonly threatAnalysisRepository: Repository<ThreatAnalysis>
   ) {}
 
   /**
@@ -31,8 +31,8 @@ export class AICoordinatorService {
       // Analyze user behavior patterns
       const userEvents = await this.planetaryEventRepository.find({
         where: { userId },
-        order: { timestamp: 'DESC' },
-        take: 1000,
+        order: { timestamp: "DESC" },
+        take: 1000
       });
 
       // Generate predictions using AI models
@@ -42,10 +42,10 @@ export class AICoordinatorService {
       await this.userPredictionRepository.save(predictions);
 
       // Emit predictions to Portal for real-time UX enhancement
-      await this.kafkaClient.emit('ai.user.predictions', {
+      await this.kafkaClient.emit("ai.user.predictions", {
         userId,
         predictions,
-        timestamp: new Date(),
+        timestamp: new Date()
       });
 
       return predictions;
@@ -65,16 +65,16 @@ export class AICoordinatorService {
       const routingOptimization = await this.calculateOptimalRoute(context);
 
       // Emit routing optimization to Edge Gateway
-      await this.kafkaClient.emit('ai.routing.optimization', {
+      await this.kafkaClient.emit("ai.routing.optimization", {
         context,
         optimization: routingOptimization,
-        timestamp: new Date(),
+        timestamp: new Date()
       });
 
       return routingOptimization;
     } catch (error) {
       this.logger.error(`Failed to optimize routing: ${error.message}`);
-      return { route: 'default', confidence: 0 };
+      return { route: "default", confidence: 0 };
     }
   }
 
@@ -88,10 +88,10 @@ export class AICoordinatorService {
       const policyUpdates = await this.generatePolicyAdaptations(threats);
 
       // Emit policy adaptations to MARP Governance
-      await this.kafkaClient.emit('ai.policy.adaptations', {
+      await this.kafkaClient.emit("ai.policy.adaptations", {
         threats,
         adaptations: policyUpdates,
-        timestamp: new Date(),
+        timestamp: new Date()
       });
 
       return policyUpdates;
@@ -114,10 +114,10 @@ export class AICoordinatorService {
       await this.storeInsights(insights);
 
       // Emit insights to all subsystems
-      await this.kafkaClient.emit('ai.planetary.insights', {
+      await this.kafkaClient.emit("ai.planetary.insights", {
         data: planetaryData,
         insights,
-        timestamp: new Date(),
+        timestamp: new Date()
       });
 
       return insights;
@@ -144,12 +144,12 @@ export class AICoordinatorService {
       if (usage.frequency > 0.7) {
         predictions.push({
           userId: events[0].userId,
-          type: 'subsystem_recommendation',
+          type: "subsystem_recommendation",
           target: subsystem,
           confidence: usage.frequency,
           reasoning: `High usage pattern detected for ${subsystem}`,
-          suggestedAction: 'pin_to_dashboard',
-          timestamp: new Date(),
+          suggestedAction: "pin_to_dashboard",
+          timestamp: new Date()
         });
       }
     }
@@ -158,12 +158,12 @@ export class AICoordinatorService {
     if (timePatterns.peakHours) {
       predictions.push({
         userId: events[0].userId,
-        type: 'time_optimization',
-        target: 'portal',
+        type: "time_optimization",
+        target: "portal",
         confidence: 0.8,
         reasoning: `User active during ${timePatterns.peakHours}`,
-        suggestedAction: 'schedule_notifications',
-        timestamp: new Date(),
+        suggestedAction: "schedule_notifications",
+        timestamp: new Date()
       });
     }
 
@@ -177,7 +177,7 @@ export class AICoordinatorService {
     // AI-powered routing optimization
     const { userLocation, requestType, timeOfDay, systemLoad } = context;
 
-    let optimalRoute = 'nearest';
+    let optimalRoute = "nearest";
     let confidence = 0.8;
 
     // Location-based routing
@@ -187,22 +187,22 @@ export class AICoordinatorService {
     }
 
     // Time-based routing (route to less busy regions during peak hours)
-    if (timeOfDay && (timeOfDay.hour >= 9 && timeOfDay.hour <= 17)) {
-      optimalRoute = 'load-balanced';
+    if (timeOfDay && timeOfDay.hour >= 9 && timeOfDay.hour <= 17) {
+      optimalRoute = "load-balanced";
       confidence = 0.85;
     }
 
     // Request type optimization
-    if (requestType === 'read') {
-      optimalRoute = 'nearest-cache';
+    if (requestType === "read") {
+      optimalRoute = "nearest-cache";
       confidence = 0.95;
     }
 
     return {
       route: optimalRoute,
       confidence,
-      reasoning: `Optimized for ${requestType} request from ${userLocation?.country || 'unknown location'}`,
-      alternatives: ['nearest', 'global-primary', 'load-balanced'],
+      reasoning: `Optimized for ${requestType} request from ${userLocation?.country || "unknown location"}`,
+      alternatives: ["nearest", "global-primary", "load-balanced"]
     };
   }
 
@@ -216,20 +216,16 @@ export class AICoordinatorService {
       if (threat.severity > 0.8) {
         adaptations.push({
           policyId: `adaptive-${threat.type}-${Date.now()}`,
-          type: 'temporary_restriction',
+          type: "temporary_restriction",
           scope: threat.affectedSubsystems,
           conditions: {
             threatLevel: threat.severity,
-            duration: '1h',
-            automaticExpiry: true,
+            duration: "1h",
+            automaticExpiry: true
           },
-          actions: [
-            'increase_monitoring',
-            'require_additional_verification',
-            'limit_request_rate',
-          ],
+          actions: ["increase_monitoring", "require_additional_verification", "limit_request_rate"],
           reasoning: `High-threat ${threat.type} detected`,
-          confidence: 0.9,
+          confidence: 0.9
         });
       }
     }
@@ -247,7 +243,7 @@ export class AICoordinatorService {
       anomalies: this.detectAnomalies(data),
       trends: this.analyzeTrends(data),
       correlations: this.findCorrelations(data),
-      predictions: this.generatePredictions(data),
+      predictions: this.generatePredictions(data)
     };
   }
 
@@ -255,7 +251,7 @@ export class AICoordinatorService {
   private analyzeSubsystemUsage(events: PlanetaryEvent[]): Record<string, any> {
     const usage: Record<string, any> = {};
 
-    events.forEach(event => {
+    events.forEach((event) => {
       if (!usage[event.subsystem]) {
         usage[event.subsystem] = { count: 0, totalEvents: events.length };
       }
@@ -263,7 +259,7 @@ export class AICoordinatorService {
     });
 
     // Calculate frequency
-    Object.keys(usage).forEach(subsystem => {
+    Object.keys(usage).forEach((subsystem) => {
       usage[subsystem].frequency = usage[subsystem].count / usage[subsystem].totalEvents;
     });
 
@@ -273,24 +269,23 @@ export class AICoordinatorService {
   private analyzeTimePatterns(events: PlanetaryEvent[]): any {
     const hourCounts: Record<number, number> = {};
 
-    events.forEach(event => {
+    events.forEach((event) => {
       const hour = new Date(event.timestamp).getHours();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     });
 
-    const peakHour = Object.entries(hourCounts)
-      .sort(([,a], [,b]) => b - a)[0];
+    const peakHour = Object.entries(hourCounts).sort(([, a], [, b]) => b - a)[0];
 
     return {
       peakHours: peakHour ? `${peakHour[0]}:00` : null,
-      activityDistribution: hourCounts,
+      activityDistribution: hourCounts
     };
   }
 
   private analyzeLocationPatterns(events: PlanetaryEvent[]): any {
     const locationCounts: Record<string, number> = {};
 
-    events.forEach(event => {
+    events.forEach((event) => {
       if (event.location) {
         const key = `${event.location.country}-${event.location.region}`;
         locationCounts[key] = (locationCounts[key] || 0) + 1;
@@ -298,9 +293,9 @@ export class AICoordinatorService {
     });
 
     return {
-      primaryLocation: Object.entries(locationCounts)
-        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'unknown',
-      locationDistribution: locationCounts,
+      primaryLocation:
+        Object.entries(locationCounts).sort(([, a], [, b]) => b - a)[0]?.[0] || "unknown",
+      locationDistribution: locationCounts
     };
   }
 
@@ -326,6 +321,6 @@ export class AICoordinatorService {
 
   private async storeInsights(insights: any): Promise<void> {
     // Store insights in database for future learning
-    this.logger.log('Storing AI insights for future learning');
+    this.logger.log("Storing AI insights for future learning");
   }
 }

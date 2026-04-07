@@ -366,18 +366,28 @@ export class AIComplianceService {
    * Evaluate a KYC submission and provide automated decision recommendation.
    * Returned object: { decision: 'approve'|'reject'|'manual', confidence: number, reason?: string }
    */
-  async evaluateKYC(kycPayload: any): Promise<{ decision: string; confidence: number; reason?: string }> {
+  async evaluateKYC(
+    kycPayload: any
+  ): Promise<{ decision: string; confidence: number; reason?: string }> {
     // Use provided risk score if present
     const kyc = kycPayload.kyc || kycPayload.request;
     const risk = kyc.risk_score || (kyc.riskScore ? kyc.riskScore : 50);
 
     // Simple heuristic: low risk => approve, high risk => reject, otherwise manual
     if (risk < 40) {
-      return { decision: "approve", confidence: Math.min(0.9, 1 - risk / 100), reason: "Low risk based on automated scoring" };
+      return {
+        decision: "approve",
+        confidence: Math.min(0.9, 1 - risk / 100),
+        reason: "Low risk based on automated scoring"
+      };
     }
 
     if (risk >= 80) {
-      return { decision: "reject", confidence: Math.min(0.95, risk / 100), reason: "High risk detected by automated scoring" };
+      return {
+        decision: "reject",
+        confidence: Math.min(0.95, risk / 100),
+        reason: "High risk detected by automated scoring"
+      };
     }
 
     return { decision: "manual", confidence: 0.5, reason: "Requires human review" };

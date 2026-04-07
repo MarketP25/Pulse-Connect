@@ -20,7 +20,7 @@ function buildUser(overrides: Partial<DashboardUser>): DashboardUser {
     referralCredits: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -39,7 +39,9 @@ describe("resolveModuleAccess", () => {
   });
 
   it("allows enterprise operations when full KYC is complete", () => {
-    const access = resolveModuleAccess(buildUser({ tier: "enterprise", role: "admin", kycStatus: "verified" }));
+    const access = resolveModuleAccess(
+      buildUser({ tier: "enterprise", role: "admin", kycStatus: "verified" })
+    );
     expect(access.find((entry) => entry.module === "operations")?.enabled).toBe(true);
     expect(access.find((entry) => entry.module === "reporting")?.enabled).toBe(true);
   });

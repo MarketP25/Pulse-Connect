@@ -1,20 +1,20 @@
 // Governance Communications for Pulsco Admin Governance System
 // Handles secure communication channels and notifications
 
-import { AdminRoleType, Alert, AuditEvent } from '@pulsco/admin-shared-types';
-import { AlertsClient } from '@pulsco/admin-alerts-client';
-import WebSocket from 'ws';
-import { EventSource } from 'eventsource';
+import { AdminRoleType, Alert, AuditEvent } from "@pulsco/admin-shared-types";
+import { AlertsClient } from "@pulsco/admin-alerts-client";
+import WebSocket from "ws";
+import { EventSource } from "eventsource";
 
 export interface CommunicationChannel {
   id: string;
-  type: 'websocket' | 'sse' | 'email' | 'sms' | 'push';
+  type: "websocket" | "sse" | "email" | "sms" | "push";
   name: string;
   description: string;
   adminRoles: AdminRoleType[];
-  priority: 'low' | 'normal' | 'high' | 'critical';
-  encryption: 'none' | 'tls' | 'end-to-end';
-  status: 'active' | 'inactive' | 'maintenance';
+  priority: "low" | "normal" | "high" | "critical" | "string";
+  encryption: "none" | "tls" | "end-to-end";
+  status: "active" | "inactive" | "maintenance";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,8 +25,8 @@ export interface NotificationMessage {
   recipientRoles: AdminRoleType[];
   subject: string;
   body: string;
-  priority: 'low' | 'normal' | 'high' | 'critical';
-  type: 'alert' | 'announcement' | 'escalation' | 'system' | 'governance';
+  priority: "low" | "normal" | "high" | "critical";
+  type: "alert" | "announcement" | "escalation" | "system" | "governance";
   metadata: Record<string, any>;
   sentAt: Date;
   deliveredAt?: Date;
@@ -41,7 +41,7 @@ export interface CommunicationSession {
   channelId: string;
   startedAt: Date;
   lastActivity: Date;
-  status: 'active' | 'idle' | 'disconnected';
+  status: "active" | "idle" | "disconnected";
   messagesSent: number;
   messagesReceived: number;
 }
@@ -49,7 +49,7 @@ export interface CommunicationSession {
 export interface NotificationTemplate {
   id: string;
   name: string;
-  type: NotificationMessage['type'];
+  type: NotificationMessage["type"];
   subjectTemplate: string;
   bodyTemplate: string;
   variables: string[];
@@ -98,14 +98,14 @@ export class GovernanceCommunicationsManager {
    */
   async sendNotification(
     channelId: string,
-    message: Omit<NotificationMessage, 'id' | 'channelId' | 'sentAt'>
+    message: Omit<NotificationMessage, "id" | "channelId" | "sentAt">
   ): Promise<string> {
     const channel = this.channels.get(channelId);
     if (!channel) {
       throw new Error(`Communication channel ${channelId} not found`);
     }
 
-    if (channel.status !== 'active') {
+    if (channel.status !== "active") {
       throw new Error(`Channel ${channelId} is not active`);
     }
 
@@ -132,9 +132,9 @@ export class GovernanceCommunicationsManager {
    * Broadcast notification to multiple roles
    */
   async broadcastNotification(
-    message: Omit<NotificationMessage, 'id' | 'channelId' | 'sentAt' | 'recipientRoles'>,
+    message: Omit<NotificationMessage, "id" | "channelId" | "sentAt" | "recipientRoles">,
     recipientRoles: AdminRoleType[],
-    preferredChannel?: CommunicationChannel['type']
+    preferredChannel?: CommunicationChannel["type"]
   ): Promise<string[]> {
     const notificationIds: string[] = [];
 
@@ -180,7 +180,7 @@ export class GovernanceCommunicationsManager {
       channelId,
       startedAt: new Date(),
       lastActivity: new Date(),
-      status: 'active',
+      status: "active",
       messagesSent: 0,
       messagesReceived: 0
     };
@@ -205,10 +205,15 @@ export class GovernanceCommunicationsManager {
     const message = {
       subject: `Alert: ${alert.title}`,
       body: `Severity: ${alert.severity.toUpperCase()}\n\n${alert.description}\n\nSource: ${alert.source}`,
-      priority: alert.severity === 'critical' ? 'critical' :
-               alert.severity === 'high' ? 'high' :
-               alert.severity === 'medium' ? 'normal' : 'low',
-      type: 'alert' as const,
+      priority:
+        alert.severity === "critical"
+          ? "critical"
+          : alert.severity === "high"
+            ? "high"
+            : alert.severity === "medium"
+              ? "normal"
+              : "low",
+      type: "alert" as const,
       metadata: {
         alertId: alert.id,
         severity: alert.severity,
@@ -216,7 +221,7 @@ export class GovernanceCommunicationsManager {
       }
     };
 
-    await this.broadcastNotification(message, escalationRoles, 'websocket');
+    await this.broadcastNotification(message, escalationRoles, "websocket");
   }
 
   /**
@@ -225,19 +230,31 @@ export class GovernanceCommunicationsManager {
   async sendGovernanceAnnouncement(
     subject: string,
     body: string,
-    recipientRoles: AdminRoleType[] = ['superadmin', 'coo', 'business-ops', 'people-risk', 'procurement-partnerships', 'legal-finance', 'commercial-outreach', 'tech-security', 'customer-experience', 'governance-registrar']
+    recipientRoles: AdminRoleType[] = [
+      "superadmin",
+      "coo",
+      "business-ops",
+      "people-risk",
+      "procurement-partnerships",
+      "legal-finance",
+      "commercial-outreach",
+      "tech-security",
+      "customer-experience",
+      "governance-registrar",
+      "dpo"
+    ]
   ): Promise<string[]> {
     const message = {
       subject: `Governance: ${subject}`,
       body,
-      priority: 'normal' as const,
-      type: 'governance' as const,
+      priority: "normal" as const,
+      type: "governance" as const,
       metadata: {
-        announcementType: 'governance'
+        announcementType: "governance"
       }
     };
 
-    return await this.broadcastNotification(message, recipientRoles, 'email');
+    return await this.broadcastNotification(message, recipientRoles, "email");
   }
 
   /**
@@ -251,10 +268,12 @@ export class GovernanceCommunicationsManager {
     deliverySuccessRate: number;
     averageResponseTime: number;
   } {
-    const activeChannels = Array.from(this.channels.values())
-      .filter(c => c.status === 'active').length;
-    const activeSessions = Array.from(this.sessions.values())
-      .filter(s => s.status === 'active').length;
+    const activeChannels = Array.from(this.channels.values()).filter(
+      (c) => c.status === "active"
+    ).length;
+    const activeSessions = Array.from(this.sessions.values()).filter(
+      (s) => s.status === "active"
+    ).length;
 
     // Mock statistics - in real implementation, these would be tracked
     return {
@@ -283,7 +302,7 @@ export class GovernanceCommunicationsManager {
   /**
    * Create custom notification template
    */
-  createTemplate(template: Omit<NotificationTemplate, 'id' | 'createdAt' | 'updatedAt'>): string {
+  createTemplate(template: Omit<NotificationTemplate, "id" | "createdAt" | "updatedAt">): string {
     const templateId = `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     const fullTemplate: NotificationTemplate = {
@@ -302,56 +321,92 @@ export class GovernanceCommunicationsManager {
   private initializeDefaultChannels(): void {
     const defaultChannels: CommunicationChannel[] = [
       {
-        id: 'ws-governance',
-        type: 'websocket',
-        name: 'Governance WebSocket',
-        description: 'Real-time governance communications',
-        adminRoles: ['superadmin', 'coo', 'business-ops', 'people-risk', 'procurement-partnerships', 'legal-finance', 'commercial-outreach', 'tech-security', 'customer-experience', 'governance-registrar'],
-        priority: 'high',
-        encryption: 'tls',
-        status: 'active',
+        id: "ws-governance",
+        type: "websocket",
+        name: "Governance WebSocket",
+        description: "Real-time governance communications",
+        adminRoles: [
+          "superadmin",
+          "coo",
+          "business-ops",
+          "people-risk",
+          "procurement-partnerships",
+          "legal-finance",
+          "commercial-outreach",
+          "tech-security",
+          "customer-experience",
+          "governance-registrar",
+          "dpo"
+        ],
+        priority: "high",
+        encryption: "tls",
+        status: "active",
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'sse-alerts',
-        type: 'sse',
-        name: 'Alert SSE Stream',
-        description: 'Server-sent events for alerts',
-        adminRoles: ['superadmin', 'coo', 'business-ops', 'people-risk', 'procurement-partnerships', 'legal-finance', 'commercial-outreach', 'tech-security', 'customer-experience', 'governance-registrar'],
-        priority: 'high',
-        encryption: 'tls',
-        status: 'active',
+        id: "sse-alerts",
+        type: "sse",
+        name: "Alert SSE Stream",
+        description: "Server-sent events for alerts",
+        adminRoles: [
+          "superadmin",
+          "coo",
+          "business-ops",
+          "people-risk",
+          "procurement-partnerships",
+          "legal-finance",
+          "commercial-outreach",
+          "tech-security",
+          "customer-experience",
+          "governance-registrar",
+          "dpo"
+        ],
+        priority: "high",
+        encryption: "tls",
+        status: "active",
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'email-governance',
-        type: 'email',
-        name: 'Governance Email',
-        description: 'Secure email communications',
-        adminRoles: ['superadmin', 'coo', 'business-ops', 'people-risk', 'procurement-partnerships', 'legal-finance', 'commercial-outreach', 'tech-security', 'customer-experience', 'governance-registrar'],
-        priority: 'normal',
-        encryption: 'tls',
-        status: 'active',
+        id: "email-governance",
+        type: "email",
+        name: "Governance Email",
+        description: "Secure email communications",
+        adminRoles: [
+          "superadmin",
+          "coo",
+          "business-ops",
+          "people-risk",
+          "procurement-partnerships",
+          "legal-finance",
+          "commercial-outreach",
+          "tech-security",
+          "customer-experience",
+          "governance-registrar",
+          "dpo"
+        ],
+        priority: "normal",
+        encryption: "tls",
+        status: "active",
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'sms-critical',
-        type: 'sms',
-        name: 'Critical SMS Alerts',
-        description: 'SMS for critical alerts only',
-        adminRoles: ['superadmin', 'coo', 'tech-security'],
-        priority: 'critical',
-        encryption: 'tls',
-        status: 'active',
+        id: "sms-critical",
+        type: "sms",
+        name: "Critical SMS Alerts",
+        description: "SMS for critical alerts only",
+        adminRoles: ["superadmin", "coo", "tech-security"],
+        priority: "critical",
+        encryption: "tls",
+        status: "active",
         createdAt: new Date(),
         updatedAt: new Date()
       }
     ];
 
-    defaultChannels.forEach(channel => {
+    defaultChannels.forEach((channel) => {
       this.channels.set(channel.id, channel);
     });
   }
@@ -359,41 +414,68 @@ export class GovernanceCommunicationsManager {
   private initializeDefaultTemplates(): void {
     const defaultTemplates: NotificationTemplate[] = [
       {
-        id: 'alert-template',
-        name: 'Alert Notification',
-        type: 'alert',
-        subjectTemplate: 'Alert: {{title}}',
-        bodyTemplate: 'Severity: {{severity}}\n\n{{description}}\n\nSource: {{source}}\n\nTime: {{timestamp}}',
-        variables: ['title', 'severity', 'description', 'source', 'timestamp'],
-        adminRoles: ['superadmin', 'coo', 'business-ops', 'people-risk', 'procurement-partnerships', 'legal-finance', 'commercial-outreach', 'tech-security', 'customer-experience', 'governance-registrar'],
+        id: "alert-template",
+        name: "Alert Notification",
+        type: "alert",
+        subjectTemplate: "Alert: {{title}}",
+        bodyTemplate:
+          "Severity: {{severity}}\n\n{{description}}\n\nSource: {{source}}\n\nTime: {{timestamp}}",
+        variables: ["title", "severity", "description", "source", "timestamp"],
+        adminRoles: [
+          "superadmin",
+          "coo",
+          "business-ops",
+          "people-risk",
+          "procurement-partnerships",
+          "legal-finance",
+          "commercial-outreach",
+          "tech-security",
+          "customer-experience",
+          "governance-registrar",
+          "dpo"
+        ],
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'escalation-template',
-        name: 'Escalation Notification',
-        type: 'escalation',
-        subjectTemplate: 'ESCALATION: {{alertTitle}}',
-        bodyTemplate: 'Alert "{{alertTitle}}" has been escalated to {{targetRole}}.\n\nReason: {{reason}}\n\nPriority: {{priority}}\n\nPlease review immediately.',
-        variables: ['alertTitle', 'targetRole', 'reason', 'priority'],
-        adminRoles: ['superadmin', 'coo', 'tech-security', 'governance-registrar'],
+        id: "escalation-template",
+        name: "Escalation Notification",
+        type: "escalation",
+        subjectTemplate: "ESCALATION: {{alertTitle}}",
+        bodyTemplate:
+          'Alert "{{alertTitle}}" has been escalated to {{targetRole}}.\n\nReason: {{reason}}\n\nPriority: {{priority}}\n\nPlease review immediately.',
+        variables: ["alertTitle", "targetRole", "reason", "priority"],
+        adminRoles: ["superadmin", "coo", "tech-security", "governance-registrar"],
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'governance-template',
-        name: 'Governance Announcement',
-        type: 'governance',
-        subjectTemplate: 'Governance: {{subject}}',
-        bodyTemplate: '{{body}}\n\nThis is an official governance communication.\n\nPlease acknowledge receipt.',
-        variables: ['subject', 'body'],
-        adminRoles: ['superadmin', 'coo', 'business-ops', 'people-risk', 'procurement-partnerships', 'legal-finance', 'commercial-outreach', 'tech-security', 'customer-experience', 'governance-registrar'],
+        id: "governance-template",
+        name: "Governance Announcement",
+        type: "governance",
+        subjectTemplate: "Governance: {{subject}}",
+        bodyTemplate:
+          "{{body}}\n\nThis is an official governance communication.\n\nPlease acknowledge receipt.",
+        variables: ["subject", "body"],
+        adminRoles: [
+          "superadmin",
+          "coo",
+          "business-ops",
+          "people-risk",
+          "procurement-partnerships",
+          "legal-finance",
+          "commercial-outreach",
+          "tech-security",
+          "customer-experience",
+          "governance-registrar",
+          "dpo"
+        ],
         createdAt: new Date(),
         updatedAt: new Date()
       }
     ];
 
-    defaultTemplates.forEach(template => {
+    defaultTemplates.forEach((template) => {
       this.templates.set(template.id, template);
     });
   }
@@ -403,16 +485,16 @@ export class GovernanceCommunicationsManager {
     notification: NotificationMessage
   ): Promise<void> {
     switch (channel.type) {
-      case 'websocket':
+      case "websocket":
         await this.deliverViaWebSocket(channel, notification);
         break;
-      case 'sse':
+      case "sse":
         await this.deliverViaSSE(channel, notification);
         break;
-      case 'email':
+      case "email":
         await this.deliverViaEmail(channel, notification);
         break;
-      case 'sms':
+      case "sms":
         await this.deliverViaSMS(channel, notification);
         break;
       default:
@@ -454,22 +536,22 @@ export class GovernanceCommunicationsManager {
 
   private async auditNotification(notification: NotificationMessage): Promise<void> {
     const auditEvent: Partial<AuditEvent> = {
-      type: 'admin-login', // Would be 'notification-sent' in real implementation
-      adminEmail: 'system@governance.pulsco.com',
-      adminRole: 'superadmin',
-      action: 'notification-sent',
-      result: 'success',
+      type: "admin-login", // Would be 'notification-sent' in real implementation
+      adminEmail: "system@governance.pulsco.global",
+      adminRole: "superadmin",
+      action: "notification-sent",
+      result: "success",
       reason: `Notification sent via ${notification.channelId}`,
-      deviceFingerprint: 'system',
+      deviceFingerprint: "system",
       timestamp: new Date(),
       hashChain: `audit_${Date.now()}`
     };
 
     // In real implementation, send to audit service
-    console.log('Audited notification:', auditEvent);
+    console.log("Audited notification:", auditEvent);
   }
 
-  private getChannelsByType(): Record<CommunicationChannel['type'], CommunicationChannel[]> {
+  private getChannelsByType(): Record<CommunicationChannel["type"], CommunicationChannel[]> {
     const channelsByType: Record<string, CommunicationChannel[]> = {};
 
     for (const channel of this.channels.values()) {
@@ -482,30 +564,35 @@ export class GovernanceCommunicationsManager {
     return channelsByType;
   }
 
-  private getPreferredChannelForRole(role: AdminRoleType): CommunicationChannel['type'] {
+  private getPreferredChannelForRole(role: AdminRoleType): CommunicationChannel["type"] {
     // Define preferences based on role criticality
-    const criticalRoles: AdminRoleType[] = ['superadmin', 'coo', 'tech-security'];
-    const highPriorityRoles: AdminRoleType[] = ['business-ops', 'people-risk', 'legal-finance'];
+    const criticalRoles: AdminRoleType[] = ["superadmin", "coo", "tech-security"];
+    const highPriorityRoles: AdminRoleType[] = [
+      "business-ops",
+      "people-risk",
+      "legal-finance",
+      "dpo"
+    ];
 
     if (criticalRoles.includes(role)) {
-      return 'websocket';
+      return "websocket";
     } else if (highPriorityRoles.includes(role)) {
-      return 'sse';
+      return "sse";
     } else {
-      return 'email';
+      return "email";
     }
   }
 
   private getEscalationRolesForAlert(alert: Alert): AdminRoleType[] {
     // Determine which roles should receive this alert based on type and severity
-    const baseRoles: AdminRoleType[] = ['superadmin'];
+    const baseRoles: AdminRoleType[] = ["superadmin"];
 
-    if (alert.severity === 'critical') {
-      return ['superadmin', 'coo', 'tech-security'];
-    } else if (alert.severity === 'high') {
-      return ['superadmin', 'coo'];
-    } else if (alert.severity === 'medium') {
-      return ['superadmin', 'coo', 'business-ops'];
+    if (alert.severity === "critical") {
+      return ["superadmin", "coo", "tech-security"];
+    } else if (alert.severity === "high") {
+      return ["superadmin", "coo"];
+    } else if (alert.severity === "medium") {
+      return ["superadmin", "coo", "business-ops"];
     } else {
       return baseRoles;
     }
@@ -516,9 +603,9 @@ export class GovernanceCommunicationsManager {
     channel: CommunicationChannel
   ): Promise<void> {
     // Initialize connection based on channel type
-    if (channel.type === 'websocket') {
+    if (channel.type === "websocket") {
       // WebSocket connection logic
-    } else if (channel.type === 'sse') {
+    } else if (channel.type === "sse") {
       // SSE connection logic
     }
   }

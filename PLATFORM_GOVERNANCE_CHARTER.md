@@ -70,6 +70,10 @@ In the event of a severe, system-wide threat to the Pulsco ecosystem (such as a 
 *   Implementing mass freezes on transactions or wallet payouts.
 *   Blocking access from certain regions or IP ranges.
 
+#### Implementation Note (Global Control Plane)
+
+The Emergency Protocol is technically enforced through the SuperAdmin control surface and backend governance services, with CSI-linked emergency intelligence and cross-system policy propagation. Emergency activation/deactivation events are founder-gated, audited, and propagated to enforcement endpoints that can block sensitive operations (including transaction and payout paths) during active emergency states.
+
 ### ARTICLE VI: AMENDMENTS
 
 This Charter may only be amended by a formal decree from the Founder-Level Authority (Tier 4). All users will be notified of any material changes to this Charter.

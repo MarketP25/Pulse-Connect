@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 export default function AdminKYCPage() {
   const [pending, setPending] = useState<any[]>([]);
@@ -7,7 +7,7 @@ export default function AdminKYCPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/kyc/pending');
+      const res = await fetch("/api/kyc/pending");
       const data = await res.json();
       setPending(data);
     } catch (err) {
@@ -17,11 +17,11 @@ export default function AdminKYCPage() {
     }
   };
 
-  const review = async (id: string, decision: 'approve' | 'reject') => {
+  const review = async (id: string, decision: "approve" | "reject") => {
     await fetch(`/api/kyc/${id}/review`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reviewer_id: 'admin1', decision })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reviewer_id: "admin1", decision })
     });
     load();
   };
@@ -41,8 +41,8 @@ export default function AdminKYCPage() {
               <strong>{p.seller_id}</strong> — {p.status} — risk {p.risk_score}
             </div>
             <div style={{ marginTop: 6 }}>
-              <button onClick={() => review(p.id, 'approve')}>Approve</button>
-              <button onClick={() => review(p.id, 'reject')}>Reject</button>
+              <button onClick={() => review(p.id, "approve")}>Approve</button>
+              <button onClick={() => review(p.id, "reject")}>Reject</button>
             </div>
           </li>
         ))}

@@ -7,6 +7,7 @@ This dashboard supports all user tiers (`basic`, `premium`, `enterprise`) with r
 ## Delivery Planning
 
 - See implementation backlog: `docs/dashboard-gap-backlog.md`
+- See global hardening strategy: `docs/global-production-readiness-strategy.md`
 
 ## Confirmed Existing Architecture Used
 
@@ -64,9 +65,11 @@ API endpoints under `src/app/api/dashboard/*`:
 
 - Dashboard text translation is powered through localization integration in `src/server/dashboard/localization-client.ts`.
 - Translation resolution order:
-  1. `PULSCO_LOCALIZATION_API_URL` / `LOCALIZATION_API_URL`
-  2. Azure Translator (`AZURE_TRANSLATOR_ENDPOINT`, `AZURE_TRANSLATOR_KEY`, `AZURE_TRANSLATOR_REGION`)
+  1. Internal Localization API (`PULSCO_LOCALIZATION_API_URL` / `LOCALIZATION_API_URL`)
+  2. Internal CSI localization advisory path (`PULSCO_CSI_GATEWAY_URL` / `PULSCO_EDGE_GATEWAY_URL` / `PULSCO_MARP_FIREWALL_URL`)
   3. Built-in fallback dictionary
+- External translation providers are disabled by default and require explicit opt-in (`ALLOW_EXTERNAL_TRANSLATION_PROVIDER=true`).
+- Dashboard onboarding language input is no longer restricted to a fixed shortlist; it accepts any valid ISO language code and uses Localization+CSI coverage feeds for suggestions.
 - Nearby places are now distance-ranked using geocoded user location from proximity integration in `src/server/dashboard/proximity-client.ts`.
 - Geocoding endpoint uses `PULSCO_PROXIMITY_API_URL` / `PROXIMITY_API_URL` (default: `http://localhost:3002/api/v1/proximity`).
 

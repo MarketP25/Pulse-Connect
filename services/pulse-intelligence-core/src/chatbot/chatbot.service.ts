@@ -1,12 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { CognitiveComputingService } from '../cognitive-computing/cognitive-computing.service';
+import { Injectable, Inject } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { CognitiveComputingService } from "../cognitive-computing/cognitive-computing.service";
 
 interface ChatRequest {
   message: string;
   userId?: string;
   sessionId?: string;
-  conversationHistory?: Array<{role: string, content: string}>;
+  conversationHistory?: Array<{ role: string; content: string }>;
 }
 
 interface ChatResponse {
@@ -22,20 +22,17 @@ interface ChatResponse {
 export class ChatbotService {
   constructor(
     private readonly cognitiveService: CognitiveComputingService,
-    @Inject('KAFKA_CLIENT') private readonly kafkaClient: ClientKafka,
+    @Inject("KAFKA_CLIENT") private readonly kafkaClient: ClientKafka
   ) {}
 
   async processMessage(request: ChatRequest): Promise<ChatResponse> {
     try {
       // Use Cognitive Computing Service for conversational AI
-      const aiResponse = await this.cognitiveService.handleConversationalAI(
-        request.message,
-        {
-          userId: request.userId,
-          sessionId: request.sessionId,
-          conversationHistory: request.conversationHistory
-        }
-      );
+      const aiResponse = await this.cognitiveService.handleConversationalAI(request.message, {
+        userId: request.userId,
+        sessionId: request.sessionId,
+        conversationHistory: request.conversationHistory
+      });
 
       // Log conversation for analytics and improvement
       await this.logConversation(request, aiResponse);
@@ -49,11 +46,10 @@ export class ChatbotService {
         confidence: aiResponse.confidence,
         suggestedActions: aiResponse.suggestedActions,
         context: aiResponse.context,
-        poweredBy: 'Pulse Intelligence Core - Cognitive Computing'
+        poweredBy: "Pulse Intelligence Core - Cognitive Computing"
       };
-
     } catch (error) {
-      console.error('Chatbot processing error:', error);
+      console.error("Chatbot processing error:", error);
 
       // Fallback response using basic AI patterns
       return this.generateFallbackResponse(request);
@@ -63,7 +59,7 @@ export class ChatbotService {
   async analyzeMessage(message: string): Promise<any> {
     // Use Cognitive Computing Service for message analysis
     const analysis = await this.cognitiveService.performSemanticReasoning({
-      criteria: 'message_analysis',
+      criteria: "message_analysis",
       message: message
     });
 
@@ -91,13 +87,13 @@ export class ChatbotService {
     };
 
     // In production, this would be stored in a database
-    console.log('Conversation logged:', logEntry);
+    console.log("Conversation logged:", logEntry);
   }
 
   private async publishConversationEvent(request: ChatRequest, response: any): Promise<void> {
     try {
-      await this.kafkaClient.emit('conversation.events', {
-        key: request.sessionId || 'anonymous',
+      await this.kafkaClient.emit("conversation.events", {
+        key: request.sessionId || "anonymous",
         value: {
           userId: request.userId,
           sessionId: request.sessionId,
@@ -108,7 +104,7 @@ export class ChatbotService {
         }
       });
     } catch (error) {
-      console.warn('Failed to publish conversation event:', error);
+      console.warn("Failed to publish conversation event:", error);
     }
   }
 
@@ -117,17 +113,20 @@ export class ChatbotService {
     const lowerMessage = request.message.toLowerCase();
 
     let response = "I'm here to help you with Pulsco! ";
-    let intent = 'general_inquiry';
+    let intent = "general_inquiry";
 
-    if (lowerMessage.includes('help')) {
-      response += "Our AI-powered platform includes advanced features for matchmaking, secure transactions, and intelligent fraud detection.";
-      intent = 'help_request';
-    } else if (lowerMessage.includes('transaction') || lowerMessage.includes('payment')) {
-      response += "All transactions are protected by our MARP governance firewall and PC365 authentication.";
-      intent = 'transaction_inquiry';
-    } else if (lowerMessage.includes('security') || lowerMessage.includes('safe')) {
-      response += "Security is our highest priority with multi-layered protection and continuous monitoring.";
-      intent = 'security_concern';
+    if (lowerMessage.includes("help")) {
+      response +=
+        "Our AI-powered platform includes advanced features for matchmaking, secure transactions, and intelligent fraud detection.";
+      intent = "help_request";
+    } else if (lowerMessage.includes("transaction") || lowerMessage.includes("payment")) {
+      response +=
+        "All transactions are protected by our MARP governance firewall and PC365 authentication.";
+      intent = "transaction_inquiry";
+    } else if (lowerMessage.includes("security") || lowerMessage.includes("safe")) {
+      response +=
+        "Security is our highest priority with multi-layered protection and continuous monitoring.";
+      intent = "security_concern";
     } else {
       response += "How can I assist you with our AI-powered marketplace today?";
     }
@@ -138,42 +137,64 @@ export class ChatbotService {
       response,
       intent,
       confidence: 0.7,
-      suggestedActions: [
-        { type: 'navigate', label: 'Contact Support', target: '/support' }
-      ],
+      suggestedActions: [{ type: "navigate", label: "Contact Support", target: "/support" }],
       context: {
-        topic: 'general',
+        topic: "general",
         sentiment: 0,
-        urgency: 'low',
+        urgency: "low",
         fallback: true
       },
-      poweredBy: 'Pulse Intelligence Core - Fallback Mode'
+      poweredBy: "Pulse Intelligence Core - Fallback Mode"
     };
   }
 
   private detectIntent(message: string): string {
     const lowerMessage = message.toLowerCase();
 
-    if (lowerMessage.includes('help') || lowerMessage.includes('support') || lowerMessage.includes('how')) {
-      return 'help_request';
+    if (
+      lowerMessage.includes("help") ||
+      lowerMessage.includes("support") ||
+      lowerMessage.includes("how")
+    ) {
+      return "help_request";
     }
-    if (lowerMessage.includes('transaction') || lowerMessage.includes('payment') || lowerMessage.includes('money')) {
-      return 'transaction_inquiry';
+    if (
+      lowerMessage.includes("transaction") ||
+      lowerMessage.includes("payment") ||
+      lowerMessage.includes("money")
+    ) {
+      return "transaction_inquiry";
     }
-    if (lowerMessage.includes('account') || lowerMessage.includes('profile') || lowerMessage.includes('settings')) {
-      return 'account_management';
+    if (
+      lowerMessage.includes("account") ||
+      lowerMessage.includes("profile") ||
+      lowerMessage.includes("settings")
+    ) {
+      return "account_management";
     }
-    if (lowerMessage.includes('security') || lowerMessage.includes('safe') || lowerMessage.includes('fraud')) {
-      return 'security_concern';
+    if (
+      lowerMessage.includes("security") ||
+      lowerMessage.includes("safe") ||
+      lowerMessage.includes("fraud")
+    ) {
+      return "security_concern";
     }
-    if (lowerMessage.includes('why') || lowerMessage.includes('explain') || lowerMessage.includes('reason')) {
-      return 'platform_explanation';
+    if (
+      lowerMessage.includes("why") ||
+      lowerMessage.includes("explain") ||
+      lowerMessage.includes("reason")
+    ) {
+      return "platform_explanation";
     }
-    if (lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('error')) {
-      return 'complaint';
+    if (
+      lowerMessage.includes("problem") ||
+      lowerMessage.includes("issue") ||
+      lowerMessage.includes("error")
+    ) {
+      return "complaint";
     }
 
-    return 'general_inquiry';
+    return "general_inquiry";
   }
 
   private extractEntities(message: string): any {
@@ -188,21 +209,43 @@ export class ChatbotService {
   }
 
   private detectSubsystems(message: string): string[] {
-    const subsystems = ['ecommerce', 'fraud', 'proximity', 'communication', 'payments', 'matchmaking'];
-    return subsystems.filter(subsystem => message.toLowerCase().includes(subsystem));
+    const subsystems = [
+      "ecommerce",
+      "fraud",
+      "proximity",
+      "communication",
+      "payments",
+      "matchmaking",
+      "places",
+      "ai programs"
+    ];
+    return subsystems.filter((subsystem) => message.toLowerCase().includes(subsystem));
   }
 
   private detectActions(message: string): string[] {
-    const actions = ['transfer', 'send', 'receive', 'update', 'change', 'cancel', 'refund'];
-    return actions.filter(action => message.toLowerCase().includes(action));
+    const actions = ["transfer", "send", "receive", "update", "change", "cancel", "refund"];
+    return actions.filter((action) => message.toLowerCase().includes(action));
   }
 
   private analyzeSentiment(message: string): number {
-    const positiveWords = ['good', 'great', 'excellent', 'happy', 'satisfied', 'thanks', 'helpful'];
-    const negativeWords = ['bad', 'terrible', 'awful', 'angry', 'frustrated', 'problem', 'issue', 'wrong'];
+    const positiveWords = ["good", "great", "excellent", "happy", "satisfied", "thanks", "helpful"];
+    const negativeWords = [
+      "bad",
+      "terrible",
+      "awful",
+      "angry",
+      "frustrated",
+      "problem",
+      "issue",
+      "wrong"
+    ];
 
-    const positiveCount = positiveWords.filter(word => message.toLowerCase().includes(word)).length;
-    const negativeCount = negativeWords.filter(word => message.toLowerCase().includes(word)).length;
+    const positiveCount = positiveWords.filter((word) =>
+      message.toLowerCase().includes(word)
+    ).length;
+    const negativeCount = negativeWords.filter((word) =>
+      message.toLowerCase().includes(word)
+    ).length;
 
     if (positiveCount > negativeCount) return 0.5;
     if (negativeCount > positiveCount) return -0.5;
@@ -210,28 +253,36 @@ export class ChatbotService {
   }
 
   private assessUrgency(message: string): string {
-    const urgentKeywords = ['urgent', 'emergency', 'immediately', 'asap', 'critical', 'breach', 'hack'];
-    const urgentIntents = ['security_concern', 'complaint'];
+    const urgentKeywords = [
+      "urgent",
+      "emergency",
+      "immediately",
+      "asap",
+      "critical",
+      "breach",
+      "hack"
+    ];
+    const urgentIntents = ["security_concern", "complaint"];
 
-    if (urgentKeywords.some(keyword => message.toLowerCase().includes(keyword))) {
-      return 'high';
+    if (urgentKeywords.some((keyword) => message.toLowerCase().includes(keyword))) {
+      return "high";
     }
 
-    return 'low';
+    return "low";
   }
 
   private identifyTopics(message: string): string[] {
     const topics = {
-      transactions: ['payment', 'transfer', 'money', 'transaction'],
-      security: ['security', 'fraud', 'safe', 'hack', 'breach'],
-      account: ['account', 'profile', 'settings', 'update'],
-      platform: ['platform', 'feature', 'how', 'why', 'explain'],
-      support: ['help', 'support', 'assist', 'guide']
+      transactions: ["payment", "transfer", "money", "transaction"],
+      security: ["security", "fraud", "safe", "hack", "breach"],
+      account: ["account", "profile", "settings", "update"],
+      platform: ["platform", "feature", "how", "why", "explain"],
+      support: ["help", "support", "assist", "guide"]
     };
 
     const identifiedTopics = [];
     for (const [topic, keywords] of Object.entries(topics)) {
-      if (keywords.some(keyword => message.toLowerCase().includes(keyword))) {
+      if (keywords.some((keyword) => message.toLowerCase().includes(keyword))) {
         identifiedTopics.push(topic);
       }
     }

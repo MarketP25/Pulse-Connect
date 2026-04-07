@@ -120,3 +120,17 @@ KMS / MARP signing integration (optional):
  When using Postgres, the package will create simple tables automatically. The migrations include a hardened schema and an atomic function `marp_create_ledger_entry` which must be used for ledger writes to guarantee no overdrafts and idempotency at the DB level.
 
  Ensure you run the migrations in order (001, 002, 003) so the DB function and constraints are created before ledger writes occur.
+
+## Emergency Protocol Distribution Setup
+
+Set these environment variables in billing-engine runtime:
+
+- `ADMIN_GATEWAY_URL` (for enforcement snapshot pull)
+- `INTERNAL_SERVICE_TOKEN` (must match admin/edge)
+- `EMERGENCY_POLICY_CACHE_MS` (optional, default `5000`)
+
+Billing now also receives push fan-out updates at:
+
+- `POST /internal/emergency-protocol/event`
+
+This endpoint requires either `x-internal-service-token` or `Authorization: Bearer <INTERNAL_SERVICE_TOKEN>`.

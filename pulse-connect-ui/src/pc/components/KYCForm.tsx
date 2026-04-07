@@ -1,40 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export default function KYCForm() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [dob, setDob] = useState('');
-  const [nationality, setNationality] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dob, setDob] = useState("");
+  const [nationality, setNationality] = useState("");
   const [status, setStatus] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('Submitting...');
+    setStatus("Submitting...");
 
     try {
       const body = {
-        seller_id: 'current-seller', // Replace with real seller id from auth
-        verification_type: 'basic',
+        seller_id: "current-seller", // Replace with real seller id from auth
+        verification_type: "basic",
         personal_info: {
           first_name: firstName,
           last_name: lastName,
           date_of_birth: dob,
           nationality,
           address: {
-            street: '',
-            city: '',
-            state: '',
-            postal_code: '',
-            country: ''
+            street: "",
+            city: "",
+            state: "",
+            postal_code: "",
+            country: ""
           }
         },
         documents: [],
         trace_id: `trace-${Date.now()}`
       };
 
-      const res = await fetch('/api/kyc/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/kyc/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
 

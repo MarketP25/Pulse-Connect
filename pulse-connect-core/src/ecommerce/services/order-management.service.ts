@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { calculateBillingActivityQuote } from '../../billing/billing-engine.client';
+import { Injectable, Logger } from "@nestjs/common";
+import { calculateBillingActivityQuote } from "../../billing/billing-engine.client";
 
 export interface OrderRequest {
   userId: string;
@@ -24,7 +24,7 @@ export interface OrderRequest {
     country: string;
   };
   paymentMethod: {
-    type: 'card' | 'wallet' | 'crypto' | 'bank_transfer';
+    type: "card" | "wallet" | "crypto" | "bank_transfer";
     token?: string;
     details?: any;
   };
@@ -35,7 +35,14 @@ export interface OrderRequest {
 export interface Order {
   orderId: string;
   userId: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  status:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "refunded";
   items: Array<{
     productId: string;
     name: string;
@@ -50,8 +57,8 @@ export interface Order {
   currency: string;
   shippingAddress: any;
   billingAddress: any;
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
-  fulfillmentStatus: 'pending' | 'processing' | 'shipped' | 'delivered';
+  paymentStatus: "pending" | "paid" | "failed" | "refunded";
+  fulfillmentStatus: "pending" | "processing" | "shipped" | "delivered";
   trackingNumber?: string;
   estimatedDelivery?: Date;
   createdAt: Date;
@@ -64,10 +71,10 @@ export class OrderManagementService {
 
   // PULSCO Planetary Order Management
   private planetaryConfig = {
-    regions: ['africa-south1', 'us-central1', 'europe-west1', 'asia-east1'],
-    currencies: ['USD', 'EUR', 'GBP', 'ZAR', 'KES', 'JPY', 'CNY', 'INR'],
-    shippingProviders: ['pulse_logistics', 'dhl', 'fedex', 'ups'],
-    taxProviders: ['avalara', 'vertex', 'internal'],
+    regions: ["africa-south1", "us-central1", "europe-west1", "asia-east1"],
+    currencies: ["USD", "EUR", "GBP", "ZAR", "KES", "JPY", "CNY", "INR"],
+    shippingProviders: ["pulse_logistics", "dhl", "fedex", "ups"],
+    taxProviders: ["avalara", "vertex", "internal"]
   };
 
   /**
@@ -85,18 +92,18 @@ export class OrderManagementService {
 
       // Process tax calculation
       const billingQuote = await calculateBillingActivityQuote({
-        engine: 'ecommerce',
+        engine: "ecommerce",
         amount: pricing.subtotal,
         eventId: `${request.userId}-${Date.now()}-order-management`,
         details: {
-          mode: 'order_management',
+          mode: "order_management",
           shippingUsd: pricing.shipping,
-          itemCount: request.items.length,
+          itemCount: request.items.length
         },
-        region: request.region,
+        region: request.region
       });
       if (!billingQuote) {
-        throw new Error('billing_engine_quote_failed');
+        throw new Error("billing_engine_quote_failed");
       }
       const taxAmount = billingQuote.tax;
 
@@ -106,7 +113,7 @@ export class OrderManagementService {
           name: await this.getProductName(item.productId),
           quantity: item.quantity,
           price: item.price,
-          total: item.quantity * item.price,
+          total: item.quantity * item.price
         }))
       );
 
@@ -114,7 +121,7 @@ export class OrderManagementService {
       const order: Order = {
         orderId: this.generateOrderId(),
         userId: request.userId,
-        status: 'pending',
+        status: "pending",
         items: orderItems,
         subtotal: pricing.subtotal,
         tax: taxAmount,
@@ -123,10 +130,10 @@ export class OrderManagementService {
         currency: request.currency,
         shippingAddress: request.shippingAddress,
         billingAddress: request.billingAddress || request.shippingAddress,
-        paymentStatus: 'pending',
-        fulfillmentStatus: 'pending',
+        paymentStatus: "pending",
+        fulfillmentStatus: "pending",
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       };
 
       // Store order
@@ -139,10 +146,11 @@ export class OrderManagementService {
       await this.initiateFulfillment(order);
 
       return order;
-
     } catch (error) {
-      this.logger.error('Order creation failed:', error);
-      throw new Error(`Order creation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Order creation failed:", error);
+      throw new Error(
+        `Order creation error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -154,7 +162,7 @@ export class OrderManagementService {
       const order = await this.retrieveOrder(orderId);
 
       if (order.userId !== userId) {
-        throw new Error('Access denied');
+        throw new Error("Access denied");
       }
 
       // Update tracking information
@@ -163,17 +171,22 @@ export class OrderManagementService {
       }
 
       return order;
-
     } catch (error) {
-      this.logger.error('Order retrieval failed:', error);
-      throw new Error(`Order retrieval error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Order retrieval failed:", error);
+      throw new Error(
+        `Order retrieval error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
   /**
    * Update order status with planetary coordination
    */
-  async updateOrderStatus(orderId: string, status: Order['status'], metadata?: any): Promise<Order> {
+  async updateOrderStatus(
+    orderId: string,
+    status: Order["status"],
+    metadata?: any
+  ): Promise<Order> {
     try {
       const order = await this.retrieveOrder(orderId);
 
@@ -182,16 +195,16 @@ export class OrderManagementService {
 
       // Handle status-specific logic
       switch (status) {
-        case 'confirmed':
+        case "confirmed":
           await this.handleOrderConfirmation(order);
           break;
-        case 'shipped':
+        case "shipped":
           await this.handleOrderShipment(order, metadata);
           break;
-        case 'delivered':
+        case "delivered":
           await this.handleOrderDelivery(order);
           break;
-        case 'cancelled':
+        case "cancelled":
           await this.handleOrderCancellation(order);
           break;
       }
@@ -199,27 +212,32 @@ export class OrderManagementService {
       await this.updateOrder(order);
 
       return order;
-
     } catch (error) {
-      this.logger.error('Order status update failed:', error);
-      throw new Error(`Order update error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Order status update failed:", error);
+      throw new Error(
+        `Order update error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
   /**
    * Process refund with planetary compliance
    */
-  async processRefund(orderId: string, refundAmount: number, reason: string): Promise<{
+  async processRefund(
+    orderId: string,
+    refundAmount: number,
+    reason: string
+  ): Promise<{
     refundId: string;
     amount: number;
-    status: 'processing' | 'completed' | 'failed';
+    status: "processing" | "completed" | "failed";
     estimatedCompletion: Date;
   }> {
     try {
       const order = await this.retrieveOrder(orderId);
 
-      if (order.paymentStatus !== 'paid') {
-        throw new Error('Order not paid');
+      if (order.paymentStatus !== "paid") {
+        throw new Error("Order not paid");
       }
 
       // Validate refund eligibility
@@ -230,30 +248,37 @@ export class OrderManagementService {
 
       // Update order status
       if (refundAmount === order.total) {
-        await this.updateOrderStatus(orderId, 'refunded');
+        await this.updateOrderStatus(orderId, "refunded");
       }
 
       return refundResult;
-
     } catch (error) {
-      this.logger.error('Refund processing failed:', error);
-      throw new Error(`Refund processing error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Refund processing failed:", error);
+      throw new Error(
+        `Refund processing error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
   /**
    * Get planetary order analytics
    */
-  async getOrderAnalytics(timeRange: { start: Date; end: Date }, region?: string): Promise<{
+  async getOrderAnalytics(
+    timeRange: { start: Date; end: Date },
+    region?: string
+  ): Promise<{
     totalOrders: number;
     totalRevenue: number;
     averageOrderValue: number;
     conversionRate: number;
-    regionalBreakdown: Record<string, {
-      orders: number;
-      revenue: number;
-      avgOrderValue: number;
-    }>;
+    regionalBreakdown: Record<
+      string,
+      {
+        orders: number;
+        revenue: number;
+        avgOrderValue: number;
+      }
+    >;
     topProducts: Array<{
       productId: string;
       name: string;
@@ -271,16 +296,17 @@ export class OrderManagementService {
       const analytics = await this.aggregateOrderData(timeRange, region);
 
       return analytics;
-
     } catch (error) {
-      this.logger.error('Order analytics failed:', error);
-      throw new Error(`Analytics error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error("Order analytics failed:", error);
+      throw new Error(
+        `Analytics error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
   // Private helper methods
 
-  private async validateInventory(items: OrderRequest['items']): Promise<void> {
+  private async validateInventory(items: OrderRequest["items"]): Promise<void> {
     for (const item of items) {
       const available = await this.checkInventoryAvailability(item.productId, item.quantity);
       if (!available) {
@@ -293,7 +319,7 @@ export class OrderManagementService {
     subtotal: number;
     shipping: number;
   }> {
-    const subtotal = request.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = request.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     // Calculate shipping based on region and weight
     const shipping = await this.calculateShippingCost(request);
@@ -303,17 +329,17 @@ export class OrderManagementService {
 
   private async calculateTax(request: OrderRequest, subtotal: number): Promise<number> {
     const quote = await calculateBillingActivityQuote({
-      engine: 'ecommerce',
+      engine: "ecommerce",
       amount: subtotal,
       eventId: `${request.userId}-${Date.now()}-tax-only`,
       details: {
-        mode: 'tax_only',
-        shippingAddress: request.shippingAddress,
+        mode: "tax_only",
+        shippingAddress: request.shippingAddress
       },
-      region: request.region,
+      region: request.region
     });
     if (!quote) {
-      throw new Error('billing_engine_quote_failed');
+      throw new Error("billing_engine_quote_failed");
     }
     return quote.tax;
   }
@@ -336,20 +362,20 @@ export class OrderManagementService {
     // Mock order retrieval
     return {
       orderId,
-      userId: 'user_123',
-      status: 'pending',
+      userId: "user_123",
+      status: "pending",
       items: [],
       subtotal: 0,
       tax: 0,
       shipping: 0,
       total: 0,
-      currency: 'USD',
+      currency: "USD",
       shippingAddress: {},
       billingAddress: {},
-      paymentStatus: 'pending',
-      fulfillmentStatus: 'pending',
+      paymentStatus: "pending",
+      fulfillmentStatus: "pending",
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     };
   }
 
@@ -376,7 +402,7 @@ export class OrderManagementService {
   private async calculateShippingCost(request: OrderRequest): Promise<number> {
     // Mock shipping calculation
     const baseShipping = 10;
-    const regionalMultiplier = request.region === 'africa-south1' ? 0.8 : 1.0;
+    const regionalMultiplier = request.region === "africa-south1" ? 0.8 : 1.0;
     return baseShipping * regionalMultiplier;
   }
 
@@ -387,7 +413,7 @@ export class OrderManagementService {
 
   private async handleOrderConfirmation(order: Order): Promise<void> {
     // Update inventory
-    await this.updateInventory(order.items, 'reserve');
+    await this.updateInventory(order.items, "reserve");
   }
 
   private async handleOrderShipment(order: Order, metadata: any): Promise<void> {
@@ -397,19 +423,19 @@ export class OrderManagementService {
 
   private async handleOrderDelivery(order: Order): Promise<void> {
     // Update inventory and trigger post-delivery actions
-    await this.updateInventory(order.items, 'ship');
+    await this.updateInventory(order.items, "ship");
   }
 
   private async handleOrderCancellation(order: Order): Promise<void> {
     // Restore inventory
-    await this.updateInventory(order.items, 'restore');
+    await this.updateInventory(order.items, "restore");
   }
 
   private async validateRefundEligibility(order: Order, refundAmount: number): Promise<void> {
     // Check refund policy
     const daysSinceOrder = (Date.now() - order.createdAt.getTime()) / (1000 * 60 * 60 * 24);
     if (daysSinceOrder > 30) {
-      throw new Error('Refund window expired');
+      throw new Error("Refund window expired");
     }
   }
 
@@ -418,17 +444,23 @@ export class OrderManagementService {
     return {
       refundId: `REF-${Date.now()}`,
       amount,
-      status: 'processing',
-      estimatedCompletion: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+      status: "processing",
+      estimatedCompletion: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days
     };
   }
 
-  private async updateInventory(items: any[], action: 'reserve' | 'ship' | 'restore'): Promise<void> {
+  private async updateInventory(
+    items: any[],
+    action: "reserve" | "ship" | "restore"
+  ): Promise<void> {
     // Mock inventory update
     this.logger.log(`Updated inventory for ${items.length} items (${action})`);
   }
 
-  private async aggregateOrderData(timeRange: { start: Date; end: Date }, region?: string): Promise<any> {
+  private async aggregateOrderData(
+    timeRange: { start: Date; end: Date },
+    region?: string
+  ): Promise<any> {
     // Mock analytics aggregation
     return {
       totalOrders: 12500,
@@ -436,20 +468,20 @@ export class OrderManagementService {
       averageOrderValue: 200,
       conversionRate: 0.035,
       regionalBreakdown: {
-        'us-central1': { orders: 5000, revenue: 1000000, avgOrderValue: 200 },
-        'europe-west1': { orders: 3750, revenue: 750000, avgOrderValue: 200 },
-        'asia-east1': { orders: 2500, revenue: 500000, avgOrderValue: 200 },
-        'africa-south1': { orders: 1250, revenue: 250000, avgOrderValue: 200 },
+        "us-central1": { orders: 5000, revenue: 1000000, avgOrderValue: 200 },
+        "europe-west1": { orders: 3750, revenue: 750000, avgOrderValue: 200 },
+        "asia-east1": { orders: 2500, revenue: 500000, avgOrderValue: 200 },
+        "africa-south1": { orders: 1250, revenue: 250000, avgOrderValue: 200 }
       },
       topProducts: [
-        { productId: 'prod_1', name: 'Premium Widget', orders: 2500, revenue: 500000 },
-        { productId: 'prod_2', name: 'Deluxe Gadget', orders: 1875, revenue: 375000 },
+        { productId: "prod_1", name: "Premium Widget", orders: 2500, revenue: 500000 },
+        { productId: "prod_2", name: "Deluxe Gadget", orders: 1875, revenue: 375000 }
       ],
       fulfillmentMetrics: {
         avgProcessingTime: 2.5, // hours
         avgShippingTime: 3.5, // days
-        onTimeDeliveryRate: 0.94,
-      },
+        onTimeDeliveryRate: 0.94
+      }
     };
   }
 }

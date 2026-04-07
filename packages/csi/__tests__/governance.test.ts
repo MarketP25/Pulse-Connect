@@ -7,7 +7,7 @@ describe("CSI governance workflow", () => {
   const context = {
     actorId: "governance-admin",
     actorRole: "superadmin",
-    pc365Attestation: "pc365_attestation_token_123",
+    pc365Attestation: "pc365_attestation_token_123"
   };
 
   const historicalEvents = [
@@ -17,8 +17,8 @@ describe("CSI governance workflow", () => {
       region: "US",
       metrics: { errorRate: 0.3, latencyMs: 1800, failureCount: 4 },
       riskScore: 74,
-      performanceScore: 38,
-    }),
+      performanceScore: 38
+    })
   ];
 
   it("auto-approves Level1 proposals", async () => {
@@ -34,9 +34,9 @@ describe("CSI governance workflow", () => {
         requestedByRole: "business-ops",
         estimatedRisk: 20,
         guardrailsCompliant: true,
-        strategic: false,
+        strategic: false
       },
-      context,
+      context
     );
 
     expect(decision.level).toBe("Level1");
@@ -56,13 +56,13 @@ describe("CSI governance workflow", () => {
         requestedByRole: "coo",
         estimatedRisk: 82,
         guardrailsCompliant: false,
-        strategic: true,
+        strategic: true
       },
       context,
       {
         runSimulation: true,
-        historicalEvents,
-      },
+        historicalEvents
+      }
     );
 
     expect(decision.level).toBe("Level3");
@@ -75,10 +75,10 @@ describe("CSI governance workflow", () => {
         {
           approverId: "admin-unauthorized",
           approverRole: "business-ops",
-          founderApproval: false,
+          founderApproval: false
         },
-        context,
-      ),
+        context
+      )
     ).rejects.toThrow("Founder or superadmin approval is required");
 
     const approved = await engine.approveStrategicDecision(
@@ -86,9 +86,9 @@ describe("CSI governance workflow", () => {
       {
         approverId: "superadmin-1",
         approverRole: "superadmin",
-        founderApproval: true,
+        founderApproval: true
       },
-      context,
+      context
     );
 
     expect(approved.status).toBe("approved");

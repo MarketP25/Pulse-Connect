@@ -44,6 +44,9 @@
     "plugins": [{ "name": "next" }],
 
     /* Include custom type roots so our NextAuth augmentation is picked up */
-    "typeRoots": ["./src/types", "./node_modules/@types"]
+    "typeRoots": ["./src/types", "./node_modules/@types"],
+
+    /* Ignore deprecation warnings for TypeScript 6.0 */
+    "ignoreDeprecations": "6.0"
   }
 }

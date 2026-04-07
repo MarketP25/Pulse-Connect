@@ -1,29 +1,81 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, Button, Badge, Alert, LoadingSpinner, Tabs, TabsContent, TabsList, TabsTrigger } from '@pulsco/admin-ui-core'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
-import { Shield, Activity, AlertTriangle, CheckCircle, XCircle, Eye, Lock, Zap } from 'lucide-react'
+import { useEffect, useState } from "react";
+import {
+  Card,
+  Button,
+  Badge,
+  Alert,
+  LoadingSpinner,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from "@pulsco/admin-ui-core";
 
 interface SystemMetrics {
-  totalAdmins: number
-  activeSessions: number
-  systemHealth: number
-  marpSignatures: number
-  csiAnomalies: number
-  governanceAlerts: number
-  crossDomainCorrelations: number
+  totalAdmins: number;
+  activeSessions: number;
+  systemHealth: number;
+  marpSignatures: number;
+  csiAnomalies: number;
+  governanceAlerts: number;
+  crossDomainCorrelations: number;
 }
 
 interface DashboardSnapshot {
-  role: string
-  status: 'healthy' | 'warning' | 'critical'
-  lastUpdate: string
-  activeUsers: number
-  alerts: number
+  role: string;
+  status: "healthy" | "warning" | "critical";
+  alerts: number;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+type EmergencySeverity = "elevated" | "critical" | "lockdown";
+type EmergencyReasonCategory =
+  | "security-breach"
+  | "economic-attack"
+  | "regulatory-demand"
+  | "operational-failure"
+  | "other";
+
+interface EmergencyControls {
+  disableMajorFeatures: boolean;
+  disabledFeatures: string[];
+  freezeTransactions: boolean;
+  freezeWalletPayouts: boolean;
+  blockedRegions: string[];
+  blockedIpRanges: string[];
+  allowFounderBypass: boolean;
+}
+
+interface EmergencyProtocolState {
+  active: boolean;
+  protocolId: string;
+  severity: EmergencySeverity;
+  reason: string;
+  reasonCategory: EmergencyReasonCategory;
+  controls: EmergencyControls;
+  csiLinkage?: {
+    riskScore?: number;
+    anomaliesObserved?: number;
+    correlationId?: string;
+    signals?: string[];
+  };
+  activatedAt?: string;
+  lastUpdatedAt?: string;
+}
+
+interface EmergencyFormState {
+  reason: string;
+  reasonCategory: EmergencyReasonCategory;
+  severity: EmergencySeverity;
+  disableMajorFeatures: boolean;
+  disabledFeatures: string;
+  freezeTransactions: boolean;
+  freezeWalletPayouts: boolean;
+  blockedRegions: string;
+  blockedIpRanges: string;
+  allowFounderBypass: boolean;
+}
 
 const FALLBACK_METRICS: SystemMetrics = {
   totalAdmins: 10,
@@ -33,126 +85,356 @@ const FALLBACK_METRICS: SystemMetrics = {
   csiAnomalies: 3,
   governanceAlerts: 2,
   crossDomainCorrelations: 15
-}
+};
 
 const FALLBACK_SNAPSHOTS: DashboardSnapshot[] = [
-  { role: 'COO', status: 'healthy', lastUpdate: '2 min ago', activeUsers: 1, alerts: 0 },
-  { role: 'Business Ops', status: 'healthy', lastUpdate: '5 min ago', activeUsers: 1, alerts: 1 },
-  { role: 'People & Risk', status: 'warning', lastUpdate: '1 min ago', activeUsers: 1, alerts: 2 },
-  { role: 'Procurement', status: 'healthy', lastUpdate: '3 min ago', activeUsers: 1, alerts: 0 },
-  { role: 'Legal & Finance', status: 'healthy', lastUpdate: '7 min ago', activeUsers: 1, alerts: 0 },
-  { role: 'Commercial', status: 'healthy', lastUpdate: '4 min ago', activeUsers: 1, alerts: 1 },
-  { role: 'Tech Security', status: 'critical', lastUpdate: '30 sec ago', activeUsers: 1, alerts: 3 },
-  { role: 'Customer Exp', status: 'healthy', lastUpdate: '6 min ago', activeUsers: 1, alerts: 0 },
-  { role: 'Governance', status: 'healthy', lastUpdate: '2 min ago', activeUsers: 1, alerts: 0 },
-  { role: 'DPO', status: 'healthy', lastUpdate: 'n/a', activeUsers: 1, alerts: 0 }
-]
+  { role: "Tech Security", status: "critical", alerts: 3 },
+  { role: "People & Risk", status: "warning", alerts: 2 },
+  { role: "COO", status: "healthy", alerts: 0 }
+];
 
 const FALLBACK_ALERTS = [
   {
-    id: '1',
-    type: 'critical',
-    title: 'Tech Security Dashboard - Multiple Threats Detected',
-    description: 'High-severity security anomalies requiring immediate attention',
-    source: 'CSI Intelligence',
-    timestamp: '30 seconds ago'
-  },
-  {
-    id: '2',
-    type: 'warning',
-    title: 'People & Risk - Compliance Threshold Breach',
-    description: 'Employee turnover rate exceeded governance threshold',
-    source: 'MARP Governance',
-    timestamp: '1 minute ago'
+    id: "1",
+    type: "critical",
+    title: "Tech Security threat cluster",
+    description: "Multiple high-risk anomalies detected."
   }
-]
+];
+
+const DEFAULT_EMERGENCY_STATE: EmergencyProtocolState = {
+  active: false,
+  protocolId: "",
+  severity: "elevated",
+  reason: "",
+  reasonCategory: "other",
+  controls: {
+    disableMajorFeatures: false,
+    disabledFeatures: [],
+    freezeTransactions: false,
+    freezeWalletPayouts: false,
+    blockedRegions: [],
+    blockedIpRanges: [],
+    allowFounderBypass: true
+  }
+};
+
+const DEFAULT_EMERGENCY_FORM: EmergencyFormState = {
+  reason: "",
+  reasonCategory: "security-breach",
+  severity: "critical",
+  disableMajorFeatures: false,
+  disabledFeatures: "billing,wallet,payments",
+  freezeTransactions: true,
+  freezeWalletPayouts: true,
+  blockedRegions: "",
+  blockedIpRanges: "",
+  allowFounderBypass: true
+};
+
+function csvToList(input: string) {
+  return Array.from(
+    new Set(
+      input
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  );
+}
+
+function listToCsv(items?: string[]) {
+  return Array.isArray(items) ? items.join(", ") : "";
+}
+
+function emergencyToForm(state: EmergencyProtocolState): EmergencyFormState {
+  return {
+    reason: state.reason || "",
+    reasonCategory: state.reasonCategory || "other",
+    severity: state.severity || "critical",
+    disableMajorFeatures: Boolean(state.controls?.disableMajorFeatures),
+    disabledFeatures: listToCsv(state.controls?.disabledFeatures),
+    freezeTransactions: Boolean(state.controls?.freezeTransactions),
+    freezeWalletPayouts: Boolean(state.controls?.freezeWalletPayouts),
+    blockedRegions: listToCsv(state.controls?.blockedRegions),
+    blockedIpRanges: listToCsv(state.controls?.blockedIpRanges),
+    allowFounderBypass: state.controls?.allowFounderBypass !== false
+  };
+}
+
+type IconProps = { className?: string };
+
+function ShieldIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 3l7 3v6c0 5-3.5 9-7 10-3.5-1-7-5-7-10V6l7-3z" />
+    </svg>
+  );
+}
+
+function LockIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 1 1 8 0v3" />
+    </svg>
+  );
+}
+
+function AlertTriangleIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 2L2 20h20L12 2z" />
+      <path d="M12 9v5" />
+      <circle cx="12" cy="17" r="1" />
+    </svg>
+  );
+}
+
+function CheckCircleIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12l2.5 2.5L16 9" />
+    </svg>
+  );
+}
+
+function ActivityIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className={className}
+      aria-hidden="true"
+    >
+      <polyline points="3 12 7 12 10 6 14 18 17 12 21 12" />
+    </svg>
+  );
+}
+
+function ZapIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      className={className}
+      aria-hidden="true"
+    >
+      <polygon points="13 2 4 14 11 14 9 22 20 9 13 9 13 2" />
+    </svg>
+  );
+}
 
 export default function SuperAdminDashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [metrics, setMetrics] = useState<SystemMetrics | null>(null)
-  const [dashboardSnapshots, setDashboardSnapshots] = useState<DashboardSnapshot[]>([])
-  const [systemAlerts, setSystemAlerts] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
+  const [snapshots, setSnapshots] = useState<DashboardSnapshot[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
-    const loadSystemData = async () => {
-      try {
-        const headers = { 'x-admin-role': 'superadmin' }
-        const [metricsRes, anomaliesRes, intelligenceRes] = await Promise.all([
-          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=intelligence', { headers, cache: 'no-store' })
-        ])
+  const [emergencyState, setEmergencyState] =
+    useState<EmergencyProtocolState>(DEFAULT_EMERGENCY_STATE);
+  const [emergencyForm, setEmergencyForm] = useState<EmergencyFormState>(DEFAULT_EMERGENCY_FORM);
+  const [founderApproved, setFounderApproved] = useState(false);
+  const [emergencyBusy, setEmergencyBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
+    null
+  );
 
-        if (!metricsRes.ok) {
-          throw new Error(`Metrics request failed with ${metricsRes.status}`)
-        }
+  const refreshEmergencyState = async () => {
+    try {
+      const response = await fetch("api/admin/emergency-protocol", {
+        method: "GET",
+        headers: { "x-admin-role": "superadmin" },
+        cache: "no-store"
+      });
 
-        const metricsPayload = await metricsRes.json()
-        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+      if (!response.ok) throw new Error(`Emergency state request failed with ${response.status}`);
+      const payload = (await response.json()) as EmergencyProtocolState;
+      const merged = {
+        ...DEFAULT_EMERGENCY_STATE,
+        ...payload,
+        controls: { ...DEFAULT_EMERGENCY_STATE.controls, ...(payload.controls || {}) }
+      };
+      setEmergencyState(merged);
+      if (merged.active) setEmergencyForm(emergencyToForm(merged));
+    } catch (error) {
+      console.error("Emergency state load failed", error);
+      setEmergencyState(DEFAULT_EMERGENCY_STATE);
+    }
+  };
 
-        let anomalyList: any[] = []
-        if (anomaliesRes.ok) {
-          const anomaliesPayload = await anomaliesRes.json()
-          anomalyList = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
-        }
-
-        let inferredSnapshots = FALLBACK_SNAPSHOTS
-        if (intelligenceRes.ok) {
-          const intelligencePayload = await intelligenceRes.json()
-          const snapshots =
-            intelligencePayload.dashboardSnapshots ||
-            intelligencePayload.data?.dashboardSnapshots ||
-            intelligencePayload.intelligence?.dashboardSnapshots
-          if (Array.isArray(snapshots) && snapshots.length > 0) {
-            inferredSnapshots = snapshots
-          }
-        }
-
-        setMetrics({
-          totalAdmins: Number(rawMetrics.totalAdmins || rawMetrics.total_admins || FALLBACK_METRICS.totalAdmins),
-          activeSessions: Number(rawMetrics.activeSessions || rawMetrics.active_sessions || FALLBACK_METRICS.activeSessions),
-          systemHealth: Number(rawMetrics.systemHealth || rawMetrics.system_health || FALLBACK_METRICS.systemHealth),
-          marpSignatures: Number(rawMetrics.marpSignatures || rawMetrics.marp_signatures || FALLBACK_METRICS.marpSignatures),
-          csiAnomalies: Array.isArray(anomalyList)
-            ? anomalyList.length
-            : Number(rawMetrics.csiAnomalies || rawMetrics.csi_anomalies || FALLBACK_METRICS.csiAnomalies),
-          governanceAlerts: Number(rawMetrics.governanceAlerts || rawMetrics.governance_alerts || FALLBACK_METRICS.governanceAlerts),
-          crossDomainCorrelations: Number(
-            rawMetrics.crossDomainCorrelations ||
-            rawMetrics.cross_domain_correlations ||
-            FALLBACK_METRICS.crossDomainCorrelations
-          )
-        })
-
-        setDashboardSnapshots(inferredSnapshots)
-
-        if (Array.isArray(anomalyList) && anomalyList.length > 0) {
-          setSystemAlerts(
-            anomalyList.slice(0, 3).map((anomaly: any, index: number) => ({
-              id: String(index + 1),
-              type: anomaly.severity || 'warning',
-              title: anomaly.title || `System anomaly in ${anomaly.metric || 'signal'}`,
-              description: anomaly.description || 'CSI detected a cross-domain anomaly.',
-              source: anomaly.source || 'CSI Intelligence',
-              timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now'
-            }))
-          )
-        } else {
-          setSystemAlerts(FALLBACK_ALERTS)
-        }
-      } catch (err) {
-        console.error('Failed to load superadmin system intelligence', err)
-        setMetrics(FALLBACK_METRICS)
-        setDashboardSnapshots(FALLBACK_SNAPSHOTS)
-        setSystemAlerts(FALLBACK_ALERTS)
-      } finally {
-        setIsLoading(false)
-      }
+  const mutateEmergencyState = async (action: "activate" | "update" | "deactivate") => {
+    if (!founderApproved) {
+      setFeedback({ type: "error", message: "Founder approval is required." });
+      return;
+    }
+    if (!emergencyForm.reason.trim()) {
+      setFeedback({ type: "error", message: "Incident reason is required." });
+      return;
     }
 
-    loadSystemData()
-  }, [])
+    setEmergencyBusy(true);
+    setFeedback(null);
+
+    try {
+      const response = await fetch("api/admin/emergency-protocol", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-role": "superadmin"
+        },
+        body: JSON.stringify({
+          action,
+          reason: emergencyForm.reason.trim(),
+          reasonCategory: emergencyForm.reasonCategory,
+          severity: emergencyForm.severity,
+          founderApproved: true,
+          controls: {
+            disableMajorFeatures: emergencyForm.disableMajorFeatures,
+            disabledFeatures: csvToList(emergencyForm.disabledFeatures).map((item) =>
+              item.toLowerCase()
+            ),
+            freezeTransactions: emergencyForm.freezeTransactions,
+            freezeWalletPayouts: emergencyForm.freezeWalletPayouts,
+            blockedRegions: csvToList(emergencyForm.blockedRegions).map((item) =>
+              item.toUpperCase()
+            ),
+            blockedIpRanges: csvToList(emergencyForm.blockedIpRanges),
+            allowFounderBypass: emergencyForm.allowFounderBypass
+          }
+        }),
+        cache: "no-store"
+      });
+
+      const text = await response.text();
+      const payload = text
+        ? (JSON.parse(text) as { state?: EmergencyProtocolState; message?: string })
+        : {};
+      if (!response.ok)
+        throw new Error(
+          payload.message || text || `Emergency protocol mutation failed with ${response.status}`
+        );
+
+      if (payload.state) {
+        const merged = {
+          ...DEFAULT_EMERGENCY_STATE,
+          ...payload.state,
+          controls: { ...DEFAULT_EMERGENCY_STATE.controls, ...(payload.state.controls || {}) }
+        };
+        setEmergencyState(merged);
+        setEmergencyForm(emergencyToForm(merged));
+      }
+
+      setFeedback({ type: "success", message: payload.message || "Emergency protocol updated." });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Emergency protocol mutation failed."
+      });
+    } finally {
+      setEmergencyBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const headers = { "x-admin-role": "superadmin" };
+        const [metricsRes, anomaliesRes] = await Promise.all([
+          fetch("api/admin/intelligence?action=metrics", { headers, cache: "no-store" }),
+          fetch("api/admin/intelligence?action=anomalies", { headers, cache: "no-store" })
+        ]);
+
+        if (!metricsRes.ok) throw new Error(`Metrics request failed with ${metricsRes.status}`);
+        const metricsPayload = await metricsRes.json();
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {};
+        const anomalyPayload = anomaliesRes.ok ? await anomaliesRes.json() : {};
+        const anomalyList = anomalyPayload.anomalies || anomalyPayload.data?.anomalies || [];
+
+        setMetrics({
+          totalAdmins: Number(
+            rawMetrics.totalAdmins || rawMetrics.total_admins || FALLBACK_METRICS.totalAdmins
+          ),
+          activeSessions: Number(
+            rawMetrics.activeSessions ||
+              rawMetrics.active_sessions ||
+              FALLBACK_METRICS.activeSessions
+          ),
+          systemHealth: Number(
+            rawMetrics.systemHealth || rawMetrics.system_health || FALLBACK_METRICS.systemHealth
+          ),
+          marpSignatures: Number(
+            rawMetrics.marpSignatures ||
+              rawMetrics.marp_signatures ||
+              FALLBACK_METRICS.marpSignatures
+          ),
+          csiAnomalies: Array.isArray(anomalyList)
+            ? anomalyList.length
+            : FALLBACK_METRICS.csiAnomalies,
+          governanceAlerts: Number(
+            rawMetrics.governanceAlerts ||
+              rawMetrics.governance_alerts ||
+              FALLBACK_METRICS.governanceAlerts
+          ),
+          crossDomainCorrelations: Number(
+            rawMetrics.crossDomainCorrelations ||
+              rawMetrics.cross_domain_correlations ||
+              FALLBACK_METRICS.crossDomainCorrelations
+          )
+        });
+
+        setSnapshots(FALLBACK_SNAPSHOTS);
+        setAlerts(
+          Array.isArray(anomalyList) && anomalyList.length
+            ? anomalyList.slice(0, 2)
+            : FALLBACK_ALERTS
+        );
+      } catch (error) {
+        console.error("Failed to load superadmin data", error);
+        setMetrics(FALLBACK_METRICS);
+        setSnapshots(FALLBACK_SNAPSHOTS);
+        setAlerts(FALLBACK_ALERTS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void Promise.all([load(), refreshEmergencyState()]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -162,60 +444,49 @@ export default function SuperAdminDashboard() {
           <p className="mt-4 text-gray-600">Loading Global Command Center...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                  <Shield className="mr-3 h-8 w-8 text-blue-600" />
-                  SuperAdmin Global Command Center
-                </h1>
-                <p className="text-gray-600">Complete governance oversight and system control</p>
-              </div>
-              <div className="flex space-x-3">
-                <Button variant="secondary" size="sm">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Audit Logs
-                </Button>
-                <Button variant="danger" size="sm">
-                  <Lock className="mr-2 h-4 w-4" />
-                  Freeze All Dashboards
-                </Button>
-                <Button variant="primary" size="sm">
-                  <Zap className="mr-2 h-4 w-4" />
-                  Trigger System Audit
-                </Button>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+              <ShieldIcon className="mr-3 h-8 w-8 text-blue-600" />
+              SuperAdmin Global Command Center
+            </h1>
+            <p className="text-gray-600">
+              Founder-gated global emergency controls are active from this panel.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={emergencyState.active ? "error" : "success"}>
+              {emergencyState.active ? "Emergency Active" : "Emergency Inactive"}
+            </Badge>
+            <Button variant="danger" size="sm" onClick={() => setActiveTab("emergency")}>
+              <LockIcon className="mr-2 h-4 w-4" />
+              Emergency Protocol
+            </Button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Critical System Alerts */}
-        {systemAlerts.length > 0 && (
-          <div className="mb-8">
-            {systemAlerts.map(alert => (
-              <Alert key={alert.id} type={alert.type === 'critical' ? 'error' : 'warning'}>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-start">
-                    <AlertTriangle className="h-5 w-5 text-red-500 mr-3 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">{alert.title}</h4>
-                      <p className="text-sm">{alert.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">{alert.source} • {alert.timestamp}</p>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="secondary">View Details</Button>
-                    <Button size="sm" variant="primary">Escalate</Button>
+        {alerts.length > 0 && (
+          <div className="mb-6">
+            {alerts.map((alert) => (
+              <Alert
+                key={alert.id || alert.title}
+                type={alert.type === "critical" ? "error" : "warning"}
+              >
+                <div className="flex items-start gap-3">
+                  <AlertTriangleIcon className="mt-0.5 h-5 w-5 text-red-600" />
+                  <div>
+                    <h4 className="font-medium">{alert.title || "System Alert"}</h4>
+                    <p className="text-sm">
+                      {alert.description || "A high-priority signal was detected."}
+                    </p>
                   </div>
                 </div>
               </Alert>
@@ -223,170 +494,304 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
-        {/* System Health Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">System Health</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.systemHealth}%</p>
+                <p className="text-sm text-gray-600">System Health</p>
+                <p className="text-2xl font-bold">{metrics?.systemHealth}%</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <CheckCircleIcon className="h-8 w-8 text-green-500" />
             </div>
           </Card>
-
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Sessions</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.activeSessions}/10</p>
+                <p className="text-sm text-gray-600">Active Sessions</p>
+                <p className="text-2xl font-bold">{metrics?.activeSessions}/10</p>
               </div>
-              <Activity className="h-8 w-8 text-blue-500" />
+              <ActivityIcon className="h-8 w-8 text-blue-500" />
             </div>
           </Card>
-
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">MARP Signatures</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.marpSignatures}</p>
+                <p className="text-sm text-gray-600">MARP Signatures</p>
+                <p className="text-2xl font-bold">{metrics?.marpSignatures}</p>
               </div>
-              <Shield className="h-8 w-8 text-purple-500" />
+              <ShieldIcon className="h-8 w-8 text-purple-500" />
             </div>
           </Card>
-
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Cross-Domain Correlations</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.crossDomainCorrelations}</p>
+                <p className="text-sm text-gray-600">Correlations</p>
+                <p className="text-2xl font-bold">{metrics?.crossDomainCorrelations}</p>
               </div>
-              <Zap className="h-8 w-8 text-orange-500" />
+              <ZapIcon className="h-8 w-8 text-orange-500" />
             </div>
           </Card>
         </div>
 
-        {/* Dashboard Control Center */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">System Overview</TabsTrigger>
-            <TabsTrigger value="dashboards">Dashboard Control</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="intelligence">CSI Intelligence</TabsTrigger>
-            <TabsTrigger value="governance">Governance Status</TabsTrigger>
+            <TabsTrigger value="emergency">Emergency Protocol</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Dashboard Status Grid */}
-            <Card title="Dashboard Status Overview">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {dashboardSnapshots.map((dashboard, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-medium">{dashboard.role}</h4>
-                      <Badge variant={
-                        dashboard.status === 'healthy' ? 'success' :
-                        dashboard.status === 'warning' ? 'warning' : 'error'
-                      }>
-                        {dashboard.status}
+          <TabsContent value="overview">
+            <Card title="Dashboard Status">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {snapshots.map((snapshot) => (
+                  <div key={snapshot.role} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">{snapshot.role}</h4>
+                      <Badge
+                        variant={
+                          snapshot.status === "healthy"
+                            ? "success"
+                            : snapshot.status === "warning"
+                              ? "warning"
+                              : "error"
+                        }
+                      >
+                        {snapshot.status}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>Active Users: {dashboard.activeUsers}</p>
-                      <p>Alerts: {dashboard.alerts}</p>
-                      <p>Last Update: {dashboard.lastUpdate}</p>
-                    </div>
-                    <div className="mt-3 flex space-x-2">
-                      <Button size="sm" variant="secondary">View Dashboard</Button>
-                      <Button size="sm" variant="outline">Freeze</Button>
-                    </div>
+                    <p className="text-sm text-gray-600 mt-2">Alerts: {snapshot.alerts}</p>
                   </div>
                 ))}
               </div>
             </Card>
           </TabsContent>
 
-          <TabsContent value="dashboards" className="space-y-6">
-            <Card title="Dashboard Mirroring & Control">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium">All Dashboard Metrics</h3>
-                  <div className="flex space-x-2">
-                    <Button variant="secondary">Refresh All</Button>
-                    <Button variant="danger">Emergency Freeze</Button>
-                  </div>
+          <TabsContent value="intelligence">
+            <Card title="CSI Intelligence">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="border rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-red-600">{metrics?.csiAnomalies}</div>
+                  <div className="text-sm text-gray-600">Active Anomalies</div>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Placeholder for dashboard mirroring - would show all dashboard content */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <Eye className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">Dashboard Mirroring Active</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      All dashboard metrics and states are mirrored here for global oversight
-                    </p>
+                <div className="border rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {emergencyState.csiLinkage?.riskScore ?? "n/a"}
                   </div>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <Activity className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">Real-time Synchronization</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Live updates from all subsystem dashboards with cross-domain correlation
-                    </p>
+                  <div className="text-sm text-gray-600">Emergency Risk Score</div>
+                </div>
+                <div className="border rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {emergencyState.csiLinkage?.correlationId ? "Linked" : "Not Linked"}
                   </div>
+                  <div className="text-sm text-gray-600">Emergency/CSI Linkage</div>
                 </div>
               </div>
             </Card>
           </TabsContent>
 
-          <TabsContent value="intelligence" className="space-y-6">
-            <Card title="CSI Intelligence Streams">
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">{metrics?.csiAnomalies}</div>
-                    <div className="text-sm text-gray-600">Active Anomalies</div>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">1,247</div>
-                    <div className="text-sm text-gray-600">Intelligence Events</div>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">98.5%</div>
-                    <div className="text-sm text-gray-600">Prediction Accuracy</div>
-                  </div>
-                </div>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Activity className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">CSI Intelligence Dashboard</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Real-time anomaly detection, predictive analytics, and intelligence correlation
+          <TabsContent value="emergency" className="space-y-4">
+            {feedback && <Alert type={feedback.type}>{feedback.message}</Alert>}
+            <Card title="Emergency Control Plane">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <strong>Status:</strong> {emergencyState.active ? "ACTIVE" : "INACTIVE"}
+                  </p>
+                  <p>
+                    <strong>Protocol ID:</strong> {emergencyState.protocolId || "n/a"}
+                  </p>
+                  <p>
+                    <strong>Severity:</strong> {emergencyState.severity}
+                  </p>
+                  <p>
+                    <strong>Reason:</strong> {emergencyState.reason || "n/a"}
+                  </p>
+                  <p>
+                    <strong>Category:</strong> {emergencyState.reasonCategory || "n/a"}
+                  </p>
+                  <p>
+                    <strong>Activated:</strong>{" "}
+                    {emergencyState.activatedAt
+                      ? new Date(emergencyState.activatedAt).toLocaleString()
+                      : "n/a"}
+                  </p>
+                  <p>
+                    <strong>Last Updated:</strong>{" "}
+                    {emergencyState.lastUpdatedAt
+                      ? new Date(emergencyState.lastUpdatedAt).toLocaleString()
+                      : "n/a"}
+                  </p>
+                  <p>
+                    <strong>CSI Correlation:</strong>{" "}
+                    {emergencyState.csiLinkage?.correlationId || "n/a"}
                   </p>
                 </div>
-              </div>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="governance" className="space-y-6">
-            <Card title="MARP Governance Firewall Status">
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{metrics?.marpSignatures}</div>
-                    <div className="text-sm text-gray-600">Active Signatures</div>
+                <div className="space-y-3">
+                  <textarea
+                    className="w-full border rounded-md p-2 text-sm"
+                    rows={3}
+                    value={emergencyForm.reason}
+                    onChange={(event) =>
+                      setEmergencyForm((prev) => ({ ...prev, reason: event.target.value }))
+                    }
+                    placeholder="Incident reason and objective"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      className="border rounded-md p-2 text-sm"
+                      value={emergencyForm.reasonCategory}
+                      onChange={(event) =>
+                        setEmergencyForm((prev) => ({
+                          ...prev,
+                          reasonCategory: event.target.value as EmergencyReasonCategory
+                        }))
+                      }
+                    >
+                      <option value="security-breach">Security Breach</option>
+                      <option value="economic-attack">Economic Attack</option>
+                      <option value="regulatory-demand">Regulatory Demand</option>
+                      <option value="operational-failure">Operational Failure</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <select
+                      className="border rounded-md p-2 text-sm"
+                      value={emergencyForm.severity}
+                      onChange={(event) =>
+                        setEmergencyForm((prev) => ({
+                          ...prev,
+                          severity: event.target.value as EmergencySeverity
+                        }))
+                      }
+                    >
+                      <option value="elevated">Elevated</option>
+                      <option value="critical">Critical</option>
+                      <option value="lockdown">Lockdown</option>
+                    </select>
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">{metrics?.governanceAlerts}</div>
-                    <div className="text-sm text-gray-600">Policy Alerts</div>
+                  <input
+                    className="w-full border rounded-md p-2 text-sm"
+                    value={emergencyForm.disabledFeatures}
+                    onChange={(event) =>
+                      setEmergencyForm((prev) => ({
+                        ...prev,
+                        disabledFeatures: event.target.value
+                      }))
+                    }
+                    placeholder="Disabled feature tags (csv)"
+                  />
+                  <input
+                    className="w-full border rounded-md p-2 text-sm"
+                    value={emergencyForm.blockedRegions}
+                    onChange={(event) =>
+                      setEmergencyForm((prev) => ({ ...prev, blockedRegions: event.target.value }))
+                    }
+                    placeholder="Blocked regions (csv ISO)"
+                  />
+                  <input
+                    className="w-full border rounded-md p-2 text-sm"
+                    value={emergencyForm.blockedIpRanges}
+                    onChange={(event) =>
+                      setEmergencyForm((prev) => ({ ...prev, blockedIpRanges: event.target.value }))
+                    }
+                    placeholder="Blocked IP/CIDR (csv)"
+                  />
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={emergencyForm.disableMajorFeatures}
+                      onChange={(event) =>
+                        setEmergencyForm((prev) => ({
+                          ...prev,
+                          disableMajorFeatures: event.target.checked
+                        }))
+                      }
+                    />{" "}
+                    Disable major features/services
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={emergencyForm.freezeTransactions}
+                      onChange={(event) =>
+                        setEmergencyForm((prev) => ({
+                          ...prev,
+                          freezeTransactions: event.target.checked
+                        }))
+                      }
+                    />{" "}
+                    Freeze transactions
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={emergencyForm.freezeWalletPayouts}
+                      onChange={(event) =>
+                        setEmergencyForm((prev) => ({
+                          ...prev,
+                          freezeWalletPayouts: event.target.checked
+                        }))
+                      }
+                    />{" "}
+                    Freeze wallet payouts
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={emergencyForm.allowFounderBypass}
+                      onChange={(event) =>
+                        setEmergencyForm((prev) => ({
+                          ...prev,
+                          allowFounderBypass: event.target.checked
+                        }))
+                      }
+                    />{" "}
+                    Allow founder bypass
+                  </label>
+                  <label className="flex items-center gap-2 text-sm font-medium text-red-700">
+                    <input
+                      type="checkbox"
+                      checked={founderApproved}
+                      onChange={(event) => setFounderApproved(event.target.checked)}
+                    />{" "}
+                    Founder approval attestation confirmed
+                  </label>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {!emergencyState.active ? (
+                      <Button
+                        variant="danger"
+                        disabled={emergencyBusy}
+                        onClick={() => void mutateEmergencyState("activate")}
+                      >
+                        Activate Protocol
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          variant="primary"
+                          disabled={emergencyBusy}
+                          onClick={() => void mutateEmergencyState("update")}
+                        >
+                          Update Protocol
+                        </Button>
+                        <Button
+                          variant="danger"
+                          disabled={emergencyBusy}
+                          onClick={() => void mutateEmergencyState("deactivate")}
+                        >
+                          Deactivate Protocol
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      variant="secondary"
+                      disabled={emergencyBusy}
+                      onClick={() => void refreshEmergencyState()}
+                    >
+                      Refresh
+                    </Button>
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">100%</div>
-                    <div className="text-sm text-gray-600">Compliance Rate</div>
-                  </div>
-                </div>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Shield className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">MARP Firewall Control</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Policy enforcement, cryptographic signing, and governance audit trails
-                  </p>
                 </div>
               </div>
             </Card>
@@ -394,5 +799,5 @@ export default function SuperAdminDashboard() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }

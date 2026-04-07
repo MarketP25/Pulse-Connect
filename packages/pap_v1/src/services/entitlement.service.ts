@@ -1,16 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   PAPSubscription,
   SubscriptionStatus,
   Entitlement,
   EntitlementType,
   SubscriptionRequest,
-  EntitlementError,
-} from '../types/pap';
-import { SubscriptionEntity } from '../entities/subscription.entity';
+  EntitlementError
+} from "../types/pap";
+import { SubscriptionEntity } from "../entities/subscription.entity";
 
 @Injectable()
 export class EntitlementService {
@@ -20,7 +20,7 @@ export class EntitlementService {
     @InjectRepository(SubscriptionEntity)
     private readonly subscriptionRepository: Repository<SubscriptionEntity>,
     private readonly eventEmitter: EventEmitter2,
-    private readonly dataSource: DataSource,
+    private readonly dataSource: DataSource
   ) {}
 
   /**
@@ -36,12 +36,12 @@ export class EntitlementService {
       const existingSubscription = await queryRunner.manager.findOne(SubscriptionEntity, {
         where: {
           userId: request.userId,
-          status: In(['active', 'pending']),
-        },
+          status: In(["active", "pending"])
+        }
       });
 
       if (existingSubscription) {
-        throw new EntitlementError('User already has an active subscription');
+        throw new EntitlementError("User already has an active subscription");
       }
 
       // Create subscription entity
@@ -51,13 +51,16 @@ export class EntitlementService {
         status: SubscriptionStatus.PENDING,
         entitlements: request.entitlements,
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       });
 
-      const savedSubscription = await queryRunner.manager.save(SubscriptionEntity, subscriptionEntity);
+      const savedSubscription = await queryRunner.manager.save(
+        SubscriptionEntity,
+        subscriptionEntity
+      );
       await queryRunner.commitTransaction();
 
-      this.eventEmitter.emit('subscription.created', { subscription: savedSubscription });
+      this.eventEmitter.emit("subscription.created", { subscription: savedSubscription });
       return this.mapEntityToSubscription(savedSubscription);
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -73,15 +76,15 @@ export class EntitlementService {
    */
   async activateSubscription(subscriptionId: string): Promise<PAPSubscription> {
     const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
+      where: { id: subscriptionId }
     });
 
     if (!subscription) {
-      throw new EntitlementError('Subscription not found');
+      throw new EntitlementError("Subscription not found");
     }
 
     if (subscription.status !== SubscriptionStatus.PENDING) {
-      throw new EntitlementError('Subscription cannot be activated from current status');
+      throw new EntitlementError("Subscription cannot be activated from current status");
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -96,7 +99,7 @@ export class EntitlementService {
       const updatedSubscription = await queryRunner.manager.save(SubscriptionEntity, subscription);
       await queryRunner.commitTransaction();
 
-      this.eventEmitter.emit('subscription.activated', { subscription: updatedSubscription });
+      this.eventEmitter.emit("subscription.activated", { subscription: updatedSubscription });
       return this.mapEntityToSubscription(updatedSubscription);
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -110,12 +113,16 @@ export class EntitlementService {
   /**
    * Check if user has entitlement for a specific action
    */
-  async checkEntitlement(userId: string, entitlementType: EntitlementType, amount: number = 1): Promise<boolean> {
+  async checkEntitlement(
+    userId: string,
+    entitlementType: EntitlementType,
+    amount: number = 1
+  ): Promise<boolean> {
     const subscription = await this.subscriptionRepository.findOne({
       where: {
         userId,
-        status: SubscriptionStatus.ACTIVE,
-      },
+        status: SubscriptionStatus.ACTIVE
+      }
     });
 
     if (!subscription) {
@@ -128,7 +135,7 @@ export class EntitlementService {
     }
 
     // Find the entitlement
-    const entitlement = subscription.entitlements.find(e => e.type === entitlementType);
+    const entitlement = subscription.entitlements.find((e) => e.type === entitlementType);
     if (!entitlement) {
       return false;
     }
@@ -141,26 +148,32 @@ export class EntitlementService {
   /**
    * Consume entitlement
    */
-  async consumeEntitlement(userId: string, entitlementType: EntitlementType, amount: number = 1): Promise<boolean> {
+  async consumeEntitlement(
+    userId: string,
+    entitlementType: EntitlementType,
+    amount: number = 1
+  ): Promise<boolean> {
     const subscription = await this.subscriptionRepository.findOne({
       where: {
         userId,
-        status: SubscriptionStatus.ACTIVE,
-      },
+        status: SubscriptionStatus.ACTIVE
+      }
     });
 
     if (!subscription) {
-      throw new EntitlementError('No active subscription found');
+      throw new EntitlementError("No active subscription found");
     }
 
-    const entitlement = subscription.entitlements.find(e => e.type === entitlementType);
+    const entitlement = subscription.entitlements.find((e) => e.type === entitlementType);
     if (!entitlement) {
       throw new EntitlementError(`Entitlement ${entitlementType} not found in subscription`);
     }
 
     const remaining = entitlement.limit - entitlement.used;
     if (remaining < amount) {
-      throw new EntitlementError(`Insufficient entitlement balance. Required: ${amount}, Available: ${remaining}`);
+      throw new EntitlementError(
+        `Insufficient entitlement balance. Required: ${amount}, Available: ${remaining}`
+      );
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -185,11 +198,11 @@ export class EntitlementService {
       await queryRunner.manager.save(SubscriptionEntity, subscription);
       await queryRunner.commitTransaction();
 
-      this.eventEmitter.emit('entitlement.consumed', {
+      this.eventEmitter.emit("entitlement.consumed", {
         userId,
         entitlementType,
         amount,
-        remaining: entitlement.limit - entitlement.used,
+        remaining: entitlement.limit - entitlement.used
       });
 
       return true;
@@ -209,8 +222,8 @@ export class EntitlementService {
     const subscription = await this.subscriptionRepository.findOne({
       where: {
         userId,
-        status: SubscriptionStatus.ACTIVE,
-      },
+        status: SubscriptionStatus.ACTIVE
+      }
     });
 
     if (!subscription) {
@@ -219,7 +232,7 @@ export class EntitlementService {
 
     // Reset expired entitlements
     const now = new Date();
-    subscription.entitlements.forEach(entitlement => {
+    subscription.entitlements.forEach((entitlement) => {
       if (entitlement.resetDate && now >= entitlement.resetDate) {
         entitlement.used = 0;
         entitlement.resetDate = this.calculateNextResetDate(entitlement.resetPeriod!);
@@ -227,7 +240,7 @@ export class EntitlementService {
     });
 
     // Save updated reset dates
-    if (subscription.entitlements.some(e => e.resetDate && now >= e.resetDate)) {
+    if (subscription.entitlements.some((e) => e.resetDate && now >= e.resetDate)) {
       await this.subscriptionRepository.save(subscription);
     }
 
@@ -241,8 +254,8 @@ export class EntitlementService {
     const subscription = await this.subscriptionRepository.findOne({
       where: {
         userId,
-        status: In(['active', 'pending', 'suspended']),
-      },
+        status: In(["active", "pending", "suspended"])
+      }
     });
 
     return subscription ? this.mapEntityToSubscription(subscription) : null;
@@ -253,11 +266,11 @@ export class EntitlementService {
    */
   async cancelSubscription(subscriptionId: string, reason?: string): Promise<void> {
     const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
+      where: { id: subscriptionId }
     });
 
     if (!subscription) {
-      throw new EntitlementError('Subscription not found');
+      throw new EntitlementError("Subscription not found");
     }
 
     if (subscription.status === SubscriptionStatus.CANCELLED) {
@@ -276,9 +289,9 @@ export class EntitlementService {
       await queryRunner.manager.save(SubscriptionEntity, subscription);
       await queryRunner.commitTransaction();
 
-      this.eventEmitter.emit('subscription.cancelled', {
+      this.eventEmitter.emit("subscription.cancelled", {
         subscription: this.mapEntityToSubscription(subscription),
-        reason,
+        reason
       });
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -299,16 +312,18 @@ export class EntitlementService {
     usedEntitlements: Record<EntitlementType, number>;
   }> {
     const subscriptions = await this.subscriptionRepository.find({
-      where: { status: SubscriptionStatus.ACTIVE },
+      where: { status: SubscriptionStatus.ACTIVE }
     });
 
     const totalEntitlements: Record<EntitlementType, number> = {} as any;
     const usedEntitlements: Record<EntitlementType, number> = {} as any;
 
-    subscriptions.forEach(subscription => {
-      subscription.entitlements.forEach(entitlement => {
-        totalEntitlements[entitlement.type] = (totalEntitlements[entitlement.type] || 0) + entitlement.limit;
-        usedEntitlements[entitlement.type] = (usedEntitlements[entitlement.type] || 0) + entitlement.used;
+    subscriptions.forEach((subscription) => {
+      subscription.entitlements.forEach((entitlement) => {
+        totalEntitlements[entitlement.type] =
+          (totalEntitlements[entitlement.type] || 0) + entitlement.limit;
+        usedEntitlements[entitlement.type] =
+          (usedEntitlements[entitlement.type] || 0) + entitlement.used;
       });
     });
 
@@ -316,23 +331,23 @@ export class EntitlementService {
       totalSubscriptions: subscriptions.length,
       activeSubscriptions: subscriptions.length,
       totalEntitlements,
-      usedEntitlements,
+      usedEntitlements
     };
   }
 
   /**
    * Calculate next reset date for periodic entitlements
    */
-  private calculateNextResetDate(period: 'daily' | 'weekly' | 'monthly'): Date {
+  private calculateNextResetDate(period: "daily" | "weekly" | "monthly"): Date {
     const now = new Date();
 
     switch (period) {
-      case 'daily':
+      case "daily":
         return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      case 'weekly':
+      case "weekly":
         const daysUntilNextWeek = 7 - now.getDay();
         return new Date(now.getTime() + daysUntilNextWeek * 24 * 60 * 60 * 1000);
-      case 'monthly':
+      case "monthly":
         return new Date(now.getFullYear(), now.getMonth() + 1, 1);
       default:
         return new Date(now.getTime() + 24 * 60 * 60 * 1000); // Default to daily
@@ -349,7 +364,7 @@ export class EntitlementService {
       createdAt: entity.createdAt,
       activatedAt: entity.activatedAt,
       cancelledAt: entity.cancelledAt,
-      expiresAt: entity.expiresAt,
+      expiresAt: entity.expiresAt
     };
   }
 }

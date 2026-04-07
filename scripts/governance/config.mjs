@@ -1,4 +1,5 @@
 export const BASE_PATH_BY_APP = {
+  'pulsco': '/',
   'apps/pulse-portal': '/',
   'pulse-connect-ui': '/connect',
   'pulse-connect-admin-ui': '/admin',
@@ -86,5 +87,6 @@ export const UNIFIED_ORIGIN_REQUIRED_SERVICE_NAMES = [
   'procurement-dashboard-service',
   'superadmin-dashboard-service',
   'tech-security-dashboard-service',
+  'dpo-dashboard-service',
 ]
 

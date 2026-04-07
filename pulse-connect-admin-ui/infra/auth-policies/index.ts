@@ -1,15 +1,15 @@
 // Zero-Trust Authentication Policies for Pulsco Admin Governance System
 // Defines authentication, authorization, and access control policies
 
-import { AdminRoleType, ADMIN_EMAILS, MAX_ADMIN_COUNT } from '@pulsco/admin-shared-types';
+import { AdminRoleType, ADMIN_EMAILS, MAX_ADMIN_COUNT } from "@pulsco/admin-shared-types";
 
 export interface AuthPolicy {
   id: string;
   name: string;
   description: string;
-  type: 'authentication' | 'authorization' | 'access-control' | 'session-management';
+  type: "authentication" | "authorization" | "access-control" | "session-management";
   rules: AuthRule[];
-  enforcement: 'strict' | 'permissive' | 'audit-only';
+  enforcement: "strict" | "permissive" | "audit-only";
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -18,7 +18,7 @@ export interface AuthPolicy {
 export interface AuthRule {
   id: string;
   condition: string;
-  action: 'allow' | 'deny' | 'challenge' | 'escalate' | 'audit';
+  action: "allow" | "deny" | "challenge" | "escalate" | "audit";
   parameters: Record<string, any>;
   priority: number;
   enabled: boolean;
@@ -56,9 +56,9 @@ export interface Permission {
 }
 
 export interface Restriction {
-  type: 'time' | 'location' | 'device' | 'network' | 'data-classification';
+  type: "time" | "location" | "device" | "network" | "data-classification";
   rule: string;
-  severity: 'warning' | 'error' | 'block';
+  severity: "warning" | "error" | "block";
 }
 
 export interface AccessControlMatrix {
@@ -100,7 +100,7 @@ export class AuthPolicyEngine {
     if (!role) {
       return {
         allowed: false,
-        challenges: ['Email not in admin registry'],
+        challenges: ["Email not in admin registry"],
         requiredActions: []
       };
     }
@@ -110,14 +110,14 @@ export class AuthPolicyEngine {
     if (currentCount >= MAX_ADMIN_COUNT) {
       return {
         allowed: false,
-        challenges: ['Maximum admin count reached'],
+        challenges: ["Maximum admin count reached"],
         requiredActions: []
       };
     }
 
     // Evaluate authentication policies
     for (const policy of this.policies.values()) {
-      if (policy.type === 'authentication' && policy.active) {
+      if (policy.type === "authentication" && policy.active) {
         const result = this.evaluatePolicyRules(policy, {
           email,
           role,
@@ -126,14 +126,14 @@ export class AuthPolicyEngine {
           userAgent
         });
 
-        if (result.action === 'deny') {
+        if (result.action === "deny") {
           return {
             allowed: false,
-            challenges: [result.reason || 'Authentication policy violation'],
+            challenges: [result.reason || "Authentication policy violation"],
             requiredActions: []
           };
-        } else if (result.action === 'challenge') {
-          challenges.push(result.reason || 'Additional authentication required');
+        } else if (result.action === "challenge") {
+          challenges.push(result.reason || "Additional authentication required");
         }
       }
     }
@@ -176,10 +176,10 @@ export class AuthPolicyEngine {
     const rolePolicy = this.rolePolicies.get(role);
     if (rolePolicy) {
       const restrictions = this.evaluateRestrictions(rolePolicy.restrictions, context);
-      if (restrictions.some(r => r.severity === 'block')) {
+      if (restrictions.some((r) => r.severity === "block")) {
         return {
           allowed: false,
-          reason: 'Access blocked by role restrictions',
+          reason: "Access blocked by role restrictions",
           restrictions
         };
       }
@@ -187,7 +187,7 @@ export class AuthPolicyEngine {
 
     // Evaluate authorization policies
     for (const policy of this.policies.values()) {
-      if (policy.type === 'authorization' && policy.active) {
+      if (policy.type === "authorization" && policy.active) {
         const result = this.evaluatePolicyRules(policy, {
           role,
           resource,
@@ -195,10 +195,10 @@ export class AuthPolicyEngine {
           context
         });
 
-        if (result.action === 'deny') {
+        if (result.action === "deny") {
           return {
             allowed: false,
-            reason: result.reason || 'Authorization policy violation'
+            reason: result.reason || "Authorization policy violation"
           };
         }
       }
@@ -210,16 +210,14 @@ export class AuthPolicyEngine {
   /**
    * Validate session against policies
    */
-  validateSession(
-    session: {
-      adminId: string;
-      role: AdminRoleType;
-      deviceFingerprint: string;
-      ipAddress: string;
-      createdAt: Date;
-      lastActivity: Date;
-    }
-  ): {
+  validateSession(session: {
+    adminId: string;
+    role: AdminRoleType;
+    deviceFingerprint: string;
+    ipAddress: string;
+    createdAt: Date;
+    lastActivity: Date;
+  }): {
     valid: boolean;
     violations: string[];
     warnings: string[];
@@ -229,7 +227,7 @@ export class AuthPolicyEngine {
 
     const rolePolicy = this.rolePolicies.get(session.role);
     if (!rolePolicy) {
-      violations.push('No policy defined for role');
+      violations.push("No policy defined for role");
       return { valid: false, violations, warnings };
     }
 
@@ -239,33 +237,33 @@ export class AuthPolicyEngine {
     const now = new Date();
     const sessionAge = (now.getTime() - session.createdAt.getTime()) / (1000 * 60);
     if (sessionAge > sessionPolicy.sessionTimeoutMinutes) {
-      violations.push('Session timeout exceeded');
+      violations.push("Session timeout exceeded");
     }
 
     // Check idle timeout
     const idleTime = (now.getTime() - session.lastActivity.getTime()) / (1000 * 60);
     if (idleTime > sessionPolicy.idleTimeoutMinutes) {
-      violations.push('Idle timeout exceeded');
+      violations.push("Idle timeout exceeded");
     }
 
     // Check device fingerprint
     if (sessionPolicy.deviceFingerprintRequired && !session.deviceFingerprint) {
-      violations.push('Device fingerprint required but not provided');
+      violations.push("Device fingerprint required but not provided");
     }
 
     // Check IP restrictions
     if (sessionPolicy.ipBlacklist?.includes(session.ipAddress)) {
-      violations.push('IP address is blacklisted');
+      violations.push("IP address is blacklisted");
     }
 
     if (sessionPolicy.ipWhitelist && !sessionPolicy.ipWhitelist.includes(session.ipAddress)) {
-      violations.push('IP address not in whitelist');
+      violations.push("IP address not in whitelist");
     }
 
     // Check geo restrictions
     if (sessionPolicy.geoRestrictions) {
       // In real implementation, resolve IP to geo and check restrictions
-      warnings.push('Geo restrictions not fully implemented');
+      warnings.push("Geo restrictions not fully implemented");
     }
 
     // Check time restrictions
@@ -274,11 +272,11 @@ export class AuthPolicyEngine {
       const currentDay = now.getDay();
 
       if (!sessionPolicy.timeRestrictions.allowedHours.includes(currentHour)) {
-        violations.push('Access not allowed at current time');
+        violations.push("Access not allowed at current time");
       }
 
       if (!sessionPolicy.timeRestrictions.allowedDays.includes(currentDay)) {
-        violations.push('Access not allowed on current day');
+        violations.push("Access not allowed on current day");
       }
     }
 
@@ -316,88 +314,88 @@ export class AuthPolicyEngine {
   private initializeDefaultPolicies(): void {
     const defaultPolicies: AuthPolicy[] = [
       {
-        id: 'admin-registry-check',
-        name: 'Admin Registry Validation',
-        description: 'Ensures only registered admin emails can authenticate',
-        type: 'authentication',
+        id: "admin-registry-check",
+        name: "Admin Registry Validation",
+        description: "Ensures only registered admin emails can authenticate",
+        type: "authentication",
         rules: [
           {
-            id: 'email-registry-check',
-            condition: 'email not in ADMIN_EMAILS',
-            action: 'deny',
+            id: "email-registry-check",
+            condition: "email not in ADMIN_EMAILS",
+            action: "deny",
             parameters: {},
             priority: 100,
             enabled: true
           }
         ],
-        enforcement: 'strict',
+        enforcement: "strict",
         active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'admin-count-limit',
-        name: 'Admin Count Enforcement',
-        description: 'Prevents exceeding maximum admin count',
-        type: 'authentication',
+        id: "admin-count-limit",
+        name: "Admin Count Enforcement",
+        description: "Prevents exceeding maximum admin count",
+        type: "authentication",
         rules: [
           {
-            id: 'count-limit-check',
-            condition: 'active_admin_count >= MAX_ADMIN_COUNT',
-            action: 'deny',
+            id: "count-limit-check",
+            condition: "active_admin_count >= MAX_ADMIN_COUNT",
+            action: "deny",
             parameters: { maxCount: MAX_ADMIN_COUNT },
             priority: 90,
             enabled: true
           }
         ],
-        enforcement: 'strict',
+        enforcement: "strict",
         active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'device-fingerprint-policy',
-        name: 'Device Fingerprint Validation',
-        description: 'Requires device fingerprint for session security',
-        type: 'session-management',
+        id: "device-fingerprint-policy",
+        name: "Device Fingerprint Validation",
+        description: "Requires device fingerprint for session security",
+        type: "session-management",
         rules: [
           {
-            id: 'fingerprint-required',
-            condition: 'device_fingerprint missing',
-            action: 'challenge',
-            parameters: { challengeType: 'device-verification' },
+            id: "fingerprint-required",
+            condition: "device_fingerprint missing",
+            action: "challenge",
+            parameters: { challengeType: "device-verification" },
             priority: 80,
             enabled: true
           }
         ],
-        enforcement: 'strict',
+        enforcement: "strict",
         active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        id: 'superadmin-full-access',
-        name: 'SuperAdmin Full Access',
-        description: 'Grants superadmin unrestricted access to all resources',
-        type: 'authorization',
+        id: "superadmin-full-access",
+        name: "SuperAdmin Full Access",
+        description: "Grants superadmin unrestricted access to all resources",
+        type: "authorization",
         rules: [
           {
-            id: 'superadmin-allow-all',
+            id: "superadmin-allow-all",
             condition: 'role == "superadmin"',
-            action: 'allow',
+            action: "allow",
             parameters: { allResources: true },
             priority: 1000,
             enabled: true
           }
         ],
-        enforcement: 'strict',
+        enforcement: "strict",
         active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       }
     ];
 
-    defaultPolicies.forEach(policy => {
+    defaultPolicies.forEach((policy) => {
       this.policies.set(policy.id, policy);
     });
   }
@@ -405,10 +403,8 @@ export class AuthPolicyEngine {
   private initializeRolePolicies(): void {
     const rolePolicies: RolePolicy[] = [
       {
-        role: 'superadmin',
-        permissions: [
-          { resource: '*', actions: ['*'] }
-        ],
+        role: "superadmin",
+        permissions: [{ resource: "*", actions: ["*"] }],
         restrictions: [],
         escalationPaths: [],
         approvalRequired: false,
@@ -420,16 +416,18 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'coo',
+        role: "coo",
         permissions: [
-          { resource: 'operations', actions: ['read', 'write', 'manage'] },
-          { resource: 'metrics', actions: ['read'], conditions: ['domain == "operations"'] },
-          { resource: 'alerts', actions: ['read', 'acknowledge'], conditions: ['severity <= "high"'] }
+          { resource: "operations", actions: ["read", "write", "manage"] },
+          { resource: "metrics", actions: ["read"], conditions: ['domain == "operations"'] },
+          {
+            resource: "alerts",
+            actions: ["read", "acknowledge"],
+            conditions: ['severity <= "high"']
+          }
         ],
-        restrictions: [
-          { type: 'time', rule: 'business_hours_only', severity: 'warning' }
-        ],
-        escalationPaths: ['superadmin'],
+        restrictions: [{ type: "time", rule: "business_hours_only", severity: "warning" }],
+        escalationPaths: ["superadmin"],
         approvalRequired: false,
         sessionPolicy: {
           maxConcurrentSessions: 3,
@@ -439,16 +437,14 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'business-ops',
+        role: "business-ops",
         permissions: [
-          { resource: 'business', actions: ['read', 'write'] },
-          { resource: 'metrics', actions: ['read'], conditions: ['domain == "business"'] },
-          { resource: 'reports', actions: ['read', 'export'] }
+          { resource: "business", actions: ["read", "write"] },
+          { resource: "metrics", actions: ["read"], conditions: ['domain == "business"'] },
+          { resource: "reports", actions: ["read", "export"] }
         ],
-        restrictions: [
-          { type: 'data-classification', rule: 'no-confidential', severity: 'block' }
-        ],
-        escalationPaths: ['coo', 'superadmin'],
+        restrictions: [{ type: "data-classification", rule: "no-confidential", severity: "block" }],
+        escalationPaths: ["coo", "superadmin"],
         approvalRequired: false,
         sessionPolicy: {
           maxConcurrentSessions: 2,
@@ -458,16 +454,14 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'people-risk',
+        role: "people-risk",
         permissions: [
-          { resource: 'hr', actions: ['read', 'write'] },
-          { resource: 'compliance', actions: ['read', 'write'] },
-          { resource: 'risk', actions: ['read', 'write'] }
+          { resource: "hr", actions: ["read", "write"] },
+          { resource: "compliance", actions: ["read", "write"] },
+          { resource: "risk", actions: ["read", "write"] }
         ],
-        restrictions: [
-          { type: 'data-classification', rule: 'pii_only', severity: 'warning' }
-        ],
-        escalationPaths: ['legal-finance', 'superadmin'],
+        restrictions: [{ type: "data-classification", rule: "pii_only", severity: "warning" }],
+        escalationPaths: ["legal-finance", "superadmin"],
         approvalRequired: true,
         sessionPolicy: {
           maxConcurrentSessions: 2,
@@ -477,14 +471,14 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'procurement-partnerships',
+        role: "procurement-partnerships",
         permissions: [
-          { resource: 'procurement', actions: ['read', 'write'] },
-          { resource: 'vendors', actions: ['read', 'write'] },
-          { resource: 'contracts', actions: ['read'] }
+          { resource: "procurement", actions: ["read", "write"] },
+          { resource: "vendors", actions: ["read", "write"] },
+          { resource: "contracts", actions: ["read"] }
         ],
         restrictions: [],
-        escalationPaths: ['coo', 'superadmin'],
+        escalationPaths: ["coo", "superadmin"],
         approvalRequired: false,
         sessionPolicy: {
           maxConcurrentSessions: 2,
@@ -494,16 +488,16 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'legal-finance',
+        role: "legal-finance",
         permissions: [
-          { resource: 'legal', actions: ['read', 'write'] },
-          { resource: 'finance', actions: ['read', 'write'] },
-          { resource: 'compliance', actions: ['read', 'write'] }
+          { resource: "legal", actions: ["read", "write"] },
+          { resource: "finance", actions: ["read", "write"] },
+          { resource: "compliance", actions: ["read", "write"] }
         ],
         restrictions: [
-          { type: 'data-classification', rule: 'sensitive_only', severity: 'warning' }
+          { type: "data-classification", rule: "sensitive_only", severity: "warning" }
         ],
-        escalationPaths: ['superadmin'],
+        escalationPaths: ["superadmin"],
         approvalRequired: true,
         sessionPolicy: {
           maxConcurrentSessions: 2,
@@ -513,14 +507,14 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'commercial-outreach',
+        role: "commercial-outreach",
         permissions: [
-          { resource: 'marketing', actions: ['read', 'write'] },
-          { resource: 'sales', actions: ['read', 'write'] },
-          { resource: 'customers', actions: ['read'] }
+          { resource: "marketing", actions: ["read", "write"] },
+          { resource: "sales", actions: ["read", "write"] },
+          { resource: "customers", actions: ["read"] }
         ],
         restrictions: [],
-        escalationPaths: ['business-ops', 'coo', 'superadmin'],
+        escalationPaths: ["business-ops", "coo", "superadmin"],
         approvalRequired: false,
         sessionPolicy: {
           maxConcurrentSessions: 2,
@@ -530,14 +524,14 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'tech-security',
+        role: "tech-security",
         permissions: [
-          { resource: 'infrastructure', actions: ['read', 'write'] },
-          { resource: 'security', actions: ['read', 'write'] },
-          { resource: 'monitoring', actions: ['read', 'write'] }
+          { resource: "infrastructure", actions: ["read", "write"] },
+          { resource: "security", actions: ["read", "write"] },
+          { resource: "monitoring", actions: ["read", "write"] }
         ],
         restrictions: [],
-        escalationPaths: ['superadmin'],
+        escalationPaths: ["superadmin"],
         approvalRequired: false,
         sessionPolicy: {
           maxConcurrentSessions: 3,
@@ -547,14 +541,14 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'customer-experience',
+        role: "customer-experience",
         permissions: [
-          { resource: 'customers', actions: ['read', 'write'] },
-          { resource: 'support', actions: ['read', 'write'] },
-          { resource: 'feedback', actions: ['read', 'write'] }
+          { resource: "customers", actions: ["read", "write"] },
+          { resource: "support", actions: ["read", "write"] },
+          { resource: "feedback", actions: ["read", "write"] }
         ],
         restrictions: [],
-        escalationPaths: ['commercial-outreach', 'business-ops', 'coo', 'superadmin'],
+        escalationPaths: ["commercial-outreach", "business-ops", "coo", "superadmin"],
         approvalRequired: false,
         sessionPolicy: {
           maxConcurrentSessions: 2,
@@ -564,16 +558,14 @@ export class AuthPolicyEngine {
         }
       },
       {
-        role: 'governance-registrar',
+        role: "governance-registrar",
         permissions: [
-          { resource: 'governance', actions: ['read', 'write'] },
-          { resource: 'audit', actions: ['read', 'write'] },
-          { resource: 'compliance', actions: ['read'] }
+          { resource: "governance", actions: ["read", "write"] },
+          { resource: "audit", actions: ["read", "write"] },
+          { resource: "compliance", actions: ["read"] }
         ],
-        restrictions: [
-          { type: 'data-classification', rule: 'audit_only', severity: 'warning' }
-        ],
-        escalationPaths: ['superadmin'],
+        restrictions: [{ type: "data-classification", rule: "audit_only", severity: "warning" }],
+        escalationPaths: ["superadmin"],
         approvalRequired: true,
         sessionPolicy: {
           maxConcurrentSessions: 2,
@@ -584,7 +576,7 @@ export class AuthPolicyEngine {
       }
     ];
 
-    rolePolicies.forEach(policy => {
+    rolePolicies.forEach((policy) => {
       this.rolePolicies.set(policy.role, policy);
     });
   }
@@ -605,10 +597,10 @@ export class AuthPolicyEngine {
   private evaluatePolicyRules(
     policy: AuthPolicy,
     context: Record<string, any>
-  ): { action: AuthRule['action']; reason?: string } {
+  ): { action: AuthRule["action"]; reason?: string } {
     // Sort rules by priority (highest first)
     const sortedRules = policy.rules
-      .filter(rule => rule.enabled)
+      .filter((rule) => rule.enabled)
       .sort((a, b) => b.priority - a.priority);
 
     for (const rule of sortedRules) {
@@ -620,37 +612,40 @@ export class AuthPolicyEngine {
       }
     }
 
-    return { action: 'allow' };
+    return { action: "allow" };
   }
 
   private evaluateCondition(condition: string, context: Record<string, any>): boolean {
     // Simple condition evaluation - in real implementation, use a proper expression evaluator
     try {
       // Basic email check
-      if (condition === 'email not in ADMIN_EMAILS') {
+      if (condition === "email not in ADMIN_EMAILS") {
         return !Object.values(ADMIN_EMAILS).includes(context.email);
       }
 
       // Basic count check
-      if (condition === 'active_admin_count >= MAX_ADMIN_COUNT') {
+      if (condition === "active_admin_count >= MAX_ADMIN_COUNT") {
         return this.getCurrentAdminCount() >= MAX_ADMIN_COUNT;
       }
 
       // Basic role check
       if (condition === 'role == "superadmin"') {
-        return context.role === 'superadmin';
+        return context.role === "superadmin";
       }
 
       return false;
     } catch (error) {
-      console.error('Error evaluating condition:', condition, error);
+      console.error("Error evaluating condition:", condition, error);
       return false;
     }
   }
 
-  private evaluateRestrictions(restrictions: Restriction[], context?: Record<string, any>): Restriction[] {
+  private evaluateRestrictions(
+    restrictions: Restriction[],
+    context?: Record<string, any>
+  ): Restriction[] {
     // In real implementation, evaluate each restriction against context
-    return restrictions.filter(r => r.severity === 'block');
+    return restrictions.filter((r) => r.severity === "block");
   }
 
   private getRoleForEmail(email: string): AdminRoleType | null {

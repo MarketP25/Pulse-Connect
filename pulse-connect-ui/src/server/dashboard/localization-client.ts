@@ -32,7 +32,7 @@ const FALLBACK_TRANSLATIONS: Record<string, Partial<DashboardDictionary>> = {
     completeKyc: "Kamilisha KYC",
     tierBasic: "Msingi",
     tierPremium: "Premium",
-    tierEnterprise: "Biashara Kubwa",
+    tierEnterprise: "Biashara Kubwa"
   },
   fr: {
     title: "Tableau de bord utilisateur PULSCO",
@@ -54,7 +54,7 @@ const FALLBACK_TRANSLATIONS: Record<string, Partial<DashboardDictionary>> = {
     completeKyc: "Terminer KYC",
     tierBasic: "Basique",
     tierPremium: "Premium",
-    tierEnterprise: "Entreprise",
+    tierEnterprise: "Entreprise"
   },
   es: {
     title: "Panel de Usuario PULSCO",
@@ -76,29 +76,29 @@ const FALLBACK_TRANSLATIONS: Record<string, Partial<DashboardDictionary>> = {
     completeKyc: "Completar KYC",
     tierBasic: "Básico",
     tierPremium: "Premium",
-    tierEnterprise: "Empresarial",
-  },
+    tierEnterprise: "Empresarial"
+  }
 };
 
 function withFallback(
   baseDictionary: DashboardDictionary,
-  targetLanguage: string,
+  targetLanguage: string
 ): LocalizationTranslationResult {
   const fallback = FALLBACK_TRANSLATIONS[targetLanguage];
   if (!fallback) {
     return {
       dictionary: baseDictionary,
       provider: "identity",
-      targetLanguage,
+      targetLanguage
     };
   }
   return {
     dictionary: {
       ...baseDictionary,
-      ...fallback,
+      ...fallback
     },
     provider: "localization-fallback",
-    targetLanguage,
+    targetLanguage
   };
 }
 
@@ -106,16 +106,25 @@ function normalizeBaseUrl(url: string): string {
   return url.endsWith("/") ? url.slice(0, -1) : url;
 }
 
+function getCsiGatewayEndpoint(): string {
+  return (
+    process.env.PULSCO_CSI_GATEWAY_URL ||
+    process.env.PULSCO_EDGE_GATEWAY_URL ||
+    process.env.PULSCO_MARP_FIREWALL_URL ||
+    ""
+  );
+}
+
 async function tryLocalizationServiceBatch(
   baseUrl: string,
   sourceLanguage: string,
   targetLanguage: string,
-  entries: TranslationEntry[],
+  entries: TranslationEntry[]
 ): Promise<DashboardDictionary | null> {
   const endpoints = [
     `${normalizeBaseUrl(baseUrl)}/translate/batch`,
     `${normalizeBaseUrl(baseUrl)}/api/v1/localization/translate/batch`,
-    `${normalizeBaseUrl(baseUrl)}/translate`,
+    `${normalizeBaseUrl(baseUrl)}/translate`
   ];
 
   for (const endpoint of endpoints) {
@@ -124,7 +133,7 @@ async function tryLocalizationServiceBatch(
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-pulsco-source-app": "@pulsco/pulse-connect-ui",
+          "x-pulsco-source-app": "@pulsco/pulse-connect-ui"
         },
         cache: "no-store",
         body: JSON.stringify({
@@ -132,8 +141,8 @@ async function tryLocalizationServiceBatch(
           targetLanguage,
           texts: entries.map((entry) => entry.text),
           domain: "ui",
-          quality: "standard",
-        }),
+          quality: "standard"
+        })
       });
 
       if (!response.ok) {
@@ -144,10 +153,10 @@ async function tryLocalizationServiceBatch(
       const translatedTexts = Array.isArray(payload.translatedTexts)
         ? payload.translatedTexts
         : Array.isArray(payload.translations)
-        ? (payload.translations as Array<Record<string, unknown>>).map((entry) =>
-            String(entry.translatedText || entry.text || ""),
-          )
-        : [];
+          ? (payload.translations as Array<Record<string, unknown>>).map((entry) =>
+              String(entry.translatedText || entry.text || "")
+            )
+          : [];
 
       if (!translatedTexts.length) {
         continue;
@@ -167,10 +176,72 @@ async function tryLocalizationServiceBatch(
   return null;
 }
 
+async function tryCsiServiceBatch(
+  sourceLanguage: string,
+  targetLanguage: string,
+  entries: TranslationEntry[]
+): Promise<DashboardDictionary | null> {
+  const endpoint = getCsiGatewayEndpoint();
+  if (!endpoint) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-csi-reason-code": "CSI_GATEWAY_ACCESS",
+        "x-pulsco-source-app": "@pulsco/pulse-connect-ui"
+      },
+      cache: "no-store",
+      body: JSON.stringify({
+        subsystem: "localization",
+        action: "translate.batch",
+        context: {
+          sourceLanguage,
+          targetLanguage,
+          texts: entries.map((entry) => entry.text),
+          domain: "ui"
+        }
+      })
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    const translatedTexts = Array.isArray(payload.translatedTexts)
+      ? payload.translatedTexts
+      : Array.isArray(payload.translations)
+        ? (payload.translations as Array<Record<string, unknown>>).map((entry) =>
+            String(entry.translatedText || entry.text || "")
+          )
+        : Array.isArray(payload.data)
+          ? (payload.data as Array<Record<string, unknown>>).map((entry) =>
+              String(entry.translatedText || entry.text || "")
+            )
+          : [];
+
+    if (!translatedTexts.length) {
+      return null;
+    }
+
+    const dictionary = {} as DashboardDictionary;
+    entries.forEach((entry, index) => {
+      dictionary[entry.key] = translatedTexts[index] || entry.text;
+    });
+    return dictionary;
+  } catch {
+    return null;
+  }
+}
+
 async function tryAzureTranslator(
   sourceLanguage: string,
   targetLanguage: string,
-  entries: TranslationEntry[],
+  entries: TranslationEntry[]
 ): Promise<DashboardDictionary | null> {
   const endpoint = process.env.AZURE_TRANSLATOR_ENDPOINT;
   const key = process.env.AZURE_TRANSLATOR_KEY;
@@ -193,10 +264,10 @@ async function tryAzureTranslator(
         "Ocp-Apim-Subscription-Key": key,
         ...(process.env.AZURE_TRANSLATOR_REGION
           ? { "Ocp-Apim-Subscription-Region": process.env.AZURE_TRANSLATOR_REGION }
-          : {}),
+          : {})
       },
       cache: "no-store",
-      body: JSON.stringify(entries.map((entry) => ({ text: entry.text }))),
+      body: JSON.stringify(entries.map((entry) => ({ text: entry.text })))
     });
 
     if (!response.ok) {
@@ -215,7 +286,8 @@ async function tryAzureTranslator(
         ? (item?.translations as Array<Record<string, unknown>>)
         : [];
       const translated = translationArray[0]?.text;
-      dictionary[entry.key] = typeof translated === "string" && translated.trim().length > 0 ? translated : entry.text;
+      dictionary[entry.key] =
+        typeof translated === "string" && translated.trim().length > 0 ? translated : entry.text;
     });
 
     return dictionary;
@@ -227,41 +299,60 @@ async function tryAzureTranslator(
 export async function translateDashboardDictionary(
   baseDictionary: DashboardDictionary,
   targetLanguage: string,
-  sourceLanguage = "en",
+  sourceLanguage = "en"
 ): Promise<LocalizationTranslationResult> {
   if (targetLanguage === sourceLanguage) {
     return {
       dictionary: baseDictionary,
       provider: "identity",
-      targetLanguage,
+      targetLanguage
     };
   }
 
   const entries = Object.entries(baseDictionary).map(([key, text]) => ({
     key: key as keyof DashboardDictionary,
-    text,
+    text
   }));
 
-  const localizationApiUrl = process.env.PULSCO_LOCALIZATION_API_URL || process.env.LOCALIZATION_API_URL;
+  const localizationApiUrl =
+    process.env.PULSCO_LOCALIZATION_API_URL || process.env.LOCALIZATION_API_URL;
 
   if (localizationApiUrl) {
-    const translated = await tryLocalizationServiceBatch(localizationApiUrl, sourceLanguage, targetLanguage, entries);
+    const translated = await tryLocalizationServiceBatch(
+      localizationApiUrl,
+      sourceLanguage,
+      targetLanguage,
+      entries
+    );
     if (translated) {
       return {
         dictionary: translated,
         provider: "localization-service",
-        targetLanguage,
+        targetLanguage
       };
     }
   }
 
-  const azureTranslated = await tryAzureTranslator(sourceLanguage, targetLanguage, entries);
-  if (azureTranslated) {
+  // Internal CSI translation advisory path (no external provider dependency).
+  const csiTranslated = await tryCsiServiceBatch(sourceLanguage, targetLanguage, entries);
+  if (csiTranslated) {
     return {
-      dictionary: azureTranslated,
-      provider: "azure-translator",
-      targetLanguage,
+      dictionary: csiTranslated,
+      provider: "csi-localization",
+      targetLanguage
     };
+  }
+
+  const allowExternalProvider = process.env.ALLOW_EXTERNAL_TRANSLATION_PROVIDER === "true";
+  if (allowExternalProvider) {
+    const azureTranslated = await tryAzureTranslator(sourceLanguage, targetLanguage, entries);
+    if (azureTranslated) {
+      return {
+        dictionary: azureTranslated,
+        provider: "azure-translator",
+        targetLanguage
+      };
+    }
   }
 
   return withFallback(baseDictionary, targetLanguage);

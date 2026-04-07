@@ -8,7 +8,7 @@ export interface MatchmakingProfile {
   skills: string[];
   interests: string[];
   experience: string;
-  availability: 'full-time' | 'part-time' | 'freelance';
+  availability: "full-time" | "part-time" | "freelance";
   languages: string[];
   timezone: string;
   verified: boolean;
@@ -19,12 +19,12 @@ export interface MatchmakingProfile {
 export interface MatchmakingPreferences {
   id: string;
   userId: string;
-  matchType: 'professional' | 'personal' | 'both';
+  matchType: "professional" | "personal" | "both";
   preferredSkills: string[];
   preferredIndustries: string[];
   preferredExperience: string;
   maxDistance: number; // in kilometers
-  availability: 'full-time' | 'part-time' | 'freelance';
+  availability: "full-time" | "part-time" | "freelance";
   languages: string[];
   minMatchScore: number;
   notifications: boolean;
@@ -41,7 +41,7 @@ export interface MatchResult {
   id: string;
   profile: MatchmakingProfile;
   matchScore: number;
-  matchType: 'professional' | 'personal';
+  matchType: "professional" | "personal";
   compatibility: {
     skills: number;
     interests: number;
@@ -59,14 +59,14 @@ export interface MatchResult {
 export interface MatchmakingContract {
   id: string;
   participants: string[];
-  type: 'collaboration' | 'mentorship' | 'project' | 'partnership';
-  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  type: "collaboration" | "mentorship" | "project" | "partnership";
+  status: "pending" | "active" | "completed" | "cancelled";
   terms: {
     duration?: number; // in days
     compensation?: {
       amount: number;
       currency: string;
-      type: 'fixed' | 'hourly' | 'equity';
+      type: "fixed" | "hourly" | "equity";
     };
     deliverables?: string[];
     milestones?: Array<{
@@ -113,7 +113,7 @@ export interface MatchmakingFilters {
 
 export interface MatchmakingNotification {
   id: string;
-  type: 'new_match' | 'contract_offer' | 'contract_update' | 'system_message';
+  type: "new_match" | "contract_offer" | "contract_update" | "system_message";
   title: string;
   message: string;
   data?: any;
@@ -122,13 +122,16 @@ export interface MatchmakingNotification {
 }
 
 export type MatchmakingAction =
-  | { type: 'UPDATE_PROFILE'; payload: Partial<MatchmakingProfile> }
-  | { type: 'UPDATE_PREFERENCES'; payload: Partial<MatchmakingPreferences> }
-  | { type: 'ADD_MATCH'; payload: MatchResult }
-  | { type: 'REMOVE_MATCH'; payload: string }
-  | { type: 'ACCEPT_MATCH'; payload: string }
-  | { type: 'REJECT_MATCH'; payload: string }
-  | { type: 'CREATE_CONTRACT'; payload: Omit<MatchmakingContract, 'id' | 'createdAt' | 'updatedAt'> }
-  | { type: 'UPDATE_CONTRACT'; payload: Partial<MatchmakingContract> & { id: string } }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null };
+  | { type: "UPDATE_PROFILE"; payload: Partial<MatchmakingProfile> }
+  | { type: "UPDATE_PREFERENCES"; payload: Partial<MatchmakingPreferences> }
+  | { type: "ADD_MATCH"; payload: MatchResult }
+  | { type: "REMOVE_MATCH"; payload: string }
+  | { type: "ACCEPT_MATCH"; payload: string }
+  | { type: "REJECT_MATCH"; payload: string }
+  | {
+      type: "CREATE_CONTRACT";
+      payload: Omit<MatchmakingContract, "id" | "createdAt" | "updatedAt">;
+    }
+  | { type: "UPDATE_CONTRACT"; payload: Partial<MatchmakingContract> & { id: string } }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_ERROR"; payload: string | null };

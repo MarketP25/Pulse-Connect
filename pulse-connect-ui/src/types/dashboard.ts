@@ -8,8 +8,7 @@ export type DashboardRole =
   | "investor"
   | "partner";
 
-export type SupportedDashboardLanguage = "en" | "sw" | "fr" | "es";
-
+export type SupportedDashboardLanguage = string;
 export type ComplianceProfile = "gdpr" | "ccpa" | "global-default";
 
 export type KycStatus = "not_required" | "pending" | "verified" | "rejected";

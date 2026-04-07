@@ -9,7 +9,7 @@ import {
   KycRequirementLevel,
   OnboardingRole,
   StartKycWorkflowInput,
-  SubscriptionTier,
+  SubscriptionTier
 } from "./types";
 
 const ALWAYS_HIGH_RISK_ROLES = new Set<OnboardingRole>(["organisation", "partner"]);
@@ -38,7 +38,10 @@ export class InMemoryKycRepository implements KycRepository {
 export class PulseKycService {
   constructor(private readonly repository: KycRepository) {}
 
-  determineRequirementLevel(role: OnboardingRole, subscriptionTier: SubscriptionTier): KycRequirementLevel {
+  determineRequirementLevel(
+    role: OnboardingRole,
+    subscriptionTier: SubscriptionTier
+  ): KycRequirementLevel {
     if (ALWAYS_HIGH_RISK_ROLES.has(role)) {
       return "full";
     }
@@ -72,10 +75,10 @@ export class PulseKycService {
       providerSessionId: existing?.providerSessionId || `kyc_${randomUUID()}`,
       metadata: {
         role: input.role,
-        subscriptionTier: input.subscriptionTier,
+        subscriptionTier: input.subscriptionTier
       },
       createdAt: existing?.createdAt || now,
-      updatedAt: now,
+      updatedAt: now
     };
 
     await this.repository.upsert(record);
@@ -84,7 +87,7 @@ export class PulseKycService {
       userId: input.userId,
       action: "kyc.initiated",
       actorId: input.actorId,
-      createdAt: now,
+      createdAt: now
     });
 
     return record;
@@ -101,7 +104,7 @@ export class PulseKycService {
       ...record,
       status: input.approved ? "verified" : "rejected",
       rejectionReason: input.approved ? undefined : input.reason || "verification_failed",
-      updatedAt: now,
+      updatedAt: now
     };
 
     await this.repository.upsert(updated);
@@ -111,13 +114,16 @@ export class PulseKycService {
       action: input.approved ? "kyc.verified" : "kyc.rejected",
       actorId: input.actorId,
       reason: input.reason,
-      createdAt: now,
+      createdAt: now
     });
 
     return updated;
   }
 
-  async evaluatePending(userId: string, signals: KycAutomationSignals = {}): Promise<KycAutomationDecision> {
+  async evaluatePending(
+    userId: string,
+    signals: KycAutomationSignals = {}
+  ): Promise<KycAutomationDecision> {
     const record = await this.repository.getByUserId(userId);
     if (!record) {
       throw new Error("kyc_record_not_found");
@@ -128,7 +134,7 @@ export class PulseKycService {
         shouldProcess: false,
         approved: record.status === "verified",
         reason: `already_${record.status}`,
-        riskScore: 0,
+        riskScore: 0
       };
     }
 
@@ -150,7 +156,7 @@ export class PulseKycService {
     const thresholdByLevel: Record<string, number> = {
       basic: 55,
       enhanced: 40,
-      full: 30,
+      full: 30
     };
     const threshold = thresholdByLevel[record.level] ?? 50;
     const approved = riskScore <= threshold;
@@ -159,7 +165,7 @@ export class PulseKycService {
       shouldProcess: true,
       approved,
       reason: approved ? undefined : "automation_risk_exceeded",
-      riskScore,
+      riskScore
     };
   }
 

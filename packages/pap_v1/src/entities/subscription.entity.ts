@@ -1,8 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn
+} from "typeorm";
 
-@Entity('pap_subscriptions')
+@Entity("pap_subscriptions")
 export class SubscriptionEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 255 })
@@ -11,19 +17,19 @@ export class SubscriptionEntity {
   @Column({ length: 255 })
   planId: string;
 
-  @Column({ length: 50, default: 'pending' })
+  @Column({ length: 50, default: "pending" })
   status: string; // pending, active, suspended, cancelled, expired
 
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   entitlements: any[]; // Entitlement[]
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   activatedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   cancelledAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   expiresAt: Date;
 
   @CreateDateColumn()

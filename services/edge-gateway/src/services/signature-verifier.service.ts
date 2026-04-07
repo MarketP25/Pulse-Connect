@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ExecuteRequestDto } from '../dto/execute-request.dto';
-import { HashChain } from '@pulsco/shared-lib';
+import { Injectable, Logger } from "@nestjs/common";
+import { ExecuteRequestDto } from "../dto/execute-request.dto";
+import { verifySignature } from "@pulsco/shared-lib";
 
 @Injectable()
 export class SignatureVerifierService {
@@ -33,7 +33,6 @@ export class SignatureVerifierService {
       }
 
       return isValid;
-
     } catch (error) {
       this.logger.error(`Signature verification error: ${error.message}`);
       return false;
@@ -58,17 +57,24 @@ export class SignatureVerifierService {
    */
   private verifyMARPSignature(canonicalData: string, signature: string): boolean {
     try {
-      // In production: Use crypto.verify() with MARP public key
-      // For now: Simple hash comparison (placeholder)
-      const expectedSignature = HashChain.hash(canonicalData);
+      const publicKey = this.getMarpPublicKey();
+      if (!publicKey) {
+        this.logger.error("MARP public key not configured");
+        return false;
+      }
 
-      // Compare signatures (in production would use proper crypto)
-      return signature === expectedSignature;
-
+      const algorithm = process.env.MARP_SIGNATURE_ALG || "RSA-SHA256";
+      return verifySignature(canonicalData, signature, { publicKey, algorithm });
     } catch (error) {
       this.logger.error(`Signature verification failed: ${error.message}`);
       return false;
     }
+  }
+
+  private getMarpPublicKey(): string | null {
+    const raw = process.env.MARP_PUBLIC_KEY || process.env.MARP_PUBLIC_KEY_PEM || "";
+    if (!raw) return null;
+    return raw;
   }
 
   /**
@@ -92,18 +98,20 @@ export class SignatureVerifierService {
    * Recursively sort object keys for canonical representation
    */
   private sortObjectKeys(obj: any): any {
-    if (obj === null || typeof obj !== 'object') {
+    if (obj === null || typeof obj !== "object") {
       return obj;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sortObjectKeys(item));
+      return obj.map((item) => this.sortObjectKeys(item));
     }
 
     const sortedObj: any = {};
-    Object.keys(obj).sort().forEach(key => {
-      sortedObj[key] = this.sortObjectKeys(obj[key]);
-    });
+    Object.keys(obj)
+      .sort()
+      .forEach((key) => {
+        sortedObj[key] = this.sortObjectKeys(obj[key]);
+      });
 
     return sortedObj;
   }

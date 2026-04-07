@@ -1,36 +1,36 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
-import { FirewallService } from '../services/firewall.service';
-import { PC365Guard } from '../../../shared/lib/src/pc365Guard';
+import { Controller, Get, Post, Body, Query, UseGuards } from "@nestjs/common";
+import { FirewallService } from "../services/firewall.service";
+import { PC365NestGuard } from "../../../shared/lib/src/pc365Guard.nest";
 import {
   CreateFirewallRuleDto,
   FirewallEnforceDto,
   FirewallRuleDto,
   FirewallEnforceResultDto,
   FirewallDirection
-} from '../dto/firewall.dto';
+} from "../dto/firewall.dto";
 
-@Controller('marp/firewall')
-@UseGuards(PC365Guard)
+@Controller("marp/firewall")
+@UseGuards(PC365NestGuard)
 export class FirewallController {
   constructor(private readonly firewallService: FirewallService) {}
 
-  @Get('rules')
+  @Get("rules")
   async getActiveRules(
-    @Query('subsystem') subsystem?: string,
-    @Query('direction') direction?: FirewallDirection,
+    @Query("subsystem") subsystem?: string,
+    @Query("direction") direction?: FirewallDirection
   ): Promise<FirewallRuleDto[]> {
     return this.firewallService.getActiveRules(subsystem, direction);
   }
 
-  @Post('rules')
+  @Post("rules")
   async createRule(
-    @Body() dto: CreateFirewallRuleDto,
+    @Body() dto: CreateFirewallRuleDto
     // In a real implementation, user ID would come from authenticated context
   ): Promise<FirewallRuleDto> {
-    return this.firewallService.createRule(dto, 'marp-admin');
+    return this.firewallService.createRule(dto, "marp-admin");
   }
 
-  @Post('enforce')
+  @Post("enforce")
   async enforceRules(@Body() dto: FirewallEnforceDto): Promise<FirewallEnforceResultDto> {
     return this.firewallService.enforceRules(dto);
   }

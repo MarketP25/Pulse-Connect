@@ -17,7 +17,7 @@ export class InMemorySessionStore implements SessionStore {
   async set(sessionId: string, payload: Record<string, unknown>, ttlSec: number): Promise<void> {
     this.sessions.set(sessionId, {
       payload,
-      expiresAt: Date.now() + ttlSec * 1000,
+      expiresAt: Date.now() + ttlSec * 1000
     });
   }
 

@@ -9,6 +9,7 @@ export const CSI_PRIMARY_SUBSYSTEMS = [
   "marketing",
   "communication",
   "billing",
+  "pap_v1"
 ] as const;
 
 export type CSIPrimarySubsystem = (typeof CSI_PRIMARY_SUBSYSTEMS)[number];
@@ -65,13 +66,19 @@ export function validateCSIEvent(candidate: Partial<CSIEvent>): CSIEventValidati
     errors.push("timestamp is required and must be a finite number");
   }
 
-  if (!candidate.metrics || typeof candidate.metrics !== "object" || Array.isArray(candidate.metrics)) {
+  if (
+    !candidate.metrics ||
+    typeof candidate.metrics !== "object" ||
+    Array.isArray(candidate.metrics)
+  ) {
     errors.push("metrics is required and must be an object");
   }
 
   if (
     candidate.riskScore !== undefined &&
-    (typeof candidate.riskScore !== "number" || candidate.riskScore < 0 || candidate.riskScore > 100)
+    (typeof candidate.riskScore !== "number" ||
+      candidate.riskScore < 0 ||
+      candidate.riskScore > 100)
   ) {
     errors.push("riskScore must be a number between 0 and 100 when provided");
   }
@@ -96,16 +103,18 @@ export function validateCSIEvent(candidate: Partial<CSIEvent>): CSIEventValidati
     timestamp: Math.floor(candidate.timestamp!),
     metrics: { ...candidate.metrics },
     riskScore: candidate.riskScore,
-    performanceScore: candidate.performanceScore,
+    performanceScore: candidate.performanceScore
   };
 
   return { valid: true, errors: [], event };
 }
 
-export function createCSIEvent(input: Omit<CSIEvent, "timestamp"> & { timestamp?: number }): CSIEvent {
+export function createCSIEvent(
+  input: Omit<CSIEvent, "timestamp"> & { timestamp?: number }
+): CSIEvent {
   const result = validateCSIEvent({
     ...input,
-    timestamp: input.timestamp ?? Date.now(),
+    timestamp: input.timestamp ?? Date.now()
   });
 
   if (!result.valid || !result.event) {
@@ -143,7 +152,7 @@ export function emitSubsystemEvent(
   eventType: string,
   region: string,
   metrics: Record<string, any>,
-  scores?: Pick<CSIEvent, "riskScore" | "performanceScore">,
+  scores?: Pick<CSIEvent, "riskScore" | "performanceScore">
 ): CSIEvent {
   return emitCSIEvent(
     createCSIEvent({
@@ -152,8 +161,8 @@ export function emitSubsystemEvent(
       region,
       metrics,
       riskScore: scores?.riskScore,
-      performanceScore: scores?.performanceScore,
-    }),
+      performanceScore: scores?.performanceScore
+    })
   );
 }
 
@@ -162,13 +171,13 @@ export function createSubsystemEmitter(subsystem: string) {
     eventType: string,
     region: string,
     metrics: Record<string, any>,
-    scores?: Pick<CSIEvent, "riskScore" | "performanceScore">,
+    scores?: Pick<CSIEvent, "riskScore" | "performanceScore">
   ): CSIEvent => emitSubsystemEvent(subsystem, eventType, region, metrics, scores);
 }
 
 export function subscribeToEventBus(
   handler: CSIEventHandler,
-  filters?: { subsystem?: string; eventType?: string },
+  filters?: { subsystem?: string; eventType?: string }
 ): CSIEventSubscription {
   const listener = (event: CSIEvent): void => {
     if (filters?.subsystem && filters.subsystem !== event.subsystem) {
@@ -188,7 +197,7 @@ export function subscribeToEventBus(
   return {
     unsubscribe: () => {
       bus.off(EVENT_TOPIC, listener);
-    },
+    }
   };
 }
 

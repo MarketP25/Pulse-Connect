@@ -13,11 +13,7 @@ function normalizeBaseUrl(url: string): string {
 }
 
 function getAiBaseUrl(): string {
-  return (
-    process.env.PULSCO_AI_API_URL ||
-    process.env.AI_COORDINATOR_URL ||
-    ""
-  );
+  return process.env.PULSCO_AI_API_URL || process.env.AI_COORDINATOR_URL || "";
 }
 
 function fallbackResponse(prompt: string): string {
@@ -57,12 +53,17 @@ function extractResponse(payload: Record<string, unknown>): string | null {
   return null;
 }
 
-async function tryLiveAi(baseUrl: string, prompt: string, userId: string, language: string): Promise<string | null> {
+async function tryLiveAi(
+  baseUrl: string,
+  prompt: string,
+  userId: string,
+  language: string
+): Promise<string | null> {
   const endpoints = [
     `${normalizeBaseUrl(baseUrl)}/chat`,
     `${normalizeBaseUrl(baseUrl)}/v1/chat`,
     `${normalizeBaseUrl(baseUrl)}/api/v1/chat`,
-    `${normalizeBaseUrl(baseUrl)}/ask`,
+    `${normalizeBaseUrl(baseUrl)}/ask`
   ];
 
   for (const endpoint of endpoints) {
@@ -71,15 +72,15 @@ async function tryLiveAi(baseUrl: string, prompt: string, userId: string, langua
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-pulsco-source-app": "@pulsco/pulse-connect-ui",
+          "x-pulsco-source-app": "@pulsco/pulse-connect-ui"
         },
         cache: "no-store",
         body: JSON.stringify({
           prompt,
           userId,
           language,
-          context: "dashboard",
-        }),
+          context: "dashboard"
+        })
       });
 
       if (!response.ok) {
@@ -105,14 +106,14 @@ export function getPulscoAiStatus(): PulscoAiStatus {
     return {
       available: true,
       provider: "pulsco-ai-fallback",
-      mode: "fallback",
+      mode: "fallback"
     };
   }
 
   return {
     available: true,
     provider: "pulsco-ai-service",
-    mode: "live",
+    mode: "live"
   };
 }
 
@@ -130,7 +131,7 @@ export async function askPulscoAi(params: {
         response: liveResponse,
         available: true,
         provider: "pulsco-ai-service",
-        mode: "live",
+        mode: "live"
       };
     }
   }
@@ -139,6 +140,6 @@ export async function askPulscoAi(params: {
     response: fallbackResponse(params.prompt),
     available: true,
     provider: "pulsco-ai-fallback",
-    mode: "fallback",
+    mode: "fallback"
   };
 }

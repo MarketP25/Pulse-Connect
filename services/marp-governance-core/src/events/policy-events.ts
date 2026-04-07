@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 /**
  * MARP Policy Events
@@ -52,8 +52,8 @@ export interface PolicyActivatedEvent {
 export interface PolicyConflictEvent {
   conflictId: string;
   conflictingPolicies: string[];
-  conflictType: 'version' | 'scope' | 'content';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  conflictType: "version" | "scope" | "content";
+  severity: "low" | "medium" | "high" | "critical";
   subsystemScope?: string;
   detectedBy: string;
   timestamp: string;
@@ -67,10 +67,10 @@ export class PolicyEventEmitter {
    * Emit policy creation event
    */
   async emitPolicyCreated(event: PolicyCreatedEvent): Promise<void> {
-    this.eventEmitter.emit('marp.policy.created', event);
-    this.eventEmitter.emit('marp.governance.policy.lifecycle', {
-      type: 'created',
-      ...event,
+    this.eventEmitter.emit("marp.policy.created", event);
+    this.eventEmitter.emit("marp.governance.policy.lifecycle", {
+      type: "created",
+      ...event
     });
   }
 
@@ -78,10 +78,10 @@ export class PolicyEventEmitter {
    * Emit policy validation event
    */
   async emitPolicyValidated(event: PolicyValidatedEvent): Promise<void> {
-    this.eventEmitter.emit('marp.policy.validated', event);
-    this.eventEmitter.emit('marp.governance.policy.lifecycle', {
-      type: 'validated',
-      ...event,
+    this.eventEmitter.emit("marp.policy.validated", event);
+    this.eventEmitter.emit("marp.governance.policy.lifecycle", {
+      type: "validated",
+      ...event
     });
   }
 
@@ -89,10 +89,10 @@ export class PolicyEventEmitter {
    * Emit policy signing event
    */
   async emitPolicySigned(event: PolicySignedEvent): Promise<void> {
-    this.eventEmitter.emit('marp.policy.signed', event);
-    this.eventEmitter.emit('marp.governance.policy.lifecycle', {
-      type: 'signed',
-      ...event,
+    this.eventEmitter.emit("marp.policy.signed", event);
+    this.eventEmitter.emit("marp.governance.policy.lifecycle", {
+      type: "signed",
+      ...event
     });
   }
 
@@ -100,10 +100,10 @@ export class PolicyEventEmitter {
    * Emit policy activation event
    */
   async emitPolicyActivated(event: PolicyActivatedEvent): Promise<void> {
-    this.eventEmitter.emit('marp.policy.activated', event);
-    this.eventEmitter.emit('marp.governance.policy.lifecycle', {
-      type: 'activated',
-      ...event,
+    this.eventEmitter.emit("marp.policy.activated", event);
+    this.eventEmitter.emit("marp.governance.policy.lifecycle", {
+      type: "activated",
+      ...event
     });
   }
 
@@ -111,8 +111,8 @@ export class PolicyEventEmitter {
    * Emit policy conflict event
    */
   async emitPolicyConflict(event: PolicyConflictEvent): Promise<void> {
-    this.eventEmitter.emit('marp.policy.conflict', event);
-    this.eventEmitter.emit('marp.governance.conflict', event);
+    this.eventEmitter.emit("marp.policy.conflict", event);
+    this.eventEmitter.emit("marp.governance.conflict", event);
   }
 }
 
@@ -121,31 +121,31 @@ export class PolicyEventEmitter {
  */
 export const MARP_GOVERNANCE_TOPICS = {
   // Policy Lifecycle Events
-  POLICY_CREATED: 'marp.policy.created',
-  POLICY_VALIDATED: 'marp.policy.validated',
-  POLICY_SIGNED: 'marp.policy.signed',
-  POLICY_ACTIVATED: 'marp.policy.activated',
-  POLICY_CONFLICT: 'marp.policy.conflict',
+  POLICY_CREATED: "marp.policy.created",
+  POLICY_VALIDATED: "marp.policy.validated",
+  POLICY_SIGNED: "marp.policy.signed",
+  POLICY_ACTIVATED: "marp.policy.activated",
+  POLICY_CONFLICT: "marp.policy.conflict",
 
   // Council Events
-  COUNCIL_DECISION_MADE: 'marp.council.decision.made',
-  COUNCIL_VOTE_CAST: 'marp.council.vote.cast',
-  COUNCIL_QUORUM_REACHED: 'marp.council.quorum.reached',
+  COUNCIL_DECISION_MADE: "marp.council.decision.made",
+  COUNCIL_VOTE_CAST: "marp.council.vote.cast",
+  COUNCIL_QUORUM_REACHED: "marp.council.quorum.reached",
 
   // Governance Lifecycle
-  GOVERNANCE_POLICY_LIFECYCLE: 'marp.governance.policy.lifecycle',
-  GOVERNANCE_CONFLICT: 'marp.governance.conflict',
-  GOVERNANCE_AUDIT: 'marp.governance.audit',
+  GOVERNANCE_POLICY_LIFECYCLE: "marp.governance.policy.lifecycle",
+  GOVERNANCE_CONFLICT: "marp.governance.conflict",
+  GOVERNANCE_AUDIT: "marp.governance.audit",
 
   // CSI Integration Events
-  CSI_INSIGHTS_AVAILABLE: 'marp.csi.insights.available',
-  CSI_VALIDATION_COMPLETE: 'marp.csi.validation.complete',
-  CSI_ARBITRATION_REQUESTED: 'marp.csi.arbitration.requested',
+  CSI_INSIGHTS_AVAILABLE: "marp.csi.insights.available",
+  CSI_VALIDATION_COMPLETE: "marp.csi.validation.complete",
+  CSI_ARBITRATION_REQUESTED: "marp.csi.arbitration.requested",
 
   // Security Events
-  SECURITY_PC365_VALIDATION: 'marp.security.pc365.validation',
-  SECURITY_SIGNATURE_VERIFIED: 'marp.security.signature.verified',
-  SECURITY_ACCESS_DENIED: 'marp.security.access.denied',
+  SECURITY_PC365_VALIDATION: "marp.security.pc365.validation",
+  SECURITY_SIGNATURE_VERIFIED: "marp.security.signature.verified",
+  SECURITY_ACCESS_DENIED: "marp.security.access.denied"
 } as const;
 
 /**

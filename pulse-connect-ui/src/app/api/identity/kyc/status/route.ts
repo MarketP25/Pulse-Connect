@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { code: "missing_user_id", message: "userId is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 

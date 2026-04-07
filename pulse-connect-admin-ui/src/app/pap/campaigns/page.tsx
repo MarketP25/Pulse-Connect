@@ -1,17 +1,50 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
-import { AlertCircle, BarChart3, Calendar, Mail, MessageSquare, Smartphone, Users, Zap } from 'lucide-react';
-import { PAPCampaign, CampaignStatus, MarketingChannel } from '../../../../../packages/pap_v1/src/types/pap';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
+import {
+  AlertCircle,
+  BarChart3,
+  Calendar,
+  Mail,
+  MessageSquare,
+  Smartphone,
+  Users,
+  Zap
+} from "lucide-react";
+import {
+  PAPCampaign,
+  CampaignStatus,
+  MarketingChannel
+} from "../../../../../packages/pap_v1/src/types/pap";
 
 interface CampaignStats {
   totalCampaigns: number;
@@ -28,8 +61,8 @@ export default function PAPCampaignsPage() {
   const [stats, setStats] = useState<CampaignStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCampaign, setSelectedCampaign] = useState<PAPCampaign | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     loadCampaigns();
@@ -41,43 +74,51 @@ export default function PAPCampaignsPage() {
       // Mock data - in real implementation, this would call the PAP API
       const mockCampaigns: PAPCampaign[] = [
         {
-          id: '1',
-          name: 'Welcome Series 2024',
-          description: 'Onboarding campaign for new users',
-          type: 'promotional',
-          status: 'running',
-          channels: ['email', 'push'],
-          audience: { type: 'dynamic', criteria: {} },
-          content: { subject: 'Welcome to PULSCO!', body: 'Welcome message...', localization: { enabled: false, languages: [], fallbackLanguage: 'en' } },
-          schedule: { type: 'immediate' },
-          goals: { primary: { type: 'engagement', target: 1000, metric: 'opens' } },
-          budget: { amount: 500, currency: 'USD', spent: 125 },
+          id: "1",
+          name: "Welcome Series 2024",
+          description: "Onboarding campaign for new users",
+          type: "promotional",
+          status: "running",
+          channels: ["email", "push"],
+          audience: { type: "dynamic", criteria: {} },
+          content: {
+            subject: "Welcome to Pulsco Global Ltd!",
+            body: "Welcome message...",
+            localization: { enabled: false, languages: [], fallbackLanguage: "en" }
+          },
+          schedule: { type: "immediate" },
+          goals: { primary: { type: "engagement", target: 1000, metric: "opens" } },
+          budget: { amount: 500, currency: "USD", spent: 125 },
           targeting: { enabled: true, locationBased: true },
-          createdBy: 'admin',
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date('2024-01-01'),
+          createdBy: "admin",
+          createdAt: new Date("2024-01-01"),
+          updatedAt: new Date("2024-01-01")
         },
         {
-          id: '2',
-          name: 'Product Launch - Q1',
-          description: 'Launch campaign for new proximity features',
-          type: 'product_launch',
-          status: 'scheduled',
-          channels: ['email', 'sms', 'social_facebook'],
-          audience: { type: 'segment', criteria: {} },
-          content: { subject: 'New Features Available!', body: 'Exciting updates...', localization: { enabled: true, languages: ['es', 'fr'], fallbackLanguage: 'en' } },
-          schedule: { type: 'scheduled', startDate: new Date('2024-02-01') },
-          goals: { primary: { type: 'conversion', target: 500, metric: 'purchases' } },
-          budget: { amount: 2000, currency: 'USD', spent: 0 },
+          id: "2",
+          name: "Product Launch - Q1",
+          description: "Launch campaign for new proximity features",
+          type: "product_launch",
+          status: "scheduled",
+          channels: ["email", "sms", "social_facebook"],
+          audience: { type: "segment", criteria: {} },
+          content: {
+            subject: "New Features Available!",
+            body: "Exciting updates...",
+            localization: { enabled: false, languages: ["es", "fr"], fallbackLanguage: "en" }
+          },
+          schedule: { type: "scheduled", startDate: new Date("2024-02-01") },
+          goals: { primary: { type: "conversion", target: 500, metric: "purchases" } },
+          budget: { amount: 2000, currency: "USD", spent: 0 },
           targeting: { enabled: true, locationBased: true, geofencing: true },
-          createdBy: 'admin',
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-01-15'),
-        },
+          createdBy: "admin",
+          createdAt: new Date("2024-01-15"),
+          updatedAt: new Date("2024-01-15")
+        }
       ];
       setCampaigns(mockCampaigns);
     } catch (error) {
-      console.error('Failed to load campaigns:', error);
+      console.error("Failed to load campaigns:", error);
     } finally {
       setLoading(false);
     }
@@ -93,42 +134,48 @@ export default function PAPCampaignsPage() {
         deliveredActions: 118750,
         totalRevenue: 45680,
         avgOpenRate: 0.32,
-        avgClickRate: 0.08,
+        avgClickRate: 0.08
       };
       setStats(mockStats);
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      console.error("Failed to load stats:", error);
     }
   };
 
   const getStatusBadge = (status: CampaignStatus) => {
     const variants = {
-      draft: 'secondary',
-      scheduled: 'outline',
-      running: 'default',
-      paused: 'destructive',
-      completed: 'default',
-      cancelled: 'destructive',
-      failed: 'destructive',
+      draft: "secondary",
+      scheduled: "outline",
+      running: "default",
+      paused: "destructive",
+      completed: "default",
+      cancelled: "destructive",
+      failed: "destructive"
     } as const;
 
-    return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
+    return <Badge variant={variants[status] || "secondary"}>{status}</Badge>;
   };
 
   const getChannelIcon = (channel: MarketingChannel) => {
     switch (channel) {
-      case 'email': return <Mail className="h-4 w-4" />;
-      case 'sms': return <MessageSquare className="h-4 w-4" />;
-      case 'push': return <Smartphone className="h-4 w-4" />;
-      case 'social_facebook': return <Users className="h-4 w-4" />;
-      default: return <Zap className="h-4 w-4" />;
+      case "email":
+        return <Mail className="h-4 w-4" />;
+      case "sms":
+        return <MessageSquare className="h-4 w-4" />;
+      case "push":
+        return <Smartphone className="h-4 w-4" />;
+      case "social_facebook":
+        return <Users className="h-4 w-4" />;
+      default:
+        return <Zap className="h-4 w-4" />;
     }
   };
 
-  const filteredCampaigns = campaigns.filter(campaign => {
-    const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus;
-    const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         campaign.description?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredCampaigns = campaigns.filter((campaign) => {
+    const matchesStatus = filterStatus === "all" || campaign.status === filterStatus;
+    const matchesSearch =
+      campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      campaign.description?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -163,9 +210,7 @@ export default function PAPCampaignsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalCampaigns}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.activeCampaigns} active
-              </p>
+              <p className="text-xs text-muted-foreground">{stats.activeCampaigns} active</p>
             </CardContent>
           </Card>
 
@@ -189,9 +234,7 @@ export default function PAPCampaignsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                From campaign conversions
-              </p>
+              <p className="text-xs text-muted-foreground">From campaign conversions</p>
             </CardContent>
           </Card>
 
@@ -288,7 +331,11 @@ export default function PAPCampaignsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedCampaign(campaign)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedCampaign(campaign)}
+                      >
                         View
                       </Button>
                       <Button variant="outline" size="sm">
@@ -341,7 +388,9 @@ export default function PAPCampaignsPage() {
                       </div>
                       <div className="flex justify-between">
                         <span>Budget:</span>
-                        <span>${selectedCampaign.budget.amount} {selectedCampaign.budget.currency}</span>
+                        <span>
+                          ${selectedCampaign.budget.amount} {selectedCampaign.budget.currency}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -353,7 +402,11 @@ export default function PAPCampaignsPage() {
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
                         {selectedCampaign.channels.map((channel) => (
-                          <Badge key={channel} variant="outline" className="flex items-center gap-1">
+                          <Badge
+                            key={channel}
+                            variant="outline"
+                            className="flex items-center gap-1"
+                          >
                             {getChannelIcon(channel)}
                             {channel}
                           </Badge>
@@ -438,8 +491,11 @@ export default function PAPCampaignsPage() {
                       <div>
                         <h4 className="font-medium mb-2">Target Audience</h4>
                         <p className="text-sm text-muted-foreground">
-                          {selectedCampaign.audience.type === 'dynamic' ? 'Dynamic segmentation based on user behavior' :
-                           selectedCampaign.audience.type === 'static' ? 'Pre-defined user list' : 'Segment-based targeting'}
+                          {selectedCampaign.audience.type === "dynamic"
+                            ? "Dynamic segmentation based on user behavior"
+                            : selectedCampaign.audience.type === "static"
+                              ? "Pre-defined user list"
+                              : "Segment-based targeting"}
                         </p>
                       </div>
 
@@ -461,7 +517,7 @@ export default function PAPCampaignsPage() {
                       <div>
                         <h4 className="font-medium mb-2">Estimated Reach</h4>
                         <p className="text-2xl font-bold">
-                          {selectedCampaign.audience.estimatedReach?.toLocaleString() || 'N/A'}
+                          {selectedCampaign.audience.estimatedReach?.toLocaleString() || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -486,14 +542,15 @@ export default function PAPCampaignsPage() {
                       <div>
                         <label className="text-sm font-medium">Localization</label>
                         <p className="text-sm text-muted-foreground">
-                          {selectedCampaign.content.localization.enabled ? 'Enabled' : 'Disabled'}
+                          {selectedCampaign.content.localization.enabled ? "Enabled" : "Disabled"}
                         </p>
                       </div>
 
                       <div>
                         <label className="text-sm font-medium">Primary Goal</label>
                         <p className="text-sm text-muted-foreground">
-                          {selectedCampaign.goals.primary.type} - Target: {selectedCampaign.goals.primary.target}
+                          {selectedCampaign.goals.primary.type} - Target:{" "}
+                          {selectedCampaign.goals.primary.target}
                         </p>
                       </div>
 

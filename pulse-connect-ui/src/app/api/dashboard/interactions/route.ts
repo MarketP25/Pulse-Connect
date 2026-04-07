@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
     }>(req);
 
     if (!body.eventType || !body.module) {
-      return noStoreJson({ code: "invalid_event", message: "eventType and module are required" }, 400);
+      return noStoreJson(
+        { code: "invalid_event", message: "eventType and module are required" },
+        400
+      );
     }
 
     const result = await recordDashboardInteraction({
@@ -32,7 +35,7 @@ export async function POST(req: NextRequest) {
       eventType: body.eventType,
       module: body.module,
       metadata: body.metadata,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     });
 
     return noStoreJson(result, 202);

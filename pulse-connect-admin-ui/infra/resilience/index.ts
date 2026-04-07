@@ -2,7 +2,7 @@
 
 export interface SystemHealth {
   component: string;
-  status: 'healthy' | 'degraded' | 'critical' | 'offline';
+  status: "healthy" | "degraded" | "critical" | "offline";
   lastCheck: Date;
   responseTime: number;
   errorRate: number;
@@ -34,10 +34,11 @@ export class ResilienceManager {
     const components = Array.from(this.healthStatus.values());
     const activeDegradedModes = Array.from(this.activeDegradedModes);
 
-    let overall = 'healthy';
-    if (components.some(c => c.status === 'offline')) overall = 'offline';
-    else if (components.some(c => c.status === 'critical')) overall = 'critical';
-    else if (components.some(c => c.status === 'degraded') || activeDegradedModes.length > 0) overall = 'degraded';
+    let overall = "healthy";
+    if (components.some((c) => c.status === "offline")) overall = "offline";
+    else if (components.some((c) => c.status === "critical")) overall = "critical";
+    else if (components.some((c) => c.status === "degraded") || activeDegradedModes.length > 0)
+      overall = "degraded";
 
     return { overall, components, activeDegradedModes, lastUpdated: new Date() };
   }
@@ -75,18 +76,18 @@ export class ResilienceManager {
   private async evaluateTriggerCondition(condition: string): Promise<boolean> {
     // Simple condition evaluation
     try {
-      if (condition.includes('status')) {
+      if (condition.includes("status")) {
         const [component, op, value] = condition.split(/\s+/);
-        const cleanComponent = component.replace('.status', '');
+        const cleanComponent = component.replace(".status", "");
         const health = this.healthStatus.get(cleanComponent);
-        const status = health?.status || 'unknown';
+        const status = health?.status || "unknown";
 
-        if (op === '==') return status === value.replace(/"/g, '');
-        if (op === '!=') return status !== value.replace(/"/g, '');
+        if (op === "==") return status === value.replace(/"/g, "");
+        if (op === "!=") return status !== value.replace(/"/g, "");
       }
       return false;
     } catch (error) {
-      console.error('Error evaluating trigger condition:', condition, error);
+      console.error("Error evaluating trigger condition:", condition, error);
       return false;
     }
   }
@@ -94,49 +95,49 @@ export class ResilienceManager {
   private initializeDefaultDegradedModes(): void {
     const degradedModes: DegradedMode[] = [
       {
-        id: 'csi-degraded',
-        name: 'CSI Intelligence Degraded',
-        description: 'Reduced intelligence capabilities when CSI is unavailable',
+        id: "csi-degraded",
+        name: "CSI Intelligence Degraded",
+        description: "Reduced intelligence capabilities when CSI is unavailable",
         triggerCondition: 'csi.status != "healthy"',
-        activeComponents: ['csi'],
-        disabledFeatures: ['real-time-analytics', 'anomaly-detection'],
+        activeComponents: ["csi"],
+        disabledFeatures: ["real-time-analytics", "anomaly-detection"],
         fallbackBehaviors: {
-          metrics: 'use-cached-data',
-          alerts: 'reduced-frequency',
-          ui: 'show-degraded-banner'
+          metrics: "use-cached-data",
+          alerts: "reduced-frequency",
+          ui: "show-degraded-banner"
         },
         estimatedRecoveryTime: 30
       },
       {
-        id: 'marp-unavailable',
-        name: 'MARP Firewall Unavailable',
-        description: 'Last signed snapshot mode when MARP is unreachable',
+        id: "marp-unavailable",
+        name: "MARP Firewall Unavailable",
+        description: "Last signed snapshot mode when MARP is unreachable",
         triggerCondition: 'marp.status == "offline"',
-        activeComponents: ['marp'],
-        disabledFeatures: ['policy-enforcement', 'audit-logging'],
+        activeComponents: ["marp"],
+        disabledFeatures: ["policy-enforcement", "audit-logging"],
         fallbackBehaviors: {
-          policies: 'use-last-signed-snapshot',
-          ui: 'show-offline-banner'
+          policies: "use-last-signed-snapshot",
+          ui: "show-offline-banner"
         },
         estimatedRecoveryTime: 15
       },
       {
-        id: 'full-system-degraded',
-        name: 'Full System Degradation',
-        description: 'Minimal functionality mode for critical outages',
-        triggerCondition: 'critical_components_offline > 2',
-        activeComponents: ['csi', 'marp', 'auth', 'database'],
-        disabledFeatures: ['real-time-updates', 'export-functions', 'advanced-filters'],
+        id: "full-system-degraded",
+        name: "Full System Degradation",
+        description: "Minimal functionality mode for critical outages",
+        triggerCondition: "critical_components_offline > 2",
+        activeComponents: ["csi", "marp", "auth", "database"],
+        disabledFeatures: ["real-time-updates", "export-functions", "advanced-filters"],
         fallbackBehaviors: {
-          ui: 'show-emergency-mode',
-          data: 'read-only-mode',
-          alerts: 'email-only'
+          ui: "show-emergency-mode",
+          data: "read-only-mode",
+          alerts: "email-only"
         },
         estimatedRecoveryTime: 60
       }
     ];
 
-    degradedModes.forEach(mode => {
+    degradedModes.forEach((mode) => {
       this.degradedModes.set(mode.id, mode);
     });
   }

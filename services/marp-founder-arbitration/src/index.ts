@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { PC365Guard } from '../../../shared/lib/src/pc365Guard';
-import { HashChain } from '../../../shared/lib/src/hashChain';
+import { Injectable, Logger } from "@nestjs/common";
+import { Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { PC365Guard } from "../../../shared/lib/src/pc365Guard";
+import { HashChain } from "../../../shared/lib/src/hashChain";
 import {
   RequestArbitrationDto,
   FounderApprovalDto,
@@ -10,7 +10,7 @@ import {
   DeviceFingerprintDto,
   ArbitrationStatus,
   ArbitrationType
-} from '../dto/arbitration.dto';
+} from "../dto/arbitration.dto";
 
 @Injectable()
 export class FounderApprovalService {
@@ -18,11 +18,14 @@ export class FounderApprovalService {
   private readonly hashChain = new HashChain();
 
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
-    private readonly pc365Guard: PC365Guard,
+    @Inject("DATABASE_CONNECTION") private readonly db: Pool,
+    private readonly pc365Guard: PC365Guard
   ) {}
 
-  async requestArbitration(dto: RequestArbitrationDto, requesterId: string): Promise<ArbitrationStatusDto> {
+  async requestArbitration(
+    dto: RequestArbitrationDto,
+    requesterId: string
+  ): Promise<ArbitrationStatusDto> {
     try {
       // Validate PC365 attestation if provided
       if (dto.pc365Attestation) {
@@ -64,7 +67,7 @@ export class FounderApprovalService {
       const arbitration = result.rows[0];
 
       // Log arbitration request
-      await this.logArbitrationEvent(arbitrationId, 'REQUESTED', {
+      await this.logArbitrationEvent(arbitrationId, "REQUESTED", {
         type: dto.arbitrationType,
         requester: requesterId,
         reason: dto.requestReason
@@ -77,7 +80,10 @@ export class FounderApprovalService {
     }
   }
 
-  async approveArbitration(dto: FounderApprovalDto, approverId: string): Promise<ArbitrationStatusDto> {
+  async approveArbitration(
+    dto: FounderApprovalDto,
+    approverId: string
+  ): Promise<ArbitrationStatusDto> {
     try {
       // Validate founder authority
       await this.validateFounderAuthority(approverId);
@@ -106,13 +112,13 @@ export class FounderApprovalService {
       const result = await this.db.query(query, values);
 
       if (result.rows.length === 0) {
-        throw new Error('Arbitration not found or expired');
+        throw new Error("Arbitration not found or expired");
       }
 
       const arbitration = result.rows[0];
 
       // Log approval decision
-      await this.logArbitrationEvent(dto.arbitrationId, dto.approved ? 'APPROVED' : 'REJECTED', {
+      await this.logArbitrationEvent(dto.arbitrationId, dto.approved ? "APPROVED" : "REJECTED", {
         approver: approverId,
         notes: dto.approvalNotes
       });
@@ -134,7 +140,7 @@ export class FounderApprovalService {
     const result = await this.db.query(query, [arbitrationId]);
 
     if (result.rows.length === 0) {
-      throw new Error('Arbitration not found');
+      throw new Error("Arbitration not found");
     }
 
     return this.mapToArbitrationStatusDto(result.rows[0]);
@@ -178,10 +184,10 @@ export class FounderApprovalService {
   private async validateFounderAuthority(userId: string): Promise<void> {
     // Check if user is founder (superadmin@pulsco.com)
     const query = `SELECT email FROM users WHERE id = $1 AND email = $2`;
-    const result = await this.db.query(query, [userId, 'superadmin@pulsco.com']);
+    const result = await this.db.query(query, [userId, "superadmin@pulsco.com"]);
 
     if (result.rows.length === 0) {
-      throw new Error('Unauthorized: Founder authority required');
+      throw new Error("Unauthorized: Founder authority required");
     }
   }
 
@@ -205,7 +211,11 @@ export class FounderApprovalService {
     return token;
   }
 
-  private async logArbitrationEvent(arbitrationId: string, eventType: string, eventData: any): Promise<void> {
+  private async logArbitrationEvent(
+    arbitrationId: string,
+    eventType: string,
+    eventData: any
+  ): Promise<void> {
     const query = `
       INSERT INTO arbitration_audit_log (arbitration_id, event_type, event_data, created_at)
       VALUES ($1, $2, $3, $4)

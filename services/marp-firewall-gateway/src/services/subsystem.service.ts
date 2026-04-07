@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { v4 as uuidv4 } from 'uuid';
+import { Injectable, Logger } from "@nestjs/common";
+import { Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { v4 as uuidv4 } from "uuid";
 
 export interface SubsystemRegistration {
   subsystemName: string;
@@ -25,8 +25,8 @@ export class SubsystemService {
   private readonly logger = new Logger(SubsystemService.name);
 
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
-    @Inject('REDIS_CONNECTION') private readonly redis: any,
+    @Inject("DATABASE_CONNECTION") private readonly db: Pool,
+    @Inject("REDIS_CONNECTION") private readonly redis: any
   ) {}
 
   async registerSubsystem(registration: SubsystemRegistration): Promise<SubsystemStatus> {
@@ -56,20 +56,22 @@ export class SubsystemService {
       JSON.stringify(registration.requiredPermissions),
       JSON.stringify(registration.routingRules || {}),
       registration.healthCheckUrl,
-      registrationToken,
+      registrationToken
     ];
 
     const result = await this.db.query(query, values);
     const subsystem = result.rows[0];
 
-    this.logger.log(`Subsystem ${registration.subsystemName} registered with token ${registrationToken}`);
+    this.logger.log(
+      `Subsystem ${registration.subsystemName} registered with token ${registrationToken}`
+    );
 
     return {
       subsystemName: subsystem.subsystem_name,
       isRegistered: subsystem.is_registered,
       isHealthy: true,
       lastHeartbeat: subsystem.last_heartbeat?.toISOString(),
-      registrationToken,
+      registrationToken
     };
   }
 
@@ -86,7 +88,7 @@ export class SubsystemService {
       return {
         subsystemName,
         isRegistered: false,
-        isHealthy: false,
+        isHealthy: false
       };
     }
 
@@ -98,7 +100,7 @@ export class SubsystemService {
       isRegistered: subsystem.is_registered,
       isHealthy,
       lastHeartbeat: subsystem.last_heartbeat?.toISOString(),
-      registrationToken: subsystem.registration_token,
+      registrationToken: subsystem.registration_token
     };
   }
 
@@ -129,7 +131,7 @@ export class SubsystemService {
       action,
       routed: true,
       routingResult,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
   }
 
@@ -149,7 +151,7 @@ export class SubsystemService {
     const heartbeatInterval = subsystem.heartbeat_interval_seconds || 300;
     const gracePeriod = heartbeatInterval * 2 * 1000; // 2x interval in milliseconds
 
-    return (now - lastHeartbeat) <= gracePeriod;
+    return now - lastHeartbeat <= gracePeriod;
   }
 
   private async updateHeartbeat(subsystemName: string): Promise<void> {
@@ -183,18 +185,18 @@ export class SubsystemService {
     if (!rule) {
       // Default routing
       return {
-        destination: 'default',
-        priority: 'normal',
-        transformations: [],
+        destination: "default",
+        priority: "normal",
+        transformations: []
       };
     }
 
     // Apply rule-specific logic
     return {
-      destination: rule.destination || 'default',
-      priority: rule.priority || 'normal',
+      destination: rule.destination || "default",
+      priority: rule.priority || "normal",
       transformations: rule.transformations || [],
-      conditions: rule.conditions || {},
+      conditions: rule.conditions || {}
     };
   }
 }

@@ -1,136 +1,146 @@
-'use client'
+"use client";
 
-import { UserProfile } from '../../types/auth'
+import { UserProfile } from "../../types/auth";
 
 interface AccessPatternVisualizerProps {
-  user: UserProfile | null
+  user: UserProfile | null;
 }
 
 export function AccessPatternVisualizer({ user }: AccessPatternVisualizerProps) {
   const getUserAccessPattern = (user: UserProfile | null) => {
     if (!user) {
       return {
-        pattern: 'public',
-        accessibleSubsystems: ['places-venues', 'localization'],
-        description: 'Limited access to public features only'
-      }
+        pattern: "public",
+        accessibleSubsystems: ["places-venues", "localization"],
+        description: "Limited access to public features only"
+      };
     }
 
     switch (user.role) {
-      case 'user':
+      case "user":
         return {
-          pattern: 'consumer',
+          pattern: "consumer",
           accessibleSubsystems: [
-            'places-venues', 'communication', 'localization',
-            'matchmaking', 'ecommerce'
+            "places-venues",
+            "communication",
+            "localization",
+            "matchmaking",
+            "ecommerce"
           ],
-          description: 'Full consumer access to planetary services'
-        }
-      case 'business':
+          description: "Full consumer access to planetary services"
+        };
+      case "business":
         return {
-          pattern: 'enterprise',
+          pattern: "enterprise",
           accessibleSubsystems: [
-            'places-venues', 'pap-marketing', 'matchmaking',
-            'ecommerce', 'communication', 'localization',
-            'pulse-intelligence'
+            "places-venues",
+            "pap-marketing",
+            "matchmaking",
+            "ecommerce",
+            "communication",
+            "localization",
+            "pulse-intelligence"
           ],
-          description: 'Business management and marketing tools'
-        }
-      case 'admin':
+          description: "Business management and marketing tools"
+        };
+      case "admin":
         return {
-          pattern: 'administrator',
-          accessibleSubsystems: ['*'], // All subsystems
-          description: 'Full system administration access'
-        }
-      case 'council':
+          pattern: "administrator",
+          accessibleSubsystems: ["*"], // All subsystems
+          description: "Full system administration access"
+        };
+      case "council":
         return {
-          pattern: 'governance',
+          pattern: "governance",
           accessibleSubsystems: [
-            'marp-governance', 'edge-gateway', 'pulse-intelligence',
-            'fraud', 'communication'
+            "marp-governance",
+            "edge-gateway",
+            "pulse-intelligence",
+            "fraud",
+            "communication"
           ],
-          description: 'Governance and oversight access'
-        }
+          description: "Governance and oversight access"
+        };
       default:
         return {
-          pattern: 'restricted',
-          accessibleSubsystems: ['places-venues'],
-          description: 'Basic access pending verification'
-        }
+          pattern: "restricted",
+          accessibleSubsystems: ["places-venues"],
+          description: "Basic access pending verification"
+        };
     }
-  }
+  };
 
-  const accessPattern = getUserAccessPattern(user)
+  const accessPattern = getUserAccessPattern(user);
 
   const accessFlows = {
     public: {
-      title: '🌐 Public Access',
-      description: 'Anonymous users and basic consumers',
+      title: "🌐 Public Access",
+      description: "Anonymous users and basic consumers",
       flow: [
-        'Visit pulsco.com',
-        'Portal detects no authentication',
-        'Shows public subsystems only',
-        'Optional: Sign up for enhanced access'
+        "Visit pulsco.com",
+        "Portal detects no authentication",
+        "Shows public subsystems only",
+        "Optional: Sign up for enhanced access"
       ],
-      exampleUsers: ['Tourists', 'Local residents', 'Anonymous browsers']
+      exampleUsers: ["Tourists", "Local residents", "Anonymous browsers"]
     },
     consumer: {
-      title: '👤 Consumer Access',
-      description: 'Verified individual users',
+      title: "👤 Consumer Access",
+      description: "Verified individual users",
       flow: [
-        'Login to Portal',
-        'MFA verification if enabled',
-        'Access personal dashboard',
-        'Launch authorized subsystems',
-        'Cross-subsystem data sharing'
+        "Login to Portal",
+        "MFA verification if enabled",
+        "Access personal dashboard",
+        "Launch authorized subsystems",
+        "Cross-subsystem data sharing"
       ],
-      exampleUsers: ['Verified users', 'Premium subscribers', 'Proximity service users']
+      exampleUsers: ["Verified users", "Premium subscribers", "Proximity service users"]
     },
     enterprise: {
-      title: '🏢 Enterprise Access',
-      description: 'Business accounts and organizations',
+      title: "🏢 Enterprise Access",
+      description: "Business accounts and organizations",
       flow: [
-        'Business login with org credentials',
-        'Role-based subsystem access',
-        'Team management features',
-        'Analytics and reporting',
-        'Bulk operations across subsystems'
+        "Business login with org credentials",
+        "Role-based subsystem access",
+        "Team management features",
+        "Analytics and reporting",
+        "Bulk operations across subsystems"
       ],
-      exampleUsers: ['Business owners', 'Marketing agencies', 'Venue managers']
+      exampleUsers: ["Business owners", "Marketing agencies", "Venue managers"]
     },
     administrator: {
-      title: '⚙️ Administrator Access',
-      description: 'System administrators',
+      title: "⚙️ Administrator Access",
+      description: "System administrators",
       flow: [
-        'Admin portal login',
-        'Full subsystem access',
-        'System health monitoring',
-        'User management',
-        'Configuration and maintenance'
+        "Admin portal login",
+        "Full subsystem access",
+        "System health monitoring",
+        "User management",
+        "Configuration and maintenance"
       ],
-      exampleUsers: ['System admins', 'DevOps engineers', 'Platform managers']
+      exampleUsers: ["System admins", "DevOps engineers", "Platform managers"]
     },
     governance: {
-      title: '🏛️ Governance Access',
-      description: 'Council members and auditors',
+      title: "🏛️ Governance Access",
+      description: "Council members and auditors",
       flow: [
-        'Secure council login',
-        'Policy review and approval',
-        'Audit trail access',
-        'Compliance monitoring',
-        'Emergency override capabilities'
+        "Secure council login",
+        "Policy review and approval",
+        "Audit trail access",
+        "Compliance monitoring",
+        "Emergency override capabilities"
       ],
-      exampleUsers: ['Council members', 'Compliance officers', 'Auditors']
+      exampleUsers: ["Council members", "Compliance officers", "Auditors"]
     }
-  }
+  };
 
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-white mb-4">PULSCO User Access Patterns</h2>
+        <h2 className="text-3xl font-bold text-white mb-4">Pulsco User Access Patterns</h2>
         <p className="text-slate-300 max-w-3xl mx-auto">
-          Different user types access subsystems through tailored authentication and authorization flows,
-          ensuring security while maintaining usability across your planetary platform.
+          Different user types access subsystems through tailored authentication and authorization
+          flows, ensuring security while maintaining usability across your planetary platform.
         </p>
       </div>
 
@@ -166,15 +176,17 @@ export function AccessPatternVisualizer({ user }: AccessPatternVisualizerProps) 
             key={pattern}
             className={`rounded-xl p-6 border transition-all ${
               accessPattern.pattern === pattern
-                ? 'bg-purple-900/50 border-purple-500 shadow-lg'
-                : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+                ? "bg-purple-900/50 border-purple-500 shadow-lg"
+                : "bg-slate-800/50 border-slate-700 hover:border-slate-600"
             }`}
           >
             <h3 className="text-xl font-semibold text-white mb-3">{config.title}</h3>
             <p className="text-slate-300 mb-4">{config.description}</p>
 
             <div className="space-y-2 mb-4">
-              <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wide">Access Flow</h4>
+              <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wide">
+                Access Flow
+              </h4>
               <ol className="list-decimal list-inside space-y-1 text-sm text-slate-300">
                 {config.flow.map((step, index) => (
                   <li key={index}>{step}</li>
@@ -183,7 +195,9 @@ export function AccessPatternVisualizer({ user }: AccessPatternVisualizerProps) 
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wide">Example Users</h4>
+              <h4 className="text-sm font-medium text-slate-400 uppercase tracking-wide">
+                Example Users
+              </h4>
               <div className="flex flex-wrap gap-2">
                 {config.exampleUsers.map((userType, index) => (
                   <span
@@ -216,34 +230,48 @@ export function AccessPatternVisualizer({ user }: AccessPatternVisualizerProps) 
             </thead>
             <tbody>
               {[
-                { id: 'places-venues', name: 'Places & Venues' },
-                { id: 'pap-marketing', name: 'PAP Marketing' },
-                { id: 'matchmaking', name: 'Matchmaking' },
-                { id: 'ecommerce', name: 'E-commerce' },
-                { id: 'communication', name: 'Communication' },
-                { id: 'localization', name: 'Localization' },
-                { id: 'pulse-intelligence', name: 'Pulse Intelligence' },
-                { id: 'edge-gateway', name: 'Edge Gateway' },
-                { id: 'marp-governance', name: 'MARP Governance' }
+                { id: "places-venues", name: "Places & Venues" },
+                { id: "pap-marketing", name: "PAP Marketing" },
+                { id: "matchmaking", name: "Matchmaking" },
+                { id: "ecommerce", name: "E-commerce" },
+                { id: "communication", name: "Communication" },
+                { id: "localization", name: "Localization" },
+                { id: "pulse-intelligence", name: "Pulse Intelligence" },
+                { id: "edge-gateway", name: "Edge Gateway" },
+                { id: "marp-governance", name: "MARP Governance" }
               ].map((subsystem) => (
                 <tr key={subsystem.id} className="border-b border-slate-800">
                   <td className="py-3 px-4 text-white font-medium">{subsystem.name}</td>
                   <td className="py-3 px-4 text-center">
-                    {['places-venues', 'localization'].includes(subsystem.id) ? (
+                    {["places-venues", "localization"].includes(subsystem.id) ? (
                       <span className="text-green-400">✓</span>
                     ) : (
                       <span className="text-slate-600">✗</span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {['places-venues', 'communication', 'localization', 'matchmaking', 'ecommerce'].includes(subsystem.id) ? (
+                    {[
+                      "places-venues",
+                      "communication",
+                      "localization",
+                      "matchmaking",
+                      "ecommerce"
+                    ].includes(subsystem.id) ? (
                       <span className="text-green-400">✓</span>
                     ) : (
                       <span className="text-slate-600">✗</span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {['places-venues', 'pap-marketing', 'matchmaking', 'ecommerce', 'communication', 'localization', 'pulse-intelligence'].includes(subsystem.id) ? (
+                    {[
+                      "places-venues",
+                      "pap-marketing",
+                      "matchmaking",
+                      "ecommerce",
+                      "communication",
+                      "localization",
+                      "pulse-intelligence"
+                    ].includes(subsystem.id) ? (
                       <span className="text-green-400">✓</span>
                     ) : (
                       <span className="text-slate-600">✗</span>
@@ -253,7 +281,12 @@ export function AccessPatternVisualizer({ user }: AccessPatternVisualizerProps) 
                     <span className="text-green-400">✓</span>
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {['marp-governance', 'edge-gateway', 'pulse-intelligence', 'communication'].includes(subsystem.id) ? (
+                    {[
+                      "marp-governance",
+                      "edge-gateway",
+                      "pulse-intelligence",
+                      "communication"
+                    ].includes(subsystem.id) ? (
                       <span className="text-green-400">✓</span>
                     ) : (
                       <span className="text-slate-600">✗</span>
@@ -266,5 +299,5 @@ export function AccessPatternVisualizer({ user }: AccessPatternVisualizerProps) 
         </div>
       </div>
     </div>
-  )
+  );
 }

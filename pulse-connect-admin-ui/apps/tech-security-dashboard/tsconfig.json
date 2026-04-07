@@ -1,0 +1,38 @@
+﻿{
+  ""compilerOptions"": {
+    ""target"": ""ES2017"",
+    ""lib"": [""dom"", ""dom.iterable"", ""esnext""],
+    ""allowJs"": true,
+    ""skipLibCheck"": true,
+    ""strict"": true,
+    ""noEmit"": true,
+    ""esModuleInterop"": true,
+    ""module"": ""esnext"",
+    ""moduleResolution"": ""bundler"",
+    ""resolveJsonModule"": true,
+    ""isolatedModules"": true,
+    ""jsx"": ""preserve"",
+    ""incremental"": true,
+    ""ignoreDeprecations"": ""6.0"",
+    ""plugins"": [{ ""name"": ""next"" }],
+    ""baseUrl"": ""."",
+    ""paths"": {
+      ""@/*"": [""./src/*""],
+      ""@pulsco/admin-shared-types"": [""../../packages/admin-shared-types""],
+      ""@pulsco/admin-ui-core"": [""../../packages/ui-core""],
+      ""@pulsco/admin-charts"": [""../../packages/charts""],
+      ""@pulsco/admin-csi-client"": [""../../packages/csi-client""],
+      ""@pulsco/admin-marp-client"": [""../../packages/marp-client""],
+      ""@pulsco/admin-alerts-client"": [""../../packages/alerts-client""],
+      ""@pulsco/admin-auth-client"": [""../../packages/auth-client""],
+      ""@pulsco/admin-compliance"": [""../../packages/compliance""],
+      ""@pulsco/admin-governance-comms"": [""../../packages/governance-comms""],
+      ""@pulsco/admin-decision-engine"": [""../../packages/decision-engine""],
+      ""@pulsco/admin-metric-lineage"": [""../../packages/metric-lineage""],
+      ""@pulsco/admin-admin-lifecycle"": [""../../packages/admin-lifecycle""],
+      ""@pulsco/admin-governance-intent"": [""../../packages/governance-intent""]
+    }
+  },
+  ""include"": [""next-env.d.ts"", ""**/*.ts"", ""**/*.tsx"", "".next/types/**/*.ts""],
+  ""exclude"": [""node_modules""]
+}

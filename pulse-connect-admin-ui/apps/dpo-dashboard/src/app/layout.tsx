@@ -1,14 +1,14 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { PwaRegister } from '@pulsco/pwa'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { PwaRegister } from "@pulsco/pwa";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'DPO Dashboard - Pulsco Governance',
-  description: 'Data protection, privacy compliance, and incident oversight'
-}
+  title: "DPO Dashboard - Pulsco Governance",
+  description: "Data protection, privacy compliance, and incident oversight"
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,10 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={inter.className}>
         <PwaRegister appId="@pulsco/dpo-dashboard" />
-        <div className="min-h-screen bg-gray-50">
-          {children}
-        </div>
+        <div className="min-h-screen bg-gray-50">{children}</div>
       </body>
     </html>
-  )
+  );
 }

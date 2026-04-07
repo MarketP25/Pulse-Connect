@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   PAPTemplate,
   TemplateVariable,
@@ -8,9 +8,9 @@ import {
   CreateTemplateRequest,
   UpdateTemplateRequest,
   TemplateError,
-  ValidationError,
-} from '../types/pap';
-import { TemplateEntity } from '../entities/template.entity';
+  ValidationError
+} from "../types/pap";
+import { TemplateEntity } from "../entities/template.entity";
 
 @Injectable()
 export class TemplateService {
@@ -18,7 +18,7 @@ export class TemplateService {
 
   constructor(
     @InjectRepository(TemplateEntity)
-    private readonly templateRepository: Repository<TemplateEntity>,
+    private readonly templateRepository: Repository<TemplateEntity>
   ) {}
 
   /**
@@ -35,11 +35,15 @@ export class TemplateService {
       subject: request.subject,
       body: request.body,
       variables: request.variables || [],
-      localization: request.localization || { enabled: false, languages: [], fallbackLanguage: 'en' },
+      localization: request.localization || {
+        enabled: false,
+        languages: [],
+        fallbackLanguage: "en"
+      },
       tags: request.tags || [],
       createdBy: request.createdBy,
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     });
 
     const savedTemplate = await this.templateRepository.save(templateEntity);
@@ -51,11 +55,11 @@ export class TemplateService {
    */
   async updateTemplate(request: UpdateTemplateRequest): Promise<PAPTemplate> {
     const template = await this.templateRepository.findOne({
-      where: { id: request.id },
+      where: { id: request.id }
     });
 
     if (!template) {
-      throw new ValidationError('Template not found');
+      throw new ValidationError("Template not found");
     }
 
     Object.assign(template, request);
@@ -70,11 +74,11 @@ export class TemplateService {
    */
   async getTemplate(templateId: string): Promise<PAPTemplate> {
     const template = await this.templateRepository.findOne({
-      where: { id: templateId },
+      where: { id: templateId }
     });
 
     if (!template) {
-      throw new ValidationError('Template not found');
+      throw new ValidationError("Template not found");
     }
 
     return this.mapEntityToTemplate(template);
@@ -86,10 +90,10 @@ export class TemplateService {
   async getTemplatesByChannel(channel: string): Promise<PAPTemplate[]> {
     const templates = await this.templateRepository.find({
       where: { channel },
-      order: { updatedAt: 'DESC' },
+      order: { updatedAt: "DESC" }
     });
 
-    return templates.map(t => this.mapEntityToTemplate(t));
+    return templates.map((t) => this.mapEntityToTemplate(t));
   }
 
   /**
@@ -101,56 +105,66 @@ export class TemplateService {
     tags?: string[];
     search?: string;
   }): Promise<PAPTemplate[]> {
-    let qb = this.templateRepository.createQueryBuilder('template');
+    let qb = this.templateRepository.createQueryBuilder("template");
 
     if (query.channel) {
-      qb = qb.andWhere('template.channel = :channel', { channel: query.channel });
+      qb = qb.andWhere("template.channel = :channel", { channel: query.channel });
     }
 
     if (query.type) {
-      qb = qb.andWhere('template.type = :type', { type: query.type });
+      qb = qb.andWhere("template.type = :type", { type: query.type });
     }
 
     if (query.tags && query.tags.length > 0) {
-      qb = qb.andWhere('template.tags && :tags', { tags: query.tags });
+      qb = qb.andWhere("template.tags && :tags", { tags: query.tags });
     }
 
     if (query.search) {
       qb = qb.andWhere(
-        '(template.name ILIKE :search OR template.description ILIKE :search OR template.body ILIKE :search)',
+        "(template.name ILIKE :search OR template.description ILIKE :search OR template.body ILIKE :search)",
         { search: `%${query.search}%` }
       );
     }
 
-    const templates = await qb.orderBy('template.updatedAt', 'DESC').getMany();
-    return templates.map(t => this.mapEntityToTemplate(t));
+    const templates = await qb.orderBy("template.updatedAt", "DESC").getMany();
+    return templates.map((t) => this.mapEntityToTemplate(t));
   }
 
   /**
    * Render template with variables
    */
-  async renderTemplate(templateId: string, variables: Record<string, any>): Promise<{
+  async renderTemplate(
+    templateId: string,
+    variables: Record<string, any>
+  ): Promise<{
     subject?: string;
     body: string;
   }> {
     const template = await this.getTemplate(templateId);
 
     return {
-      subject: template.subject ? this.interpolateVariables(template.subject, variables) : undefined,
-      body: this.interpolateVariables(template.body, variables),
+      subject: template.subject
+        ? this.interpolateVariables(template.subject, variables)
+        : undefined,
+      body: this.interpolateVariables(template.body, variables)
     };
   }
 
   /**
    * Render template object directly
    */
-  renderTemplate(template: PAPTemplate, variables: Record<string, any>): {
+  renderTemplate(
+    template: PAPTemplate,
+    variables: Record<string, any>
+  ): {
     subject?: string;
     body: string;
   } {
     return {
-      subject: template.subject ? this.interpolateVariables(template.subject, variables) : undefined,
-      body: this.interpolateVariables(template.body, variables),
+      subject: template.subject
+        ? this.interpolateVariables(template.subject, variables)
+        : undefined,
+      body: this.interpolateVariables(template.body, variables)
     };
   }
 
@@ -182,14 +196,18 @@ export class TemplateService {
     const result = await this.templateRepository.delete(templateId);
 
     if (result.affected === 0) {
-      throw new ValidationError('Template not found');
+      throw new ValidationError("Template not found");
     }
   }
 
   /**
    * Clone template
    */
-  async cloneTemplate(templateId: string, newName: string, createdBy: string): Promise<PAPTemplate> {
+  async cloneTemplate(
+    templateId: string,
+    newName: string,
+    createdBy: string
+  ): Promise<PAPTemplate> {
     const originalTemplate = await this.getTemplate(templateId);
 
     const clonedTemplate = await this.createTemplate({
@@ -201,8 +219,8 @@ export class TemplateService {
       body: originalTemplate.body,
       variables: originalTemplate.variables,
       localization: originalTemplate.localization,
-      tags: [...originalTemplate.tags, 'cloned'],
-      createdBy,
+      tags: [...originalTemplate.tags, "cloned"],
+      createdBy
     });
 
     return clonedTemplate;
@@ -221,7 +239,7 @@ export class TemplateService {
     return {
       usageCount: Math.floor(Math.random() * 1000),
       lastUsed: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-      successRate: 0.85 + Math.random() * 0.1, // 85-95%
+      successRate: 0.85 + Math.random() * 0.1 // 85-95%
     };
   }
 
@@ -229,11 +247,13 @@ export class TemplateService {
    * Validate template variables
    */
   validateTemplateVariables(template: PAPTemplate, variables: Record<string, any>): void {
-    const requiredVars = template.variables.filter(v => v.required);
-    const missingVars = requiredVars.filter(v => !(v.name in variables));
+    const requiredVars = template.variables.filter((v) => v.required);
+    const missingVars = requiredVars.filter((v) => !(v.name in variables));
 
     if (missingVars.length > 0) {
-      throw new ValidationError(`Missing required variables: ${missingVars.map(v => v.name).join(', ')}`);
+      throw new ValidationError(
+        `Missing required variables: ${missingVars.map((v) => v.name).join(", ")}`
+      );
     }
 
     // Validate variable types
@@ -253,13 +273,13 @@ export class TemplateService {
 
     // Replace {{variable}} syntax
     for (const [key, value] of Object.entries(variables)) {
-      const regex = new RegExp(`{{${key}}}`, 'g');
+      const regex = new RegExp(`{{${key}}}`, "g");
       result = result.replace(regex, String(value));
     }
 
     // Replace ${variable} syntax
     for (const [key, value] of Object.entries(variables)) {
-      const regex = new RegExp(`\\$\\{${key}\\}`, 'g');
+      const regex = new RegExp(`\\$\\{${key}\\}`, "g");
       result = result.replace(regex, String(value));
     }
 
@@ -271,22 +291,22 @@ export class TemplateService {
    */
   private validateVariableType(value: any, expectedType: string): void {
     switch (expectedType) {
-      case 'string':
-        if (typeof value !== 'string') {
+      case "string":
+        if (typeof value !== "string") {
           throw new ValidationError(`Variable must be a string, got ${typeof value}`);
         }
         break;
-      case 'number':
-        if (typeof value !== 'number') {
+      case "number":
+        if (typeof value !== "number") {
           throw new ValidationError(`Variable must be a number, got ${typeof value}`);
         }
         break;
-      case 'boolean':
-        if (typeof value !== 'boolean') {
+      case "boolean":
+        if (typeof value !== "boolean") {
           throw new ValidationError(`Variable must be a boolean, got ${typeof value}`);
         }
         break;
-      case 'date':
+      case "date":
         if (!(value instanceof Date) && isNaN(Date.parse(value))) {
           throw new ValidationError(`Variable must be a valid date`);
         }
@@ -299,23 +319,23 @@ export class TemplateService {
 
   private validateCreateTemplateRequest(request: CreateTemplateRequest): void {
     if (!request.name || request.name.length < 3) {
-      throw new ValidationError('Template name must be at least 3 characters');
+      throw new ValidationError("Template name must be at least 3 characters");
     }
 
     if (!request.body || request.body.length < 10) {
-      throw new ValidationError('Template body must be at least 10 characters');
+      throw new ValidationError("Template body must be at least 10 characters");
     }
 
     if (!request.channel) {
-      throw new ValidationError('Channel is required');
+      throw new ValidationError("Channel is required");
     }
 
     if (!request.type) {
-      throw new ValidationError('Template type is required');
+      throw new ValidationError("Template type is required");
     }
 
     if (!request.createdBy) {
-      throw new ValidationError('Created by is required');
+      throw new ValidationError("Created by is required");
     }
   }
 
@@ -333,7 +353,7 @@ export class TemplateService {
       tags: entity.tags,
       createdBy: entity.createdBy,
       createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
+      updatedAt: entity.updatedAt
     };
   }
 }

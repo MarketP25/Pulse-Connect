@@ -1,9 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { PlaceEntity } from './place.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn
+} from "typeorm";
+import { PlaceEntity } from "./place.entity";
 
-@Entity('place_reservations')
+@Entity("place_reservations")
 export class ReservationEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 255 })
@@ -12,25 +19,25 @@ export class ReservationEntity {
   @Column({ length: 255 })
   userId: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   partySize: number;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: "timestamp" })
   dateTime: Date;
 
-  @Column({ type: 'int' }) // minutes
+  @Column({ type: "int" }) // minutes
   duration: number;
 
-  @Column({ length: 20, default: 'pending' })
+  @Column({ length: 20, default: "pending" })
   status: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   specialRequests: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => PlaceEntity, place => place.reservations)
-  @JoinColumn({ name: 'placeId' })
+  @ManyToOne(() => PlaceEntity, (place) => place.reservations)
+  @JoinColumn({ name: "placeId" })
   place: PlaceEntity;
 }

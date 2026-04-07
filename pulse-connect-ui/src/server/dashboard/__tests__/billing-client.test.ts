@@ -1,7 +1,7 @@
 import {
   chargeBillingActivity,
   fetchBillingServiceData,
-  performBillingServiceAction,
+  performBillingServiceAction
 } from "@/server/dashboard/platform-clients";
 
 describe("billing platform client", () => {
@@ -25,8 +25,8 @@ describe("billing platform client", () => {
           planId: "enterprise",
           status: "pending_change",
           region: "Europe West 1",
-          periodEnd: "2026-03-15T00:00:00.000Z",
-        }),
+          periodEnd: "2026-03-15T00:00:00.000Z"
+        })
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
@@ -37,9 +37,9 @@ describe("billing platform client", () => {
             amount: 349,
             balanceAfter: 4651,
             timestamp: "2026-03-01T00:00:00.000Z",
-            policyVersion: "2026.03.01",
-          },
-        ],
+            policyVersion: "2026.03.01"
+          }
+        ]
       } as Response);
 
     const result = await fetchBillingServiceData("acct-1");
@@ -49,7 +49,7 @@ describe("billing platform client", () => {
     expect(result?.ledgerEntries[0]).toMatchObject({
       id: "le-1",
       amountUsd: 349,
-      balanceUsd: 4651,
+      balanceUsd: 4651
     });
     expect(result?.policyVersions[0]?.version).toBe("2026.03.01");
   });
@@ -64,20 +64,20 @@ describe("billing platform client", () => {
         json: async () => [
           { planId: "basic", priceUsd: 29 },
           { planId: "premium", priceUsd: 99 },
-          { planId: "enterprise", priceUsd: 349 },
-        ],
+          { planId: "enterprise", priceUsd: 349 }
+        ]
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           walletId: "wallet-acct-2",
           accountId: "acct-2",
-          balance: 5000,
-        }),
+          balance: 5000
+        })
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ entryId: "sub-upgrade-1" }),
+        json: async () => ({ entryId: "sub-upgrade-1" })
       } as Response);
 
     const result = await performBillingServiceAction("acct-2", "upgrade", { tier: "premium" });
@@ -98,11 +98,11 @@ describe("billing platform client", () => {
       .fn()
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ walletId: "wallet-acct-3", accountId: "acct-3", balance: 5000 }),
+        json: async () => ({ walletId: "wallet-acct-3", accountId: "acct-3", balance: 5000 })
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ entryId: "act-1", amount: 101.55, sourceEngine: "ecommerce" }),
+        json: async () => ({ entryId: "act-1", amount: 101.55, sourceEngine: "ecommerce" })
       } as Response);
 
     const result = await chargeBillingActivity({
@@ -110,8 +110,8 @@ describe("billing platform client", () => {
       region: "US",
       event: {
         engine: "ecommerce",
-        amount: 99,
-      },
+        amount: 99
+      }
     });
 
     expect(result?.entryId).toBe("act-1");

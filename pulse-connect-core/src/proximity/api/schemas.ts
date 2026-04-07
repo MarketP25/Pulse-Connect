@@ -1,9 +1,17 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const ProximityRequestSchema = z.object({
   actorId: z.string(),
   subsystem: z.string(),
-  purpose: z.enum(['fraud', 'matchmaking', 'delivery', 'marketing', 'localization']),
+  purpose: z.enum([
+    "fraud",
+    "matchmaking",
+    "delivery",
+    "marketing",
+    "localization",
+    "ecommerce",
+    "places"
+  ]),
   requestId: z.string(),
   policyVersion: z.string(),
   reasonCode: z.string(),
@@ -34,14 +42,18 @@ export const DistanceRequestSchema = z.object({
 });
 
 export const ClusterRequestSchema = z.object({
-  locations: z.array(z.object({
-    lat: z.number(),
-    lng: z.number(),
-    id: z.string().optional()
-  })),
-  options: z.object({
-    algorithm: z.enum(['geohash', 'kmeans']).default('geohash'),
-    precision: z.number().default(6),
-    maxClusters: z.number().default(10)
-  }).optional()
+  locations: z.array(
+    z.object({
+      lat: z.number(),
+      lng: z.number(),
+      id: z.string().optional()
+    })
+  ),
+  options: z
+    .object({
+      algorithm: z.enum(["geohash", "kmeans"]).default("geohash"),
+      precision: z.number().default(6),
+      maxClusters: z.number().default(10)
+    })
+    .optional()
 });

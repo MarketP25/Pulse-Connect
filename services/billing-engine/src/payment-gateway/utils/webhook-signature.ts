@@ -46,7 +46,11 @@ function hmacSha256Base64(secret: string, message: string): string {
  * - Stripe-style headers: "t=timestamp,v1=signature"
  * - Secret rotation via comma-separated `webhookSecret`.
  */
-export function verifyWebhookSignatureHmacSha256(payload: string, signature: string, webhookSecret?: string): boolean {
+export function verifyWebhookSignatureHmacSha256(
+  payload: string,
+  signature: string,
+  webhookSecret?: string
+): boolean {
   if (!webhookSecret) return false;
   const { timestamp, candidates } = parseSignatureHeader(signature);
   if (!candidates.length) return false;
@@ -63,7 +67,9 @@ export function verifyWebhookSignatureHmacSha256(payload: string, signature: str
 
     // Stripe-style: HMAC over `${t}.${payload}`
     const expectedStripeHex = timestamp ? hmacSha256Hex(secret, `${timestamp}.${payload}`) : null;
-    const expectedStripeB64 = timestamp ? hmacSha256Base64(secret, `${timestamp}.${payload}`) : null;
+    const expectedStripeB64 = timestamp
+      ? hmacSha256Base64(secret, `${timestamp}.${payload}`)
+      : null;
 
     for (const cand of candidates) {
       const c = cand.trim();
@@ -78,4 +84,3 @@ export function verifyWebhookSignatureHmacSha256(payload: string, signature: str
 
   return false;
 }
-

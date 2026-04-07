@@ -38,7 +38,7 @@ High-impact missing areas:
   - New `ReportingPanel` with revenue summary/trends, latency, anomalies, risk score
   - Tier/role gates aligned with existing `reporting` access rules
 - Acceptance:
-  - Enterprise/developer/government roles can access reporting
+  - Organisation role can access reporting
   - Fraud anomalies and risk scores render in dashboard
   - Unit + integration tests for route contracts and access checks
 

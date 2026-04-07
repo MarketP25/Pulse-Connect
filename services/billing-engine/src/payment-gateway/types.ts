@@ -44,7 +44,7 @@ export interface PaymentRequest {
 }
 
 export interface PaymentMethod {
-  type: 'card' | 'bank_transfer' | 'wallet' | 'upi' | 'qr_code';
+  type: "card" | "bank_transfer" | "wallet" | "upi" | "qr_code";
   card?: {
     number: string;
     expMonth: number;
@@ -56,7 +56,7 @@ export interface PaymentMethod {
     bankCode?: string;
     accountNumber?: string;
   };
-  wallet?: 'paypal' | 'alipay' | 'wechatpay';
+  wallet?: "paypal" | "alipay" | "wechatpay" | "mpesa";
   upi?: {
     vpa: string;
   };
@@ -78,16 +78,16 @@ export interface PaymentResponse {
   createdAt: Date;
 }
 
-export type PaymentStatus = 
-  | 'pending'
-  | 'processing'
-  | 'authorized'
-  | 'captured'
-  | 'failed'
-  | 'refunded'
-  | 'partially_refunded'
-  | 'cancelled'
-  | 'expired';
+export type PaymentStatus =
+  | "pending"
+  | "processing"
+  | "authorized"
+  | "captured"
+  | "failed"
+  | "refunded"
+  | "partially_refunded"
+  | "cancelled"
+  | "expired";
 
 export interface RefundRequest {
   transactionId: string;
@@ -99,7 +99,7 @@ export interface RefundRequest {
 export interface RefundResponse {
   success: boolean;
   refundId?: string;
-  status: 'succeeded' | 'pending' | 'failed';
+  status: "succeeded" | "pending" | "failed";
   amount: number;
   currency: string;
   gateway: string;
@@ -142,19 +142,19 @@ export interface WebhookEvent {
   processed: boolean;
 }
 
-export type WebhookEventType = 
-  | 'payment.success'
-  | 'payment.failed'
-  | 'payment.refunded'
-  | 'payment.captured'
-  | 'payment.authorized'
-  | 'customer.created'
-  | 'customer.updated'
-  | 'dispute.opened'
-  | 'dispute.resolved'
-  | 'subscription.created'
-  | 'subscription.updated'
-  | 'subscription.cancelled';
+export type WebhookEventType =
+  | "payment.success"
+  | "payment.failed"
+  | "payment.refunded"
+  | "payment.captured"
+  | "payment.authorized"
+  | "customer.created"
+  | "customer.updated"
+  | "dispute.opened"
+  | "dispute.resolved"
+  | "subscription.created"
+  | "subscription.updated"
+  | "subscription.cancelled";
 
 export interface GatewayCapabilities {
   supports3DSecure: boolean;

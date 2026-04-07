@@ -1,9 +1,13 @@
-export interface WeeklySellerPlan { name: string; price: number; listings: number }
+export interface WeeklySellerPlan {
+  name: string;
+  price: number;
+  listings: number;
+}
 
 export const sellerPlans: WeeklySellerPlan[] = [
   { name: "starter", price: 25, listings: 50 },
   { name: "growth", price: 150, listings: 100 },
-  { name: "enterprise", price: 450, listings: 250 },
+  { name: "enterprise", price: 450, listings: 250 }
 ];
 
 export function weeklyChargeForPlan(planName: string) {

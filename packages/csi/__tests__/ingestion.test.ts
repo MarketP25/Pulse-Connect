@@ -19,8 +19,8 @@ describe("CSI ingestion engine", () => {
         subsystem: "ecommerce",
         eventType: "order.created",
         region: "US",
-        metrics: { amountUsd: 90 },
-      }),
+        metrics: { amountUsd: 90 }
+      })
     );
 
     await new Promise((resolve) => setTimeout(resolve, 10));
@@ -37,7 +37,7 @@ describe("CSI ingestion engine", () => {
       async (event) => {
         processed.push(event.eventType);
       },
-      { dedupeWindowMs: 60_000 },
+      { dedupeWindowMs: 60_000 }
     );
 
     engine.startIngestion();
@@ -47,7 +47,7 @@ describe("CSI ingestion engine", () => {
       eventType: "reservation.created",
       region: "KE",
       timestamp: 1_700_000_000_000,
-      metrics: { reservations: 1 },
+      metrics: { reservations: 1 }
     });
 
     emitCSIEvent(event);
@@ -66,7 +66,7 @@ describe("CSI ingestion engine", () => {
       async (event) => {
         processed.push(event.subsystem);
       },
-      { subsystemAllowList: ["billing"] },
+      { subsystemAllowList: ["billing"] }
     );
 
     engine.startIngestion();
@@ -76,8 +76,8 @@ describe("CSI ingestion engine", () => {
         subsystem: "ecommerce",
         eventType: "order.created",
         region: "US",
-        metrics: { amountUsd: 44 },
-      }),
+        metrics: { amountUsd: 44 }
+      })
     );
 
     emitCSIEvent(
@@ -85,8 +85,8 @@ describe("CSI ingestion engine", () => {
         subsystem: "billing",
         eventType: "invoice.issued",
         region: "US",
-        metrics: { invoices: 1 },
-      }),
+        metrics: { invoices: 1 }
+      })
     );
 
     await new Promise((resolve) => setTimeout(resolve, 10));

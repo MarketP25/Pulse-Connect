@@ -23,13 +23,14 @@ function fingerprintEvent(event: CSIEvent): string {
     timestamp: event.timestamp,
     riskScore: event.riskScore ?? null,
     performanceScore: event.performanceScore ?? null,
-    metrics: event.metrics,
+    metrics: event.metrics
   });
 }
 
 export class CSIIngestionEngine {
   private readonly processor: CSIIngestionProcessor;
-  private readonly options: Required<Pick<CSIIngestionOptions, "dedupeWindowMs">> & CSIIngestionOptions;
+  private readonly options: Required<Pick<CSIIngestionOptions, "dedupeWindowMs">> &
+    CSIIngestionOptions;
   private readonly seen = new Map<string, number>();
   private unsubscribeFn?: () => void;
   private running = false;
@@ -37,14 +38,14 @@ export class CSIIngestionEngine {
     received: 0,
     accepted: 0,
     rejected: 0,
-    deduplicated: 0,
+    deduplicated: 0
   };
 
   constructor(processor: CSIIngestionProcessor, options: CSIIngestionOptions = {}) {
     this.processor = processor;
     this.options = {
       ...options,
-      dedupeWindowMs: options.dedupeWindowMs ?? 15_000,
+      dedupeWindowMs: options.dedupeWindowMs ?? 15_000
     };
   }
 
@@ -86,7 +87,7 @@ export class CSIIngestionEngine {
       accepted: 0,
       rejected: 0,
       deduplicated: 0,
-      lastReceivedAt: undefined,
+      lastReceivedAt: undefined
     };
   }
 
@@ -94,7 +95,10 @@ export class CSIIngestionEngine {
     this.metrics.received += 1;
     this.metrics.lastReceivedAt = Date.now();
 
-    if (this.options.subsystemAllowList && !this.options.subsystemAllowList.includes(event.subsystem)) {
+    if (
+      this.options.subsystemAllowList &&
+      !this.options.subsystemAllowList.includes(event.subsystem)
+    ) {
       this.metrics.rejected += 1;
       return;
     }
@@ -128,7 +132,7 @@ export class CSIIngestionEngine {
 
 export function subscribeToAllEventStreams(
   processor: CSIIngestionProcessor,
-  options: CSIIngestionOptions = {},
+  options: CSIIngestionOptions = {}
 ): CSIIngestionEngine {
   const engine = new CSIIngestionEngine(processor, options);
   engine.startIngestion();

@@ -21,18 +21,21 @@ import { MatchmakingOperationsPanel } from "@/components/dashboard/MatchmakingOp
 import { GovernancePanel } from "@/components/dashboard/GovernancePanel";
 import { LocalizationAdvancedPanel } from "@/components/dashboard/LocalizationAdvancedPanel";
 import { ProximityAdvancedPanel } from "@/components/dashboard/ProximityAdvancedPanel";
+import { PartnerInvestorNav } from "@/components/dashboard/PartnerInvestorNav";
 import { useDashboardStore } from "./useDashboardStore";
 import { mergeDashboardDictionary } from "@/lib/dashboard/i18n";
+import { useLanguage } from "@/lib/localization/language-provider";
+import { useT } from "@/lib/localization/i18n-provider";
 import { DashboardModuleKey } from "@/types/dashboard";
 
 function moduleState(
   access: Array<{ module: DashboardModuleKey; enabled: boolean; reason?: string }> | undefined,
-  module: DashboardModuleKey,
+  module: DashboardModuleKey
 ) {
   const match = access?.find((entry) => entry.module === module);
   return {
     enabled: Boolean(match?.enabled),
-    reason: match?.reason,
+    reason: match?.reason
   };
 }
 
@@ -40,6 +43,8 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const queryUserId = searchParams?.get("userId") || undefined;
 
+  const { language } = useLanguage();
+  const t = useT();
   const {
     userId,
     snapshot,
@@ -62,7 +67,7 @@ export default function DashboardPage() {
     runMatchmakingAction,
     runGovernanceAction,
     updateSecurity,
-    trackInteraction,
+    trackInteraction
   } = useDashboardStore();
 
   useEffect(() => {
@@ -76,14 +81,13 @@ export default function DashboardPage() {
     }
     void trackInteraction("core", "dashboard_loaded", {
       tier: snapshot.user.tier,
-      role: snapshot.user.role,
+      role: snapshot.user.role
     });
   }, [snapshot, trackInteraction]);
 
-  const language = snapshot?.user.preferredLanguage || "en";
   const text = useMemo(
     () => mergeDashboardDictionary(snapshot?.dictionary, language),
-    [language, snapshot?.dictionary],
+    [language, snapshot?.dictionary]
   );
 
   if (loading && !snapshot) {
@@ -124,15 +128,41 @@ export default function DashboardPage() {
           }}
         />
 
-        {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p> : null}
+        <PartnerInvestorNav
+          user={snapshot.user}
+          userId={userId}
+          labels={{
+            title: text.partnerInvestorNavTitle || "Partner & Investor Options",
+            subtitle: text.partnerInvestorNavSubtitle || "Apply for partner or investor access.",
+            partnerTitle: text.partnerApplication || "Partner Application",
+            partnerDescription:
+              text.partnerApplicationDescription || "Submit partnership details for review.",
+            investorTitle: text.investorApplication || "Investor Application",
+            investorDescription:
+              text.investorApplicationDescription || "Share your investment profile for review.",
+            enterpriseRequired:
+              text.enterpriseRequired ||
+              "Upgrade to Enterprise to access partner or investor registration."
+          }}
+        />
+
+        {error ? (
+          <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            {error}
+          </p>
+        ) : null}
         {snapshot.localizationProvider ? (
           <p className="text-xs text-slate-500">
-            Localization provider: <span className="font-semibold">{snapshot.localizationProvider}</span>
+            Localization provider:{" "}
+            <span className="font-semibold">{snapshot.localizationProvider}</span>
           </p>
         ) : null}
         {aiStatus ? (
           <p className="text-xs text-slate-500">
-            PULSCO AI: <span className="font-semibold">{aiStatus.available ? "Available" : "Unavailable"}</span>{" "}
+            PULSCO AI:{" "}
+            <span className="font-semibold">
+              {aiStatus.available ? "Available" : "Unavailable"}
+            </span>{" "}
             ({aiStatus.provider}, {aiStatus.mode})
           </p>
         ) : null}
@@ -141,11 +171,18 @@ export default function DashboardPage() {
           title={text.onboarding}
           saveLabel={text.save}
           user={snapshot.user}
+          languageCoverage={snapshot.localizationAdvanced?.languageCoverage}
           onSave={saveOnboarding}
           loading={saving}
         />
 
-        <ProfilePanel title={text.profile} saveLabel={text.save} user={snapshot.user} onSave={saveProfile} loading={saving} />
+        <ProfilePanel
+          title={text.profile}
+          saveLabel={text.save}
+          user={snapshot.user}
+          onSave={saveProfile}
+          loading={saving}
+        />
 
         <IdentityPanel
           title={text.identity || "Identity & Access"}
@@ -157,7 +194,11 @@ export default function DashboardPage() {
 
         <SubscriptionPanel
           title={text.subscription}
-          tierLabels={{ basic: text.tierBasic, premium: text.tierPremium, enterprise: text.tierEnterprise }}
+          tierLabels={{
+            basic: text.tierBasic,
+            premium: text.tierPremium,
+            enterprise: text.tierEnterprise
+          }}
           kycRequiredLabel={text.kycRequired}
           completeKycLabel={text.completeKyc}
           user={snapshot.user}
@@ -185,7 +226,11 @@ export default function DashboardPage() {
           onRunAction={runBillingAction}
         />
 
-        <InsightsPanel title={text.insights} recommendations={snapshot.recommendations} alerts={snapshot.alerts} />
+        <InsightsPanel
+          title={text.insights}
+          recommendations={snapshot.recommendations}
+          alerts={snapshot.alerts}
+        />
 
         <ReportingPanel
           title={text.reporting || "Reporting & Fraud"}

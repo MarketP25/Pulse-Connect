@@ -1,12 +1,17 @@
-import { Injectable, NotFoundException, ConflictException, UnauthorizedException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  UnauthorizedException
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User, UserStatus } from "./user.entity";
 import { AccountHistory, AccountAction, ActorType } from "./account-history.entity";
 import { HashChain } from "@pulsco/shared-lib";
-import * as bcrypt from 'bcrypt';
-import { authenticator } from 'otplib';
-import { toDataURL } from 'qrcode';
+import * as bcrypt from "bcrypt";
+import { authenticator } from "otplib";
+import { toDataURL } from "qrcode";
 
 export interface CreateUserDto {
   email: string;
@@ -29,7 +34,8 @@ export interface DeleteUserDto {
 
 export interface RegisterUserDto {
   email: string;
-  password; string;
+  password;
+  string;
   region: string;
   policy_version: string;
 }
@@ -90,14 +96,14 @@ export class AccountsService {
 
   async generateTwoFactorSecret(user: User) {
     const secret = authenticator.generateSecret();
-    const otpauthUrl = authenticator.keyuri(user.email, 'Pulsco', secret);
+    const otpauthUrl = authenticator.keyuri(user.email, "Pulsco", secret);
 
     await this.userRepository.update(user.id, { two_factor_secret: secret });
 
     return {
       secret,
       otpauthUrl
-    }
+    };
   }
 
   async generateTwoFactorQrCode(otpauthUrl: string) {
@@ -111,7 +117,7 @@ export class AccountsService {
   isTwoFactorTokenValid(token: string, user: User) {
     return authenticator.verify({
       token,
-      secret: user.two_factor_secret,
+      secret: user.two_factor_secret
     });
   }
 

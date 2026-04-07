@@ -13,7 +13,7 @@ type Props = {
 const demoUsers = [
   { id: "demo-basic", label: "Basic Demo" },
   { id: "demo-premium", label: "Premium Demo" },
-  { id: "demo-enterprise", label: "Enterprise Demo" },
+  { id: "demo-enterprise", label: "Enterprise Demo" }
 ];
 
 export function DashboardHeader({ title, subtitle, user, currentUserId, onUserIdChange }: Props) {

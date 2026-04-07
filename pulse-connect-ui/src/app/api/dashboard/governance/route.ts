@@ -1,5 +1,9 @@
 import { NextRequest } from "next/server";
-import { getGovernanceModule, requestGovernanceArbitration, reviewCsiRecommendation } from "@/server/dashboard/service";
+import {
+  getGovernanceModule,
+  requestGovernanceArbitration,
+  reviewCsiRecommendation
+} from "@/server/dashboard/service";
 import { getDashboardUserId, mapDashboardError, noStoreJson, parseJsonBody } from "../_utils";
 
 export async function GET(req: NextRequest) {
@@ -33,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (!body.recommendationId || !body.decision) {
       return noStoreJson(
         { code: "review_params_required", message: "recommendationId and decision are required" },
-        400,
+        400
       );
     }
 
@@ -43,4 +47,3 @@ export async function POST(req: NextRequest) {
     return mapDashboardError(error);
   }
 }
-

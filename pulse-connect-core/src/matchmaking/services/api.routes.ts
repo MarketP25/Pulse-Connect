@@ -5,6 +5,7 @@ import { ContractsService } from "./contracts.service";
 import { PaymentsService } from "./payments.service";
 import { ReputationService } from "./reputation.service";
 import { v4 as uuidv4 } from "uuid";
+import { verifyToken } from "@pulsco/pulse-identity-service";
 
 export class MatchmakingAPIRoutes {
   private router: express.Router;
@@ -28,22 +29,65 @@ export class MatchmakingAPIRoutes {
   }
 
   private setupRoutes() {
-    // Middleware for auth validation (simplified - would integrate with actual auth system)
-    const requireAuth = (req: express.Request, res: express.Response, next: express.Function) => {
-      // TODO: Implement proper auth validation
-      const userId = req.headers["x-user-id"] as string;
-      if (!userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-      (req as any).userId = parseInt(userId);
-      next();
+    type AuthPayload = { sub: string; typ?: string; role?: string };
+
+    const getBearerToken = (req: express.Request): string | null => {
+      const header = req.headers.authorization || "";
+      const match = header.match(/^Bearer\\s+(.+)$/i);
+      return match ? match[1] : null;
     };
 
-    // Middleware for RBAC (simplified)
+    const requireAuth = async (
+      req: express.Request,
+      res: express.Response,
+      next: express.Function
+    ) => {
+      const token = getBearerToken(req);
+      if (!token) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const secret = process.env.PULSE_IDENTITY_JWT_SECRET;
+      if (!secret) {
+        return res.status(500).json({ error: "Auth not configured" });
+      }
+
+      try {
+        const payload = verifyToken<AuthPayload>(token, secret);
+        if (payload.typ && payload.typ !== "access") {
+          return res.status(401).json({ error: "Invalid token type" });
+        }
+
+        let internalId: number | null = null;
+        if (/^\\d+$/.test(payload.sub)) {
+          internalId = parseInt(payload.sub, 10);
+        } else {
+          const result = await this.db.query(`SELECT id FROM users WHERE external_id = $1`, [
+            payload.sub
+          ]);
+          if (!result.rows?.[0]?.id) {
+            return res.status(401).json({ error: "Unknown user" });
+          }
+          internalId = Number(result.rows[0].id);
+        }
+
+        (req as any).userId = internalId;
+        (req as any).userExternalId = payload.sub;
+        (req as any).userRole = payload.role;
+        return next();
+      } catch {
+        return res.status(401).json({ error: "Invalid token" });
+      }
+    };
+
+    // Middleware for RBAC (minimal role enforcement)
     const requireRole = (allowedRoles: string[]) => {
       return (req: express.Request, res: express.Response, next: express.Function) => {
-        // TODO: Implement proper RBAC
-        next();
+        const role = (req as any).userRole;
+        if (!role || !allowedRoles.includes(role)) {
+          return res.status(403).json({ error: "Insufficient role" });
+        }
+        return next();
       };
     };
 

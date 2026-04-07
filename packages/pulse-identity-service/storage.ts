@@ -8,7 +8,7 @@ import {
   UserRoleRow,
   UserRow,
   UserSecurityRow,
-  UserTrustScoreRow,
+  UserTrustScoreRow
 } from "./types";
 
 export interface IdentityStorageAdapter {
@@ -193,16 +193,23 @@ export class InMemoryIdentityStorageAdapter implements IdentityStorageAdapter {
     this.sessions.set(sessionId, {
       ...session,
       revokedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
   }
 
-  async getIdempotentResponse<TValue = unknown>(scope: string, key: string): Promise<TValue | null> {
+  async getIdempotentResponse<TValue = unknown>(
+    scope: string,
+    key: string
+  ): Promise<TValue | null> {
     const record = this.idempotency.find((item) => item.scope === scope && item.key === key);
     return (record?.value as TValue) || null;
   }
 
-  async setIdempotentResponse<TValue = unknown>(scope: string, key: string, value: TValue): Promise<void> {
+  async setIdempotentResponse<TValue = unknown>(
+    scope: string,
+    key: string,
+    value: TValue
+  ): Promise<void> {
     const index = this.idempotency.findIndex((item) => item.scope === scope && item.key === key);
     const next = { scope, key, value };
     if (index >= 0) {

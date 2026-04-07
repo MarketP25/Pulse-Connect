@@ -1,51 +1,51 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from "typeorm";
 
-@Entity('audit_logs')
+@Entity("audit_logs")
 export class DecisionAudit {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column('text')
+  @Column("text")
   actor: string;
 
-  @Column('text')
+  @Column("text")
   subsystem: string;
 
-  @Column('text')
+  @Column("text")
   action: string;
 
-  @Column('text', { nullable: true })
+  @Column("text", { nullable: true })
   request_id: string;
 
-  @Column('text')
+  @Column("text")
   reason_code: string;
 
-  @Column('text')
+  @Column("text")
   policy_version: string;
 
-  @Column('timestamptz')
+  @Column("timestamptz")
   created_at: Date;
 
-  @Column('text', { nullable: true })
+  @Column("text", { nullable: true })
   prev_hash: string;
 
-  @Column('text', { nullable: true })
+  @Column("text", { nullable: true })
   curr_hash: string;
 
   // Decision-specific fields
-  @Column('text')
+  @Column("text")
   decision: string;
 
-  @Column('jsonb')
+  @Column("jsonb")
   context: any;
 
-  @Column('text')
+  @Column("text")
   purpose: string;
 
   @Index()
-  @Column('uuid')
+  @Column("uuid")
   user_id: string;
 
-  @Column('text')
+  @Column("text")
   region: string;
 }

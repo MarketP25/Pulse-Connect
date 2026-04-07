@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { SubsystemCard } from './SubsystemCard'
-import { SubsystemModal } from './SubsystemModal'
-import { useSubsystemRegistry } from '../../hooks/useSubsystemRegistry'
+import { useState } from "react";
+import { SubsystemCard } from "./SubsystemCard";
+import { SubsystemModal } from "./SubsystemModal";
+import { useSubsystemRegistry } from "../../hooks/useSubsystemRegistry";
 
 export function SubsystemLauncher() {
-  const [selectedSubsystem, setSelectedSubsystem] = useState<string | null>(null)
-  const { subsystems, loading, error } = useSubsystemRegistry()
+  const [selectedSubsystem, setSelectedSubsystem] = useState<string | null>(null);
+  const { subsystems, loading, error } = useSubsystemRegistry();
 
   if (loading) {
     return (
@@ -15,7 +15,7 @@ export function SubsystemLauncher() {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
         <span className="ml-4 text-slate-300">Loading planetary subsystems...</span>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -29,7 +29,7 @@ export function SubsystemLauncher() {
           Retry
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -37,8 +37,8 @@ export function SubsystemLauncher() {
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white mb-4">PULSCO Planetary Subsystem Launcher</h2>
         <p className="text-slate-300 max-w-2xl mx-auto">
-          Access all 10 planetary subsystems through a unified interface.
-          Each subsystem is independently deployed but accessible through this portal.
+          Access all 10 planetary subsystems through a unified interface. Each subsystem is
+          independently deployed but accessible through this portal.
         </p>
       </div>
 
@@ -83,5 +83,5 @@ export function SubsystemLauncher() {
         />
       )}
     </div>
-  )
+  );
 }

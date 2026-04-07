@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Geocode } from './entities/geocode.entity';
-import { ProximityRule } from './entities/proximity-rule.entity';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Geocode } from "./entities/geocode.entity";
+import { ProximityRule } from "./entities/proximity-rule.entity";
 
 // TTLs based on documentation guidance
 const GEOCODE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
@@ -40,12 +40,11 @@ class RedisCache implements CacheClient {
     // Lazy dynamic import to avoid hard dependency if not installed.
     // If ioredis is not available, fallback will be handled by caller.
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const Redis = require('ioredis');
+      const Redis = require("ioredis");
       this.client = new Redis(url, {
         lazyConnect: true,
         maxRetriesPerRequest: 1,
-        enableReadyCheck: true,
+        enableReadyCheck: true
       });
       this.ready = true;
     } catch (e) {
@@ -67,7 +66,7 @@ class RedisCache implements CacheClient {
     if (!this.ready) return;
     try {
       if (ttlSeconds && ttlSeconds > 0) {
-        await this.client.set(key, value, 'EX', ttlSeconds);
+        await this.client.set(key, value, "EX", ttlSeconds);
       } else {
         await this.client.set(key, value);
       }
@@ -86,7 +85,7 @@ export class ProximityService {
     @InjectRepository(Geocode)
     private geocodeRepository: Repository<Geocode>,
     @InjectRepository(ProximityRule)
-    private ruleRepository: Repository<ProximityRule>,
+    private ruleRepository: Repository<ProximityRule>
   ) {}
 
   private initCache(): void {
@@ -104,7 +103,7 @@ export class ProximityService {
   }
 
   private normalizeAddressKey(address: string): string {
-    return `geocode:${(address || '').trim().toLowerCase()}`;
+    return `geocode:${(address || "").trim().toLowerCase()}`;
   }
 
   /**
@@ -152,8 +151,13 @@ export class ProximityService {
     lat1: number,
     lng1: number,
     lat2: number,
-    lng2: number,
-  ): Promise<{ distance_km: number; verdict: boolean; policy_version: string; reason_code: string }> {
+    lng2: number
+  ): Promise<{
+    distance_km: number;
+    verdict: boolean;
+    policy_version: string;
+    reason_code: string;
+  }> {
     const distance = this.distanceKm(lat1, lng1, lat2, lng2);
     const rules = await this.ruleRepository.find({ where: { active: true } });
     const threshold = rules[0]?.threshold_km ?? 50;
@@ -161,8 +165,8 @@ export class ProximityService {
     return {
       distance_km: distance,
       verdict,
-      policy_version: rules[0]?.policy_version || '1.0.0',
-      reason_code: verdict ? 'WITHIN_THRESHOLD' : 'EXCEEDS_THRESHOLD',
+      policy_version: rules[0]?.policy_version || "1.0.0",
+      reason_code: verdict ? "WITHIN_THRESHOLD" : "EXCEEDS_THRESHOLD"
     };
   }
 
@@ -173,8 +177,8 @@ export class ProximityService {
     const clusters = this.simpleKMeans(points, k);
     return {
       clusters,
-      algorithm: 'k-means',
-      policy_version: '1.0.0',
+      algorithm: "k-means",
+      policy_version: "1.0.0"
     };
   }
 
@@ -194,8 +198,10 @@ export class ProximityService {
 
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      Math.cos(this.toRadians(lat1)) *
+        Math.cos(this.toRadians(lat2)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
@@ -227,23 +233,23 @@ export class ProximityService {
     return {
       lat: 37.7749,
       lng: -122.4194,
-      formatted_address: 'San Francisco, CA, USA',
+      formatted_address: "San Francisco, CA, USA",
       confidence: 0.95,
-      provider: 'google',
-      region_code: 'US-CA',
+      provider: "google",
+      region_code: "US-CA"
     };
   }
 
   private async storeGeocode(data: any): Promise<void> {
     const geocode = this.geocodeRepository.create({
-      actor: 'system',
-      address: data.address || 'unknown',
+      actor: "system",
+      address: data.address || "unknown",
       lat: data.lat,
       lng: data.lng,
       provider: data.provider,
       confidence: data.confidence,
       formatted_address: data.formatted_address,
-      region_code: data.region_code,
+      region_code: data.region_code
     });
 
     await this.geocodeRepository.save(geocode);
@@ -259,7 +265,7 @@ export class ProximityService {
     for (let i = 0; i < k; i++) {
       clusters.push({
         centroid: points[i % points.length],
-        points: [],
+        points: []
       });
     }
 
@@ -273,7 +279,7 @@ export class ProximityService {
           point.lat,
           point.lng,
           cluster.centroid.lat,
-          cluster.centroid.lng,
+          cluster.centroid.lng
         );
 
         if (distance < minDistance) {

@@ -11,7 +11,9 @@ export class LedgerService {
     return null;
   }
 
-  append(entry: Omit<LedgerEntry, "prevHash" | "entryHash" | "balanceAfter"> & { balanceAfter: number }): LedgerEntry {
+  append(
+    entry: Omit<LedgerEntry, "prevHash" | "entryHash" | "balanceAfter"> & { balanceAfter: number }
+  ): LedgerEntry {
     const prevHash = this.lastHashForWallet(entry.walletId);
     const base = { ...entry, prevHash } as LedgerEntry;
     const hashSource = JSON.stringify({ ...base, entryHash: undefined, prevHash });

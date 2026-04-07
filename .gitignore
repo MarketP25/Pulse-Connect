@@ -50,6 +50,7 @@ yarn-error.log*
 .env.development
 .env.production
 .env.test
+.env.example
 
 # Vercel
 .vercel

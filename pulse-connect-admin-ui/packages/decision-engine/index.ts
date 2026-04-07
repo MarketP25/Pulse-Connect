@@ -1,8 +1,8 @@
 // Decision Engine for Pulsco Admin Governance System
 // Handles acknowledgements, response logging, escalation rules, and resolution status
 
-import { AdminRoleType, Alert, EscalationRule } from '@pulsco/admin-shared-types';
-import { AlertsClient, AlertAcknowledgement, AlertEscalation } from '@pulsco/admin-alerts-client';
+import { AdminRoleType, Alert, EscalationRule } from "@pulsco/admin-shared-types";
+import { AlertsClient, AlertAcknowledgement, AlertEscalation } from "@pulsco/admin-alerts-client";
 
 export interface Acknowledgement {
   id: string;
@@ -20,7 +20,7 @@ export interface ResponseLog {
   alertId: string;
   adminId: string;
   adminRole: AdminRoleType;
-  action: 'acknowledged' | 'escalated' | 'resolved' | 'commented' | 'ignored';
+  action: "acknowledged" | "escalated" | "resolved" | "commented" | "ignored";
   timestamp: Date;
   details: Record<string, any>;
   auditTrail: string;
@@ -43,7 +43,7 @@ export interface EscalationRecord {
   reason: string;
   escalatedAt: Date;
   escalatedBy: AdminRoleType;
-  priority: 'normal' | 'urgent' | 'critical';
+  priority: "normal" | "urgent" | "critical";
 }
 
 export interface ResolutionStatus {
@@ -52,7 +52,7 @@ export interface ResolutionStatus {
   resolvedAt?: Date;
   resolvedBy?: AdminRoleType;
   resolution: string;
-  effectiveness: 'successful' | 'partial' | 'unsuccessful' | 'pending-review';
+  effectiveness: "successful" | "partial" | "unsuccessful" | "pending-review";
   lessonsLearned?: string;
   preventionMeasures?: string[];
 }
@@ -78,7 +78,7 @@ export class DecisionEngine {
     this.alertsClient = new AlertsClient({
       apiBaseUrl: config.apiBaseUrl,
       wsUrl: `ws://${new URL(config.apiBaseUrl).host}`,
-      sseUrl: config.apiBaseUrl.replace('http', 'http'),
+      sseUrl: config.apiBaseUrl.replace("http", "http"),
       authToken: config.authToken,
       reconnectInterval: 5000,
       maxRetries: 3
@@ -114,7 +114,7 @@ export class DecisionEngine {
       this.acknowledgements.set(alertId, acknowledgement);
 
       // Log the response
-      await this.logResponse(alertId, adminId, adminRole, 'acknowledged', {
+      await this.logResponse(alertId, adminId, adminRole, "acknowledged", {
         comment,
         autoAcknowledged,
         responseTime: acknowledgement.responseTime
@@ -140,7 +140,7 @@ export class DecisionEngine {
 
       return success;
     } catch (error) {
-      console.error('Failed to acknowledge alert:', error);
+      console.error("Failed to acknowledge alert:", error);
       return false;
     }
   }
@@ -154,7 +154,7 @@ export class DecisionEngine {
     toRole: AdminRoleType,
     reason: string,
     escalatedBy: AdminRoleType,
-    priority: 'normal' | 'urgent' | 'critical' = 'normal'
+    priority: "normal" | "urgent" | "critical" = "normal"
   ): Promise<boolean> {
     try {
       // Create escalation record
@@ -185,7 +185,7 @@ export class DecisionEngine {
       escalationStatus.currentLevel = toRole;
 
       // Log the escalation
-      await this.logResponse(alertId, escalatedBy, escalatedBy, 'escalated', {
+      await this.logResponse(alertId, escalatedBy, escalatedBy, "escalated", {
         toRole,
         reason,
         priority
@@ -203,7 +203,7 @@ export class DecisionEngine {
 
       return success;
     } catch (error) {
-      console.error('Failed to escalate alert:', error);
+      console.error("Failed to escalate alert:", error);
       return false;
     }
   }
@@ -216,7 +216,7 @@ export class DecisionEngine {
     adminId: string,
     adminRole: AdminRoleType,
     resolution: string,
-    effectiveness: ResolutionStatus['effectiveness'] = 'successful',
+    effectiveness: ResolutionStatus["effectiveness"] = "successful",
     lessonsLearned?: string,
     preventionMeasures?: string[]
   ): Promise<boolean> {
@@ -237,7 +237,7 @@ export class DecisionEngine {
       this.resolutionStatuses.set(alertId, resolutionStatus);
 
       // Log the resolution
-      await this.logResponse(alertId, adminId, adminRole, 'resolved', {
+      await this.logResponse(alertId, adminId, adminRole, "resolved", {
         resolution,
         effectiveness,
         lessonsLearned,
@@ -245,12 +245,7 @@ export class DecisionEngine {
       });
 
       // Send to alerts client
-      const success = await this.alertsClient.resolveAlert(
-        alertId,
-        adminId,
-        adminRole,
-        resolution
-      );
+      const success = await this.alertsClient.resolveAlert(alertId, adminId, adminRole, resolution);
 
       if (success) {
         // Clean up escalation status
@@ -259,7 +254,7 @@ export class DecisionEngine {
 
       return success;
     } catch (error) {
-      console.error('Failed to resolve alert:', error);
+      console.error("Failed to resolve alert:", error);
       return false;
     }
   }
@@ -271,7 +266,7 @@ export class DecisionEngine {
     alertId: string,
     adminId: string,
     adminRole: AdminRoleType,
-    action: ResponseLog['action'],
+    action: ResponseLog["action"],
     details: Record<string, any>
   ): Promise<void> {
     const responseLog: ResponseLog = {
@@ -291,7 +286,7 @@ export class DecisionEngine {
     this.responseLogs.set(alertId, logs);
 
     // In a real implementation, this would be sent to a logging service
-    console.log('Response logged:', responseLog);
+    console.log("Response logged:", responseLog);
   }
 
   /**
@@ -346,86 +341,95 @@ export class DecisionEngine {
    */
   static getEscalationRules(adminRole: AdminRoleType): EscalationRule[] {
     const escalationMatrix: Record<AdminRoleType, EscalationRule[]> = {
-      'superadmin': [], // Cannot escalate further
-      'coo': [
+      superadmin: [], // Cannot escalate further
+      coo: [
         {
-          id: 'coo-to-superadmin',
-          condition: 'unacknowledged_critical_alert',
-          targetRole: 'superadmin',
+          id: "coo-to-superadmin",
+          condition: "unacknowledged_critical_alert",
+          targetRole: "superadmin",
           timeoutMinutes: 15,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'business-ops': [
+      "business-ops": [
         {
-          id: 'business-ops-to-coo',
-          condition: 'revenue_threshold_breach',
-          targetRole: 'coo',
+          id: "business-ops-to-coo",
+          condition: "revenue_threshold_breach",
+          targetRole: "coo",
           timeoutMinutes: 30,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'people-risk': [
+      "people-risk": [
         {
-          id: 'people-risk-to-legal-finance',
-          condition: 'compliance_violation',
-          targetRole: 'legal-finance',
+          id: "people-risk-to-legal-finance",
+          condition: "compliance_violation",
+          targetRole: "legal-finance",
           timeoutMinutes: 60,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'procurement-partnerships': [
+      "procurement-partnerships": [
         {
-          id: 'procurement-to-coo',
-          condition: 'vendor_sla_breach',
-          targetRole: 'coo',
+          id: "procurement-to-coo",
+          condition: "vendor_sla_breach",
+          targetRole: "coo",
           timeoutMinutes: 45,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'legal-finance': [
+      "legal-finance": [
         {
-          id: 'legal-to-superadmin',
-          condition: 'regulatory_violation',
-          targetRole: 'superadmin',
+          id: "legal-to-superadmin",
+          condition: "regulatory_violation",
+          targetRole: "superadmin",
           timeoutMinutes: 30,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'commercial-outreach': [
+      "commercial-outreach": [
         {
-          id: 'commercial-to-business-ops',
-          condition: 'market_share_decline',
-          targetRole: 'business-ops',
+          id: "commercial-to-business-ops",
+          condition: "market_share_decline",
+          targetRole: "business-ops",
           timeoutMinutes: 60,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'tech-security': [
+      dpo: [
         {
-          id: 'tech-to-superadmin',
-          condition: 'security_breach',
-          targetRole: 'superadmin',
+          id: "dpo-to-governance-registrar and people-risk",
+          condition: "data_breach_and_policy_violations",
+          targetRole: "governance-registrar, people-risk",
+          timeoutMinutes: 60,
+          action: "escalate"
+        }
+      ],
+      "tech-security": [
+        {
+          id: "tech-to-superadmin",
+          condition: "security_breach",
+          targetRole: "superadmin",
           timeoutMinutes: 10,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'customer-experience': [
+      "customer-experience": [
         {
-          id: 'customer-to-commercial',
-          condition: 'satisfaction_critical_drop',
-          targetRole: 'commercial-outreach',
+          id: "customer-to-commercial",
+          condition: "satisfaction_critical_drop",
+          targetRole: "commercial-outreach",
           timeoutMinutes: 45,
-          action: 'escalate'
+          action: "escalate"
         }
       ],
-      'governance-registrar': [
+      "governance-registrar": [
         {
-          id: 'governance-to-superadmin',
-          condition: 'audit_failure',
-          targetRole: 'superadmin',
+          id: "governance-to-superadmin",
+          condition: "audit_failure",
+          targetRole: "superadmin",
           timeoutMinutes: 60,
-          action: 'escalate'
+          action: "escalate"
         }
       ]
     };
@@ -452,30 +456,33 @@ export class DecisionEngine {
 
         // Set up auto-escalation timer
         if (this.config.autoEscalationEnabled) {
-          setTimeout(() => {
-            if (this.shouldAutoEscalate(alert.id)) {
-              this.escalateAlert(
-                alert.id,
-                escalationStatus.currentLevel,
-                escalationRules.targetRole,
-                'Auto-escalation due to timeout',
-                escalationStatus.currentLevel,
-                'urgent'
-              );
-            }
-          }, escalationRules.timeoutMinutes * 60 * 1000);
+          setTimeout(
+            () => {
+              if (this.shouldAutoEscalate(alert.id)) {
+                this.escalateAlert(
+                  alert.id,
+                  escalationStatus.currentLevel,
+                  escalationRules.targetRole,
+                  "Auto-escalation due to timeout",
+                  escalationStatus.currentLevel,
+                  "urgent"
+                );
+              }
+            },
+            escalationRules.timeoutMinutes * 60 * 1000
+          );
         }
       }
     });
 
     this.alertsClient.onAcknowledgement((ack) => {
       // Handle acknowledgement events
-      console.log('Alert acknowledged:', ack);
+      console.log("Alert acknowledged:", ack);
     });
 
     this.alertsClient.onEscalation((esc) => {
       // Handle escalation events
-      console.log('Alert escalated:', esc);
+      console.log("Alert escalated:", esc);
     });
   }
 
@@ -491,7 +498,11 @@ export class DecisionEngine {
   /**
    * Generate audit trail for logging
    */
-  private generateAuditTrail(adminId: string, action: string, details: Record<string, any>): string {
+  private generateAuditTrail(
+    adminId: string,
+    action: string,
+    details: Record<string, any>
+  ): string {
     return `Admin ${adminId} performed ${action} at ${new Date().toISOString()} with details: ${JSON.stringify(details)}`;
   }
 
@@ -506,16 +517,19 @@ export class DecisionEngine {
     escalationRate: number;
   } {
     const totalAcknowledgements = this.acknowledgements.size;
-    const totalEscalations = Array.from(this.escalationStatuses.values())
-      .reduce((sum, status) => sum + status.escalationHistory.length, 0);
-    const totalResolutions = Array.from(this.resolutionStatuses.values())
-      .filter(status => status.resolved).length;
+    const totalEscalations = Array.from(this.escalationStatuses.values()).reduce(
+      (sum, status) => sum + status.escalationHistory.length,
+      0
+    );
+    const totalResolutions = Array.from(this.resolutionStatuses.values()).filter(
+      (status) => status.resolved
+    ).length;
 
-    const responseTimes = Array.from(this.acknowledgements.values())
-      .map(ack => ack.responseTime);
-    const averageResponseTime = responseTimes.length > 0
-      ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
-      : 0;
+    const responseTimes = Array.from(this.acknowledgements.values()).map((ack) => ack.responseTime);
+    const averageResponseTime =
+      responseTimes.length > 0
+        ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
+        : 0;
 
     const escalationRate = totalAcknowledgements > 0 ? totalEscalations / totalAcknowledgements : 0;
 

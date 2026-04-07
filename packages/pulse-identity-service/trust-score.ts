@@ -17,7 +17,7 @@ const TRUST_WEIGHTS = {
   kycPassed: 25,
   referralTrusted: 15,
   deviceConsistency: 15,
-  baseline: 15,
+  baseline: 15
 };
 
 export function computeInitialTrustScore(input: TrustScoreInput): TrustScoreResult {
@@ -27,7 +27,7 @@ export function computeInitialTrustScore(input: TrustScoreInput): TrustScoreResu
     phoneVerified: input.phoneVerified ? TRUST_WEIGHTS.phoneVerified : 0,
     kycPassed: input.kycPassed ? TRUST_WEIGHTS.kycPassed : 0,
     referralTrusted: input.referralTrusted ? TRUST_WEIGHTS.referralTrusted : 0,
-    deviceConsistency: input.deviceConsistency ? TRUST_WEIGHTS.deviceConsistency : 0,
+    deviceConsistency: input.deviceConsistency ? TRUST_WEIGHTS.deviceConsistency : 0
   };
 
   const score = Math.max(
@@ -39,12 +39,12 @@ export function computeInitialTrustScore(input: TrustScoreInput): TrustScoreResu
         components.phoneVerified +
         components.kycPassed +
         components.referralTrusted +
-        components.deviceConsistency,
-    ),
+        components.deviceConsistency
+    )
   );
 
   return {
     score,
-    components,
+    components
   };
 }

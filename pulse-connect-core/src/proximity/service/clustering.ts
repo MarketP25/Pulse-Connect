@@ -1,5 +1,5 @@
 export interface ClusterOptions {
-  algorithm: 'kmeans' | 'geohash';
+  algorithm: "kmeans" | "geohash";
   k?: number; // Number of clusters for k-means
   precision?: number; // Geohash precision
 }
@@ -20,11 +20,14 @@ export class ClusteringEngine {
   /**
    * Cluster locations using specified algorithm
    */
-  cluster(locations: Array<{ lat: number; lng: number; id?: string }>, options: ClusterOptions): Cluster[] {
+  cluster(
+    locations: Array<{ lat: number; lng: number; id?: string }>,
+    options: ClusterOptions
+  ): Cluster[] {
     switch (options.algorithm) {
-      case 'kmeans':
+      case "kmeans":
         return this.kMeansClustering(locations, options.k || 3);
-      case 'geohash':
+      case "geohash":
         return this.geohashClustering(locations, options.precision || 5);
       default:
         throw new Error(`Unsupported clustering algorithm: ${options.algorithm}`);
@@ -34,7 +37,10 @@ export class ClusteringEngine {
   /**
    * K-means clustering implementation
    */
-  private kMeansClustering(locations: Array<{ lat: number; lng: number; id?: string }>, k: number): Cluster[] {
+  private kMeansClustering(
+    locations: Array<{ lat: number; lng: number; id?: string }>,
+    k: number
+  ): Cluster[] {
     if (locations.length === 0) return [];
     if (locations.length <= k) {
       // Each point is its own cluster
@@ -74,7 +80,11 @@ export class ClusteringEngine {
     }
 
     // Create final clusters
-    clusters = this.createClustersFromAssignments(locations, centroids, this.assignPointsToCentroids(locations, centroids));
+    clusters = this.createClustersFromAssignments(
+      locations,
+      centroids,
+      this.assignPointsToCentroids(locations, centroids)
+    );
 
     return clusters;
   }
@@ -82,11 +92,14 @@ export class ClusteringEngine {
   /**
    * Geohash-based clustering
    */
-  private geohashClustering(locations: Array<{ lat: number; lng: number; id?: string }>, precision: number): Cluster[] {
+  private geohashClustering(
+    locations: Array<{ lat: number; lng: number; id?: string }>,
+    precision: number
+  ): Cluster[] {
     const geohashMap = new Map<string, Array<{ lat: number; lng: number; id?: string }>>();
 
     // Group points by geohash
-    locations.forEach(point => {
+    locations.forEach((point) => {
       const geohash = this.encodeGeohash(point.lat, point.lng, precision);
       if (!geohashMap.has(geohash)) {
         geohashMap.set(geohash, []);
@@ -115,7 +128,10 @@ export class ClusteringEngine {
     return clusters;
   }
 
-  private initializeCentroids(locations: Array<{ lat: number; lng: number }>, k: number): Array<{ lat: number; lng: number }> {
+  private initializeCentroids(
+    locations: Array<{ lat: number; lng: number }>,
+    k: number
+  ): Array<{ lat: number; lng: number }> {
     const centroids: Array<{ lat: number; lng: number }> = [];
     const shuffled = [...locations].sort(() => Math.random() - 0.5);
 
@@ -126,8 +142,11 @@ export class ClusteringEngine {
     return centroids;
   }
 
-  private assignPointsToCentroids(locations: Array<{ lat: number; lng: number }>, centroids: Array<{ lat: number; lng: number }>): number[] {
-    return locations.map(point => {
+  private assignPointsToCentroids(
+    locations: Array<{ lat: number; lng: number }>,
+    centroids: Array<{ lat: number; lng: number }>
+  ): number[] {
+    return locations.map((point) => {
       let minDistance = Infinity;
       let closestCentroid = 0;
 
@@ -143,7 +162,11 @@ export class ClusteringEngine {
     });
   }
 
-  private updateCentroids(locations: Array<{ lat: number; lng: number }>, assignments: number[], k: number): Array<{ lat: number; lng: number }> {
+  private updateCentroids(
+    locations: Array<{ lat: number; lng: number }>,
+    assignments: number[],
+    k: number
+  ): Array<{ lat: number; lng: number }> {
     const centroids: Array<{ lat: number; lng: number }> = [];
 
     for (let i = 0; i < k; i++) {
@@ -160,7 +183,10 @@ export class ClusteringEngine {
     return centroids;
   }
 
-  private centroidsConverged(oldCentroids: Array<{ lat: number; lng: number }>, newCentroids: Array<{ lat: number; lng: number }>): boolean {
+  private centroidsConverged(
+    oldCentroids: Array<{ lat: number; lng: number }>,
+    newCentroids: Array<{ lat: number; lng: number }>
+  ): boolean {
     const threshold = 0.001; // 1 meter threshold
 
     for (let i = 0; i < oldCentroids.length; i++) {
@@ -173,7 +199,11 @@ export class ClusteringEngine {
     return true;
   }
 
-  private createClustersFromAssignments(locations: Array<{ lat: number; lng: number; id?: string }>, centroids: Array<{ lat: number; lng: number }>, assignments: number[]): Cluster[] {
+  private createClustersFromAssignments(
+    locations: Array<{ lat: number; lng: number; id?: string }>,
+    centroids: Array<{ lat: number; lng: number }>,
+    assignments: number[]
+  ): Cluster[] {
     const clusters: Cluster[] = [];
 
     centroids.forEach((centroid, index) => {
@@ -194,7 +224,10 @@ export class ClusteringEngine {
     return clusters;
   }
 
-  private calculateCentroid(points: Array<{ lat: number; lng: number }>): { lat: number; lng: number } {
+  private calculateCentroid(points: Array<{ lat: number; lng: number }>): {
+    lat: number;
+    lng: number;
+  } {
     const sum = points.reduce(
       (acc, point) => ({
         lat: acc.lat + point.lat,
@@ -209,13 +242,18 @@ export class ClusteringEngine {
     };
   }
 
-  private calculateBounds(points: Array<{ lat: number; lng: number }>): { north: number; south: number; east: number; west: number } {
+  private calculateBounds(points: Array<{ lat: number; lng: number }>): {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  } {
     let north = -90;
     let south = 90;
     let east = -180;
     let west = 180;
 
-    points.forEach(point => {
+    points.forEach((point) => {
       north = Math.max(north, point.lat);
       south = Math.min(south, point.lat);
       east = Math.max(east, point.lng);
@@ -225,14 +263,20 @@ export class ClusteringEngine {
     return { north, south, east, west };
   }
 
-  private haversineDistance(point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number {
+  private haversineDistance(
+    point1: { lat: number; lng: number },
+    point2: { lat: number; lng: number }
+  ): number {
     const R = 6371; // Earth's radius in kilometers
     const dLat = this.toRadians(point2.lat - point1.lat);
     const dLng = this.toRadians(point2.lng - point1.lng);
 
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(this.toRadians(point1.lat)) * Math.cos(this.toRadians(point2.lat)) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRadians(point1.lat)) *
+        Math.cos(this.toRadians(point2.lat)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
@@ -245,10 +289,10 @@ export class ClusteringEngine {
   private encodeGeohash(lat: number, lng: number, precision: number): string {
     // Simplified geohash implementation
     // In production, use a proper geohash library
-    const latBin = Math.floor((lat + 90) / 180 * Math.pow(2, precision));
-    const lngBin = Math.floor((lng + 180) / 360 * Math.pow(2, precision));
+    const latBin = Math.floor(((lat + 90) / 180) * Math.pow(2, precision));
+    const lngBin = Math.floor(((lng + 180) / 360) * Math.pow(2, precision));
 
-    let hash = '';
+    let hash = "";
     for (let i = precision - 1; i >= 0; i--) {
       const latBit = (latBin >> i) & 1;
       const lngBit = (lngBin >> i) & 1;

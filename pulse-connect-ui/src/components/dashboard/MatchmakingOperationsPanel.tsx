@@ -12,20 +12,32 @@ type Props = {
   loading: boolean;
   onRunAction: (
     action: "create_brief" | "submit_proposal" | "create_contract",
-    payload: Record<string, unknown>,
+    payload: Record<string, unknown>
   ) => Promise<void>;
 };
 
-export function MatchmakingOperationsPanel({ title, data, enabled, disabledReason, loading, onRunAction }: Props) {
+export function MatchmakingOperationsPanel({
+  title,
+  data,
+  enabled,
+  disabledReason,
+  loading,
+  onRunAction
+}: Props) {
   const [briefTitle, setBriefTitle] = useState("Need localized growth campaign");
   const [proposalBriefId, setProposalBriefId] = useState("");
   const [proposalAmount, setProposalAmount] = useState("450");
   const [contractProposalId, setContractProposalId] = useState("");
 
   return (
-    <SectionCard title={title} subtitle="Briefs, proposals, contracts, and transaction readiness for matchmaking workflows.">
+    <SectionCard
+      title={title}
+      subtitle="Briefs, proposals, contracts, and transaction readiness for matchmaking workflows."
+    >
       {!enabled ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">{disabledReason || "Matchmaking operations are unavailable."}</p>
+        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">
+          {disabledReason || "Matchmaking operations are unavailable."}
+        </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="space-y-2 text-sm text-slate-700">
@@ -76,7 +88,7 @@ export function MatchmakingOperationsPanel({ title, data, enabled, disabledReaso
               onClick={() =>
                 onRunAction("submit_proposal", {
                   briefId: proposalBriefId,
-                  amountUsd: Number(proposalAmount || 0),
+                  amountUsd: Number(proposalAmount || 0)
                 })
               }
               disabled={loading}
@@ -112,4 +124,3 @@ export function MatchmakingOperationsPanel({ title, data, enabled, disabledReaso
     </SectionCard>
   );
 }
-

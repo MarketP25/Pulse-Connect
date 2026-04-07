@@ -37,15 +37,18 @@ export interface VaultAuditLog extends VaultDocument {
 }
 
 export interface SecureDatabaseAdapter {
-  insert<T extends Record<string, any>>(collection: VaultCollection, document: T): Promise<T & VaultDocument>;
+  insert<T extends Record<string, any>>(
+    collection: VaultCollection,
+    document: T
+  ): Promise<T & VaultDocument>;
   query<T extends Record<string, any>>(
     collection: VaultCollection,
-    predicate?: (document: T & VaultDocument) => boolean,
+    predicate?: (document: T & VaultDocument) => boolean
   ): Promise<Array<T & VaultDocument>>;
   update<T extends Record<string, any>>(
     collection: VaultCollection,
     id: string,
-    patch: Partial<T>,
+    patch: Partial<T>
   ): Promise<(T & VaultDocument) | null>;
 }
 
@@ -58,16 +61,19 @@ export class InMemorySecureDatabaseAdapter implements SecureDatabaseAdapter {
     risk_maps: new Map(),
     historical_decisions: new Map(),
     analytics_results: new Map(),
-    audit_logs: new Map(),
+    audit_logs: new Map()
   };
 
-  async insert<T extends Record<string, any>>(collection: VaultCollection, document: T): Promise<T & VaultDocument> {
+  async insert<T extends Record<string, any>>(
+    collection: VaultCollection,
+    document: T
+  ): Promise<T & VaultDocument> {
     const timestamp = Date.now();
     const persisted: T & VaultDocument = {
       ...document,
       id: randomUUID(),
       createdAt: timestamp,
-      updatedAt: timestamp,
+      updatedAt: timestamp
     };
 
     this.collections[collection].set(persisted.id, persisted);
@@ -76,7 +82,7 @@ export class InMemorySecureDatabaseAdapter implements SecureDatabaseAdapter {
 
   async query<T extends Record<string, any>>(
     collection: VaultCollection,
-    predicate?: (document: T & VaultDocument) => boolean,
+    predicate?: (document: T & VaultDocument) => boolean
   ): Promise<Array<T & VaultDocument>> {
     const documents = Array.from(this.collections[collection].values()) as Array<T & VaultDocument>;
     if (!predicate) {
@@ -89,7 +95,7 @@ export class InMemorySecureDatabaseAdapter implements SecureDatabaseAdapter {
   async update<T extends Record<string, any>>(
     collection: VaultCollection,
     id: string,
-    patch: Partial<T>,
+    patch: Partial<T>
   ): Promise<(T & VaultDocument) | null> {
     const existing = this.collections[collection].get(id);
     if (!existing) {
@@ -100,7 +106,7 @@ export class InMemorySecureDatabaseAdapter implements SecureDatabaseAdapter {
       ...(existing as T & VaultDocument),
       ...patch,
       id,
-      updatedAt: Date.now(),
+      updatedAt: Date.now()
     };
 
     this.collections[collection].set(id, updated);
@@ -115,35 +121,62 @@ export class CSIIntelligenceVault {
     this.adapter = adapter;
   }
 
-  async storeAggregatedIntelligence(payload: Record<string, any>, context: VaultAuthContext): Promise<VaultDocument> {
+  async storeAggregatedIntelligence(
+    payload: Record<string, any>,
+    context: VaultAuthContext
+  ): Promise<VaultDocument> {
     await this.assertAuthenticated(context);
     const record = await this.adapter.insert("aggregated_intelligence", payload);
-    await this.writeAudit("aggregated_intelligence", "write", context, true, "storeAggregatedIntelligence");
+    await this.writeAudit(
+      "aggregated_intelligence",
+      "write",
+      context,
+      true,
+      "storeAggregatedIntelligence"
+    );
     return record;
   }
 
-  async storePatternModel(payload: Record<string, any>, context: VaultAuthContext): Promise<VaultDocument> {
+  async storePatternModel(
+    payload: Record<string, any>,
+    context: VaultAuthContext
+  ): Promise<VaultDocument> {
     await this.assertAuthenticated(context);
     const record = await this.adapter.insert("pattern_models", payload);
     await this.writeAudit("pattern_models", "write", context, true, "storePatternModel");
     return record;
   }
 
-  async storeRiskMap(payload: Record<string, any>, context: VaultAuthContext): Promise<VaultDocument> {
+  async storeRiskMap(
+    payload: Record<string, any>,
+    context: VaultAuthContext
+  ): Promise<VaultDocument> {
     await this.assertAuthenticated(context);
     const record = await this.adapter.insert("risk_maps", payload);
     await this.writeAudit("risk_maps", "write", context, true, "storeRiskMap");
     return record;
   }
 
-  async storeHistoricalDecision(payload: Record<string, any>, context: VaultAuthContext): Promise<VaultDocument> {
+  async storeHistoricalDecision(
+    payload: Record<string, any>,
+    context: VaultAuthContext
+  ): Promise<VaultDocument> {
     await this.assertAuthenticated(context);
     const record = await this.adapter.insert("historical_decisions", payload);
-    await this.writeAudit("historical_decisions", "write", context, true, "storeHistoricalDecision");
+    await this.writeAudit(
+      "historical_decisions",
+      "write",
+      context,
+      true,
+      "storeHistoricalDecision"
+    );
     return record;
   }
 
-  async storeAnalyticsResult(payload: Record<string, any>, context: VaultAuthContext): Promise<VaultDocument> {
+  async storeAnalyticsResult(
+    payload: Record<string, any>,
+    context: VaultAuthContext
+  ): Promise<VaultDocument> {
     await this.assertAuthenticated(context);
     const record = await this.adapter.insert("analytics_results", payload);
     await this.writeAudit("analytics_results", "write", context, true, "storeAnalyticsResult");
@@ -153,7 +186,13 @@ export class CSIIntelligenceVault {
   async getLatestIntelligenceSummary(context: VaultAuthContext): Promise<VaultDocument | null> {
     await this.assertAuthenticated(context);
     const records = await this.adapter.query("aggregated_intelligence");
-    await this.writeAudit("aggregated_intelligence", "read", context, true, "getLatestIntelligenceSummary");
+    await this.writeAudit(
+      "aggregated_intelligence",
+      "read",
+      context,
+      true,
+      "getLatestIntelligenceSummary"
+    );
 
     if (records.length === 0) {
       return null;
@@ -184,7 +223,8 @@ export class CSIIntelligenceVault {
   }
 
   private async assertAuthenticated(context: VaultAuthContext): Promise<void> {
-    const hasAttestation = typeof context.pc365Attestation === "string" && context.pc365Attestation.trim().length >= 12;
+    const hasAttestation =
+      typeof context.pc365Attestation === "string" && context.pc365Attestation.trim().length >= 12;
     const hasActor = Boolean(context.actorId && context.actorRole);
 
     if (!hasAttestation || !hasActor) {
@@ -193,7 +233,7 @@ export class CSIIntelligenceVault {
         "write",
         context,
         false,
-        "PC365 authentication failed for VAULT access",
+        "PC365 authentication failed for VAULT access"
       );
       throw new Error("PC365 authentication required for VAULT access");
     }
@@ -204,7 +244,7 @@ export class CSIIntelligenceVault {
     operation: VaultAuditLog["operation"],
     context: VaultAuthContext,
     success: boolean,
-    detail?: string,
+    detail?: string
   ): Promise<void> {
     const attestationHash = createHash("sha256")
       .update(context.pc365Attestation || "missing")
@@ -219,7 +259,7 @@ export class CSIIntelligenceVault {
       pc365AttestationHash: attestationHash,
       requestId: context.requestId,
       success,
-      detail,
+      detail
     };
 
     await this.adapter.insert("audit_logs", payload);

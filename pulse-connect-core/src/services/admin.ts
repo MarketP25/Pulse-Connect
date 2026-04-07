@@ -158,7 +158,7 @@ export class AdminService {
       // Send email with admin code
       await sendEmail({
         to: email,
-        subject: "Your Pulse Connect Admin Access Code",
+        subject: "Your Pulsco Admin Access Code",
         template: "admin-code",
         variables: {
           adminCode,

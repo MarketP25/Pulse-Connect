@@ -187,12 +187,12 @@ export class OrderService {
           orderId: createdOrder.id,
           totalUsd: createdOrder.total_usd,
           itemCount: request.items.length,
-          traceId: request.trace_id,
+          traceId: request.trace_id
         },
         {
           riskScore: 12,
-          performanceScore: 84,
-        },
+          performanceScore: 84
+        }
       );
 
       return createdOrder;
@@ -255,9 +255,9 @@ export class OrderService {
         amount: orderData.total_usd,
         eventId: request.trace_id,
         details: {
-          orderId: orderData.id,
+          orderId: orderData.id
         },
-        region: String(orderData.shipping_address?.country || "global"),
+        region: String(orderData.shipping_address?.country || "global")
       });
       if (!billingQuote) {
         throw new Error("billing_engine_quote_failed");
@@ -327,12 +327,12 @@ export class OrderService {
           transactionFeeUsd: transactionFee,
           grossUsd: orderData.total_usd,
           paymentMethodId: request.payment_method_id,
-          traceId: request.trace_id,
+          traceId: request.trace_id
         },
         {
           riskScore: 18,
-          performanceScore: 88,
-        },
+          performanceScore: 88
+        }
       );
 
       return paidOrder;
@@ -401,12 +401,12 @@ export class OrderService {
         {
           orderId: cancelledOrder.id,
           buyerEmail,
-          traceId: cancelledOrder.trace_id,
+          traceId: cancelledOrder.trace_id
         },
         {
           riskScore: 35,
-          performanceScore: 60,
-        },
+          performanceScore: 60
+        }
       );
 
       return cancelledOrder;
@@ -444,12 +444,12 @@ export class OrderService {
       {
         orderId: updatedOrder.id,
         status,
-        traceId,
+        traceId
       },
       {
         riskScore: status === "refunded" || status === "cancelled" ? 42 : 20,
-        performanceScore: status === "delivered" ? 94 : 75,
-      },
+        performanceScore: status === "delivered" ? 94 : 75
+      }
     );
 
     return updatedOrder;

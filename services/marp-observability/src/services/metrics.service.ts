@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class MetricsService {
@@ -7,7 +7,7 @@ export class MetricsService {
       cpu: 0,
       memory: 0,
       requests: 0,
-      errors: 0,
+      errors: 0
     };
   }
 

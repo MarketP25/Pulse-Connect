@@ -1,4 +1,4 @@
-﻿import { ADMIN_EMAILS } from '@pulsco/admin-shared-types'
+﻿import { ADMIN_EMAILS } from "@pulsco/admin-shared-types";
 
 /**
  * Role guard for Tech Security Dashboard
@@ -6,15 +6,13 @@
  */
 
 export function validateTechSecurityAccess(email: string): boolean {
-  return email === ADMIN_EMAILS['tech-security']
+  return email === ADMIN_EMAILS["tech-security"];
 }
 
 export function getTechSecurityRole(): string {
-  return 'tech-security'
+  return "tech-security";
 }
 
 export function canAccessTechSecurityDashboard(email: string): boolean {
-  return validateTechSecurityAccess(email)
+  return validateTechSecurityAccess(email);
 }
-
-

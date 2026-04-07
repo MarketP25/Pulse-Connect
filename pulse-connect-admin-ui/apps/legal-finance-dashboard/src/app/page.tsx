@@ -1,30 +1,30 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Card, Button, Badge, Alert, LoadingSpinner } from '@pulsco/admin-ui-core'
+import { useEffect, useState } from "react";
+import { Card, Button, Badge, Alert, LoadingSpinner } from "@pulsco/admin-ui-core";
 
 interface LegalFinanceMetrics {
-  totalRevenue: number
-  netProfitMargin: number
-  complianceScore: number
-  legalCases: number
-  operatingExpenses: number
-  cashFlow: number
-  taxLiability: number
-  accountsReceivable: number
-  accountsPayable: number
-  activeContracts: number
-  auditStatus: string
+  totalRevenue: number;
+  netProfitMargin: number;
+  complianceScore: number;
+  legalCases: number;
+  operatingExpenses: number;
+  cashFlow: number;
+  taxLiability: number;
+  accountsReceivable: number;
+  accountsPayable: number;
+  activeContracts: number;
+  auditStatus: string;
 }
 
 interface LegalFinanceAlert {
-  id: string
-  type: 'critical' | 'high' | 'medium' | 'low'
-  title: string
-  description: string
-  source: string
-  timestamp: string
-  impact: string
+  id: string;
+  type: "critical" | "high" | "medium" | "low";
+  title: string;
+  description: string;
+  source: string;
+  timestamp: string;
+  impact: string;
 }
 
 const FALLBACK_METRICS: LegalFinanceMetrics = {
@@ -38,84 +38,84 @@ const FALLBACK_METRICS: LegalFinanceMetrics = {
   accountsReceivable: 5400000,
   accountsPayable: 2900000,
   activeContracts: 184,
-  auditStatus: 'In Progress'
-}
+  auditStatus: "In Progress"
+};
 
 const FALLBACK_ALERTS: LegalFinanceAlert[] = [
   {
-    id: '1',
-    type: 'high',
-    title: 'Q4 Tax Filing Deadline Approaching',
-    description: 'Corporate tax return due in 7 days - requires CFO approval',
-    source: 'Tax Compliance',
-    timestamp: '2 hours ago',
-    impact: 'High'
+    id: "1",
+    type: "high",
+    title: "Q4 Tax Filing Deadline Approaching",
+    description: "Corporate tax return due in 7 days - requires CFO approval",
+    source: "Tax Compliance",
+    timestamp: "2 hours ago",
+    impact: "High"
   }
-]
+];
 
 export default function LegalFinanceDashboard() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [metrics, setMetrics] = useState<LegalFinanceMetrics | null>(null)
-  const [alerts, setAlerts] = useState<LegalFinanceAlert[]>([])
-  const [activeView, setActiveView] = useState('overview')
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState<LegalFinanceMetrics | null>(null);
+  const [alerts, setAlerts] = useState<LegalFinanceAlert[]>([]);
+  const [activeView, setActiveView] = useState("overview");
 
   useEffect(() => {
     const loadLegalFinanceData = async () => {
       try {
-        const headers = { 'x-admin-role': 'legal-finance' }
+        const headers = { "x-admin-role": "legal-finance" };
         const [metricsRes, anomaliesRes] = await Promise.all([
-          fetch('api/admin/intelligence?action=metrics', { headers, cache: 'no-store' }),
-          fetch('api/admin/intelligence?action=anomalies', { headers, cache: 'no-store' })
-        ])
+          fetch("api/admin/intelligence?action=metrics", { headers, cache: "no-store" }),
+          fetch("api/admin/intelligence?action=anomalies", { headers, cache: "no-store" })
+        ]);
 
         if (!metricsRes.ok) {
-          throw new Error(`Metrics request failed with ${metricsRes.status}`)
+          throw new Error(`Metrics request failed with ${metricsRes.status}`);
         }
 
-        const metricsPayload = await metricsRes.json()
-        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {}
+        const metricsPayload = await metricsRes.json();
+        const rawMetrics = metricsPayload.metrics || metricsPayload.data || metricsPayload || {};
         setMetrics({
           ...FALLBACK_METRICS,
           ...rawMetrics
-        })
+        });
 
         if (anomaliesRes.ok) {
-          const anomaliesPayload = await anomaliesRes.json()
-          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || []
+          const anomaliesPayload = await anomaliesRes.json();
+          const anomalies = anomaliesPayload.anomalies || anomaliesPayload.data?.anomalies || [];
           if (Array.isArray(anomalies) && anomalies.length > 0) {
             setAlerts(
               anomalies.slice(0, 3).map((anomaly: any, index: number) => ({
                 id: String(index + 1),
-                type: anomaly.severity || 'medium',
-                title: anomaly.title || `Financial anomaly in ${anomaly.metric || 'signal'}`,
-                description: anomaly.description || 'CSI detected an unusual legal/finance signal.',
-                source: anomaly.source || 'CSI Intelligence',
-                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : 'now',
+                type: anomaly.severity || "medium",
+                title: anomaly.title || `Financial anomaly in ${anomaly.metric || "signal"}`,
+                description: anomaly.description || "CSI detected an unusual legal/finance signal.",
+                source: anomaly.source || "CSI Intelligence",
+                timestamp: anomaly.timestamp ? new Date(anomaly.timestamp).toLocaleString() : "now",
                 impact:
                   Number(anomaly.financialImpact || anomaly.impactAmount || 0) > 100000
-                    ? 'High'
+                    ? "High"
                     : Number(anomaly.financialImpact || anomaly.impactAmount || 0) > 50000
-                      ? 'Medium'
-                      : 'Low'
+                      ? "Medium"
+                      : "Low"
               }))
-            )
+            );
           } else {
-            setAlerts(FALLBACK_ALERTS)
+            setAlerts(FALLBACK_ALERTS);
           }
         } else {
-          setAlerts(FALLBACK_ALERTS)
+          setAlerts(FALLBACK_ALERTS);
         }
       } catch (error) {
-        console.error('Failed to load legal-finance intelligence', error)
-        setMetrics(FALLBACK_METRICS)
-        setAlerts(FALLBACK_ALERTS)
+        console.error("Failed to load legal-finance intelligence", error);
+        setMetrics(FALLBACK_METRICS);
+        setAlerts(FALLBACK_ALERTS);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadLegalFinanceData()
-  }, [])
+    loadLegalFinanceData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -125,7 +125,7 @@ export default function LegalFinanceDashboard() {
           <p className="mt-4 text-gray-600">Loading Legal & Finance Dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -137,12 +137,20 @@ export default function LegalFinanceDashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Legal & Finance Dashboard</h1>
-                <p className="text-gray-600">Financial performance, legal compliance, and regulatory oversight</p>
+                <p className="text-gray-600">
+                  Financial performance, legal compliance, and regulatory oversight
+                </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="secondary" size="sm">Financial Report</Button>
-                <Button variant="danger" size="sm">Legal Alert</Button>
-                <Button variant="primary" size="sm">Compliance Audit</Button>
+                <Button variant="secondary" size="sm">
+                  Financial Report
+                </Button>
+                <Button variant="danger" size="sm">
+                  Legal Alert
+                </Button>
+                <Button variant="primary" size="sm">
+                  Compliance Audit
+                </Button>
               </div>
             </div>
           </div>
@@ -153,12 +161,21 @@ export default function LegalFinanceDashboard() {
         {/* Legal & Finance Alerts */}
         {alerts.length > 0 && (
           <div className="mb-8">
-            {alerts.map(alert => (
-              <Alert key={alert.id} type={alert.type === 'critical' ? 'error' : alert.type === 'high' ? 'warning' : 'default'}>
+            {alerts.map((alert) => (
+              <Alert
+                key={alert.id}
+                type={
+                  alert.type === "critical"
+                    ? "error"
+                    : alert.type === "high"
+                      ? "warning"
+                      : "default"
+                }
+              >
                 <div className="flex justify-between items-center">
                   <div className="flex items-start">
                     <div className="text-lg mr-3">
-                      {alert.type === 'critical' ? '🚨' : alert.type === 'high' ? '⚠️' : 'ℹ️'}
+                      {alert.type === "critical" ? "🚨" : alert.type === "high" ? "⚠️" : "ℹ️"}
                     </div>
                     <div>
                       <h4 className="font-medium">{alert.title}</h4>
@@ -169,8 +186,12 @@ export default function LegalFinanceDashboard() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="secondary">Review</Button>
-                    <Button size="sm" variant="primary">Action</Button>
+                    <Button size="sm" variant="secondary">
+                      Review
+                    </Button>
+                    <Button size="sm" variant="primary">
+                      Action
+                    </Button>
                   </div>
                 </div>
               </Alert>
@@ -184,7 +205,9 @@ export default function LegalFinanceDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">${metrics?.totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${metrics?.totalRevenue.toLocaleString()}
+                </p>
               </div>
               <Badge variant="success">+12.3%</Badge>
             </div>
@@ -226,41 +249,41 @@ export default function LegalFinanceDashboard() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveView('overview')}
+                onClick={() => setActiveView("overview")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'overview'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "overview"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Financial Overview
               </button>
               <button
-                onClick={() => setActiveView('compliance')}
+                onClick={() => setActiveView("compliance")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'compliance'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "compliance"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Legal Compliance
               </button>
               <button
-                onClick={() => setActiveView('contracts')}
+                onClick={() => setActiveView("contracts")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'contracts'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "contracts"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Contracts & Agreements
               </button>
               <button
-                onClick={() => setActiveView('audit')}
+                onClick={() => setActiveView("audit")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'audit'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  activeView === "audit"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
                 Audit & Tax
@@ -270,7 +293,7 @@ export default function LegalFinanceDashboard() {
         </div>
 
         {/* Content based on active view */}
-        {activeView === 'overview' && (
+        {activeView === "overview" && (
           <div className="space-y-6">
             {/* Financial Health Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -278,15 +301,21 @@ export default function LegalFinanceDashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Operating Expenses</span>
-                    <span className="font-medium text-red-600">${metrics?.operatingExpenses.toLocaleString()}</span>
+                    <span className="font-medium text-red-600">
+                      ${metrics?.operatingExpenses.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Cash Flow</span>
-                    <span className="font-medium text-green-600">${metrics?.cashFlow.toLocaleString()}</span>
+                    <span className="font-medium text-green-600">
+                      ${metrics?.cashFlow.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Tax Liability</span>
-                    <span className="font-medium text-orange-600">${metrics?.taxLiability.toLocaleString()}</span>
+                    <span className="font-medium text-orange-600">
+                      ${metrics?.taxLiability.toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -295,11 +324,15 @@ export default function LegalFinanceDashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Accounts Receivable</span>
-                    <span className="font-medium text-blue-600">${metrics?.accountsReceivable.toLocaleString()}</span>
+                    <span className="font-medium text-blue-600">
+                      ${metrics?.accountsReceivable.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Accounts Payable</span>
-                    <span className="font-medium text-red-600">${metrics?.accountsPayable.toLocaleString()}</span>
+                    <span className="font-medium text-red-600">
+                      ${metrics?.accountsPayable.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Working Capital</span>
@@ -328,7 +361,7 @@ export default function LegalFinanceDashboard() {
           </div>
         )}
 
-        {activeView === 'compliance' && (
+        {activeView === "compliance" && (
           <div className="space-y-6">
             <Card title="Compliance Command Center">
               <div className="space-y-4">
@@ -388,13 +421,15 @@ export default function LegalFinanceDashboard() {
           </div>
         )}
 
-        {activeView === 'contracts' && (
+        {activeView === "contracts" && (
           <div className="space-y-6">
             <Card title="Contract Management System">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{metrics?.activeContracts}</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {metrics?.activeContracts}
+                    </div>
                     <div className="text-sm text-gray-600">Active Contracts</div>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
@@ -418,7 +453,7 @@ export default function LegalFinanceDashboard() {
           </div>
         )}
 
-        {activeView === 'audit' && (
+        {activeView === "audit" && (
           <div className="space-y-6">
             <Card title="Audit & Tax Management">
               <div className="space-y-4">
@@ -449,7 +484,9 @@ export default function LegalFinanceDashboard() {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-sm">Tax Liability</span>
-                        <span className="font-medium text-orange-600">${metrics?.taxLiability.toLocaleString()}</span>
+                        <span className="font-medium text-orange-600">
+                          ${metrics?.taxLiability.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Tax Credits Available</span>
@@ -472,5 +509,5 @@ export default function LegalFinanceDashboard() {
         )}
       </main>
     </div>
-  )
+  );
 }

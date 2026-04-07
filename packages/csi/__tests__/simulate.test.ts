@@ -10,7 +10,7 @@ describe("CSI simulation", () => {
       region: "US",
       metrics: { latencyMs: 800, successRate: 0.95, throughput: 130 },
       riskScore: 40,
-      performanceScore: 55,
+      performanceScore: 55
     }),
     createCSIEvent({
       subsystem: "ecommerce",
@@ -18,8 +18,8 @@ describe("CSI simulation", () => {
       region: "US",
       metrics: { latencyMs: 600, successRate: 0.97, throughput: 150 },
       riskScore: 35,
-      performanceScore: 62,
-    }),
+      performanceScore: 62
+    })
   ];
 
   it("produces predicted outcomes against historical data", () => {
@@ -30,9 +30,9 @@ describe("CSI simulation", () => {
         description: "Adjust queue and retry settings",
         expectedMetricDelta: { latencyMs: -200 },
         riskAdjustment: -6,
-        performanceAdjustment: 8,
+        performanceAdjustment: 8
       },
-      events,
+      events
     );
 
     expect(report.proposal.subsystem).toBe("ecommerce");
@@ -49,14 +49,14 @@ describe("CSI simulation", () => {
         title: "Tune ecommerce throughput",
         subsystem: "ecommerce",
         description: "Scale workers",
-        expectedMetricDelta: { throughput: 20 },
+        expectedMetricDelta: { throughput: 20 }
       },
       events,
       {
         actorId: "superadmin-1",
         actorRole: "superadmin",
-        pc365Attestation: "pc365_attestation_token_123",
-      },
+        pc365Attestation: "pc365_attestation_token_123"
+      }
     );
 
     expect(result.report.id).toBeDefined();

@@ -1,14 +1,28 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Mail, MessageSquare, Smartphone, Users, Eye, Database, Target } from 'lucide-react';
-import { ConsentRecord, MarketingChannel, MarketingPurpose, ConsentScope } from '../../../../packages/pap_v1/src/types/pap';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Shield,
+  Mail,
+  MessageSquare,
+  Smartphone,
+  Users,
+  Eye,
+  Database,
+  Target
+} from "lucide-react";
+import {
+  ConsentRecord,
+  MarketingChannel,
+  MarketingPurpose,
+  ConsentScope
+} from "../../../../packages/pap_v1/src/types/pap";
 
 interface ConsentPreferences {
   [key: string]: boolean;
@@ -21,7 +35,7 @@ export default function PAPConsentPage() {
     email_transactional: true,
     sms_promotional: false,
     push_promotional: false,
-    social_promotional: false,
+    social_promotional: false
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,44 +49,44 @@ export default function PAPConsentPage() {
       // Mock data - in real implementation, this would call the PAP consent API
       const mockConsents: ConsentRecord[] = [
         {
-          id: '1',
-          userId: 'user123',
-          channel: 'email',
-          purpose: 'promotional',
-          scope: ['contact_info', 'behavioral_data'],
-          grantedAt: new Date('2024-01-01'),
-          source: 'user_opt_in',
-          metadata: {},
+          id: "1",
+          userId: "user123",
+          channel: "email",
+          purpose: "promotional",
+          scope: ["contact_info", "behavioral_data"],
+          grantedAt: new Date("2024-01-01"),
+          source: "user_opt_in",
+          metadata: {}
         },
         {
-          id: '2',
-          userId: 'user123',
-          channel: 'sms',
-          purpose: 'transactional',
-          scope: ['contact_info'],
-          grantedAt: new Date('2024-01-01'),
-          source: 'user_opt_in',
-          metadata: {},
-        },
+          id: "2",
+          userId: "user123",
+          channel: "sms",
+          purpose: "transactional",
+          scope: ["contact_info"],
+          grantedAt: new Date("2024-01-01"),
+          source: "user_opt_in",
+          metadata: {}
+        }
       ];
       setConsents(mockConsents);
     } catch (error) {
-      console.error('Failed to load consents:', error);
+      console.error("Failed to load consents:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const updatePreference = async (key: string, value: boolean) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+    setPreferences((prev) => ({ ...prev, [key]: value }));
 
     // In real implementation, this would call the PAP consent API
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Mock API delay
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Mock API delay
       // Update consent based on preference change
     } catch (error) {
-      console.error('Failed to update preference:', error);
+      console.error("Failed to update preference:", error);
     } finally {
       setSaving(false);
     }
@@ -81,47 +95,64 @@ export default function PAPConsentPage() {
   const revokeConsent = async (consentId: string) => {
     try {
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setConsents(prev => prev.filter(c => c.id !== consentId));
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setConsents((prev) => prev.filter((c) => c.id !== consentId));
     } catch (error) {
-      console.error('Failed to revoke consent:', error);
+      console.error("Failed to revoke consent:", error);
     }
   };
 
   const getChannelIcon = (channel: MarketingChannel) => {
     switch (channel) {
-      case 'email': return <Mail className="h-5 w-5" />;
-      case 'sms': return <MessageSquare className="h-5 w-5" />;
-      case 'push': return <Smartphone className="h-5 w-5" />;
-      case 'social_facebook':
-      case 'social_twitter':
-      case 'social_instagram':
-      case 'social_linkedin':
+      case "email":
+        return <Mail className="h-5 w-5" />;
+      case "sms":
+        return <MessageSquare className="h-5 w-5" />;
+      case "push":
+        return <Smartphone className="h-5 w-5" />;
+      case "social_facebook":
+      case "social_twitter":
+      case "social_instagram":
+      case "social_linkedin":
         return <Users className="h-5 w-5" />;
-      default: return <Target className="h-5 w-5" />;
+      default:
+        return <Target className="h-5 w-5" />;
     }
   };
 
   const getPurposeDescription = (purpose: MarketingPurpose) => {
     switch (purpose) {
-      case 'promotional': return 'Product updates, special offers, and marketing communications';
-      case 'transactional': return 'Order confirmations, shipping updates, and account notifications';
-      case 'educational': return 'Tutorials, tips, and learning content';
-      case 'survey': return 'Feedback requests and research surveys';
-      case 'event_invitation': return 'Invitations to events and webinars';
-      case 'product_update': return 'New feature announcements and product updates';
-      default: return 'Marketing communications';
+      case "promotional":
+        return "Product updates, special offers, and marketing communications";
+      case "transactional":
+        return "Order confirmations, shipping updates, and account notifications";
+      case "educational":
+        return "Tutorials, tips, and learning content";
+      case "survey":
+        return "Feedback requests and research surveys";
+      case "event_invitation":
+        return "Invitations to events and webinars";
+      case "product_update":
+        return "New feature announcements and product updates";
+      default:
+        return "Marketing communications";
     }
   };
 
   const getScopeDescription = (scope: ConsentScope) => {
     switch (scope) {
-      case 'contact_info': return 'Email address, phone number';
-      case 'location_data': return 'Geographic location and proximity data';
-      case 'behavioral_data': return 'How you interact with our services';
-      case 'purchase_history': return 'Your order and transaction history';
-      case 'communication_preferences': return 'Your preferred communication channels';
-      default: return 'Personal data';
+      case "contact_info":
+        return "Email address, phone number";
+      case "location_data":
+        return "Geographic location and proximity data";
+      case "behavioral_data":
+        return "How you interact with our services";
+      case "purchase_history":
+        return "Your order and transaction history";
+      case "communication_preferences":
+        return "Your preferred communication channels";
+      default:
+        return "Personal data";
     }
   };
 
@@ -145,8 +176,8 @@ export default function PAPConsentPage() {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Your privacy is important to us. You can change these preferences at any time.
-          All marketing communications comply with GDPR and other privacy regulations.
+          Your privacy is important to us. You can change these preferences at any time. All
+          marketing communications comply with GDPR and other privacy regulations.
         </AlertDescription>
       </Alert>
 
@@ -176,7 +207,7 @@ export default function PAPConsentPage() {
                 </div>
                 <Switch
                   checked={preferences.email_promotional}
-                  onCheckedChange={(checked) => updatePreference('email_promotional', checked)}
+                  onCheckedChange={(checked) => updatePreference("email_promotional", checked)}
                   disabled={saving}
                 />
               </div>
@@ -193,7 +224,7 @@ export default function PAPConsentPage() {
                 </div>
                 <Switch
                   checked={preferences.email_transactional}
-                  onCheckedChange={(checked) => updatePreference('email_transactional', checked)}
+                  onCheckedChange={(checked) => updatePreference("email_transactional", checked)}
                   disabled={saving}
                 />
               </div>
@@ -212,13 +243,11 @@ export default function PAPConsentPage() {
                     <MessageSquare className="h-4 w-4" />
                     <span className="font-medium">Promotional SMS</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Text message offers and updates
-                  </p>
+                  <p className="text-sm text-muted-foreground">Text message offers and updates</p>
                 </div>
                 <Switch
                   checked={preferences.sms_promotional}
-                  onCheckedChange={(checked) => updatePreference('sms_promotional', checked)}
+                  onCheckedChange={(checked) => updatePreference("sms_promotional", checked)}
                   disabled={saving}
                 />
               </div>
@@ -235,7 +264,7 @@ export default function PAPConsentPage() {
                 </div>
                 <Switch
                   checked={preferences.push_promotional}
-                  onCheckedChange={(checked) => updatePreference('push_promotional', checked)}
+                  onCheckedChange={(checked) => updatePreference("push_promotional", checked)}
                   disabled={saving}
                 />
               </div>
@@ -260,7 +289,7 @@ export default function PAPConsentPage() {
                 </div>
                 <Switch
                   checked={preferences.social_promotional}
-                  onCheckedChange={(checked) => updatePreference('social_promotional', checked)}
+                  onCheckedChange={(checked) => updatePreference("social_promotional", checked)}
                   disabled={saving}
                 />
               </div>
@@ -278,9 +307,7 @@ export default function PAPConsentPage() {
             </CardHeader>
             <CardContent>
               {consents.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No active consents found
-                </p>
+                <p className="text-muted-foreground text-center py-8">No active consents found</p>
               ) : (
                 <div className="space-y-4">
                   {consents.map((consent) => (
@@ -290,7 +317,7 @@ export default function PAPConsentPage() {
                           <div className="flex items-center gap-2">
                             {getChannelIcon(consent.channel)}
                             <span className="font-medium capitalize">
-                              {consent.channel.replace('_', ' ')} - {consent.purpose}
+                              {consent.channel.replace("_", " ")} - {consent.purpose}
                             </span>
                             <Badge variant="outline">Active</Badge>
                           </div>
@@ -308,7 +335,8 @@ export default function PAPConsentPage() {
                           </div>
 
                           <p className="text-xs text-muted-foreground">
-                            Granted on {consent.grantedAt.toLocaleDateString()} via {consent.source.replace('_', ' ')}
+                            Granted on {consent.grantedAt.toLocaleDateString()} via{" "}
+                            {consent.source.replace("_", " ")}
                           </p>
                         </div>
 
@@ -344,8 +372,8 @@ export default function PAPConsentPage() {
                     <div>
                       <h4 className="font-medium">Personalization</h4>
                       <p className="text-sm text-muted-foreground">
-                        We use your preferences and behavior to personalize marketing content
-                        and recommend relevant products or services.
+                        We use your preferences and behavior to personalize marketing content and
+                        recommend relevant products or services.
                       </p>
                     </div>
                   </div>
@@ -355,8 +383,8 @@ export default function PAPConsentPage() {
                     <div>
                       <h4 className="font-medium">Data Storage</h4>
                       <p className="text-sm text-muted-foreground">
-                        Your consent preferences are securely stored and regularly audited
-                        for compliance with privacy regulations.
+                        Your consent preferences are securely stored and regularly audited for
+                        compliance with privacy regulations.
                       </p>
                     </div>
                   </div>
@@ -368,8 +396,8 @@ export default function PAPConsentPage() {
                     <div>
                       <h4 className="font-medium">Proximity Marketing</h4>
                       <p className="text-sm text-muted-foreground">
-                        Location-based marketing uses proximity data to send relevant,
-                        timely offers when you're near our partners.
+                        Location-based marketing uses proximity data to send relevant, timely offers
+                        when you're near our partners.
                       </p>
                     </div>
                   </div>
@@ -379,8 +407,8 @@ export default function PAPConsentPage() {
                     <div>
                       <h4 className="font-medium">Privacy Protection</h4>
                       <p className="text-sm text-muted-foreground">
-                        All marketing activities are governed by strict privacy policies
-                        and can be revoked at any time.
+                        All marketing activities are governed by strict privacy policies and can be
+                        revoked at any time.
                       </p>
                     </div>
                   </div>
@@ -390,11 +418,21 @@ export default function PAPConsentPage() {
               <div className="border-t pt-6">
                 <h4 className="font-medium mb-2">Your Rights</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• <strong>Access:</strong> Request a copy of your data</li>
-                  <li>• <strong>Rectification:</strong> Correct inaccurate data</li>
-                  <li>• <strong>Erasure:</strong> Delete your data ("right to be forgotten")</li>
-                  <li>• <strong>Portability:</strong> Export your data in a portable format</li>
-                  <li>• <strong>Objection:</strong> Object to processing for marketing purposes</li>
+                  <li>
+                    • <strong>Access:</strong> Request a copy of your data
+                  </li>
+                  <li>
+                    • <strong>Rectification:</strong> Correct inaccurate data
+                  </li>
+                  <li>
+                    • <strong>Erasure:</strong> Delete your data ("right to be forgotten")
+                  </li>
+                  <li>
+                    • <strong>Portability:</strong> Export your data in a portable format
+                  </li>
+                  <li>
+                    • <strong>Objection:</strong> Object to processing for marketing purposes
+                  </li>
                 </ul>
               </div>
             </CardContent>

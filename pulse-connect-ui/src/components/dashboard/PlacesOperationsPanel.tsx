@@ -12,20 +12,32 @@ type Props = {
   loading: boolean;
   onRunAction: (
     action: "create_place" | "create_booking" | "cancel_booking",
-    payload: Record<string, unknown>,
+    payload: Record<string, unknown>
   ) => Promise<void>;
 };
 
-export function PlacesOperationsPanel({ title, data, enabled, disabledReason, loading, onRunAction }: Props) {
-  const [placeName, setPlaceName] = useState("PULSCO Workspace");
+export function PlacesOperationsPanel({
+  title,
+  data,
+  enabled,
+  disabledReason,
+  loading,
+  onRunAction
+}: Props) {
+  const [placeName, setPlaceName] = useState("Pulsco Workspace");
   const [placeCategory, setPlaceCategory] = useState("workspace");
   const [bookingPlaceId, setBookingPlaceId] = useState("");
   const [bookingAmount, setBookingAmount] = useState("120");
 
   return (
-    <SectionCard title={title} subtitle="Place publishing, booking operations, and place-ledger transactions.">
+    <SectionCard
+      title={title}
+      subtitle="Place publishing, booking operations, and place-ledger transactions."
+    >
       {!enabled ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">{disabledReason || "Places operations are unavailable."}</p>
+        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">
+          {disabledReason || "Places operations are unavailable."}
+        </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-2 text-sm text-slate-700">
@@ -53,7 +65,9 @@ export function PlacesOperationsPanel({ title, data, enabled, disabledReason, lo
               />
               <button
                 className="rounded bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
-                onClick={() => onRunAction("create_place", { name: placeName, category: placeCategory })}
+                onClick={() =>
+                  onRunAction("create_place", { name: placeName, category: placeCategory })
+                }
                 disabled={loading}
               >
                 Create Place
@@ -72,7 +86,12 @@ export function PlacesOperationsPanel({ title, data, enabled, disabledReason, lo
                 {booking.status !== "cancelled" ? (
                   <button
                     className="mt-1 rounded bg-amber-700 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-800 disabled:opacity-60"
-                    onClick={() => onRunAction("cancel_booking", { bookingId: booking.id, reason: "dashboard_cancelled" })}
+                    onClick={() =>
+                      onRunAction("cancel_booking", {
+                        bookingId: booking.id,
+                        reason: "dashboard_cancelled"
+                      })
+                    }
                     disabled={loading}
                   >
                     Cancel
@@ -102,7 +121,7 @@ export function PlacesOperationsPanel({ title, data, enabled, disabledReason, lo
                     placeId: bookingPlaceId,
                     totalUsd: Number(bookingAmount || 0),
                     startAt: new Date().toISOString(),
-                    endAt: new Date(Date.now() + 7_200_000).toISOString(),
+                    endAt: new Date(Date.now() + 7_200_000).toISOString()
                   })
                 }
                 disabled={loading}
@@ -116,4 +135,3 @@ export function PlacesOperationsPanel({ title, data, enabled, disabledReason, lo
     </SectionCard>
   );
 }
-

@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { HashChain } from '../../../shared/lib/src/hashChain';
-import { PC365Guard } from '../../../shared/lib/src/pc365Guard';
+import { Injectable, Logger } from "@nestjs/common";
+import { Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { HashChain } from "../../../shared/lib/src/hashChain";
+import { PC365Guard } from "../../../shared/lib/src/pc365Guard";
 import {
   CreateFirewallRuleDto,
   FirewallEnforceDto,
@@ -10,7 +10,7 @@ import {
   FirewallEnforceResultDto,
   FirewallRuleType,
   FirewallDirection
-} from '../dto/firewall.dto';
+} from "../dto/firewall.dto";
 
 @Injectable()
 export class FirewallService {
@@ -18,14 +18,17 @@ export class FirewallService {
   private readonly hashChain = new HashChain();
 
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
-    private readonly pc365Guard: PC365Guard,
+    @Inject("DATABASE_CONNECTION") private readonly db: Pool,
+    private readonly pc365Guard: PC365Guard
   ) {}
 
   /**
    * Get all active firewall rules
    */
-  async getActiveRules(subsystem?: string, direction?: FirewallDirection): Promise<FirewallRuleDto[]> {
+  async getActiveRules(
+    subsystem?: string,
+    direction?: FirewallDirection
+  ): Promise<FirewallRuleDto[]> {
     try {
       let query = `
         SELECT
@@ -61,12 +64,12 @@ export class FirewallService {
 
       const result = await this.db.query(query, params);
 
-      return result.rows.map(row => ({
+      return result.rows.map((row) => ({
         ...row,
         effectiveFrom: row.effectiveFrom.toISOString(),
         effectiveUntil: row.effectiveUntil?.toISOString(),
         createdAt: row.createdAt.toISOString(),
-        updatedAt: row.updatedAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString()
       }));
     } catch (error) {
       this.logger.error(`Failed to get active firewall rules: ${error.message}`);
@@ -110,7 +113,7 @@ export class FirewallService {
         false, // New rules start inactive
         dto.councilDecisionId,
         createdBy,
-        new Date(),
+        new Date()
       ];
 
       const result = await this.db.query(insertQuery, params);
@@ -118,16 +121,16 @@ export class FirewallService {
 
       // Create audit entry
       await this.createAuditEntry({
-        actionType: 'firewall_rule_create',
+        actionType: "firewall_rule_create",
         subsystemName: dto.subsystemScope,
         userId: createdBy,
         actionData: {
           ruleId: rule.id,
           ruleName: dto.ruleName,
-          ruleType: dto.ruleType,
+          ruleType: dto.ruleType
         },
-        riskLevel: 'medium',
-        actionResult: 'success',
+        riskLevel: "medium",
+        actionResult: "success"
       });
 
       return {
@@ -143,17 +146,17 @@ export class FirewallService {
         effectiveFrom: rule.effective_from.toISOString(),
         effectiveUntil: rule.effective_until?.toISOString(),
         createdAt: rule.created_at.toISOString(),
-        updatedAt: rule.updated_at.toISOString(),
+        updatedAt: rule.updated_at.toISOString()
       };
     } catch (error) {
       this.logger.error(`Failed to create firewall rule: ${error.message}`);
 
       await this.createAuditEntry({
-        actionType: 'firewall_rule_create',
+        actionType: "firewall_rule_create",
         actionData: { ruleName: dto.ruleName, error: error.message },
-        riskLevel: 'medium',
-        actionResult: 'failure',
-        errorMessage: error.message,
+        riskLevel: "medium",
+        actionResult: "failure",
+        errorMessage: error.message
       });
 
       throw error;
@@ -172,7 +175,7 @@ export class FirewallService {
       let appliedRules: FirewallRuleDto[] = [];
       let quarantineInfo: any = null;
       let escalationInfo: any = null;
-      let riskAssessment = 'low';
+      let riskAssessment = "low";
 
       // Evaluate rules in priority order
       for (const rule of rules) {
@@ -182,25 +185,25 @@ export class FirewallService {
           switch (rule.ruleType) {
             case FirewallRuleType.BLOCK:
               allowed = false;
-              riskAssessment = 'high';
+              riskAssessment = "high";
               break;
 
             case FirewallRuleType.QUARANTINE:
               allowed = false;
               quarantineInfo = rule.actions;
-              riskAssessment = 'medium';
+              riskAssessment = "medium";
               break;
 
             case FirewallRuleType.ESCALATE:
               allowed = false;
               escalationInfo = rule.actions;
-              riskAssessment = 'critical';
+              riskAssessment = "critical";
               break;
 
             case FirewallRuleType.ALLOW:
               // Explicit allow overrides previous blocks
               allowed = true;
-              riskAssessment = 'low';
+              riskAssessment = "low";
               break;
           }
 
@@ -211,27 +214,27 @@ export class FirewallService {
 
       // Create audit entry
       const auditEntry = await this.createAuditEntry({
-        actionType: 'firewall_enforce',
+        actionType: "firewall_enforce",
         subsystemName: dto.subsystemName,
-        userId: 'marp-firewall',
+        userId: "marp-firewall",
         actionData: {
           action: dto.action,
           allowed,
           appliedRulesCount: appliedRules.length,
-          riskAssessment,
+          riskAssessment
         },
         riskLevel: riskAssessment as any,
-        actionResult: allowed ? 'success' : 'blocked',
+        actionResult: allowed ? "success" : "blocked"
       });
 
       return {
         allowed,
-        action: allowed ? 'allowed' : 'blocked',
+        action: allowed ? "allowed" : "blocked",
         appliedRules,
         quarantineInfo,
         escalationInfo,
         riskAssessment,
-        auditEntry,
+        auditEntry
       };
     } catch (error) {
       this.logger.error(`Failed to enforce firewall rules: ${error.message}`);
@@ -315,12 +318,12 @@ export class FirewallService {
       JSON.stringify(data.actionData),
       data.riskLevel,
       data.actionResult,
-      data.errorMessage,
+      data.errorMessage
     ]);
 
     return {
       auditId: result.rows[0].id,
-      timestamp: result.rows[0].created_at.toISOString(),
+      timestamp: result.rows[0].created_at.toISOString()
     };
   }
 }

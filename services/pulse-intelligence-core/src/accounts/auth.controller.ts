@@ -21,7 +21,7 @@ export class AuthController {
   constructor(
     private readonly accountsService: AccountsService,
     private readonly authService: AuthService
-    ) {}
+  ) {}
 
   @Post("register")
   async register(@Body() dto: RegisterUserDto) {
@@ -36,22 +36,22 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('2fa/generate')
+  @Get("2fa/generate")
   async generateTwoFactor(@Request() req, @Res() res: Response) {
     const { otpauthUrl } = await this.accountsService.generateTwoFactorSecret(req.user);
     const qrCode = await this.accountsService.generateTwoFactorQrCode(otpauthUrl);
-    res.setHeader('Content-Type', 'image/png');
+    res.setHeader("Content-Type", "image/png");
     res.send(qrCode);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('2fa/enable')
+  @Post("2fa/enable")
   async enableTwoFactor(@Request() req, @Body() body) {
     const isTokenValid = this.accountsService.isTwoFactorTokenValid(body.token, req.user);
     if (!isTokenValid) {
-      throw new UnauthorizedException('Invalid two-factor token');
+      throw new UnauthorizedException("Invalid two-factor token");
     }
     await this.accountsService.enableTwoFactorAuth(req.user);
-    return { message: 'Two-factor authentication enabled successfully' };
+    return { message: "Two-factor authentication enabled successfully" };
   }
 }

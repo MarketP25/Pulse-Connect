@@ -12,7 +12,11 @@ type JwtPayloadBase = {
 };
 
 export interface RateLimiter {
-  hit(key: string, windowMs: number, maxRequests: number): Promise<{ allowed: boolean; remaining: number }>;
+  hit(
+    key: string,
+    windowMs: number,
+    maxRequests: number
+  ): Promise<{ allowed: boolean; remaining: number }>;
 }
 
 export class InMemoryRateLimiter implements RateLimiter {
@@ -26,7 +30,7 @@ export class InMemoryRateLimiter implements RateLimiter {
     this.buckets.set(key, trimmed);
     return {
       allowed: trimmed.length <= maxRequests,
-      remaining: Math.max(0, maxRequests - trimmed.length),
+      remaining: Math.max(0, maxRequests - trimmed.length)
     };
   }
 }
@@ -54,7 +58,7 @@ export function assertStrongPassword(password: string): void {
       "weak_password",
       400,
       "Password does not meet strong policy requirements",
-      { minLen, uppercase: true, lowercase: true, number: true, specialCharacter: true },
+      { minLen, uppercase: true, lowercase: true, number: true, specialCharacter: true }
     );
   }
 }
@@ -121,7 +125,17 @@ export function hashValue(value: string): string {
 }
 
 function getEncryptionKey(): Buffer {
-  const source = process.env.PULSE_IDENTITY_ENCRYPTION_KEY || "pulsco-identity-dev-key";
+  const source = process.env.PULSE_IDENTITY_ENCRYPTION_KEY;
+  if (!source) {
+    if (process.env.NODE_ENV === "production") {
+      throw new IdentityError(
+        "missing_encryption_key",
+        500,
+        "PULSE_IDENTITY_ENCRYPTION_KEY must be configured in production"
+      );
+    }
+    return createHash("sha256").update("pulsco-identity-dev-key").digest();
+  }
   return createHash("sha256").update(source).digest();
 }
 
@@ -142,7 +156,10 @@ export function decryptSensitive(cipherText: string): string {
   const key = getEncryptionKey();
   const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(ivB64, "base64"));
   decipher.setAuthTag(Buffer.from(tagB64, "base64"));
-  const decrypted = Buffer.concat([decipher.update(Buffer.from(bodyB64, "base64")), decipher.final()]);
+  const decrypted = Buffer.concat([
+    decipher.update(Buffer.from(bodyB64, "base64")),
+    decipher.final()
+  ]);
   return decrypted.toString("utf8");
 }
 
@@ -171,7 +188,7 @@ export async function assertSecurityPrechecks(
   input: SecurityPrecheckInput,
   rateLimiter: RateLimiter,
   maxRequests = 25,
-  windowMs = 60_000,
+  windowMs = 60_000
 ): Promise<void> {
   const key = `${input.intent}:${input.ipAddress}`;
   const rateResult = await rateLimiter.hit(key, windowMs, maxRequests);

@@ -1,7 +1,7 @@
 packages:
   # Public & user-facing applications
   - "apps/*"
-
+  - "pulse-connect-ui(has a unified universal user dashboard)"
   # Core user interfaces
   - "pulse-connect-ui"
   - "pulse-connect-admin-ui"
@@ -22,3 +22,9 @@ packages:
   # Domain-specific modules (if/when added)
   - "modules/*"
   - "integrations/*"
+  #intelligence 
+  - "intelligence/*"
+
+  # Infrastructure & deployment
+  - "infrastructure/*"
+  - "deployments/*"

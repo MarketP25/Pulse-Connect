@@ -42,10 +42,13 @@ export class AdminIntelligenceClient {
   /**
    * Fetch metrics for the dashboard's admin role
    */
-  async fetchMetrics(metricKeys?: string[], timeRange?: { start: Date; end: Date }): Promise<IntelligenceResponse> {
+  async fetchMetrics(
+    metricKeys?: string[],
+    timeRange?: { start: Date; end: Date }
+  ): Promise<IntelligenceResponse> {
     const params = new URLSearchParams({
       action: "metrics",
-      role: this.role,
+      role: this.role
     });
 
     if (metricKeys && metricKeys.length > 0) {
@@ -61,8 +64,8 @@ export class AdminIntelligenceClient {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-role": this.role,
-      },
+        "x-admin-role": this.role
+      }
     });
 
     if (!response.ok) {
@@ -80,8 +83,8 @@ export class AdminIntelligenceClient {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-role": this.role,
-      },
+        "x-admin-role": this.role
+      }
     });
 
     if (!response.ok) {
@@ -100,8 +103,8 @@ export class AdminIntelligenceClient {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-role": this.role,
-      },
+        "x-admin-role": this.role
+      }
     });
 
     if (!response.ok) {
@@ -115,19 +118,22 @@ export class AdminIntelligenceClient {
   /**
    * Submit an event (triggers event-driven CSI processing)
    */
-  async submitEvent(eventType: string, payload: Record<string, unknown>): Promise<IntelligenceResponse> {
+  async submitEvent(
+    eventType: string,
+    payload: Record<string, unknown>
+  ): Promise<IntelligenceResponse> {
     const response = await fetch(this.baseUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-role": this.role,
+        "x-admin-role": this.role
       },
       body: JSON.stringify({
         eventType,
         payload,
         source: `${this.role}-dashboard`,
-        timestamp: new Date().toISOString(),
-      }),
+        timestamp: new Date().toISOString()
+      })
     });
 
     if (!response.ok) {

@@ -1,9 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { PlaceEntity } from './place.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn
+} from "typeorm";
+import { PlaceEntity } from "./place.entity";
 
-@Entity('place_images')
+@Entity("place_images")
 export class ImageEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 255 })
@@ -21,25 +28,25 @@ export class ImageEntity {
   @Column({ length: 500, nullable: true })
   caption: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   width: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   height: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   size: number;
 
   @Column({ length: 10 })
   format: string;
 
-  @Column({ type: 'jsonb', default: [] })
+  @Column({ type: "jsonb", default: [] })
   tags: string[];
 
   @CreateDateColumn()
   uploadedAt: Date;
 
-  @ManyToOne(() => PlaceEntity, place => place.images)
-  @JoinColumn({ name: 'placeId' })
+  @ManyToOne(() => PlaceEntity, (place) => place.images)
+  @JoinColumn({ name: "placeId" })
   place: PlaceEntity;
 }

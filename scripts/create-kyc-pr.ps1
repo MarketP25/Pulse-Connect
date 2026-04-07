@@ -28,10 +28,10 @@ try {
 }
 
 git checkout -b $BranchName
-git add infra/db-migrations/001_initial_schema.sql
-git add pulse-connect-core/**/kyc* pulse-connect-core/**/compliance* 2>$null
-git add pulse-hosting-backend/** pulse-connect-ui/** pulse-connect-admin-ui/** 2>$null
-git add scripts/create-kyc-pr.ps1 .github/PULL_REQUEST_TEMPLATE/kyc_pr_template.md 2>$null
+# Staging specific files is brittle. A better approach for a helper script might be
+# to add all tracked changes, or to pass file patterns as parameters.
+# For this review, we will remove error suppression to make failures more obvious.
+git add .
 
 # Use a portable staged-change check (list staged files)
 $staged = & git diff --cached --name-only

@@ -11,7 +11,7 @@ class StubBillingClient implements BillingClient {
     return {
       linked: true,
       provider: "billing-engine" as const,
-      planId: "basic-free",
+      planId: "basic-free"
     };
   }
 }
@@ -23,9 +23,9 @@ function createService() {
       kycService: new PulseKycService(new InMemoryKycRepository()),
       billingClient: new StubBillingClient(),
       eventPublisher: new NoopIdentityEventPublisher(),
-      rateLimiter: new InMemoryRateLimiter(),
+      rateLimiter: new InMemoryRateLimiter()
     },
-    { exposeDebugTokens: true, jwtSecret: "security-test-secret" },
+    { exposeDebugTokens: true, jwtSecret: "security-test-secret" }
   );
 }
 
@@ -43,12 +43,12 @@ describe("identity security controls", () => {
         consents: {
           privacyPolicy: { accepted: true, version: "2026.03" },
           termsOfService: { accepted: true, version: "2026.03" },
-          dataProcessing: { accepted: true, version: "2026.03" },
+          dataProcessing: { accepted: true, version: "2026.03" }
         },
         deviceFingerprint: "device-weak-1",
         ipAddress: "127.0.0.1",
-        userAgent: "Mozilla/5.0 PulscoWeb",
-      }),
+        userAgent: "Mozilla/5.0 PulscoWeb"
+      })
     ).rejects.toMatchObject<IdentityError>({ code: "weak_password" } as IdentityError);
   });
 
@@ -65,12 +65,12 @@ describe("identity security controls", () => {
         consents: {
           privacyPolicy: { accepted: true, version: "2026.03" },
           termsOfService: { accepted: true, version: "2026.03" },
-          dataProcessing: { accepted: true, version: "2026.03" },
+          dataProcessing: { accepted: true, version: "2026.03" }
         },
         deviceFingerprint: "device-bot-1",
         ipAddress: "127.0.0.1",
-        userAgent: "curl/8.0",
-      }),
+        userAgent: "curl/8.0"
+      })
     ).rejects.toMatchObject<IdentityError>({ code: "bot_detected" } as IdentityError);
   });
 
@@ -86,16 +86,16 @@ describe("identity security controls", () => {
       consents: {
         privacyPolicy: { accepted: true, version: "2026.03" },
         termsOfService: { accepted: true, version: "2026.03" },
-        dataProcessing: { accepted: true, version: "2026.03" },
+        dataProcessing: { accepted: true, version: "2026.03" }
       },
       deviceFingerprint: "device-rotate-1",
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
     await service.verifyEmail({
       token: created.debug!.verificationToken,
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
     await service.activateAccount(created.userId);
 
@@ -104,13 +104,13 @@ describe("identity security controls", () => {
       password: "StrongPass!234",
       ipAddress: "127.0.0.1",
       userAgent: "Mozilla/5.0 PulscoWeb",
-      deviceFingerprint: "device-rotate-1",
+      deviceFingerprint: "device-rotate-1"
     });
 
     const rotated = await service.refreshTokens({
       refreshToken: login.refreshToken,
       ipAddress: "127.0.0.1",
-      userAgent: "Mozilla/5.0 PulscoWeb",
+      userAgent: "Mozilla/5.0 PulscoWeb"
     });
     expect(rotated.refreshToken).not.toBe(login.refreshToken);
 
@@ -118,8 +118,8 @@ describe("identity security controls", () => {
       service.refreshTokens({
         refreshToken: login.refreshToken,
         ipAddress: "127.0.0.1",
-        userAgent: "Mozilla/5.0 PulscoWeb",
-      }),
+        userAgent: "Mozilla/5.0 PulscoWeb"
+      })
     ).rejects.toMatchObject<IdentityError>({ code: "refresh_token_mismatch" } as IdentityError);
   });
 

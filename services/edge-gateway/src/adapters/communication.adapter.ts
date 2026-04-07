@@ -1,14 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EdgeTelemetryService } from '../services/telemetry.service';
-import { AiRuleInterpreter } from '@/shared/lib/src/ai-rule-interpreter';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EdgeTelemetryService } from "../services/telemetry.service";
+import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
 
 export interface CommunicationRequest {
   messageId: string;
   userId: string;
   recipientId: string;
-  action: 'send_message' | 'make_call' | 'send_file' | 'create_group';
-  channel: 'text' | 'voice' | 'video' | 'file';
+  action: "send_message" | "make_call" | "send_file" | "create_group";
+  channel: "text" | "voice" | "video" | "file";
   context?: {
     content?: string;
     duration?: number;
@@ -37,7 +37,7 @@ export class CommunicationAdapter {
   constructor(
     private readonly kafkaClient: ClientKafka,
     private readonly telemetryService: EdgeTelemetryService,
-    private readonly aiRuleInterpreter: AiRuleInterpreter,
+    private readonly aiRuleInterpreter: AiRuleInterpreter
   ) {}
 
   /**
@@ -50,19 +50,19 @@ export class CommunicationAdapter {
       // 1. Validate communication content and recipients
       const contentCheck = await this.validateCommunicationContent(request);
       if (!contentCheck.allowed) {
-        await this.telemetryService.recordEvent('communication_blocked', {
+        await this.telemetryService.recordEvent("communication_blocked", {
           messageId: request.messageId,
           userId: request.userId,
           action: request.action,
           channel: request.channel,
-          reason: contentCheck.blockedReason,
+          reason: contentCheck.blockedReason
         });
         return {
           messageId: request.messageId,
           allowed: false,
           blockedReason: contentCheck.blockedReason,
           complianceFlags: contentCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -74,7 +74,7 @@ export class CommunicationAdapter {
           allowed: false,
           blockedReason: permissionCheck.blockedReason,
           complianceFlags: permissionCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -86,7 +86,7 @@ export class CommunicationAdapter {
           allowed: false,
           blockedReason: moderationCheck.blockedReason,
           complianceFlags: moderationCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -98,7 +98,7 @@ export class CommunicationAdapter {
           allowed: false,
           blockedReason: billingCheck.blockedReason,
           complianceFlags: billingCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -106,7 +106,7 @@ export class CommunicationAdapter {
       const result = await this.executeCommunicationOperation(request);
 
       // 6. Record telemetry
-      await this.telemetryService.recordEvent('communication_operation', {
+      await this.telemetryService.recordEvent("communication_operation", {
         messageId: request.messageId,
         userId: request.userId,
         recipientId: request.recipientId,
@@ -117,9 +117,9 @@ export class CommunicationAdapter {
           ...contentCheck.flags,
           ...permissionCheck.flags,
           ...moderationCheck.flags,
-          ...billingCheck.flags,
+          ...billingCheck.flags
         ].length,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
@@ -130,27 +130,26 @@ export class CommunicationAdapter {
           ...contentCheck.flags,
           ...permissionCheck.flags,
           ...moderationCheck.flags,
-          ...billingCheck.flags,
+          ...billingCheck.flags
         ],
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       };
-
     } catch (error) {
       this.logger.error(`Communication processing failed: ${error.message}`, error.stack);
-      await this.telemetryService.recordEvent('communication_error', {
+      await this.telemetryService.recordEvent("communication_error", {
         messageId: request.messageId,
         userId: request.userId,
         action: request.action,
         error: error.message,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
         messageId: request.messageId,
         allowed: false,
-        blockedReason: 'System error during communication',
-        complianceFlags: ['error'],
-        processingTime: Date.now() - startTime,
+        blockedReason: "System error during communication",
+        complianceFlags: ["error"],
+        processingTime: Date.now() - startTime
       };
     }
   }
@@ -169,26 +168,27 @@ export class CommunicationAdapter {
     if (request.context?.content && request.context.content.length > 10000) {
       return {
         allowed: false,
-        blockedReason: 'Message too long',
-        flags: ['content_too_long'],
+        blockedReason: "Message too long",
+        flags: ["content_too_long"]
       };
     }
 
-    flags.push('content_length_valid');
+    flags.push("content_length_valid");
 
     // Validate file sizes for file transfers
-    if (request.channel === 'file' && request.context?.fileSize) {
-      if (request.context.fileSize > 100 * 1024 * 1024) { // 100MB limit
+    if (request.channel === "file" && request.context?.fileSize) {
+      if (request.context.fileSize > 100 * 1024 * 1024) {
+        // 100MB limit
         return {
           allowed: false,
-          blockedReason: 'File size exceeds limit',
-          flags: ['file_too_large'],
+          blockedReason: "File size exceeds limit",
+          flags: ["file_too_large"]
         };
       }
-      flags.push('file_size_valid');
+      flags.push("file_size_valid");
     }
 
-    flags.push('content_valid');
+    flags.push("content_valid");
     return { allowed: true, flags };
   }
 
@@ -203,28 +203,31 @@ export class CommunicationAdapter {
     const flags = [];
 
     // Check if users can communicate (not blocked)
-    const canCommunicate = await this.checkUserCommunicationStatus(request.userId, request.recipientId);
+    const canCommunicate = await this.checkUserCommunicationStatus(
+      request.userId,
+      request.recipientId
+    );
     if (!canCommunicate) {
       return {
         allowed: false,
-        blockedReason: 'Communication not allowed between users',
-        flags: ['communication_blocked'],
+        blockedReason: "Communication not allowed between users",
+        flags: ["communication_blocked"]
       };
     }
 
-    flags.push('communication_allowed');
+    flags.push("communication_allowed");
 
     // Check group creation permissions
-    if (request.action === 'create_group') {
+    if (request.action === "create_group") {
       const canCreateGroup = await this.checkGroupCreationPermissions(request.userId);
       if (!canCreateGroup) {
         return {
           allowed: false,
-          blockedReason: 'Insufficient permissions to create group',
-          flags: ['group_creation_denied'],
+          blockedReason: "Insufficient permissions to create group",
+          flags: ["group_creation_denied"]
         };
       }
-      flags.push('group_creation_allowed');
+      flags.push("group_creation_allowed");
     }
 
     return { allowed: true, flags };
@@ -245,21 +248,21 @@ export class CommunicationAdapter {
       const moderation = await this.aiRuleInterpreter.analyzeContentModeration({
         content: request.context.content,
         channel: request.channel,
-        userId: request.userId,
+        userId: request.userId
       });
 
       if (!moderation.allowed) {
         return {
           allowed: false,
           blockedReason: moderation.blockedReason,
-          flags: moderation.flags,
+          flags: moderation.flags
         };
       }
 
       flags.push(...moderation.flags);
     }
 
-    flags.push('content_moderated');
+    flags.push("content_moderated");
     return { allowed: true, flags };
   }
 
@@ -274,16 +277,16 @@ export class CommunicationAdapter {
     const flags = [];
 
     // Check user balance for paid communications
-    if (request.channel === 'voice' || request.channel === 'video') {
+    if (request.channel === "voice" || request.channel === "video") {
       const hasBalance = await this.checkUserBalance(request.userId);
       if (!hasBalance) {
         return {
           allowed: false,
-          blockedReason: 'Insufficient balance for communication',
-          flags: ['insufficient_balance'],
+          blockedReason: "Insufficient balance for communication",
+          flags: ["insufficient_balance"]
         };
       }
-      flags.push('balance_sufficient');
+      flags.push("balance_sufficient");
     }
 
     // Check rate limits
@@ -291,12 +294,12 @@ export class CommunicationAdapter {
     if (!rateCheck.allowed) {
       return {
         allowed: false,
-        blockedReason: 'Rate limit exceeded',
-        flags: ['rate_limited'],
+        blockedReason: "Rate limit exceeded",
+        flags: ["rate_limited"]
       };
     }
 
-    flags.push('billing_compliant');
+    flags.push("billing_compliant");
     return { allowed: true, flags };
   }
 
@@ -304,16 +307,18 @@ export class CommunicationAdapter {
    * Execute communication operation
    */
   private async executeCommunicationOperation(request: CommunicationRequest): Promise<any> {
-    const result = await this.kafkaClient.send('communication.execute', {
-      messageId: request.messageId,
-      userId: request.userId,
-      recipientId: request.recipientId,
-      action: request.action,
-      channel: request.channel,
-      context: request.context,
-      edgeValidated: true,
-      timestamp: new Date().toISOString(),
-    }).toPromise();
+    const result = await this.kafkaClient
+      .send("communication.execute", {
+        messageId: request.messageId,
+        userId: request.userId,
+        recipientId: request.recipientId,
+        action: request.action,
+        channel: request.channel,
+        context: request.context,
+        edgeValidated: true,
+        timestamp: new Date().toISOString()
+      })
+      .toPromise();
 
     return result;
   }
@@ -321,7 +326,10 @@ export class CommunicationAdapter {
   /**
    * Check user communication status
    */
-  private async checkUserCommunicationStatus(userId: string, recipientId: string): Promise<boolean> {
+  private async checkUserCommunicationStatus(
+    userId: string,
+    recipientId: string
+  ): Promise<boolean> {
     // Would check block lists, privacy settings
     return true; // Simplified
   }
@@ -345,7 +353,10 @@ export class CommunicationAdapter {
   /**
    * Check communication rate limits
    */
-  private async checkCommunicationRateLimits(userId: string, channel: string): Promise<{ allowed: boolean }> {
+  private async checkCommunicationRateLimits(
+    userId: string,
+    channel: string
+  ): Promise<{ allowed: boolean }> {
     // Would check rate limits per channel
     return { allowed: true }; // Simplified
   }

@@ -1,14 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 
 export interface MachineTranslationRequest {
   sourceLanguage: string;
   targetLanguage: string;
   text: string;
-  quality: 'fast' | 'standard' | 'premium';
+  quality: "fast" | "standard" | "premium";
   region?: string;
   context?: {
     domain?: string;
-    formality?: 'formal' | 'informal' | 'neutral';
+    formality?: "formal" | "informal" | "neutral";
   };
 }
 
@@ -34,45 +34,45 @@ export class MachineTranslationService {
     google: {
       apiKey: process.env.GOOGLE_TRANSLATE_API_KEY,
       models: {
-        fast: 'nmt-fast',
-        standard: 'nmt-standard',
-        premium: 'nmt-premium',
+        fast: "nmt-fast",
+        standard: "nmt-standard",
+        premium: "nmt-premium"
       },
       costs: {
         fast: 0.00002, // per character
         standard: 0.00005,
-        premium: 0.0001,
-      },
+        premium: 0.0001
+      }
     },
     azure: {
       apiKey: process.env.AZURE_TRANSLATOR_KEY,
       region: process.env.AZURE_TRANSLATOR_REGION,
       models: {
-        fast: 'text-translation-fast',
-        standard: 'text-translation-standard',
-        premium: 'text-translation-premium',
+        fast: "text-translation-fast",
+        standard: "text-translation-standard",
+        premium: "text-translation-premium"
       },
       costs: {
         fast: 0.000015,
         standard: 0.00004,
-        premium: 0.00008,
-      },
+        premium: 0.00008
+      }
     },
     aws: {
       accessKey: process.env.AWS_ACCESS_KEY_ID,
       secretKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.AWS_REGION || "us-east-1",
       models: {
-        fast: 'amazon-translate-fast',
-        standard: 'amazon-translate-standard',
-        premium: 'amazon-translate-premium',
+        fast: "amazon-translate-fast",
+        standard: "amazon-translate-standard",
+        premium: "amazon-translate-premium"
       },
       costs: {
         fast: 0.000015,
         standard: 0.000045,
-        premium: 0.00009,
-      },
-    },
+        premium: 0.00009
+      }
+    }
   };
 
   /**
@@ -83,18 +83,22 @@ export class MachineTranslationService {
 
     try {
       // Select optimal provider based on language pair and quality
-      const provider = this.selectProvider(request.sourceLanguage, request.targetLanguage, request.quality);
+      const provider = this.selectProvider(
+        request.sourceLanguage,
+        request.targetLanguage,
+        request.quality
+      );
 
       let result: MachineTranslationResult;
 
       switch (provider) {
-        case 'google':
+        case "google":
           result = await this.translateWithGoogle(request);
           break;
-        case 'azure':
+        case "azure":
           result = await this.translateWithAzure(request);
           break;
-        case 'aws':
+        case "aws":
           result = await this.translateWithAWS(request);
           break;
         default:
@@ -104,12 +108,16 @@ export class MachineTranslationService {
       // Add processing time
       result.processingTime = Date.now() - startTime;
 
-      this.logger.log(`Translation completed: ${request.sourceLanguage} -> ${request.targetLanguage} (${provider})`);
+      this.logger.log(
+        `Translation completed: ${request.sourceLanguage} -> ${request.targetLanguage} (${provider})`
+      );
 
       return result;
-
     } catch (error) {
-      this.logger.error(`Translation failed: ${request.sourceLanguage} -> ${request.targetLanguage}`, error);
+      this.logger.error(
+        `Translation failed: ${request.sourceLanguage} -> ${request.targetLanguage}`,
+        error
+      );
       throw new Error(`Translation service error: ${error.message}`);
     }
   }
@@ -120,14 +128,16 @@ export class MachineTranslationService {
   async detectLanguage(text: string): Promise<{ language: string; confidence: number }> {
     // Mock language detection - in real implementation, use provider APIs
     const mockDetections = {
-      'Hello world': { language: 'en', confidence: 0.99 },
-      'Hola mundo': { language: 'es', confidence: 0.98 },
-      'Bonjour le monde': { language: 'fr', confidence: 0.97 },
-      'Hallo Welt': { language: 'de', confidence: 0.96 },
-      'Ciao mondo': { language: 'it', confidence: 0.95 },
+      "Hello world": { language: "en", confidence: 0.99 },
+      "Hola mundo": { language: "es", confidence: 0.98 },
+      "Bonjour le monde": { language: "fr", confidence: 0.97 },
+      "Hallo Welt": { language: "de", confidence: 0.96 },
+      "Ciao mondo": { language: "it", confidence: 0.95 }
     };
 
-    return mockDetections[text as keyof typeof mockDetections] || { language: 'en', confidence: 0.5 };
+    return (
+      mockDetections[text as keyof typeof mockDetections] || { language: "en", confidence: 0.5 }
+    );
   }
 
   /**
@@ -139,15 +149,15 @@ export class MachineTranslationService {
     languagePairs: Array<{ source: string; target: string; providers: string[] }>;
   } {
     return {
-      sourceLanguages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 'ar', 'hi'],
-      targetLanguages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 'ar', 'hi'],
+      sourceLanguages: ["en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh", "ar", "hi"],
+      targetLanguages: ["en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh", "ar", "hi"],
       languagePairs: [
-        { source: 'en', target: 'es', providers: ['google', 'azure', 'aws'] },
-        { source: 'es', target: 'en', providers: ['google', 'azure', 'aws'] },
-        { source: 'fr', target: 'en', providers: ['google', 'azure', 'aws'] },
-        { source: 'en', target: 'fr', providers: ['google', 'azure', 'aws'] },
+        { source: "en", target: "es", providers: ["google", "azure", "aws"] },
+        { source: "es", target: "en", providers: ["google", "azure", "aws"] },
+        { source: "fr", target: "en", providers: ["google", "azure", "aws"] },
+        { source: "en", target: "fr", providers: ["google", "azure", "aws"] }
         // Add more pairs as needed
-      ],
+      ]
     };
   }
 
@@ -157,7 +167,7 @@ export class MachineTranslationService {
   async getQualityMetrics(
     sourceLanguage: string,
     targetLanguage: string,
-    timeRange: { start: Date; end: Date },
+    timeRange: { start: Date; end: Date }
   ): Promise<{
     averageBleuScore: number;
     averageConfidence: number;
@@ -169,63 +179,65 @@ export class MachineTranslationService {
       averageBleuScore: 0.85,
       averageConfidence: 0.92,
       errorRate: 0.02,
-      averageLatency: 450, // ms
+      averageLatency: 450 // ms
     };
   }
 
   // Private methods for provider implementations
 
-  private selectProvider(
-    sourceLang: string,
-    targetLang: string,
-    quality: string,
-  ): string {
+  private selectProvider(sourceLang: string, targetLang: string, quality: string): string {
     // Simple provider selection logic
     // In real implementation, consider cost, performance, availability, etc.
 
     const languagePair = `${sourceLang}-${targetLang}`;
 
     // Prefer Google for most common pairs
-    if (['en-es', 'es-en', 'en-fr', 'fr-en', 'en-de', 'de-en'].includes(languagePair)) {
-      return 'google';
+    if (["en-es", "es-en", "en-fr", "fr-en", "en-de", "de-en"].includes(languagePair)) {
+      return "google";
     }
 
     // Use Azure for enterprise features
-    if (quality === 'premium') {
-      return 'azure';
+    if (quality === "premium") {
+      return "azure";
     }
 
     // Default to AWS for cost optimization
-    return 'aws';
+    return "aws";
   }
 
-  private async translateWithGoogle(request: MachineTranslationRequest): Promise<MachineTranslationResult> {
+  private async translateWithGoogle(
+    request: MachineTranslationRequest
+  ): Promise<MachineTranslationResult> {
     // Mock Google Translate API call
     const mockTranslations = {
-      'Hello world': {
-        es: 'Hola mundo',
-        fr: 'Bonjour le monde',
-        de: 'Hallo Welt',
-      },
+      "Hello world": {
+        es: "Hola mundo",
+        fr: "Bonjour le monde",
+        de: "Hallo Welt"
+      }
     };
 
-    const translatedText = mockTranslations[request.text as keyof typeof mockTranslations]?.[request.targetLanguage as keyof typeof mockTranslations[keyof typeof mockTranslations]] ||
-                          `Translated: ${request.text}`;
+    const translatedText =
+      mockTranslations[request.text as keyof typeof mockTranslations]?.[
+        request.targetLanguage as keyof (typeof mockTranslations)[keyof typeof mockTranslations]
+      ] || `Translated: ${request.text}`;
 
     return {
       translatedText,
       quality: {
         score: 0.89,
-        confidence: 0.95,
+        confidence: 0.95
       },
       processingTime: 0, // Will be set by caller
       cost: request.text.length * this.providers.google.costs[request.quality],
-      provider: 'google',
-      model: this.providers.google.models[request.quality],
+      provider: "google",
+      model: this.providers.google.models[request.quality]
     };
   }
 
-  private async translateWithAzure(request: MachineTranslationRequest): Promise<MachineTranslationResult> {
+  private async translateWithAzure(
+    request: MachineTranslationRequest
+  ): Promise<MachineTranslationResult> {
     // Mock Azure Translator API call
     const translatedText = `[Azure] Translated: ${request.text}`;
 
@@ -233,16 +245,18 @@ export class MachineTranslationService {
       translatedText,
       quality: {
         score: 0.91,
-        confidence: 0.97,
+        confidence: 0.97
       },
       processingTime: 0,
       cost: request.text.length * this.providers.azure.costs[request.quality],
-      provider: 'azure',
-      model: this.providers.azure.models[request.quality],
+      provider: "azure",
+      model: this.providers.azure.models[request.quality]
     };
   }
 
-  private async translateWithAWS(request: MachineTranslationRequest): Promise<MachineTranslationResult> {
+  private async translateWithAWS(
+    request: MachineTranslationRequest
+  ): Promise<MachineTranslationResult> {
     // Mock AWS Translate API call
     const translatedText = `[AWS] Translated: ${request.text}`;
 
@@ -250,25 +264,21 @@ export class MachineTranslationService {
       translatedText,
       quality: {
         score: 0.87,
-        confidence: 0.93,
+        confidence: 0.93
       },
       processingTime: 0,
       cost: request.text.length * this.providers.aws.costs[request.quality],
-      provider: 'aws',
-      model: this.providers.aws.models[request.quality],
+      provider: "aws",
+      model: this.providers.aws.models[request.quality]
     };
   }
 
   /**
    * Batch translation for multiple texts
    */
-  async translateBatch(
-    requests: MachineTranslationRequest[],
-  ): Promise<MachineTranslationResult[]> {
+  async translateBatch(requests: MachineTranslationRequest[]): Promise<MachineTranslationResult[]> {
     // Process in parallel with rate limiting
-    const results = await Promise.all(
-      requests.map(request => this.translate(request)),
-    );
+    const results = await Promise.all(requests.map((request) => this.translate(request)));
 
     return results;
   }
@@ -276,16 +286,21 @@ export class MachineTranslationService {
   /**
    * Get real-time provider health status
    */
-  async getProviderHealth(): Promise<Record<string, {
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    latency: number;
-    errorRate: number;
-  }>> {
+  async getProviderHealth(): Promise<
+    Record<
+      string,
+      {
+        status: "healthy" | "degraded" | "unhealthy";
+        latency: number;
+        errorRate: number;
+      }
+    >
+  > {
     // Mock health status
     return {
-      google: { status: 'healthy', latency: 120, errorRate: 0.001 },
-      azure: { status: 'healthy', latency: 150, errorRate: 0.002 },
-      aws: { status: 'degraded', latency: 200, errorRate: 0.005 },
+      google: { status: "healthy", latency: 120, errorRate: 0.001 },
+      azure: { status: "healthy", latency: 150, errorRate: 0.002 },
+      aws: { status: "degraded", latency: 200, errorRate: 0.005 }
     };
   }
 }

@@ -1,4 +1,4 @@
-import { IsString, IsObject, IsOptional, IsUUID, IsBoolean } from 'class-validator';
+import { IsString, IsObject, IsOptional, IsUUID, IsBoolean } from "class-validator";
 
 /**
  * DTO for Policy Validation Request

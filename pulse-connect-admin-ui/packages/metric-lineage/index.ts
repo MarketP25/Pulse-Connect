@@ -1,12 +1,12 @@
 // Metric Lineage for Pulsco Admin Governance System
 // Handles lineage tracking, explainability, and source systems for metrics
 
-import { MetricLineage, AdminRoleType } from '@pulsco/admin-shared-types';
-import { CSIClient } from '@pulsco/admin-csi-client';
+import { MetricLineage, AdminRoleType } from "@pulsco/admin-shared-types";
+import { CSIClient } from "@pulsco/admin-csi-client";
 
 export interface LineageNode {
   id: string;
-  type: 'source' | 'transformation' | 'aggregation' | 'filter' | 'metric';
+  type: "source" | "transformation" | "aggregation" | "filter" | "metric";
   name: string;
   description: string;
   system: string;
@@ -22,7 +22,7 @@ export interface LineageGraph {
   edges: Array<{
     from: string;
     to: string;
-    type: 'data_flow' | 'transformation' | 'aggregation';
+    type: "data_flow" | "transformation" | "aggregation";
   }>;
   rootMetric: string;
 }
@@ -30,7 +30,7 @@ export interface LineageGraph {
 export interface LineageQuery {
   metricId: string;
   depth?: number; // How many levels to traverse
-  direction?: 'upstream' | 'downstream' | 'both';
+  direction?: "upstream" | "downstream" | "both";
   includeMetadata?: boolean;
 }
 
@@ -62,7 +62,7 @@ export class MetricLineageTracker {
     this.csiClient = new CSIClient({
       apiBaseUrl: config.apiBaseUrl,
       wsUrl: `ws://${new URL(config.apiBaseUrl).host}`,
-      sseUrl: config.apiBaseUrl.replace('http', 'http'),
+      sseUrl: config.apiBaseUrl.replace("http", "http"),
       authToken: config.authToken,
       reconnectInterval: 5000,
       maxRetries: 3
@@ -73,7 +73,7 @@ export class MetricLineageTracker {
    * Get complete lineage graph for a metric
    */
   async getLineageGraph(query: LineageQuery): Promise<LineageGraph> {
-    const cacheKey = `${query.metricId}_${query.depth || 'full'}_${query.direction || 'both'}`;
+    const cacheKey = `${query.metricId}_${query.depth || "full"}_${query.direction || "both"}`;
 
     // Check cache first
     const cached = this.lineageCache.get(cacheKey);
@@ -100,7 +100,7 @@ export class MetricLineageTracker {
   ): Promise<ExplainabilityReport> {
     // Check cache
     const cachedReports = this.explainabilityCache.get(metricId) || [];
-    const cached = cachedReports.find(r => r.question === question && r.adminRole === adminRole);
+    const cached = cachedReports.find((r) => r.question === question && r.adminRole === adminRole);
     if (cached && this.isCacheValid(cached.generatedAt)) {
       return cached;
     }
@@ -119,19 +119,19 @@ export class MetricLineageTracker {
    * Get source systems for a metric
    */
   async getSourceSystems(metricId: string): Promise<string[]> {
-    const graph = await this.getLineageGraph({ metricId, depth: 1, direction: 'upstream' });
+    const graph = await this.getLineageGraph({ metricId, depth: 1, direction: "upstream" });
 
-    const sourceNodes = graph.nodes.filter(node => node.type === 'source');
-    return [...new Set(sourceNodes.map(node => node.system))];
+    const sourceNodes = graph.nodes.filter((node) => node.type === "source");
+    return [...new Set(sourceNodes.map((node) => node.system))];
   }
 
   /**
    * Get transformation history for a metric
    */
   async getTransformationHistory(metricId: string): Promise<LineageNode[]> {
-    const graph = await this.getLineageGraph({ metricId, direction: 'upstream' });
+    const graph = await this.getLineageGraph({ metricId, direction: "upstream" });
 
-    return graph.nodes.filter(node => node.type === 'transformation');
+    return graph.nodes.filter((node) => node.type === "transformation");
   }
 
   /**
@@ -145,7 +145,7 @@ export class MetricLineageTracker {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/lineage/validate/${metricId}`, {
         headers: {
-          'Authorization': `Bearer ${this.config.authToken}`
+          Authorization: `Bearer ${this.config.authToken}`
         }
       });
 
@@ -160,10 +160,10 @@ export class MetricLineageTracker {
         lastValidated: new Date(result.lastValidated)
       };
     } catch (error) {
-      console.error('Failed to validate lineage:', error);
+      console.error("Failed to validate lineage:", error);
       return {
         isValid: false,
-        issues: ['Validation service unavailable'],
+        issues: ["Validation service unavailable"],
         lastValidated: new Date()
       };
     }
@@ -183,7 +183,7 @@ export class MetricLineageTracker {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/lineage/stats`, {
         headers: {
-          'Authorization': `Bearer ${this.config.authToken}`
+          Authorization: `Bearer ${this.config.authToken}`
         }
       });
 
@@ -193,13 +193,13 @@ export class MetricLineageTracker {
 
       return await response.json();
     } catch (error) {
-      console.error('Failed to get lineage stats:', error);
+      console.error("Failed to get lineage stats:", error);
       return {
         totalMetrics: 0,
         totalNodes: 0,
         totalEdges: 0,
         averageDepth: 0,
-        mostComplexMetric: '',
+        mostComplexMetric: "",
         validationCoverage: 0
       };
     }
@@ -210,16 +210,16 @@ export class MetricLineageTracker {
    */
   async exportLineageGraph(
     metricId: string,
-    format: 'json' | 'graphml' | 'dot' = 'json'
+    format: "json" | "graphml" | "dot" = "json"
   ): Promise<string> {
     const graph = await this.getLineageGraph({ metricId });
 
     switch (format) {
-      case 'json':
+      case "json":
         return JSON.stringify(graph, null, 2);
-      case 'graphml':
+      case "graphml":
         return this.convertToGraphML(graph);
-      case 'dot':
+      case "dot":
         return this.convertToDot(graph);
       default:
         throw new Error(`Unsupported export format: ${format}`);
@@ -232,15 +232,18 @@ export class MetricLineageTracker {
     try {
       const params = new URLSearchParams({
         depth: (query.depth || this.config.maxDepth).toString(),
-        direction: query.direction || 'both',
+        direction: query.direction || "both",
         includeMetadata: (query.includeMetadata || false).toString()
       });
 
-      const response = await fetch(`${this.config.apiBaseUrl}/lineage/graph/${query.metricId}?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${this.config.authToken}`
+      const response = await fetch(
+        `${this.config.apiBaseUrl}/lineage/graph/${query.metricId}?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.config.authToken}`
+          }
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Lineage API error: ${response.status}`);
@@ -264,21 +267,23 @@ export class MetricLineageTracker {
         rootMetric: query.metricId
       };
     } catch (error) {
-      console.error('Failed to fetch lineage graph:', error);
+      console.error("Failed to fetch lineage graph:", error);
       // Return minimal graph for demo
       return {
-        nodes: [{
-          id: query.metricId,
-          type: 'metric',
-          name: query.metricId,
-          description: 'Metric node',
-          system: 'unknown',
-          inputs: [],
-          outputs: [],
-          metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }],
+        nodes: [
+          {
+            id: query.metricId,
+            type: "metric",
+            name: query.metricId,
+            description: "Metric node",
+            system: "unknown",
+            inputs: [],
+            outputs: [],
+            metadata: {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ],
         edges: [],
         rootMetric: query.metricId
       };
@@ -292,10 +297,10 @@ export class MetricLineageTracker {
   ): Promise<ExplainabilityReport> {
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/lineage/explain`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.authToken}`
         },
         body: JSON.stringify({
           metricId,
@@ -319,14 +324,14 @@ export class MetricLineageTracker {
         adminRole
       };
     } catch (error) {
-      console.error('Failed to generate explanation:', error);
+      console.error("Failed to generate explanation:", error);
       // Return mock explanation for demo
       return {
         metricId,
         question,
         answer: `This metric (${metricId}) represents a key performance indicator. The exact lineage and explanation would be available when connected to the full CSI system.`,
         confidence: 0.8,
-        sources: ['CSI Intelligence Core', 'MARP Governance Engine'],
+        sources: ["CSI Intelligence Core", "MARP Governance Engine"],
         generatedAt: new Date(),
         adminRole
       };
@@ -346,46 +351,46 @@ export class MetricLineageTracker {
     graphml += '  <graph id="lineage" edgedefault="directed">\n';
 
     // Add nodes
-    graph.nodes.forEach(node => {
+    graph.nodes.forEach((node) => {
       graphml += `    <node id="${node.id}">\n`;
       graphml += `      <data key="name">${node.name}</data>\n`;
       graphml += `      <data key="type">${node.type}</data>\n`;
       graphml += `      <data key="system">${node.system}</data>\n`;
-      graphml += '    </node>\n';
+      graphml += "    </node>\n";
     });
 
     // Add edges
     graph.edges.forEach((edge, index) => {
       graphml += `    <edge id="e${index}" source="${edge.from}" target="${edge.to}">\n`;
       graphml += `      <data key="type">${edge.type}</data>\n`;
-      graphml += '    </edge>\n';
+      graphml += "    </edge>\n";
     });
 
-    graphml += '  </graph>\n';
-    graphml += '</graphml>\n';
+    graphml += "  </graph>\n";
+    graphml += "</graphml>\n";
 
     return graphml;
   }
 
   private convertToDot(graph: LineageGraph): string {
-    let dot = 'digraph Lineage {\n';
-    dot += '  rankdir=LR;\n';
-    dot += '  node [shape=box];\n\n';
+    let dot = "digraph Lineage {\n";
+    dot += "  rankdir=LR;\n";
+    dot += "  node [shape=box];\n\n";
 
     // Add nodes
-    graph.nodes.forEach(node => {
+    graph.nodes.forEach((node) => {
       const label = `${node.name}\\n(${node.type})`;
       dot += `  "${node.id}" [label="${label}"];\n`;
     });
 
-    dot += '\n';
+    dot += "\n";
 
     // Add edges
-    graph.edges.forEach(edge => {
+    graph.edges.forEach((edge) => {
       dot += `  "${edge.from}" -> "${edge.to}";\n`;
     });
 
-    dot += '}\n';
+    dot += "}\n";
 
     return dot;
   }
@@ -408,7 +413,10 @@ export class MetricLineageTracker {
   } {
     return {
       lineageGraphs: this.lineageCache.size,
-      explainabilityReports: Array.from(this.explainabilityCache.values()).reduce((sum, reports) => sum + reports.length, 0),
+      explainabilityReports: Array.from(this.explainabilityCache.values()).reduce(
+        (sum, reports) => sum + reports.length,
+        0
+      ),
       totalCacheSize: this.lineageCache.size + this.explainabilityCache.size
     };
   }

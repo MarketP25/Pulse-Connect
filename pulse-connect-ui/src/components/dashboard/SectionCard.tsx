@@ -1,6 +1,14 @@
 ﻿import { ReactNode } from "react";
 
-export function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+export function SectionCard({
+  title,
+  subtitle,
+  children
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
       <div className="mb-4 flex items-start justify-between gap-4">

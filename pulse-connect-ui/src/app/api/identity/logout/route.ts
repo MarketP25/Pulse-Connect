@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIdentityService } from "../_service";
+import { clearDashboardAuthCookies } from "../_auth-cookie";
 import { assertCsrf, toErrorResponse } from "../_utils";
 
 export async function POST(req: NextRequest) {
@@ -17,8 +18,9 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/api/identity",
-      maxAge: 0,
+      maxAge: 0
     });
+    clearDashboardAuthCookies(response);
     return response;
   } catch (error) {
     return toErrorResponse(error);

@@ -169,8 +169,8 @@ OSM_BASE_URL=https://nominatim.openstreetmap.org
 REDIS_URL=redis://localhost:6379
 PROXIMITY_MAX_RADIUS_KM=500
 PROXIMITY_LATENCY_SLO_MS=200
-CONSENT_LEDGER_URL=https://consent.pulsco.com
-AUDIT_SINK_URL=https://audit.pulsco.com
+CONSENT_LEDGER_URL=https://consent.pulsco.global
+AUDIT_SINK_URL=https://audit.pulsco.global
 RATE_LIMIT_RPS=50
 REGION_DEFAULT=KE
 TRAVELTIME_PROVIDER=matrix|haversine
@@ -239,5 +239,5 @@ The Pulsco Proximity Powerhouse vX.100 is fully implemented, tested, and ready f
 4. Perform production deployment
 5. Monitor and optimize based on real-world usage
 
-**Signed Off By:** BLACKBOX AI Autonomous Implementation Agent
+**Signed Off By:** Marp
 **Date:** [Current Date]

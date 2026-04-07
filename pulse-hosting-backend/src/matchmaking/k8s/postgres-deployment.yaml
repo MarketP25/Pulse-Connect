@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: matchmaking-postgres
-  namespace: pulse-connect
+  namespace: pulsco
   labels:
     app: matchmaking-postgres
     component: database
@@ -82,7 +82,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: matchmaking-postgres
-  namespace: pulse-connect
+  namespace: pulsco
   labels:
     app: matchmaking-postgres
     component: database
@@ -99,7 +99,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: matchmaking-postgres-pvc
-  namespace: pulse-connect
+  namespace: pulsco
   labels:
     app: matchmaking-postgres
     component: database
@@ -115,7 +115,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: matchmaking-postgres-init
-  namespace: pulse-connect
+  namespace: pulsco
 data:
   01-init-matchmaking.sql: |
     -- Enable required extensions
@@ -130,7 +130,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: matchmaking-postgres-secret
-  namespace: pulse-connect
+  namespace: pulsco
 type: Opaque
 data:
   # Base64 encoded values - replace with actual secrets

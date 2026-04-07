@@ -68,7 +68,10 @@ export interface KYCReviewRequest {
 
 export class ComplianceService {
   // aiDecisionClient is optional - can be an object with method evaluateKYC(payload) that returns { decision: 'approve'|'reject'|'manual', confidence:number }
-  constructor(private pool: Pool, private aiDecisionClient?: { evaluateKYC: (payload: any) => Promise<any> }) {}
+  constructor(
+    private pool: Pool,
+    private aiDecisionClient?: { evaluateKYC: (payload: any) => Promise<any> }
+  ) {}
 
   async submitKYC(request: SubmitKYCRequest): Promise<KYCVerification> {
     const client = await this.pool.connect();
@@ -143,11 +146,14 @@ export class ComplianceService {
       const mapped = this.mapKYCRow(result.rows[0]);
 
       // If an AI decision client is configured and the feature flag allows it, call it to get an automated decision
-      if (this.aiDecisionClient && isFeatureEnabled('KYC_AUTO_DECISION')) {
+      if (this.aiDecisionClient && isFeatureEnabled("KYC_AUTO_DECISION")) {
         try {
           const decisionResp = await this.aiDecisionClient.evaluateKYC({ kyc: mapped, request });
 
-          if (decisionResp && (decisionResp.decision === "approve" || decisionResp.decision === "reject")) {
+          if (
+            decisionResp &&
+            (decisionResp.decision === "approve" || decisionResp.decision === "reject")
+          ) {
             // perform automated review using system reviewer
             await this.reviewKYC({
               kyc_id: mapped.id,
@@ -180,12 +186,15 @@ export class ComplianceService {
     try {
       await client.query(
         `INSERT INTO compliance_events (id, seller_id, event_type, details) VALUES (gen_random_uuid(), $1, $2, $3)`,
-        [request.kyc_id, 'kyc_review_attempt', JSON.stringify({ reviewer: request.reviewer_id, decision: request.decision })]
+        [
+          request.kyc_id,
+          "kyc_review_attempt",
+          JSON.stringify({ reviewer: request.reviewer_id, decision: request.decision })
+        ]
       );
     } catch (e) {
       // Best-effort logging
     }
-
 
     try {
       await client.query("BEGIN");
@@ -284,7 +293,7 @@ export class ComplianceService {
     try {
       await this.pool.query(
         `INSERT INTO compliance_events (id, event_type, details) VALUES (gen_random_uuid(), $1, $2)`,
-        ['kyc_expire', JSON.stringify({ expired, when: new Date().toISOString() })]
+        ["kyc_expire", JSON.stringify({ expired, when: new Date().toISOString() })]
       );
     } catch (e) {
       // Best-effort logging

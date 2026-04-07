@@ -23,7 +23,7 @@ Policy & Governance
 - Rollbacks are possible via MARP policy registry and result in audit events; rollbacks do not retroactively change ledger entries—disputes and remediation processes apply.
 
 Temporal Incentives
-- Offers are time-scoped MARP policies: Founding Users (first 500 accounts, 20% subscription discount), Weekly Pulse Hours (2% across services), stacking capped at 22% for subscriptions.
+- Offers are time-scoped MARP policies: Founding Users (first 500 enterprise accounts, 20% subscription discount), Weekly Pulse Hours (2% across services), stacking capped at 22% for subscriptions.
 - Offers are visible in UI and in ledger entries as discount provenance.
 
 Audit & Integrity

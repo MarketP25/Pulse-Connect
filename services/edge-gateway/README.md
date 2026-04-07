@@ -2,7 +2,7 @@
 
 ## Overview
 
-The PULSCO (Pulse Connect) Edge Gateway is the global execution surface operating under MARP governance. It verifies MARP-signed policies, routes requests to subsystem adapters, enforces rate limits and regional constraints, and records immutable audits for every decision.
+The Pulsco (Pulse Connect) Edge Gateway is the global execution surface operating under MARP governance. It verifies MARP-signed policies, routes requests to subsystem adapters, enforces rate limits and regional constraints, and records immutable audits for every decision.
 
 - Governance perimeter: MARP signature verification and policy validation
 - Adapter registry: Subsystem integrations registered and versioned at the Edge
@@ -35,7 +35,7 @@ End-to-end governance tests:
 
 Adapters are registered at the Edge with declared capabilities (see 007_edge_gateway.sql seed):
 - Core: ecommerce, payments, fraud
-- Extended: proximity-geocoding, communication, marketing (PAP), places, chatbot (AI engine), ai-programs
+- Extended: proximity-geocoding, communication, marketing (PAP), places, chatbot (AI engine), ai-programs etc.
 
 Each adapter should expose:
 - /health — readiness/health check
@@ -128,10 +128,10 @@ KAFKA_URL=localhost:9092
 REDIS_URL=redis://localhost:6379
 
 # Planetary icon routing (optional comma-separated CDN origins)
-PULSCO_BRAND_ICON_ORIGINS=https://icons-us.pulsco.com,https://icons-eu.pulsco.com
+PULSCO_BRAND_ICON_ORIGINS=https://icons-us.pulsco.global,https://icons-eu.pulsco.global
 
 # Firewall endpoint for CSI-bound support telemetry (required for forwarding)
-PULSCO_MARP_FIREWALL_URL=https://marp-firewall.pulsco.com/marp/enforcement/enforce
+PULSCO_MARP_FIREWALL_URL=https://marp-firewall.pulsco.global/marp/enforcement/enforce
 ```
 
 ### Planetary Deployment
@@ -224,4 +224,18 @@ Operational guide: infra/runbooks/edge-gateway-operations.md
 
 ---
 
-This document aligns the Edge Gateway with the current repository code. PULSCO is an abbreviation of Pulse Connect; Edge operates under MARP governance with an adapter registry and immutable audits as implemented here.
+This document aligns the Edge Gateway with the current repository code. Pulsco is an abbreviation of Pulse Connect; Edge operates under MARP governance with an adapter registry and immutable audits as implemented here.
+
+## Emergency Protocol Distribution Setup
+
+Set these environment variables in edge-gateway runtime:
+
+- `ADMIN_GATEWAY_URL` (for enforcement snapshot pull)
+- `INTERNAL_SERVICE_TOKEN` (must match admin/billing)
+- `EMERGENCY_POLICY_CACHE_MS` (optional, default `5000`)
+
+Edge now receives push fan-out updates at:
+
+- `POST /edge/internal/emergency-protocol/event`
+
+This endpoint requires either `x-internal-service-token` or `Authorization: Bearer <INTERNAL_SERVICE_TOKEN>`.

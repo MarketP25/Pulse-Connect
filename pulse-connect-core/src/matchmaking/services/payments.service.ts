@@ -83,9 +83,9 @@ export class PaymentsService {
       amount: gig.base_price,
       eventId: traceId,
       details: {
-        mode: "upfront",
+        mode: "upfront"
       },
-      region: "global",
+      region: "global"
     });
     if (!quote) {
       throw new Error("billing_engine_quote_failed");
@@ -199,9 +199,9 @@ export class PaymentsService {
       amount: milestone.amount,
       eventId: traceId,
       details: {
-        mode: "completion",
+        mode: "completion"
       },
-      region: "global",
+      region: "global"
     });
     if (!completionQuote) {
       throw new Error("billing_engine_quote_failed");
@@ -387,15 +387,15 @@ export class PaymentsService {
         amount: grossAmount,
         eventId: `${contractId}-${milestoneId || "contract"}-upfront`,
         details: { mode: "upfront" },
-        region: "global",
+        region: "global"
       }),
       calculateBillingActivityQuote({
         engine: "matchmaking",
         amount: grossAmount,
         eventId: `${contractId}-${milestoneId || "contract"}-completion`,
         details: { mode: "completion" },
-        region: "global",
-      }),
+        region: "global"
+      })
     ]);
     if (!upfrontQuote || !completionQuote) {
       throw new Error("billing_engine_quote_failed");
@@ -419,7 +419,8 @@ export class PaymentsService {
       estimated_tax: estimatedTax,
       net_amount: finalNet,
       currency: record.currency,
-      policy_version: completionQuote.policyVersion || upfrontQuote.policyVersion || "billing-engine-unversioned"
+      policy_version:
+        completionQuote.policyVersion || upfrontQuote.policyVersion || "billing-engine-unversioned"
     };
   }
 

@@ -25,8 +25,8 @@ describe("CSI integration pipeline", () => {
         region: "US",
         metrics: { latencyMs: 240, successRate: 0.98, throughput: 140 },
         riskScore: 18,
-        performanceScore: 89,
-      }),
+        performanceScore: 89
+      })
     );
 
     emitCSIEvent(
@@ -36,8 +36,8 @@ describe("CSI integration pipeline", () => {
         region: "US",
         metrics: { latencyMs: 2100, errorRate: 0.31, failureCount: 3 },
         riskScore: 76,
-        performanceScore: 35,
-      }),
+        performanceScore: 35
+      })
     );
 
     await new Promise((resolve) => setTimeout(resolve, 15));
@@ -52,19 +52,19 @@ describe("CSI integration pipeline", () => {
       {
         summary: analysis.summary,
         riskMap: analysis.riskMap,
-        recommendations,
+        recommendations
       },
       {
         actorId: "superadmin-1",
         actorRole: "superadmin",
-        pc365Attestation: "pc365_attestation_token_123",
-      },
+        pc365Attestation: "pc365_attestation_token_123"
+      }
     );
 
     const latest = await vault.getLatestIntelligenceSummary({
       actorId: "superadmin-1",
       actorRole: "superadmin",
-      pc365Attestation: "pc365_attestation_token_123",
+      pc365Attestation: "pc365_attestation_token_123"
     });
 
     expect(analysis.summary.totalEvents).toBe(2);

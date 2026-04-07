@@ -1,5 +1,5 @@
-import React from 'react';
-import KYCForm from '../../components/KYCForm';
+import React from "react";
+import KYCForm from "../../../components/KYCForm";
 
 export default function SellerKYCPage() {
   return (

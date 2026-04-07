@@ -33,5 +33,5 @@ app.post("/launch", async (req, res) => {
 });
 
 app.listen(3000, () => {
-  console.log("🌐 Pulse Connect Hosting API running on port 3000");
+  console.log("🌐 Pulsco Hosting API running on port 3000");
 });

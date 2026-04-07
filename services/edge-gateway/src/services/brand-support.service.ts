@@ -1,28 +1,28 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { createHash, randomUUID } from 'crypto';
-import type { Pool } from 'pg';
-import { BrandSupportEventDto, BrandSupportRequestDto } from '../dto/brand-support.dto';
-import { TelemetryService } from './telemetry.service';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { createHash, randomUUID } from "crypto";
+import type { Pool } from "pg";
+import { BrandSupportEventDto, BrandSupportRequestDto } from "../dto/brand-support.dto";
+import { TelemetryService } from "./telemetry.service";
 
-const CSI_REASON_CODE = 'CSI_GATEWAY_ACCESS';
-const DEFAULT_ICON_VERSION = 'pulsco-icons-v2026.02';
-const BRAND_SUPPORT_SCHEMA = 'pulsco-brand-support-v1';
-const BRAND_SUPPORT_ENDPOINT = '/edge/brand/support';
+const CSI_REASON_CODE = "CSI_GATEWAY_ACCESS";
+const DEFAULT_ICON_VERSION = "pulsco-icons-v2026.02";
+const BRAND_SUPPORT_SCHEMA = "pulsco-brand-support-v1";
+const BRAND_SUPPORT_ENDPOINT = "/edge/brand/support";
 
 type BrandIconAsset = {
   key: string;
   src: string;
   sizes: string;
   type: string;
-  usage: 'favicon' | 'universal' | 'maskable' | 'branding';
-  purpose?: 'any' | 'maskable' | 'any maskable';
+  usage: "favicon" | "universal" | "maskable" | "branding";
+  purpose?: "any" | "maskable" | "any maskable";
 };
 
 type ManifestIconAsset = {
   src: string;
   sizes: string;
   type: string;
-  purpose?: 'any' | 'maskable' | 'any maskable';
+  purpose?: "any" | "maskable" | "any maskable";
 };
 
 type SanitizedSupportEvent = {
@@ -34,11 +34,11 @@ type SanitizedSupportEvent = {
 
 type FirewallForwardResult = {
   status:
-    | 'forwarded'
-    | 'queued_firewall_missing'
-    | 'blocked_firewall_invalid'
-    | 'firewall_denied'
-    | 'firewall_error';
+    | "forwarded"
+    | "queued_firewall_missing"
+    | "blocked_firewall_invalid"
+    | "firewall_denied"
+    | "firewall_error";
   forwarded: boolean;
   endpoint?: string;
   detail?: string;
@@ -62,21 +62,23 @@ export class BrandSupportService {
   private readonly logger = new Logger(BrandSupportService.name);
 
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
-    private readonly telemetryService: TelemetryService,
+    @Inject("DATABASE_CONNECTION") private readonly db: Pool,
+    private readonly telemetryService: TelemetryService
   ) {}
 
   async getBrandConfig(input: BrandConfigInput) {
-    const sourceApp = this.normalizeSourceApp(input.sourceApp || input.headers?.['x-pulsco-source-app']);
+    const sourceApp = this.normalizeSourceApp(
+      input.sourceApp || input.headers?.["x-pulsco-source-app"]
+    );
     const regionCode = this.normalizeRegionCode(
-      input.regionCode || input.headers?.['x-region-code'] || process.env.REGION_CODE,
+      input.regionCode || input.headers?.["x-region-code"] || process.env.REGION_CODE
     );
     const profile = await this.readActiveBrandProfile();
     const originPool = this.resolveOriginPool(profile, input.headers);
     const selectedOrigin = this.selectOrigin(originPool, sourceApp, regionCode);
     const icons = this.buildIconCatalog().map((icon) => ({
       ...icon,
-      src: this.toAbsoluteUrl(selectedOrigin, icon.src),
+      src: this.toAbsoluteUrl(selectedOrigin, icon.src)
     }));
     const universalMaskables = this.buildUniversalMaskableAssets(icons);
 
@@ -87,41 +89,41 @@ export class BrandSupportService {
       sourceApp,
       regionCode,
       selectedOrigin,
-      iconVersion: profile.iconVersion,
+      iconVersion: profile.iconVersion
     });
 
     return {
       schema: BRAND_SUPPORT_SCHEMA,
       reasonCode: CSI_REASON_CODE,
-      brand: 'PULSCO',
+      brand: "Pulsco",
       iconVersion: profile.iconVersion,
       generatedAt: new Date().toISOString(),
       routing: {
-        mode: 'planetary_hash_balancing',
+        mode: "planetary_hash_balancing",
         sourceApp,
         regionCode,
-        selectedOrigin: selectedOrigin || 'local-origin',
+        selectedOrigin: selectedOrigin || "local-origin"
       },
       visuals: {
         themeColor: profile.themeColor,
-        backgroundColor: profile.backgroundColor,
+        backgroundColor: profile.backgroundColor
       },
       assets: {
-        favicon: this.toAbsoluteUrl(selectedOrigin, '/favicon.ico'),
-        universal: icons.filter((icon) => icon.usage === 'universal'),
-        maskable: icons.filter((icon) => icon.usage === 'maskable'),
+        favicon: this.toAbsoluteUrl(selectedOrigin, "/favicon.ico"),
+        universal: icons.filter((icon) => icon.usage === "universal"),
+        maskable: icons.filter((icon) => icon.usage === "maskable"),
         universalMaskables,
-        branding: icons.filter((icon) => icon.usage === 'branding'),
+        branding: icons.filter((icon) => icon.usage === "branding")
       },
       manifest: {
-        path: this.toAbsoluteUrl(selectedOrigin, '/manifest.webmanifest'),
-        icons: manifestIcons,
+        path: this.toAbsoluteUrl(selectedOrigin, "/manifest.webmanifest"),
+        icons: manifestIcons
       },
       support: {
         endpoint: BRAND_SUPPORT_ENDPOINT,
         reasonCode: CSI_REASON_CODE,
-        firewallRequired: true,
-      },
+        firewallRequired: true
+      }
     };
   }
 
@@ -134,17 +136,19 @@ export class BrandSupportService {
       backgroundColor: config.visuals.backgroundColor,
       icons: config.manifest.icons,
       universalMaskables: config.assets.universalMaskables,
-      support: config.support,
+      support: config.support
     };
   }
 
   async ingestBrandSupport(
     body: BrandSupportRequestDto,
-    headers: Record<string, string | undefined> = {},
+    headers: Record<string, string | undefined> = {}
   ) {
-    const reasonCode = body.reasonCode || headers['x-csi-reason-code'] || '';
-    const sourceApp = this.normalizeSourceApp(body.sourceApp || headers['x-pulsco-source-app']);
-    const regionCode = this.normalizeRegionCode(body.regionCode || headers['x-region-code'] || process.env.REGION_CODE);
+    const reasonCode = body.reasonCode || headers["x-csi-reason-code"] || "";
+    const sourceApp = this.normalizeSourceApp(body.sourceApp || headers["x-pulsco-source-app"]);
+    const regionCode = this.normalizeRegionCode(
+      body.regionCode || headers["x-region-code"] || process.env.REGION_CODE
+    );
     const requestId = body.requestId || randomUUID();
 
     if (reasonCode !== CSI_REASON_CODE) {
@@ -154,10 +158,10 @@ export class BrandSupportService {
         storedEvents: 0,
         reasonCode: CSI_REASON_CODE,
         firewall: {
-          status: 'blocked_firewall_invalid',
+          status: "blocked_firewall_invalid",
           forwarded: false,
-          detail: 'INVALID_REASON_CODE',
-        },
+          detail: "INVALID_REASON_CODE"
+        }
       };
     }
 
@@ -169,10 +173,10 @@ export class BrandSupportService {
         storedEvents: 0,
         reasonCode: CSI_REASON_CODE,
         firewall: {
-          status: 'blocked_firewall_invalid',
+          status: "blocked_firewall_invalid",
           forwarded: false,
-          detail: 'NO_VALID_EVENTS',
-        },
+          detail: "NO_VALID_EVENTS"
+        }
       };
     }
 
@@ -181,7 +185,7 @@ export class BrandSupportService {
       requestId,
       sourceApp,
       regionCode,
-      events,
+      events
     });
     await this.updateSupportEventForwardStatus(requestId, forwardResult.status);
 
@@ -190,76 +194,109 @@ export class BrandSupportService {
       requestId,
       storedEvents: events.length,
       reasonCode: CSI_REASON_CODE,
-      firewall: forwardResult,
+      firewall: forwardResult
     };
   }
 
   private buildIconCatalog(): BrandIconAsset[] {
     return [
-      { key: 'favicon', src: '/favicon.ico', sizes: 'any', type: 'image/x-icon', usage: 'favicon' },
-      { key: 'icon-16', src: '/icons/icon-16x16.png', sizes: '16x16', type: 'image/png', usage: 'universal' },
-      { key: 'icon-32', src: '/icons/icon-32x32.png', sizes: '32x32', type: 'image/png', usage: 'universal' },
-      { key: 'icon-152', src: '/icons/icon-152x152.jpeg', sizes: '152x152', type: 'image/jpeg', usage: 'universal' },
-      { key: 'icon-192', src: '/icons/icon-192x192.jpeg', sizes: '192x192', type: 'image/jpeg', usage: 'universal' },
-      { key: 'icon-512', src: '/icons/icon-512x512.jpeg', sizes: '512x512', type: 'image/jpeg', usage: 'universal' },
+      { key: "favicon", src: "/favicon.ico", sizes: "any", type: "image/x-icon", usage: "favicon" },
       {
-        key: 'icon-152-maskable',
-        src: '/icons/icon-152x152-maskable.jpeg',
-        sizes: '152x152',
-        type: 'image/jpeg',
-        usage: 'maskable',
-        purpose: 'maskable',
+        key: "icon-16",
+        src: "/icons/icon-16x16.png",
+        sizes: "16x16",
+        type: "image/png",
+        usage: "universal"
       },
       {
-        key: 'icon-512-maskable',
-        src: '/icons/icon-512x512-maskable.jpeg',
-        sizes: '512x512',
-        type: 'image/jpeg',
-        usage: 'maskable',
-        purpose: 'maskable',
+        key: "icon-32",
+        src: "/icons/icon-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+        usage: "universal"
       },
       {
-        key: 'brand-1024',
-        src: '/icons/brand-1024x1024.jpeg',
-        sizes: '1024x1024',
-        type: 'image/jpeg',
-        usage: 'branding',
+        key: "icon-152",
+        src: "/icons/icon-152x152.jpeg",
+        sizes: "152x152",
+        type: "image/jpeg",
+        usage: "universal"
       },
+      {
+        key: "icon-192",
+        src: "/icons/icon-192x192.jpeg",
+        sizes: "192x192",
+        type: "image/jpeg",
+        usage: "universal"
+      },
+      {
+        key: "icon-512",
+        src: "/icons/icon-512x512.jpeg",
+        sizes: "512x512",
+        type: "image/jpeg",
+        usage: "universal"
+      },
+      {
+        key: "icon-152-maskable",
+        src: "/icons/icon-152x152-maskable.jpeg",
+        sizes: "152x152",
+        type: "image/jpeg",
+        usage: "maskable",
+        purpose: "maskable"
+      },
+      {
+        key: "icon-512-maskable",
+        src: "/icons/icon-512x512-maskable.jpeg",
+        sizes: "512x512",
+        type: "image/jpeg",
+        usage: "maskable",
+        purpose: "maskable"
+      },
+      {
+        key: "brand-1024",
+        src: "/icons/brand-1024x1024.jpeg",
+        sizes: "1024x1024",
+        type: "image/jpeg",
+        usage: "branding"
+      }
     ];
   }
 
   private buildUniversalMaskableAssets(icons: BrandIconAsset[]): ManifestIconAsset[] {
     const candidates = icons.filter(
       (icon) =>
-        icon.usage === 'maskable' ||
-        (icon.usage === 'universal' && (icon.sizes === '152x152' || icon.sizes === '512x512')),
+        icon.usage === "maskable" ||
+        (icon.usage === "universal" && (icon.sizes === "152x152" || icon.sizes === "512x512"))
     );
 
     return candidates.map((icon) => ({
       src: icon.src,
       sizes: icon.sizes,
       type: icon.type,
-      purpose: 'any maskable',
+      purpose: "any maskable"
     }));
   }
 
-  private buildManifestIconAssets(icons: BrandIconAsset[], universalMaskables: ManifestIconAsset[]) {
+  private buildManifestIconAssets(
+    icons: BrandIconAsset[],
+    universalMaskables: ManifestIconAsset[]
+  ) {
     const combined: ManifestIconAsset[] = [
       ...icons
-        .filter((icon) => icon.usage !== 'branding')
+        .filter((icon) => icon.usage !== "branding")
         .map(({ src, sizes, type, purpose }) => ({
           src,
           sizes,
           type,
-          ...(purpose ? { purpose } : {}),
+          ...(purpose ? { purpose } : {})
         })),
-      ...universalMaskables,
+      ...universalMaskables
     ];
 
     const seen = new Set<string>();
     const deduped: ManifestIconAsset[] = [];
     for (const icon of combined) {
-      const key = `${icon.src}|${icon.sizes}|${icon.type}|${icon.purpose || ''}`;
+      const key = `${icon.src}|${icon.sizes}|${icon.type}|${icon.purpose || ""}`;
       if (seen.has(key)) continue;
       seen.add(key);
       deduped.push(icon);
@@ -271,65 +308,78 @@ export class BrandSupportService {
   private sanitizeSupportEvents(events: BrandSupportEventDto[]): SanitizedSupportEvent[] {
     const sanitized: SanitizedSupportEvent[] = [];
     for (const event of events) {
-      const eventName = typeof event.event === 'string' ? event.event.trim().slice(0, 64) : '';
+      const eventName = typeof event.event === "string" ? event.event.trim().slice(0, 64) : "";
       if (!eventName) continue;
 
       const ts = Number.isFinite(event.ts) && event.ts > 0 ? Math.floor(event.ts) : Date.now();
       const path =
-        typeof event.path === 'string' && event.path.trim() ? event.path.trim().slice(0, 256).split('?')[0] : undefined;
+        typeof event.path === "string" && event.path.trim()
+          ? event.path.trim().slice(0, 256).split("?")[0]
+          : undefined;
       const meta = this.sanitizeMeta(event.meta);
 
-      sanitized.push({ event: eventName, ts, ...(path ? { path } : {}), ...(meta ? { meta } : {}) });
+      sanitized.push({
+        event: eventName,
+        ts,
+        ...(path ? { path } : {}),
+        ...(meta ? { meta } : {})
+      });
     }
 
     return sanitized.slice(0, 100);
   }
 
   private sanitizeMeta(meta: unknown): Record<string, string | number | boolean> | undefined {
-    if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return undefined;
-    const forbiddenKey = /(token|cookie|password|secret|authorization|wallet|billing|admin|edge|marp)/i;
+    if (!meta || typeof meta !== "object" || Array.isArray(meta)) return undefined;
+    const forbiddenKey =
+      /(token|cookie|password|secret|authorization|wallet|billing|admin|edge|marp)/i;
     const clean: Record<string, string | number | boolean> = {};
 
     for (const [key, value] of Object.entries(meta).slice(0, 12)) {
       if (forbiddenKey.test(key)) continue;
-      if (typeof value === 'string') clean[key] = value.slice(0, 128);
-      else if (typeof value === 'number' && Number.isFinite(value)) clean[key] = value;
-      else if (typeof value === 'boolean') clean[key] = value;
+      if (typeof value === "string") clean[key] = value.slice(0, 128);
+      else if (typeof value === "number" && Number.isFinite(value)) clean[key] = value;
+      else if (typeof value === "boolean") clean[key] = value;
     }
 
     return Object.keys(clean).length ? clean : undefined;
   }
 
   private normalizeSourceApp(value?: string) {
-    return value?.trim().slice(0, 255) || 'unknown';
+    return value?.trim().slice(0, 255) || "unknown";
   }
 
   private normalizeRegionCode(value?: string) {
-    return value?.trim().slice(0, 64) || 'GLOBAL';
+    return value?.trim().slice(0, 64) || "GLOBAL";
   }
 
   private toAbsoluteUrl(origin: string, path: string) {
     if (!origin) return path;
-    const cleanOrigin = origin.replace(/\/+$/, '');
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    const cleanOrigin = origin.replace(/\/+$/, "");
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
     return `${cleanOrigin}${cleanPath}`;
   }
 
   private selectOrigin(origins: string[], sourceApp: string, regionCode: string) {
-    if (!origins.length) return '';
-    const hash = createHash('sha256').update(`${sourceApp}|${regionCode}`).digest('hex');
+    if (!origins.length) return "";
+    const hash = createHash("sha256").update(`${sourceApp}|${regionCode}`).digest("hex");
     const slot = Number.parseInt(hash.slice(0, 8), 16) % origins.length;
-    return origins[slot] || '';
+    return origins[slot] || "";
   }
 
   private resolveOriginPool(profile: BrandProfile, headers?: Record<string, string | undefined>) {
-    const envOrigins = (process.env.PULSCO_BRAND_ICON_ORIGINS || '')
-      .split(',')
+    const envOrigins = (process.env.PULSCO_BRAND_ICON_ORIGINS || "")
+      .split(",")
       .map((value) => value.trim())
       .filter(Boolean);
 
     const requestOrigin = this.extractRequestOrigin(headers);
-    const candidates = [...envOrigins, ...profile.origins, ...(requestOrigin ? [requestOrigin] : []), ''];
+    const candidates = [
+      ...envOrigins,
+      ...profile.origins,
+      ...(requestOrigin ? [requestOrigin] : []),
+      ""
+    ];
     const seen = new Set<string>();
     const deduped: string[] = [];
 
@@ -344,35 +394,35 @@ export class BrandSupportService {
   }
 
   private extractRequestOrigin(headers?: Record<string, string | undefined>) {
-    if (!headers) return '';
+    if (!headers) return "";
 
-    const forwardedProto = headers['x-forwarded-proto']?.split(',')[0]?.trim();
-    const forwardedHost = headers['x-forwarded-host']?.split(',')[0]?.trim();
-    const host = forwardedHost || headers.host?.split(',')[0]?.trim();
+    const forwardedProto = headers["x-forwarded-proto"]?.split(",")[0]?.trim();
+    const forwardedHost = headers["x-forwarded-host"]?.split(",")[0]?.trim();
+    const host = forwardedHost || headers.host?.split(",")[0]?.trim();
 
-    if (!host) return '';
-    const protocol = forwardedProto || 'https';
+    if (!host) return "";
+    const protocol = forwardedProto || "https";
     return this.normalizeOrigin(`${protocol}://${host}`);
   }
 
   private normalizeOrigin(value: string) {
-    if (!value) return '';
+    if (!value) return "";
     try {
       const parsed = new URL(value);
-      parsed.hash = '';
-      parsed.search = '';
-      return parsed.toString().replace(/\/+$/, '');
+      parsed.hash = "";
+      parsed.search = "";
+      return parsed.toString().replace(/\/+$/, "");
     } catch {
-      return '';
+      return "";
     }
   }
 
   private async readActiveBrandProfile(): Promise<BrandProfile> {
     const fallback: BrandProfile = {
       iconVersion: DEFAULT_ICON_VERSION,
-      themeColor: '#7c3aed',
-      backgroundColor: '#0f172a',
-      origins: [],
+      themeColor: "#7c3aed",
+      backgroundColor: "#0f172a",
+      origins: []
     };
 
     const query = `
@@ -388,17 +438,20 @@ export class BrandSupportService {
       const row = result.rows?.[0];
       if (!row) return fallback;
 
-      const raw = row.config_json && typeof row.config_json === 'object' ? row.config_json : {};
+      const raw = row.config_json && typeof row.config_json === "object" ? row.config_json : {};
       const config = raw as Record<string, unknown>;
       const origins = Array.isArray(config.origins)
-        ? config.origins.filter((entry): entry is string => typeof entry === 'string')
+        ? config.origins.filter((entry): entry is string => typeof entry === "string")
         : [];
 
       return {
-        iconVersion: typeof row.version === 'string' ? row.version : fallback.iconVersion,
-        themeColor: typeof config.themeColor === 'string' ? config.themeColor : fallback.themeColor,
-        backgroundColor: typeof config.backgroundColor === 'string' ? config.backgroundColor : fallback.backgroundColor,
-        origins,
+        iconVersion: typeof row.version === "string" ? row.version : fallback.iconVersion,
+        themeColor: typeof config.themeColor === "string" ? config.themeColor : fallback.themeColor,
+        backgroundColor:
+          typeof config.backgroundColor === "string"
+            ? config.backgroundColor
+            : fallback.backgroundColor,
+        origins
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -432,7 +485,7 @@ export class BrandSupportService {
         input.sourceApp,
         input.regionCode,
         input.selectedOrigin || null,
-        input.iconVersion,
+        input.iconVersion
       ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -444,7 +497,7 @@ export class BrandSupportService {
     requestId: string,
     sourceApp: string,
     regionCode: string,
-    events: SanitizedSupportEvent[],
+    events: SanitizedSupportEvent[]
   ) {
     const query = `
       INSERT INTO edge_brand_support_events (
@@ -471,7 +524,7 @@ export class BrandSupportService {
           new Date(event.ts).toISOString(),
           event.path || null,
           JSON.stringify(event.meta || {}),
-          CSI_REASON_CODE,
+          CSI_REASON_CODE
         ]);
       }
     } catch (error) {
@@ -480,7 +533,10 @@ export class BrandSupportService {
     }
   }
 
-  private async updateSupportEventForwardStatus(requestId: string, status: FirewallForwardResult['status']) {
+  private async updateSupportEventForwardStatus(
+    requestId: string,
+    status: FirewallForwardResult["status"]
+  ) {
     const query = `
       UPDATE edge_brand_support_events
       SET firewall_status = $1
@@ -504,46 +560,46 @@ export class BrandSupportService {
     const firewallUrl = this.resolveFirewallUrl();
     if (!firewallUrl) {
       return {
-        status: 'queued_firewall_missing',
+        status: "queued_firewall_missing",
         forwarded: false,
-        detail: 'MARP firewall URL is not configured or is invalid',
+        detail: "MARP firewall URL is not configured or is invalid"
       };
     }
 
     try {
       const response = await fetch(firewallUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'content-type': 'application/json',
-          'cache-control': 'no-store',
-          'x-csi-reason-code': CSI_REASON_CODE,
-          'x-pulsco-source-app': input.sourceApp,
+          "content-type": "application/json",
+          "cache-control": "no-store",
+          "x-csi-reason-code": CSI_REASON_CODE,
+          "x-pulsco-source-app": input.sourceApp
         },
         body: JSON.stringify({
-          subsystemName: 'edge-brand-support',
-          action: 'route-support-telemetry',
+          subsystemName: "edge-brand-support",
+          action: "route-support-telemetry",
           payload: {
-            source: 'pulsco-edge-gateway',
-            destination: 'support-intelligence',
+            source: "pulsco-edge-gateway",
+            destination: "support-intelligence",
             requestId: input.requestId,
             eventCount: input.events.length,
-            schema: BRAND_SUPPORT_SCHEMA,
+            schema: BRAND_SUPPORT_SCHEMA
           },
           context: {
-            source: 'pulsco',
-            destination: 'edge',
+            source: "pulsco",
+            destination: "edge",
             sourceApp: input.sourceApp,
-            regionCode: input.regionCode,
-          },
-        }),
+            regionCode: input.regionCode
+          }
+        })
       });
 
       if (!response.ok) {
         return {
-          status: 'firewall_error',
+          status: "firewall_error",
           forwarded: false,
           endpoint: firewallUrl,
-          detail: `Firewall response ${response.status}`,
+          detail: `Firewall response ${response.status}`
         };
       }
 
@@ -557,40 +613,43 @@ export class BrandSupportService {
 
       if (parsed && parsed.allowed === false) {
         return {
-          status: 'firewall_denied',
+          status: "firewall_denied",
           forwarded: false,
           endpoint: firewallUrl,
-          detail: typeof parsed.riskAssessment === 'string' ? parsed.riskAssessment : 'Firewall denied request',
+          detail:
+            typeof parsed.riskAssessment === "string"
+              ? parsed.riskAssessment
+              : "Firewall denied request"
         };
       }
 
       return {
-        status: 'forwarded',
+        status: "forwarded",
         forwarded: true,
-        endpoint: firewallUrl,
+        endpoint: firewallUrl
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.telemetryService.sendAnomaly({
-        anomalyType: 'brand_support_firewall_forward_failed',
-        severity: 'medium',
+        anomalyType: "brand_support_firewall_forward_failed",
+        severity: "medium",
         requestId: input.requestId,
-        subsystem: 'edge-brand-support',
+        subsystem: "edge-brand-support",
         description: message,
         context: {
           sourceApp: input.sourceApp,
           regionCode: input.regionCode,
           reasonCode: CSI_REASON_CODE,
-          firewallUrl,
+          firewallUrl
         },
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       });
 
       return {
-        status: 'firewall_error',
+        status: "firewall_error",
         forwarded: false,
         endpoint: firewallUrl,
-        detail: message,
+        detail: message
       };
     }
   }
@@ -600,11 +659,11 @@ export class BrandSupportService {
       process.env.PULSCO_MARP_FIREWALL_URL ||
       process.env.MARP_FIREWALL_GATEWAY_URL ||
       process.env.PULSCO_CSI_FIREWALL_URL ||
-      '';
+      "";
 
-    if (!raw) return '';
+    if (!raw) return "";
     const normalized = this.normalizeFirewallUrl(raw);
-    if (!normalized) return '';
+    if (!normalized) return "";
     return normalized;
   }
 
@@ -613,19 +672,19 @@ export class BrandSupportService {
     try {
       parsed = new URL(raw);
     } catch {
-      return '';
+      return "";
     }
 
     const isDirectCsi = this.looksLikeDirectCsiUrl(parsed);
     const isFirewall = this.looksLikeFirewallUrl(parsed);
-    if (isDirectCsi || !isFirewall) return '';
+    if (isDirectCsi || !isFirewall) return "";
 
-    if (!parsed.pathname || parsed.pathname === '/') {
-      parsed.pathname = '/marp/enforcement/enforce';
+    if (!parsed.pathname || parsed.pathname === "/") {
+      parsed.pathname = "/marp/enforcement/enforce";
     }
 
-    parsed.hash = '';
-    parsed.search = '';
+    parsed.hash = "";
+    parsed.search = "";
     return parsed.toString();
   }
 

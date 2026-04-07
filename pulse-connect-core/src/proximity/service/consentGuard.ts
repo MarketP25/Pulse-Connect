@@ -1,7 +1,7 @@
 export interface ConsentRequest {
   actorId: string;
   subsystem: string;
-  purpose: 'fraud' | 'matchmaking' | 'delivery' | 'marketing' | 'localization';
+  purpose: "fraud" | "matchmaking" | "delivery" | "marketing" | "localization";
   requestId: string;
 }
 
@@ -16,7 +16,7 @@ export class ConsentGuard {
   private consentLedgerUrl: string;
 
   constructor(consentLedgerUrl?: string) {
-    this.consentLedgerUrl = consentLedgerUrl || process.env.CONSENT_LEDGER_URL || '';
+    this.consentLedgerUrl = consentLedgerUrl || process.env.CONSENT_LEDGER_URL || "";
   }
 
   /**
@@ -30,8 +30,8 @@ export class ConsentGuard {
 
       return {
         granted,
-        policyVersion: 'v1.0',
-        reasonCode: granted ? 'CONSENT_GRANTED' : 'CONSENT_DENIED',
+        policyVersion: "v1.0",
+        reasonCode: granted ? "CONSENT_GRANTED" : "CONSENT_DENIED",
         metadata: {
           checkedAt: new Date().toISOString(),
           subsystem: request.subsystem,
@@ -39,11 +39,11 @@ export class ConsentGuard {
         }
       };
     } catch (error) {
-      console.error('Consent check failed:', error);
+      console.error("Consent check failed:", error);
       return {
         granted: false,
-        policyVersion: 'v1.0',
-        reasonCode: 'CONSENT_CHECK_FAILED',
+        policyVersion: "v1.0",
+        reasonCode: "CONSENT_CHECK_FAILED",
         metadata: { error: error.message }
       };
     }
@@ -55,8 +55,8 @@ export class ConsentGuard {
   async ensureMarketingConsent(actorId: string, requestId: string): Promise<ConsentResult> {
     return this.ensureLocationConsent({
       actorId,
-      subsystem: 'marketing',
-      purpose: 'marketing',
+      subsystem: "marketing",
+      purpose: "marketing",
       requestId
     });
   }
@@ -67,8 +67,8 @@ export class ConsentGuard {
   async ensureFraudConsent(actorId: string, requestId: string): Promise<ConsentResult> {
     return this.ensureLocationConsent({
       actorId,
-      subsystem: 'fraud',
-      purpose: 'fraud',
+      subsystem: "fraud",
+      purpose: "fraud",
       requestId
     });
   }
@@ -79,8 +79,8 @@ export class ConsentGuard {
   async ensureMatchmakingConsent(actorId: string, requestId: string): Promise<ConsentResult> {
     return this.ensureLocationConsent({
       actorId,
-      subsystem: 'matchmaking',
-      purpose: 'matchmaking',
+      subsystem: "matchmaking",
+      purpose: "matchmaking",
       requestId
     });
   }
@@ -95,12 +95,12 @@ export class ConsentGuard {
     // 4. Geographic restrictions
 
     // Simulate some basic rules
-    if (request.purpose === 'marketing') {
+    if (request.purpose === "marketing") {
       // Marketing requires explicit opt-in
       return Math.random() > 0.3; // 70% consent rate
     }
 
-    if (request.purpose === 'fraud') {
+    if (request.purpose === "fraud") {
       // Fraud detection is essential, but still check consent
       return Math.random() > 0.1; // 90% consent rate
     }

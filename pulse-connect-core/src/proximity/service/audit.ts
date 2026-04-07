@@ -4,12 +4,12 @@ export interface AuditEvent {
   actorId: string;
   subsystem: string;
   action: string;
-  purpose: 'fraud' | 'matchmaking' | 'delivery' | 'marketing' | 'localization';
+  purpose: "fraud" | "matchmaking" | "delivery" | "marketing" | "localization";
   policyVersion: string;
   reasonCode: string;
   requestId: string;
   metadata: Record<string, any>;
-  result: 'success' | 'failure' | 'denied';
+  result: "success" | "failure" | "denied";
 }
 
 export interface AuditConfig {
@@ -33,7 +33,7 @@ export class AuditEngine {
   /**
    * Record an audit event
    */
-  async record(event: Omit<AuditEvent, 'id' | 'timestamp'>): Promise<void> {
+  async record(event: Omit<AuditEvent, "id" | "timestamp">): Promise<void> {
     const auditEvent: AuditEvent = {
       ...event,
       id: this.generateId(),
@@ -64,15 +64,15 @@ export class AuditEngine {
     fallbackUsed: boolean;
     latencyMs: number;
     precision: string;
-    result: 'success' | 'failure';
+    result: "success" | "failure";
   }): Promise<void> {
     await this.record({
       actorId: params.actorId,
       subsystem: params.subsystem,
-      action: 'geocode',
+      action: "geocode",
       purpose: params.purpose as any,
-      policyVersion: '1.0.0',
-      reasonCode: params.cacheHit ? 'CACHE_HIT' : 'GEOCODE_REQUEST',
+      policyVersion: "1.0.0",
+      reasonCode: params.cacheHit ? "CACHE_HIT" : "GEOCODE_REQUEST",
       requestId: params.requestId,
       metadata: {
         address: params.address,
@@ -102,15 +102,15 @@ export class AuditEngine {
     distanceKm: number;
     cacheHit: boolean;
     latencyMs: number;
-    result: 'success' | 'failure';
+    result: "success" | "failure";
   }): Promise<void> {
     await this.record({
       actorId: params.actorId,
       subsystem: params.subsystem,
-      action: 'distance',
+      action: "distance",
       purpose: params.purpose as any,
-      policyVersion: '1.0.0',
-      reasonCode: params.cacheHit ? 'CACHE_HIT' : 'DISTANCE_CALCULATION',
+      policyVersion: "1.0.0",
+      reasonCode: params.cacheHit ? "CACHE_HIT" : "DISTANCE_CALCULATION",
       requestId: params.requestId,
       metadata: {
         from: `${params.fromLat},${params.fromLng}`,
@@ -138,7 +138,7 @@ export class AuditEngine {
     await this.record({
       actorId: params.actorId,
       subsystem: params.subsystem,
-      action: 'consent_check',
+      action: "consent_check",
       purpose: params.purpose as any,
       policyVersion: params.policyVersion,
       reasonCode: params.reasonCode,
@@ -146,7 +146,7 @@ export class AuditEngine {
       metadata: {
         consentGranted: params.consentGranted
       },
-      result: params.consentGranted ? 'success' : 'denied'
+      result: params.consentGranted ? "success" : "denied"
     });
   }
 
@@ -160,16 +160,16 @@ export class AuditEngine {
     loginLocation: { lat: number; lng: number };
     paymentLocation: { lat: number; lng: number };
     distanceKm: number;
-    riskLevel: 'low' | 'medium' | 'high';
+    riskLevel: "low" | "medium" | "high";
     thresholdKm: number;
   }): Promise<void> {
     await this.record({
       actorId: params.actorId,
       subsystem: params.subsystem,
-      action: 'fraud_detection',
-      purpose: 'fraud',
-      policyVersion: '1.0.0',
-      reasonCode: 'DISTANCE_ANOMALY_CHECK',
+      action: "fraud_detection",
+      purpose: "fraud",
+      policyVersion: "1.0.0",
+      reasonCode: "DISTANCE_ANOMALY_CHECK",
       requestId: params.requestId,
       metadata: {
         loginLocation: `${params.loginLocation.lat},${params.loginLocation.lng}`,
@@ -178,7 +178,7 @@ export class AuditEngine {
         riskLevel: params.riskLevel,
         thresholdKm: params.thresholdKm
       },
-      result: params.riskLevel === 'high' ? 'failure' : 'success'
+      result: params.riskLevel === "high" ? "failure" : "success"
     });
   }
 
@@ -193,10 +193,10 @@ export class AuditEngine {
 
     try {
       const response = await fetch(this.config.sinkUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`
         },
         body: JSON.stringify({ events })
       });
@@ -205,7 +205,7 @@ export class AuditEngine {
         throw new Error(`Audit sink returned ${response.status}`);
       }
     } catch (error) {
-      console.error('Failed to flush audit events:', error);
+      console.error("Failed to flush audit events:", error);
       // Re-queue events for retry
       this.eventBuffer.unshift(...events);
     }
@@ -216,8 +216,8 @@ export class AuditEngine {
    */
   private startFlushTimer(): void {
     this.flushTimer = setInterval(() => {
-      this.flush().catch(error => {
-        console.error('Periodic audit flush failed:', error);
+      this.flush().catch((error) => {
+        console.error("Periodic audit flush failed:", error);
       });
     }, this.config.flushIntervalMs);
   }

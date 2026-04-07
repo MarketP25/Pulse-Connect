@@ -5,6 +5,7 @@ type SignupPayload = {
   password: string;
   role: string;
   language: Locale;
+  region?: string;
   referralCode?: string;
   username?: string;
   city?: string;
@@ -14,14 +15,14 @@ type SignupPayload = {
 
 export async function createUser(payload: SignupPayload) {
   const username = payload.username || payload.email.split("@")[0];
-  const country = LOCALE_REGION_MAPPING[payload.language] || "US";
+  const country = payload.region || LOCALE_REGION_MAPPING[payload.language] || "US";
 
   const response = await fetch("/api/identity/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-csrf-token": payload.csrfToken,
-      "idempotency-key": `register-${payload.email.toLowerCase()}`,
+      "idempotency-key": `register-${payload.email.toLowerCase()}`
     },
     body: JSON.stringify({
       email: payload.email,
@@ -37,10 +38,10 @@ export async function createUser(payload: SignupPayload) {
         privacyPolicy: { accepted: true, version: "2026.03" },
         termsOfService: { accepted: true, version: "2026.03" },
         dataProcessing: { accepted: true, version: "2026.03" },
-        marketing: { accepted: false, version: "2026.03" },
+        marketing: { accepted: false, version: "2026.03" }
       },
-      deviceFingerprint: `${navigator.userAgent}:${navigator.language}:signup`,
-    }),
+      deviceFingerprint: `${navigator.userAgent}:${navigator.language}:signup`
+    })
   });
 
   if (!response.ok) {
@@ -61,13 +62,13 @@ export async function loginUser(params: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-csrf-token": params.csrfToken,
+      "x-csrf-token": params.csrfToken
     },
     body: JSON.stringify({
       email: params.email,
       password: params.password,
-      deviceFingerprint: params.deviceFingerprint,
-    }),
+      deviceFingerprint: params.deviceFingerprint
+    })
   });
 
   if (!response.ok) {
@@ -83,9 +84,9 @@ export async function refreshSession(csrfToken: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-csrf-token": csrfToken,
+      "x-csrf-token": csrfToken
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify({})
   });
 
   if (!response.ok) {
@@ -101,9 +102,9 @@ export async function logoutUser(csrfToken: string, sessionId?: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-csrf-token": csrfToken,
+      "x-csrf-token": csrfToken
     },
-    body: JSON.stringify({ sessionId }),
+    body: JSON.stringify({ sessionId })
   });
 
   if (!response.ok) {

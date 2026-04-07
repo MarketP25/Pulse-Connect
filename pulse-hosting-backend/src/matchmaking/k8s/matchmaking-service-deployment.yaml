@@ -111,10 +111,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - api.matchmaking.pulsco.com
+        - api.matchmaking.pulsco.global
       secretName: matchmaking-tls
   rules:
-    - host: api.matchmaking.pulsco.com
+    - host: api.matchmaking.pulsco.global
       http:
         paths:
           - path: /api/v1
@@ -165,7 +165,7 @@ data:
         windowMs: 900000
         max: 100
       cors:
-        origin: ["https://app.pulsco.com", "https://admin.pulsco.com"]
+        origin: ["https://app.pulsco.global", "https://admin.pulsco.global"]
         credentials: true
 ---
 apiVersion: v1

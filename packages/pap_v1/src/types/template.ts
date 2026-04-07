@@ -16,12 +16,12 @@ export interface PAPTemplate {
 }
 
 export type TemplateType =
-  | 'promotional'
-  | 'transactional'
-  | 'educational'
-  | 'survey'
-  | 'event'
-  | 'newsletter';
+  | "promotional"
+  | "transactional"
+  | "educational"
+  | "survey"
+  | "event"
+  | "newsletter";
 
 export interface TemplateVariable {
   name: string;
@@ -32,13 +32,7 @@ export interface TemplateVariable {
   validation?: VariableValidation;
 }
 
-export type VariableType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'date'
-  | 'array'
-  | 'object';
+export type VariableType = "string" | "number" | "boolean" | "date" | "array" | "object";
 
 export interface VariableValidation {
   minLength?: number;

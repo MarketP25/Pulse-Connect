@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { FeeService } from "./fee.service";
 import {
   chargeBillingSubscription,
-  fetchBillingSubscriptionPlans,
+  fetchBillingSubscriptionPlans
 } from "../../billing/billing-engine.client";
 
 export interface ListingSubscription {
@@ -189,7 +189,7 @@ export class SubscriptionService {
             planId: subscription.tier_name,
             price: currentPlanPrice,
             region: "global",
-            idempotencyKey: traceId,
+            idempotencyKey: traceId
           });
           if (!billingCharge) {
             throw new Error("billing_engine_subscription_charge_failed");

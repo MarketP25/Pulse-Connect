@@ -1,24 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { MetricsService } from './metrics.service';
-import { AlertingService } from './alerting.service';
+import { Injectable } from "@nestjs/common";
+import { Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { MetricsService } from "./metrics.service";
+import { AlertingService } from "./alerting.service";
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly db: Pool,
+    @Inject("DATABASE_CONNECTION") private readonly db: Pool,
     private readonly metricsService: MetricsService,
-    private readonly alertingService: AlertingService,
+    private readonly alertingService: AlertingService
   ) {}
 
   async getDashboardOverview() {
-    const [
-      sloStatus,
-      activeAlerts,
-      subsystemHealth,
-      recentActivity
-    ] = await Promise.all([
+    const [sloStatus, activeAlerts, subsystemHealth, recentActivity] = await Promise.all([
       this.getSLOStatus(),
       this.alertingService.getActiveAlerts(),
       this.metricsService.getSubsystemHealth(),
@@ -30,22 +25,18 @@ export class DashboardService {
       slo_status: sloStatus,
       active_alerts: {
         count: activeAlerts.length,
-        critical: activeAlerts.filter(a => a.severity === 'critical').length,
-        high: activeAlerts.filter(a => a.severity === 'high').length,
-        medium: activeAlerts.filter(a => a.severity === 'medium').length,
-        low: activeAlerts.filter(a => a.severity === 'low').length,
+        critical: activeAlerts.filter((a) => a.severity === "critical").length,
+        high: activeAlerts.filter((a) => a.severity === "high").length,
+        medium: activeAlerts.filter((a) => a.severity === "medium").length,
+        low: activeAlerts.filter((a) => a.severity === "low").length
       },
       subsystem_health: subsystemHealth,
-      recent_activity: recentActivity,
+      recent_activity: recentActivity
     };
   }
 
   async getSLOStatus() {
-    const [
-      snapshotFreshness,
-      quorumLatency,
-      signatureVerification
-    ] = await Promise.all([
+    const [snapshotFreshness, quorumLatency, signatureVerification] = await Promise.all([
       this.metricsService.getSnapshotFreshness(),
       this.metricsService.getQuorumLatency(),
       this.metricsService.getSignatureVerificationRates()
@@ -55,20 +46,21 @@ export class DashboardService {
       snapshot_distribution: {
         current: snapshotFreshness.age_seconds,
         target: 5, // seconds
-        status: snapshotFreshness.age_seconds <= 5 ? 'healthy' : 'breached',
-        slo: 'Snapshot distribution < 5s'
+        status: snapshotFreshness.age_seconds <= 5 ? "healthy" : "breached",
+        slo: "Snapshot distribution < 5s"
       },
       policy_validation: {
         current: quorumLatency.councils[0]?.avg_latency_seconds || 0,
         target: 500, // milliseconds
-        status: (quorumLatency.councils[0]?.avg_latency_seconds || 0) <= 0.5 ? 'healthy' : 'breached',
-        slo: 'Policy validation p95 < 500ms'
+        status:
+          (quorumLatency.councils[0]?.avg_latency_seconds || 0) <= 0.5 ? "healthy" : "breached",
+        slo: "Policy validation p95 < 500ms"
       },
       audit_completeness: {
         current: parseFloat(signatureVerification.success_rate),
         target: 100, // percentage
-        status: parseFloat(signatureVerification.success_rate) >= 100 ? 'healthy' : 'breached',
-        slo: 'Audit completeness 100%'
+        status: parseFloat(signatureVerification.success_rate) >= 100 ? "healthy" : "breached",
+        slo: "Audit completeness 100%"
       }
     };
   }
@@ -81,10 +73,10 @@ export class DashboardService {
       total: alerts.length,
       by_type: {} as Record<string, number>,
       by_severity: {} as Record<string, number>,
-      recent_trends: await this.getAlertTrends(timeframe),
+      recent_trends: await this.getAlertTrends(timeframe)
     };
 
-    alerts.forEach(alert => {
+    alerts.forEach((alert) => {
       summary.by_type[alert.type] = (summary.by_type[alert.type] || 0) + 1;
       summary.by_severity[alert.severity] = (summary.by_severity[alert.severity] || 0) + 1;
     });
@@ -97,15 +89,15 @@ export class DashboardService {
 
     return {
       overall_health: this.calculateOverallHealth(health.subsystems),
-      subsystems: health.subsystems.map(subsystem => ({
+      subsystems: health.subsystems.map((subsystem) => ({
         name: subsystem.name,
         status: subsystem.health_status,
         last_heartbeat: subsystem.last_heartbeat,
         uptime_percentage: subsystem.uptime_percentage,
         active_rules: subsystem.active_rules_count,
-        recent_activity: subsystem.recent_activity_count,
+        recent_activity: subsystem.recent_activity_count
       })),
-      planetary_coverage: this.calculatePlanetaryCoverage(health.subsystems),
+      planetary_coverage: this.calculatePlanetaryCoverage(health.subsystems)
     };
   }
 
@@ -126,16 +118,18 @@ export class DashboardService {
 
     return {
       timeframe,
-      councils: result.rows.map(row => ({
+      councils: result.rows.map((row) => ({
         council_type: row.council_type,
         total_decisions: parseInt(row.total_decisions),
         approved_decisions: parseInt(row.approved_decisions),
         rejected_decisions: parseInt(row.rejected_decisions),
-        approval_rate: row.total_decisions > 0 ?
-          (parseInt(row.approved_decisions) / parseInt(row.total_decisions) * 100).toFixed(2) : '0.00',
+        approval_rate:
+          row.total_decisions > 0
+            ? ((parseInt(row.approved_decisions) / parseInt(row.total_decisions)) * 100).toFixed(2)
+            : "0.00",
         avg_decision_time_seconds: parseFloat(row.avg_decision_time_seconds || 0),
-        max_decision_time_seconds: parseFloat(row.max_decision_time_seconds || 0),
-      })),
+        max_decision_time_seconds: parseFloat(row.max_decision_time_seconds || 0)
+      }))
     };
   }
 
@@ -145,14 +139,14 @@ export class DashboardService {
     return {
       timeframe,
       total_actions: actions.total_actions,
-      breakdown: actions.breakdown.map(item => ({
+      breakdown: actions.breakdown.map((item) => ({
         action_type: item.action_type,
         count: item.count,
         percentage: item.percentage,
-        trend: item.trend,
+        trend: item.trend
       })),
       top_blocked_subsystems: await this.getTopBlockedSubsystems(timeframe),
-      geographic_distribution: await this.getGeographicFirewallActivity(timeframe),
+      geographic_distribution: await this.getGeographicFirewallActivity(timeframe)
     };
   }
 
@@ -182,22 +176,26 @@ export class DashboardService {
 
     return {
       timeframe,
-      user_protection: result.rows[0] ? {
-        total_protected_users: parseInt(result.rows[0].total_protected_users),
-        avg_risk_score: parseFloat(result.rows[0].avg_risk_score || 0),
-        protection_distribution: {
-          maximum: parseInt(result.rows[0].maximum_protection_users),
-          enhanced: parseInt(result.rows[0].enhanced_protection_users),
-          standard: parseInt(result.rows[0].standard_protection_users),
-        },
-        quarantined_users: parseInt(result.rows[0].quarantined_users),
-      } : null,
-      fraud_detection: fraudAlerts.rows[0] ? {
-        total_alerts: parseInt(fraudAlerts.rows[0].total_alerts),
-        critical_alerts: parseInt(fraudAlerts.rows[0].critical_alerts),
-        high_alerts: parseInt(fraudAlerts.rows[0].high_alerts),
-        avg_response_time_hours: parseFloat(fraudAlerts.rows[0].avg_response_time_hours || 0),
-      } : null,
+      user_protection: result.rows[0]
+        ? {
+            total_protected_users: parseInt(result.rows[0].total_protected_users),
+            avg_risk_score: parseFloat(result.rows[0].avg_risk_score || 0),
+            protection_distribution: {
+              maximum: parseInt(result.rows[0].maximum_protection_users),
+              enhanced: parseInt(result.rows[0].enhanced_protection_users),
+              standard: parseInt(result.rows[0].standard_protection_users)
+            },
+            quarantined_users: parseInt(result.rows[0].quarantined_users)
+          }
+        : null,
+      fraud_detection: fraudAlerts.rows[0]
+        ? {
+            total_alerts: parseInt(fraudAlerts.rows[0].total_alerts),
+            critical_alerts: parseInt(fraudAlerts.rows[0].critical_alerts),
+            high_alerts: parseInt(fraudAlerts.rows[0].high_alerts),
+            avg_response_time_hours: parseFloat(fraudAlerts.rows[0].avg_response_time_hours || 0)
+          }
+        : null
     };
   }
 
@@ -215,11 +213,11 @@ export class DashboardService {
       LIMIT 10
     `);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       action_type: row.action_type,
       entity_type: row.entity_type,
       count: parseInt(row.count),
-      latest_activity: row.latest_activity.toISOString(),
+      latest_activity: row.latest_activity.toISOString()
     }));
   }
 
@@ -228,34 +226,38 @@ export class DashboardService {
     return {
       increasing: false,
       change_percentage: 0,
-      period: timeframe,
+      period: timeframe
     };
   }
 
   private calculateOverallHealth(subsystems: any[]) {
-    if (subsystems.length === 0) return 'unknown';
+    if (subsystems.length === 0) return "unknown";
 
-    const healthy = subsystems.filter(s => s.health_status === 'healthy').length;
+    const healthy = subsystems.filter((s) => s.health_status === "healthy").length;
     const percentage = (healthy / subsystems.length) * 100;
 
-    if (percentage >= 95) return 'excellent';
-    if (percentage >= 85) return 'good';
-    if (percentage >= 70) return 'fair';
-    return 'poor';
+    if (percentage >= 95) return "excellent";
+    if (percentage >= 85) return "good";
+    if (percentage >= 70) return "fair";
+    return "poor";
   }
 
   private calculatePlanetaryCoverage(subsystems: any[]) {
     // Calculate coverage across different planetary regions
-    const regions = ['americas', 'europe', 'asia', 'oceania', 'africa'];
-    const coverage = regions.map(region => ({
+    const regions = ["americas", "europe", "asia", "oceania", "africa"];
+    const coverage = regions.map((region) => ({
       region,
-      active_subsystems: subsystems.filter(s => s.region === region && s.health_status === 'healthy').length,
-      total_subsystems: subsystems.filter(s => s.region === region).length,
+      active_subsystems: subsystems.filter(
+        (s) => s.region === region && s.health_status === "healthy"
+      ).length,
+      total_subsystems: subsystems.filter((s) => s.region === region).length
     }));
 
     return {
       regions: coverage,
-      global_coverage_percentage: coverage.reduce((sum, r) => sum + (r.active_subsystems / r.total_subsystems * 100), 0) / coverage.length,
+      global_coverage_percentage:
+        coverage.reduce((sum, r) => sum + (r.active_subsystems / r.total_subsystems) * 100, 0) /
+        coverage.length
     };
   }
 

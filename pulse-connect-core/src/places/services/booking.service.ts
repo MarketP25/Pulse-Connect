@@ -87,9 +87,9 @@ export class BookingService {
         mode: "booking",
         durationHours,
         guestCount: bookingRequest.guest_count,
-        placeId: bookingRequest.place_id,
+        placeId: bookingRequest.place_id
       },
-      region: "global",
+      region: "global"
     });
     if (!billingQuote) {
       throw new Error("billing_engine_quote_failed");

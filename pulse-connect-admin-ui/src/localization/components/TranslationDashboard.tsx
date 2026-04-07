@@ -1,6 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import BillingWidget from './BillingWidget';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import React, { useState, useEffect } from "react";
+import BillingWidget from "./BillingWidget";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar
+} from "recharts";
 
 interface TranslationMetrics {
   totalTranslations: number;
@@ -15,8 +29,8 @@ interface TranslationMetrics {
 
 interface FraudAlert {
   id: string;
-  type: 'suspicious_pattern' | 'rate_limit_exceeded' | 'anomalous_translation';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "suspicious_pattern" | "rate_limit_exceeded" | "anomalous_translation";
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   userId: number;
   timestamp: string;
@@ -26,7 +40,7 @@ interface FraudAlert {
 export const TranslationDashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<TranslationMetrics | null>(null);
   const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>([]);
-  const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
+  const [timeRange, setTimeRange] = useState<"1h" | "24h" | "7d" | "30d">("24h");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,36 +57,36 @@ export const TranslationDashboard: React.FC = () => {
         successRate: 99.7,
         costPerTranslation: 0.023,
         topLanguages: [
-          { language: 'en', count: 45230, percentage: 36.1 },
-          { language: 'sw', count: 23410, percentage: 18.7 },
-          { language: 'es', count: 18920, percentage: 15.1 },
-          { language: 'fr', count: 15670, percentage: 12.5 },
-          { language: 'zh', count: 12340, percentage: 9.8 },
-          { language: 'other', count: 9860, percentage: 7.8 }
+          { language: "en", count: 45230, percentage: 36.1 },
+          { language: "sw", count: 23410, percentage: 18.7 },
+          { language: "es", count: 18920, percentage: 15.1 },
+          { language: "fr", count: 15670, percentage: 12.5 },
+          { language: "zh", count: 12340, percentage: 9.8 },
+          { language: "other", count: 9860, percentage: 7.8 }
         ],
         latencyDistribution: [
-          { range: '<100ms', count: 45230 },
-          { range: '100-200ms', count: 34560 },
-          { range: '200-500ms', count: 28940 },
-          { range: '500ms-1s', count: 12340 },
-          { range: '1s-2s', count: 3240 },
-          { range: '>2s', count: 1120 }
+          { range: "<100ms", count: 45230 },
+          { range: "100-200ms", count: 34560 },
+          { range: "200-500ms", count: 28940 },
+          { range: "500ms-1s", count: 12340 },
+          { range: "1s-2s", count: 3240 },
+          { range: ">2s", count: 1120 }
         ],
         providerUsage: [
-          { provider: 'google', translations: 62340, cost: 1438.20 },
-          { provider: 'azure', translations: 45230, cost: 1041.29 },
-          { provider: 'aws', translations: 17860, cost: 411.38 }
+          { provider: "google", translations: 62340, cost: 1438.2 },
+          { provider: "azure", translations: 45230, cost: 1041.29 },
+          { provider: "aws", translations: 17860, cost: 411.38 }
         ],
         regionalUsage: [
-          { region: 'US', translations: 45230, revenue: 1041.29 },
-          { region: 'KE', translations: 34560, revenue: 794.88 },
-          { region: 'EU', translations: 28940, revenue: 665.62 },
-          { region: 'Asia', translations: 16700, revenue: 383.10 }
+          { region: "US", translations: 45230, revenue: 1041.29 },
+          { region: "KE", translations: 34560, revenue: 794.88 },
+          { region: "EU", translations: 28940, revenue: 665.62 },
+          { region: "Asia", translations: 16700, revenue: 383.1 }
         ]
       };
       setMetrics(mockMetrics);
     } catch (error) {
-      console.error('Failed to fetch metrics:', error);
+      console.error("Failed to fetch metrics:", error);
     } finally {
       setLoading(false);
     }
@@ -83,37 +97,42 @@ export const TranslationDashboard: React.FC = () => {
       // Mock fraud alerts
       const mockAlerts: FraudAlert[] = [
         {
-          id: '1',
-          type: 'suspicious_pattern',
-          severity: 'high',
-          description: 'User 12345 has 50+ translations in 5 minutes across 10+ languages',
+          id: "1",
+          type: "suspicious_pattern",
+          severity: "high",
+          description: "User 12345 has 50+ translations in 5 minutes across 10+ languages",
           userId: 12345,
           timestamp: new Date().toISOString(),
-          traceId: 'trace-12345'
+          traceId: "trace-12345"
         },
         {
-          id: '2',
-          type: 'rate_limit_exceeded',
-          severity: 'medium',
-          description: 'User 67890 exceeded 1000 translations per hour',
+          id: "2",
+          type: "rate_limit_exceeded",
+          severity: "medium",
+          description: "User 67890 exceeded 1000 translations per hour",
           userId: 67890,
           timestamp: new Date(Date.now() - 300000).toISOString(),
-          traceId: 'trace-67890'
+          traceId: "trace-67890"
         }
       ];
       setFraudAlerts(mockAlerts);
     } catch (error) {
-      console.error('Failed to fetch fraud alerts:', error);
+      console.error("Failed to fetch fraud alerts:", error);
     }
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return '#dc3545';
-      case 'high': return '#fd7e14';
-      case 'medium': return '#ffc107';
-      case 'low': return '#28a745';
-      default: return '#6c757d';
+      case "critical":
+        return "#dc3545";
+      case "high":
+        return "#fd7e14";
+      case "medium":
+        return "#ffc107";
+      case "low":
+        return "#28a745";
+      default:
+        return "#6c757d";
     }
   };
 
@@ -142,7 +161,9 @@ export const TranslationDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Total Translations</h3>
-          <p className="text-2xl font-bold text-gray-900">{metrics?.totalTranslations.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {metrics?.totalTranslations.toLocaleString()}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Average Latency</h3>
@@ -234,7 +255,10 @@ export const TranslationDashboard: React.FC = () => {
         <h3 className="text-lg font-medium text-gray-900 mb-4">Active Fraud Alerts</h3>
         <div className="space-y-3">
           {fraudAlerts.map((alert) => (
-            <div key={alert.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-md">
+            <div
+              key={alert.id}
+              className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
+            >
               <div className="flex items-center space-x-3">
                 <div
                   className="w-3 h-3 rounded-full"
@@ -248,12 +272,17 @@ export const TranslationDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  alert.severity === 'critical' ? 'bg-red-100 text-red-800' :
-                  alert.severity === 'high' ? 'bg-orange-100 text-orange-800' :
-                  alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-green-100 text-green-800'
-                }`}>
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    alert.severity === "critical"
+                      ? "bg-red-100 text-red-800"
+                      : alert.severity === "high"
+                        ? "bg-orange-100 text-orange-800"
+                        : alert.severity === "medium"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-green-100 text-green-800"
+                  }`}
+                >
                   {alert.severity.toUpperCase()}
                 </span>
                 <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">

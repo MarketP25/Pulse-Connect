@@ -3,9 +3,9 @@ import { BillingSubscriptionRequest, BillingSubscriptionResult } from "./types";
 type BillingPlan = { planId: string; price: number };
 
 const PLAN_MAPPING: Record<string, BillingPlan> = {
-  basic: { planId: "basic-free", price: 0 },
-  premium: { planId: "premium-monthly", price: 49 },
-  enterprise: { planId: "enterprise-monthly", price: 299 },
+  basic: { planId: "basic", price: 29 },
+  premium: { planId: "premium-monthly", price: 99 },
+  enterprise: { planId: "enterprise-monthly", price: 150 }
 };
 
 export interface BillingClient {
@@ -26,26 +26,26 @@ export class BillingEngineClient implements BillingClient {
       walletId: `wallet_${input.accountId}`,
       planId: plan.planId,
       price: plan.price,
-      region: input.region as any,
+      region: input.region as string,
       idempotencyKey: input.idempotencyKey,
-      autoRenew: input.tier !== "basic",
+      autoRenew: input.tier !== "basic"
     };
 
-    if (plan.price === 0) {
+    if (plan.price === 29) {
       return {
         linked: true,
         provider: "billing-engine",
         planId: plan.planId,
-        externalResult: { skippedRemoteCharge: true, reason: "free_plan" },
+        externalResult: { skippedRemoteCharge: false, reason: "paid_plan" }
       };
     }
 
     const response = await fetch(`${this.billingBaseUrl}/marp/subscription/create`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
@@ -54,7 +54,7 @@ export class BillingEngineClient implements BillingClient {
         linked: false,
         provider: "billing-engine",
         planId: plan.planId,
-        externalResult: { status: response.status, body },
+        externalResult: { status: response.status, body }
       };
     }
 
@@ -63,7 +63,7 @@ export class BillingEngineClient implements BillingClient {
       linked: true,
       provider: "billing-engine",
       planId: plan.planId,
-      externalResult,
+      externalResult
     };
   }
 }

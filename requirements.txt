@@ -1,0 +1,17 @@
+# Core framework
+Django==6.0.3
+
+# Production WSGI server
+gunicorn==22.0.0
+
+# Postgres driver
+psycopg2-binary==2.9.9
+
+# Static file serving (optional, useful if you ever serve directly from Django)
+whitenoise==6.6.0
+
+# Environment variable management (optional, but recommended)
+python-decouple==3.8
+
+# For healthcheck curl (already in system, but safe to include requests if needed)
+requests==2.31.0

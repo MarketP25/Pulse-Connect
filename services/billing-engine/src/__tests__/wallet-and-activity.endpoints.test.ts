@@ -21,14 +21,14 @@ describe("wallet and activity endpoints", () => {
     if (skipTests || !app) {
       return;
     }
-    
+
     const createResp = await request(app)
       .post("/marp/wallet/create")
       .send({ walletId: "wallet-it-1", accountId: "acct-it-1", balance: 100 });
     expect(createResp.status).toBe(200);
     expect(createResp.body).toMatchObject({
       walletId: "wallet-it-1",
-      accountId: "acct-it-1",
+      accountId: "acct-it-1"
     });
 
     const secondCreateResp = await request(app)
@@ -37,14 +37,14 @@ describe("wallet and activity endpoints", () => {
     expect(secondCreateResp.status).toBe(200);
     expect(secondCreateResp.body).toMatchObject({
       walletId: "wallet-it-1",
-      accountId: "acct-it-1",
+      accountId: "acct-it-1"
     });
 
     const getResp = await request(app).get("/marp/wallet/wallet-it-1");
     expect(getResp.status).toBe(200);
     expect(getResp.body).toMatchObject({
       walletId: "wallet-it-1",
-      accountId: "acct-it-1",
+      accountId: "acct-it-1"
     });
   });
 
@@ -52,16 +52,16 @@ describe("wallet and activity endpoints", () => {
     if (skipTests || !app) {
       return;
     }
-    
+
     const calcResp = await request(app)
       .post("/marp/activity/calculate")
       .send({
         event: {
           engine: "ecommerce",
           eventId: "evt-it-calc-1",
-          amount: 20,
+          amount: 20
         },
-        region: "Europe West 1",
+        region: "Europe West 1"
       });
 
     expect(calcResp.status).toBe(200);
@@ -77,10 +77,10 @@ describe("wallet and activity endpoints", () => {
         event: {
           engine: "ecommerce",
           eventId: "evt-it-charge-1",
-          amount: 20,
+          amount: 20
         },
         region: "Europe West 1",
-        idempotencyKey: "act-charge-1",
+        idempotencyKey: "act-charge-1"
       });
 
     expect(chargeResp.status).toBe(200);

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 
 export interface GeoRoutingRequest {
   sourceLanguage: string;
@@ -8,8 +8,8 @@ export interface GeoRoutingRequest {
     region?: string;
     city?: string;
   };
-  contentType: 'text' | 'speech' | 'video' | 'sign';
-  quality: 'fast' | 'standard' | 'premium';
+  contentType: "text" | "speech" | "video" | "sign";
+  quality: "fast" | "standard" | "premium";
 }
 
 export interface GeoRoutingResult {
@@ -17,7 +17,7 @@ export interface GeoRoutingResult {
   provider: string;
   estimatedLatency: number;
   estimatedCost: number;
-  dataLocality: 'local' | 'regional' | 'global';
+  dataLocality: "local" | "regional" | "global";
   compliance: {
     gdprCompliant: boolean;
     ccpaCompliant: boolean;
@@ -39,109 +39,124 @@ export class GeoRouterService {
   // Planetary region configuration for PULSCO
   private planetaryRegions = {
     africa: {
-      countries: ['KE', 'ZA', 'NG', 'EG', 'MA', 'GH', 'TZ', 'UG', 'SN', 'CI', 'CM', 'ET'],
-      providers: ['pulse_internal'],
-      dataCenters: ['africa-south1', 'africa-central1'],
+      countries: ["KE", "ZA", "NG", "EG", "MA", "GH", "TZ", "UG", "SN", "CI", "CM", "ET"],
+      providers: ["pulse_internal"],
+      dataCenters: ["africa-south1", "africa-central1"],
       latencyBaseline: 150,
-      compliance: ['gdpr', 'popia', 'data_protection_africa'],
-      languages: ['sw', 'am', 'yo', 'ha', 'zu', 'xh', 'af', 'ar'],
+      compliance: ["gdpr", "popia", "data_protection_africa"],
+      languages: ["sw", "am", "yo", "ha", "zu", "xh", "af", "ar"]
     },
     us: {
-      countries: ['US', 'CA', 'MX'],
-      providers: ['pulse_internal'],
-      dataCenters: ['us-central1', 'us-east1', 'us-west2'],
+      countries: ["US", "CA", "MX"],
+      providers: ["pulse_internal"],
+      dataCenters: ["us-central1", "us-east1", "us-west2"],
       latencyBaseline: 20,
-      compliance: ['ccpa', 'gdpr'],
-      languages: ['en', 'es', 'fr'],
+      compliance: ["ccpa", "gdpr"],
+      languages: ["en", "es", "fr"]
     },
     eu: {
-      countries: ['GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'NO', 'DK', 'FI', 'PL', 'CZ'],
-      providers: ['pulse_internal'],
-      dataCenters: ['europe-west1', 'europe-west2', 'europe-north1'],
+      countries: ["GB", "DE", "FR", "IT", "ES", "NL", "SE", "NO", "DK", "FI", "PL", "CZ"],
+      providers: ["pulse_internal"],
+      dataCenters: ["europe-west1", "europe-west2", "europe-north1"],
       latencyBaseline: 25,
-      compliance: ['gdpr', 'dsgvo'],
-      languages: ['en', 'de', 'fr', 'it', 'es', 'nl', 'sv', 'da', 'no', 'fi', 'pl', 'cs'],
+      compliance: ["gdpr", "dsgvo"],
+      languages: ["en", "de", "fr", "it", "es", "nl", "sv", "da", "no", "fi", "pl", "cs"]
     },
     asia: {
-      countries: ['JP', 'KR', 'CN', 'IN', 'SG', 'AU', 'NZ', 'TH', 'MY', 'ID', 'PH', 'VN', 'HK', 'TW'],
-      providers: ['pulse_internal'],
-      dataCenters: ['asia-east1', 'asia-southeast1', 'asia-northeast1'],
+      countries: [
+        "JP",
+        "KR",
+        "CN",
+        "IN",
+        "SG",
+        "AU",
+        "NZ",
+        "TH",
+        "MY",
+        "ID",
+        "PH",
+        "VN",
+        "HK",
+        "TW"
+      ],
+      providers: ["pulse_internal"],
+      dataCenters: ["asia-east1", "asia-southeast1", "asia-northeast1"],
       latencyBaseline: 120,
-      compliance: ['pdpa', 'pipeda', 'privacy_act_australia'],
-      languages: ['ja', 'ko', 'zh', 'hi', 'en', 'th', 'ms', 'id', 'vi', 'tl'],
+      compliance: ["pdpa", "pipeda", "privacy_act_australia"],
+      languages: ["ja", "ko", "zh", "hi", "en", "th", "ms", "id", "vi", "tl"]
     },
     south_america: {
-      countries: ['BR', 'AR', 'CL', 'CO', 'PE', 'VE', 'EC', 'UY', 'PY', 'BO'],
-      providers: ['pulse_internal'],
-      dataCenters: ['southamerica-east1'],
+      countries: ["BR", "AR", "CL", "CO", "PE", "VE", "EC", "UY", "PY", "BO"],
+      providers: ["pulse_internal"],
+      dataCenters: ["southamerica-east1"],
       latencyBaseline: 180,
-      compliance: ['lgpd', 'pdp'],
-      languages: ['pt', 'es', 'qu', 'gn'],
+      compliance: ["lgpd", "pdp"],
+      languages: ["pt", "es", "qu", "gn"]
     },
     middle_east: {
-      countries: ['SA', 'AE', 'QA', 'KW', 'BH', 'OM', 'JO', 'LB', 'IQ', 'IR'],
-      providers: ['pulse_internal'],
-      dataCenters: ['me-central1'],
+      countries: ["SA", "AE", "QA", "KW", "BH", "OM", "JO", "LB", "IQ", "IR"],
+      providers: ["pulse_internal"],
+      dataCenters: ["me-central1"],
       latencyBaseline: 200,
-      compliance: ['pdpl', 'federal_decree_uae'],
-      languages: ['ar', 'fa', 'he', 'tr'],
-    },
+      compliance: ["pdpl", "federal_decree_uae"],
+      languages: ["ar", "fa", "he", "tr"]
+    }
   };
 
   // Language-to-region mapping for planetary optimization
   private languageRegionMapping = {
     // African languages - prioritize African regions
-    'sw': ['africa'],
-    'am': ['africa'],
-    'yo': ['africa'],
-    'ha': ['africa'],
-    'zu': ['africa'],
-    'xh': ['africa'],
-    'af': ['africa'],
+    sw: ["africa"],
+    am: ["africa"],
+    yo: ["africa"],
+    ha: ["africa"],
+    zu: ["africa"],
+    xh: ["africa"],
+    af: ["africa"],
 
     // European languages - EU regions
-    'en': ['us', 'eu', 'asia'],
-    'de': ['eu'],
-    'fr': ['eu', 'us'],
-    'it': ['eu'],
-    'es': ['eu', 'us', 'south_america'],
-    'pt': ['eu', 'south_america'],
-    'nl': ['eu'],
-    'sv': ['eu'],
-    'da': ['eu'],
-    'no': ['eu'],
-    'fi': ['eu'],
-    'pl': ['eu'],
-    'cs': ['eu'],
+    en: ["us", "eu", "asia"],
+    de: ["eu"],
+    fr: ["eu", "us"],
+    it: ["eu"],
+    es: ["eu", "us", "south_america"],
+    pt: ["eu", "south_america"],
+    nl: ["eu"],
+    sv: ["eu"],
+    da: ["eu"],
+    no: ["eu"],
+    fi: ["eu"],
+    pl: ["eu"],
+    cs: ["eu"],
 
     // Asian languages - Asia regions
-    'ja': ['asia'],
-    'ko': ['asia'],
-    'zh': ['asia'],
-    'hi': ['asia'],
-    'th': ['asia'],
-    'ms': ['asia'],
-    'id': ['asia'],
-    'vi': ['asia'],
-    'tl': ['asia'],
+    ja: ["asia"],
+    ko: ["asia"],
+    zh: ["asia"],
+    hi: ["asia"],
+    th: ["asia"],
+    ms: ["asia"],
+    id: ["asia"],
+    vi: ["asia"],
+    tl: ["asia"],
 
     // Middle Eastern languages
-    'ar': ['middle_east', 'africa', 'asia'],
-    'fa': ['middle_east'],
-    'he': ['middle_east'],
-    'tr': ['eu', 'middle_east'],
+    ar: ["middle_east", "africa", "asia"],
+    fa: ["middle_east"],
+    he: ["middle_east"],
+    tr: ["eu", "middle_east"],
 
     // Sign languages - global but region-specific models
-    'asl': ['us'],
-    'bsl': ['eu'],
-    'ksl': ['africa'],
-    'isl': ['eu', 'us', 'asia'],
+    asl: ["us"],
+    bsl: ["eu"],
+    ksl: ["africa"],
+    isl: ["eu", "us", "asia"],
 
     // Indigenous languages
-    'qu': ['south_america'],
-    'gn': ['south_america'],
-    'nah': ['us'],
-    'zap': ['us'],
+    qu: ["south_america"],
+    gn: ["south_america"],
+    nah: ["us"],
+    zap: ["us"]
   };
 
   /**
@@ -150,14 +165,14 @@ export class GeoRouterService {
   async getOptimalRegion(
     sourceLanguage: string,
     targetLanguage: string,
-    userLocation?: { country: string; region?: string },
+    userLocation?: { country: string; region?: string }
   ): Promise<string> {
     const request: GeoRoutingRequest = {
       sourceLanguage,
       targetLanguage,
       userLocation,
-      contentType: 'text',
-      quality: 'standard',
+      contentType: "text",
+      quality: "standard"
     };
 
     const result = await this.routeRequest(request);
@@ -179,64 +194,69 @@ export class GeoRouterService {
       estimatedCost: optimal.cost,
       dataLocality: this.determineDataLocality(optimal.region, request.userLocation?.country),
       compliance: this.checkCompliance(optimal.region, request.userLocation?.country),
-      alternatives: scored.slice(1, 4), // Top 3 alternatives
+      alternatives: scored.slice(1, 4) // Top 3 alternatives
     };
   }
 
   /**
    * Get real-time planetary region health and capacity
    */
-  async getRegionHealth(): Promise<Record<string, {
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    latency: number;
-    capacity: number; // 0-100
-    activeConnections: number;
-    modelVersions: Record<string, string>;
-  }>> {
+  async getRegionHealth(): Promise<
+    Record<
+      string,
+      {
+        status: "healthy" | "degraded" | "unhealthy";
+        latency: number;
+        capacity: number; // 0-100
+        activeConnections: number;
+        modelVersions: Record<string, string>;
+      }
+    >
+  > {
     // Planetary health monitoring - in real implementation, this would monitor actual infrastructure
     return {
-      'africa-south1': {
-        status: 'healthy',
+      "africa-south1": {
+        status: "healthy",
         latency: 180,
         capacity: 75,
         activeConnections: 1250,
-        modelVersions: { 'nmt': 'v3.0', 'asr': 'v2.8', 'tts': 'v2.9' }
+        modelVersions: { nmt: "v3.0", asr: "v2.8", tts: "v2.9" }
       },
-      'us-central1': {
-        status: 'healthy',
+      "us-central1": {
+        status: "healthy",
         latency: 15,
         capacity: 60,
         activeConnections: 5200,
-        modelVersions: { 'nmt': 'v3.0', 'asr': 'v2.8', 'tts': 'v2.9' }
+        modelVersions: { nmt: "v3.0", asr: "v2.8", tts: "v2.9" }
       },
-      'europe-west1': {
-        status: 'healthy',
+      "europe-west1": {
+        status: "healthy",
         latency: 22,
         capacity: 80,
         activeConnections: 3800,
-        modelVersions: { 'nmt': 'v3.0', 'asr': 'v2.8', 'tts': 'v2.9' }
+        modelVersions: { nmt: "v3.0", asr: "v2.8", tts: "v2.9" }
       },
-      'asia-east1': {
-        status: 'degraded',
+      "asia-east1": {
+        status: "degraded",
         latency: 140,
         capacity: 45,
         activeConnections: 2900,
-        modelVersions: { 'nmt': 'v2.9', 'asr': 'v2.7', 'tts': 'v2.8' }
+        modelVersions: { nmt: "v2.9", asr: "v2.7", tts: "v2.8" }
       },
-      'southamerica-east1': {
-        status: 'healthy',
+      "southamerica-east1": {
+        status: "healthy",
         latency: 200,
         capacity: 85,
         activeConnections: 950,
-        modelVersions: { 'nmt': 'v3.0', 'asr': 'v2.8', 'tts': 'v2.9' }
+        modelVersions: { nmt: "v3.0", asr: "v2.8", tts: "v2.9" }
       },
-      'me-central1': {
-        status: 'healthy',
+      "me-central1": {
+        status: "healthy",
         latency: 220,
         capacity: 70,
         activeConnections: 680,
-        modelVersions: { 'nmt': 'v3.0', 'asr': 'v2.8', 'tts': 'v2.9' }
-      },
+        modelVersions: { nmt: "v3.0", asr: "v2.8", tts: "v2.9" }
+      }
     };
   }
 
@@ -254,37 +274,100 @@ export class GeoRouterService {
       interRegional: 0.05, // $0.05 per GB between regions
       global: 0.12, // $0.12 per GB global transfer
       compliance: {
-        'gdpr': ['eu', 'us', 'asia'],
-        'ccpa': ['us'],
-        'lgpd': ['south_america'],
-        'pdpa': ['asia'],
-        'popia': ['africa'],
-      },
+        gdpr: ["eu", "us", "asia"],
+        ccpa: ["us"],
+        lgpd: ["south_america"],
+        pdpa: ["asia"],
+        popia: ["africa"]
+      }
     };
   }
 
   /**
    * Get planetary language coverage and model availability
    */
-  getLanguageCoverage(): Record<string, {
-    regions: string[];
-    modelQuality: 'high' | 'medium' | 'low';
-    lastUpdated: string;
-    speakerCount: number;
-  }> {
+  getLanguageCoverage(): Record<
+    string,
+    {
+      regions: string[];
+      modelQuality: "high" | "medium" | "low";
+      lastUpdated: string;
+      speakerCount: number;
+    }
+  > {
     return {
-      'en': { regions: ['us', 'eu', 'asia'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 1500000000 },
-      'es': { regions: ['us', 'eu', 'south_america'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 500000000 },
-      'fr': { regions: ['eu', 'us'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 300000000 },
-      'de': { regions: ['eu'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 100000000 },
-      'sw': { regions: ['africa'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 20000000 },
-      'am': { regions: ['africa'], modelQuality: 'medium', lastUpdated: '2024-01-10', speakerCount: 35000000 },
-      'ar': { regions: ['middle_east', 'africa', 'asia'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 300000000 },
-      'zh': { regions: ['asia'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 1200000000 },
-      'hi': { regions: ['asia'], modelQuality: 'high', lastUpdated: '2024-01-15', speakerCount: 400000000 },
-      'asl': { regions: ['us'], modelQuality: 'medium', lastUpdated: '2024-01-12', speakerCount: 500000 },
-      'bsl': { regions: ['eu'], modelQuality: 'medium', lastUpdated: '2024-01-12', speakerCount: 150000 },
-      'ksl': { regions: ['africa'], modelQuality: 'low', lastUpdated: '2024-01-08', speakerCount: 100000 },
+      en: {
+        regions: ["us", "eu", "asia"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 1500000000
+      },
+      es: {
+        regions: ["us", "eu", "south_america"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 500000000
+      },
+      fr: {
+        regions: ["eu", "us"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 300000000
+      },
+      de: {
+        regions: ["eu"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 100000000
+      },
+      sw: {
+        regions: ["africa"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 20000000
+      },
+      am: {
+        regions: ["africa"],
+        modelQuality: "medium",
+        lastUpdated: "2024-01-10",
+        speakerCount: 35000000
+      },
+      ar: {
+        regions: ["middle_east", "africa", "asia"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 300000000
+      },
+      zh: {
+        regions: ["asia"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 1200000000
+      },
+      hi: {
+        regions: ["asia"],
+        modelQuality: "high",
+        lastUpdated: "2024-01-15",
+        speakerCount: 400000000
+      },
+      asl: {
+        regions: ["us"],
+        modelQuality: "medium",
+        lastUpdated: "2024-01-12",
+        speakerCount: 500000
+      },
+      bsl: {
+        regions: ["eu"],
+        modelQuality: "medium",
+        lastUpdated: "2024-01-12",
+        speakerCount: 150000
+      },
+      ksl: {
+        regions: ["africa"],
+        modelQuality: "low",
+        lastUpdated: "2024-01-08",
+        speakerCount: 100000
+      }
     };
   }
 
@@ -298,8 +381,12 @@ export class GeoRouterService {
     const candidates: Array<{ region: string; provider: string; baseLatency: number }> = [];
 
     // Get preferred regions based on languages
-    const sourceRegions = this.languageRegionMapping[request.sourceLanguage as keyof typeof this.languageRegionMapping] || ['us'];
-    const targetRegions = this.languageRegionMapping[request.targetLanguage as keyof typeof this.languageRegionMapping] || ['us'];
+    const sourceRegions = this.languageRegionMapping[
+      request.sourceLanguage as keyof typeof this.languageRegionMapping
+    ] || ["us"];
+    const targetRegions = this.languageRegionMapping[
+      request.targetLanguage as keyof typeof this.languageRegionMapping
+    ] || ["us"];
 
     // Combine and deduplicate regions
     const candidateRegions = [...new Set([...sourceRegions, ...targetRegions])];
@@ -309,8 +396,8 @@ export class GeoRouterService {
       if (region) {
         candidates.push({
           region: regionName,
-          provider: 'pulse_internal',
-          baseLatency: region.latencyBaseline,
+          provider: "pulse_internal",
+          baseLatency: region.latencyBaseline
         });
       }
     }
@@ -321,13 +408,15 @@ export class GeoRouterService {
   private async scoreCandidates(
     candidates: Array<{ region: string; provider: string; baseLatency: number }>,
     request: GeoRoutingRequest
-  ): Promise<Array<{
-    region: string;
-    provider: string;
-    latency: number;
-    cost: number;
-    score: number;
-  }>> {
+  ): Promise<
+    Array<{
+      region: string;
+      provider: string;
+      latency: number;
+      cost: number;
+      score: number;
+    }>
+  > {
     const scored = [];
 
     for (const candidate of candidates) {
@@ -346,7 +435,7 @@ export class GeoRouterService {
 
       // Calculate cost based on quality and region
       const qualityMultiplier = { fast: 1.2, standard: 1.0, premium: 0.8 }[request.quality];
-      const cost = (latency * 0.001 * qualityMultiplier); // Mock cost calculation
+      const cost = latency * 0.001 * qualityMultiplier; // Mock cost calculation
 
       // Calculate overall score (lower latency + lower cost = higher score)
       const score = 1000 / (latency + cost * 100);
@@ -356,7 +445,7 @@ export class GeoRouterService {
         provider: candidate.provider,
         latency,
         cost,
-        score,
+        score
       });
     }
 
@@ -364,13 +453,15 @@ export class GeoRouterService {
     return scored.sort((a, b) => b.score - a.score);
   }
 
-  private selectOptimal(scoredCandidates: Array<{
-    region: string;
-    provider: string;
-    latency: number;
-    cost: number;
-    score: number;
-  }>): {
+  private selectOptimal(
+    scoredCandidates: Array<{
+      region: string;
+      provider: string;
+      latency: number;
+      cost: number;
+      score: number;
+    }>
+  ): {
     region: string;
     provider: string;
     latency: number;
@@ -379,16 +470,22 @@ export class GeoRouterService {
     return scoredCandidates[0];
   }
 
-  private determineDataLocality(region: string, userCountry?: string): 'local' | 'regional' | 'global' {
-    if (!userCountry) return 'regional';
+  private determineDataLocality(
+    region: string,
+    userCountry?: string
+  ): "local" | "regional" | "global" {
+    if (!userCountry) return "regional";
 
     const userRegion = this.getRegionForCountry(userCountry);
-    if (userRegion === region) return 'local';
-    if (this.areRegionsAdjacent(userRegion, region)) return 'regional';
-    return 'global';
+    if (userRegion === region) return "local";
+    if (this.areRegionsAdjacent(userRegion, region)) return "regional";
+    return "global";
   }
 
-  private checkCompliance(region: string, userCountry?: string): {
+  private checkCompliance(
+    region: string,
+    userCountry?: string
+  ): {
     gdprCompliant: boolean;
     ccpaCompliant: boolean;
     dataResidency: string[];
@@ -396,9 +493,9 @@ export class GeoRouterService {
     const regionConfig = this.planetaryRegions[region as keyof typeof this.planetaryRegions];
 
     return {
-      gdprCompliant: regionConfig.compliance.includes('gdpr'),
-      ccpaCompliant: regionConfig.compliance.includes('ccpa'),
-      dataResidency: regionConfig.compliance,
+      gdprCompliant: regionConfig.compliance.includes("gdpr"),
+      ccpaCompliant: regionConfig.compliance.includes("ccpa"),
+      dataResidency: regionConfig.compliance
     };
   }
 
@@ -408,17 +505,17 @@ export class GeoRouterService {
         return regionName;
       }
     }
-    return 'us'; // Default fallback
+    return "us"; // Default fallback
   }
 
   private areRegionsAdjacent(region1: string, region2: string): boolean {
     const adjacentRegions: Record<string, string[]> = {
-      'africa': ['eu', 'middle_east'],
-      'eu': ['africa', 'us', 'middle_east'],
-      'us': ['eu', 'south_america'],
-      'south_america': ['us'],
-      'asia': ['middle_east'],
-      'middle_east': ['africa', 'eu', 'asia'],
+      africa: ["eu", "middle_east"],
+      eu: ["africa", "us", "middle_east"],
+      us: ["eu", "south_america"],
+      south_america: ["us"],
+      asia: ["middle_east"],
+      middle_east: ["africa", "eu", "asia"]
     };
 
     return adjacentRegions[region1]?.includes(region2) || false;

@@ -6,13 +6,15 @@ import PwaRegister from '../../components/pwa-register'
 import { UnifiedNavigation } from '../components/navigation/UnifiedNavigation'
 import { PlanetaryStatusBar } from '../components/status/PlanetaryStatusBar'
 import { PulsePortalProvider } from './pulse-portal-provider'
+import { AdaptiveLayoutProvider } from '@pulsco/ui-components'
+import { AdaptiveDebugIndicator } from '../components/layout/AdaptiveDebugIndicator'
 import Link from 'next/link'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Pulsco - Your Digital Marketig Command Centre',
-  description: 'Super-Intelligence Grade Location Intelligence Platform | 8-Subsystem Integration | 195+ Countries',
+  description: 'Super-Intelligence Grade Location Intelligence Platform | 8+ Subsystem Integration | 195+ Countries',
   keywords: ['Pulsco', 'Pulse Connect', 'planetary', 'proximity', 'AI', 'location intelligence'],
 }
 
@@ -22,7 +24,7 @@ export default function RootLayout({
   children: ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#7c3aed" />
@@ -37,13 +39,15 @@ export default function RootLayout({
       <body className={inter.className}>
         <PwaRegister appId="@pulsco/pulse-portal" />
         <PulsePortalProvider>
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
-            <UnifiedNavigation />
-            <PlanetaryStatusBar />
-            <main className="relative z-10 flex-1">
-              {children}
-            </main>
-            <footer className="relative z-10 border-t border-white/10 bg-black/40 text-xs text-slate-300">
+          <AdaptiveLayoutProvider>
+            <AdaptiveDebugIndicator />
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+              <UnifiedNavigation />
+              <PlanetaryStatusBar />
+              <main className="relative z-10 flex-1">
+                {children}
+              </main>
+              <footer className="relative z-10 border-t border-white/10 bg-black/40 text-xs text-slate-300">
               <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 gap-2 flex-wrap">
                 <span className="opacity-70">
                   © {new Date().getFullYear()} Pulsco. All rights reserved.

@@ -24,12 +24,17 @@ export function EcommercePanel({
   enabled,
   disabledReason,
   loading,
-  onPurchase,
+  onPurchase
 }: Props) {
   return (
-    <SectionCard title={title} subtitle="Browse products/services, manage purchases, and track invoices.">
+    <SectionCard
+      title={title}
+      subtitle="Browse products/services, manage purchases, and track invoices."
+    >
       {!enabled ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">{disabledReason || "Not available for this tier."}</p>
+        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">
+          {disabledReason || "Not available for this tier."}
+        </p>
       ) : (
         <>
           <div className="grid gap-3 md:grid-cols-3">
@@ -57,7 +62,9 @@ export function EcommercePanel({
                 {purchases.map((entry) => (
                   <div key={entry.id} className="rounded-lg border border-slate-200 p-2">
                     <p>{entry.productName}</p>
-                    <p className="text-xs text-slate-500">{new Date(entry.purchasedAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500">
+                      {new Date(entry.purchasedAt).toLocaleString()}
+                    </p>
                   </div>
                 ))}
               </div>

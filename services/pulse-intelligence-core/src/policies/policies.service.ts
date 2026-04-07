@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PolicyVersion } from './policy-version.entity';
-import { HashChain } from '@pulsco/shared-lib';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { PolicyVersion } from "./policy-version.entity";
+import { HashChain } from "@pulsco/shared-lib";
 
 @Injectable()
 export class PoliciesService {
@@ -10,7 +10,7 @@ export class PoliciesService {
 
   constructor(
     @InjectRepository(PolicyVersion)
-    private policyVersionRepository: Repository<PolicyVersion>,
+    private policyVersionRepository: Repository<PolicyVersion>
   ) {}
 
   /**
@@ -19,13 +19,13 @@ export class PoliciesService {
   async getActivePolicy(): Promise<PolicyVersion> {
     // Get the most recently activated policy that hasn't been retired
     const activePolicy = await this.policyVersionRepository
-      .createQueryBuilder('policy')
-      .where('policy.retired_at IS NULL')
-      .orderBy('policy.activated_at', 'DESC')
+      .createQueryBuilder("policy")
+      .where("policy.retired_at IS NULL")
+      .orderBy("policy.activated_at", "DESC")
       .getOne();
 
     if (!activePolicy) {
-      throw new Error('No active policy found');
+      throw new Error("No active policy found");
     }
 
     return activePolicy;
@@ -45,7 +45,7 @@ export class PoliciesService {
       .createQueryBuilder()
       .update(PolicyVersion)
       .set({ retired_at: new Date() })
-      .where('retired_at IS NULL')
+      .where("retired_at IS NULL")
       .execute();
 
     // Create new policy version
@@ -54,7 +54,7 @@ export class PoliciesService {
       council_refs: policyData.council_refs,
       notes: policyData.notes,
       signature: policyData.signature,
-      activated_at: new Date(),
+      activated_at: new Date()
     });
 
     const savedPolicy = await this.policyVersionRepository.save(newPolicy);
@@ -69,7 +69,7 @@ export class PoliciesService {
    */
   async getPolicyByVersion(version: string): Promise<PolicyVersion> {
     const policy = await this.policyVersionRepository.findOne({
-      where: { version },
+      where: { version }
     });
 
     if (!policy) {
@@ -84,7 +84,7 @@ export class PoliciesService {
    */
   async getAllPolicyVersions(): Promise<PolicyVersion[]> {
     return this.policyVersionRepository.find({
-      order: { activated_at: 'DESC' },
+      order: { activated_at: "DESC" }
     });
   }
 }

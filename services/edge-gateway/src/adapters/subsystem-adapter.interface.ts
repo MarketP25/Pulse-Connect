@@ -1,4 +1,4 @@
-import { ExecuteRequestDto } from '../dto/execute-request.dto';
+import { ExecuteRequestDto } from "../dto/execute-request.dto";
 
 export interface AdapterResult {
   success: boolean;

@@ -1,21 +1,10 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "node:crypto";
 
 const DASHBOARD_ROLE = "superadmin";
 const DASHBOARD_SOURCE = "superadmin-dashboard";
-
-function resolvePc365Token(req: NextRequest): string {
-  const headerToken = req.headers.get("x-pc365-attestation");
-  if (headerToken) return headerToken;
-
-  const serviceToken = process.env.DASHBOARD_PC365_ATTESTATION || process.env.PC365_ATTESTATION_TOKEN;
-  if (serviceToken) return serviceToken;
-
-  if (process.env.NODE_ENV !== "production") {
-    return "pc365-dev-attestation";
-  }
-
-  return "";
-}
+const PC365_GUARD_SECRET =
+  process.env.ADMIN_GUARD_SIGNING_SECRET || process.env.PC365_GUARD_SIGNING_SECRET || "";
 
 function validateRoleContext(req: NextRequest): boolean {
   const incomingRole = req.headers.get("x-admin-role");
@@ -31,16 +20,70 @@ function getGatewayUrl(): string {
   return process.env.ADMIN_GATEWAY_URL || "http://localhost:3001";
 }
 
-async function proxyIntelligence(action: string, pc365Token: string): Promise<Response> {
-  return fetch(`${getGatewayUrl()}/api/admin/intelligence?role=${DASHBOARD_ROLE}&action=${action}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "x-admin-role": DASHBOARD_ROLE,
-      "x-pc365-attestation": pc365Token,
-    },
-    cache: "no-store",
-  });
+function resolveFounderApproval(req: NextRequest): boolean {
+  const fromHeader = req.headers.get("x-founder-approved");
+  if (fromHeader === "true") return true;
+  if (fromHeader === "false") return false;
+  return process.env.DASHBOARD_FOUNDER_APPROVED === "true";
+}
+
+function resolveActorId(req: NextRequest, body?: Record<string, unknown>): string {
+  const fromHeader = req.headers.get("x-admin-id");
+  if (fromHeader) return fromHeader;
+
+  const fromBody = body?.actorId || body?.actor || body?.triggeredBy;
+  if (typeof fromBody === "string" && fromBody.trim()) return fromBody.trim();
+
+  return "superadmin-session";
+}
+
+function buildPc365Guard(founderApproved: boolean, actorId?: string): string {
+  if (!PC365_GUARD_SECRET) {
+    if (process.env.NODE_ENV !== "production") {
+      const fallbackPayload = Buffer.from(
+        JSON.stringify({
+          role: DASHBOARD_ROLE,
+          founderApproved,
+          source: `${DASHBOARD_SOURCE}-dev-fallback`,
+          actorId,
+          issuedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 120_000).toISOString()
+        }),
+        "utf8"
+      ).toString("base64url");
+      return `${fallbackPayload}.dev`;
+    }
+    throw new Error("ADMIN_GUARD_SIGNING_SECRET must be configured for production.");
+  }
+
+  const payload = Buffer.from(
+    JSON.stringify({
+      role: DASHBOARD_ROLE,
+      founderApproved,
+      source: DASHBOARD_SOURCE,
+      actorId,
+      issuedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 120_000).toISOString()
+    }),
+    "utf8"
+  ).toString("base64url");
+  const signature = createHmac("sha256", PC365_GUARD_SECRET).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+async function proxyIntelligence(action: string, guardToken: string): Promise<Response> {
+  return fetch(
+    `${getGatewayUrl()}/api/admin/intelligence?role=${DASHBOARD_ROLE}&action=${action}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-role": DASHBOARD_ROLE,
+        "x-pc365-guard": guardToken
+      },
+      cache: "no-store"
+    }
+  );
 }
 
 export async function GET(req: NextRequest) {
@@ -52,22 +95,18 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Forbidden - cross-site requests are not allowed", { status: 403 });
   }
 
-  const pc365Token = resolvePc365Token(req);
-  if (!pc365Token) {
-    return new NextResponse("Unauthorized - PC365 attestation required", { status: 401 });
-  }
-
   try {
     const action = req.nextUrl.searchParams.get("action") || "metrics";
-    const response = await proxyIntelligence(action, pc365Token);
+    const guardToken = buildPc365Guard(false);
+    const response = await proxyIntelligence(action, guardToken);
     const payload = await response.text();
 
     return new NextResponse(payload, {
       status: response.status,
       headers: {
         "Content-Type": response.headers.get("content-type") || "application/json",
-        "Cache-Control": "no-store",
-      },
+        "Cache-Control": "no-store"
+      }
     });
   } catch (error) {
     console.error(`${DASHBOARD_SOURCE} intelligence GET failed`, error);
@@ -84,29 +123,26 @@ export async function POST(req: NextRequest) {
     return new NextResponse("Forbidden - cross-site requests are not allowed", { status: 403 });
   }
 
-  const pc365Token = resolvePc365Token(req);
-  if (!pc365Token) {
-    return new NextResponse("Unauthorized - PC365 attestation required", { status: 401 });
-  }
-
   try {
-    const body = await req.json();
-    const founderApproved = req.headers.get("x-founder-approved") || process.env.DASHBOARD_FOUNDER_APPROVED || "false";
+    const body = (await req.json()) as Record<string, unknown>;
+    const founderApproved = resolveFounderApproval(req);
+    const actorId = resolveActorId(req, body);
+    const guardToken = buildPc365Guard(founderApproved, actorId);
 
     const response = await fetch(`${getGatewayUrl()}/api/admin/events`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-admin-role": DASHBOARD_ROLE,
-        "x-pc365-attestation": pc365Token,
-        "x-founder-approved": founderApproved,
+        "x-pc365-guard": guardToken
       },
       body: JSON.stringify({
         ...body,
+        actorId,
         source: DASHBOARD_SOURCE,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       }),
-      cache: "no-store",
+      cache: "no-store"
     });
 
     const payload = await response.text();
@@ -114,8 +150,8 @@ export async function POST(req: NextRequest) {
       status: response.status,
       headers: {
         "Content-Type": response.headers.get("content-type") || "application/json",
-        "Cache-Control": "no-store",
-      },
+        "Cache-Control": "no-store"
+      }
     });
   } catch (error) {
     console.error(`${DASHBOARD_SOURCE} intelligence POST failed`, error);

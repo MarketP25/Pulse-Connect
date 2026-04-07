@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
 export function RealTimeMonitor() {
-  const [isOnline, setIsOnline] = useState(true)
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    setIsOnline(navigator.onLine)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    setIsOnline(navigator.onLine);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -30,10 +30,12 @@ export function RealTimeMonitor() {
         </div>
         <div
           className={`px-3 py-1 rounded-full text-sm font-semibold ${
-            isOnline ? 'bg-green-600/20 text-green-200 border border-green-500/30' : 'bg-red-600/20 text-red-200 border border-red-500/30'
+            isOnline
+              ? "bg-green-600/20 text-green-200 border border-green-500/30"
+              : "bg-red-600/20 text-red-200 border border-red-500/30"
           }`}
         >
-          {isOnline ? 'Online' : 'Offline'}
+          {isOnline ? "Online" : "Offline"}
         </div>
       </div>
 
@@ -54,8 +56,7 @@ export function RealTimeMonitor() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default RealTimeMonitor
-
+export default RealTimeMonitor;

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Pool } from 'pg';
-import { emitMatchmakingEvent } from '../../csi/instrumentation';
+import { Injectable, Logger } from "@nestjs/common";
+import { Pool } from "pg";
+import { emitMatchmakingEvent } from "../../csi/instrumentation";
 
 export interface Brief {
   id: number;
@@ -67,47 +67,46 @@ export class MatchingService {
         trace_id: traceId,
         matches: matchesWithExplanation,
         total_candidates: candidates.length,
-        processing_time_ms: Date.now() - startTime,
+        processing_time_ms: Date.now() - startTime
       };
 
       this.logger.log(`Generated ${matches.length} matches for brief ${brief.id}`, {
         traceId,
         totalCandidates: candidates.length,
-        processingTime: result.processing_time_ms,
+        processingTime: result.processing_time_ms
       });
 
       emitMatchmakingEvent(
-        'matching.generated',
-        'GLOBAL',
+        "matching.generated",
+        "GLOBAL",
         {
           briefId: brief.id,
           totalCandidates: candidates.length,
           matchedCandidates: matches.length,
           processingTimeMs: result.processing_time_ms,
-          traceId,
+          traceId
         },
         {
           riskScore: matches.length === 0 ? 48 : 22,
-          performanceScore: result.processing_time_ms > 3000 ? 55 : 87,
-        },
+          performanceScore: result.processing_time_ms > 3000 ? 55 : 87
+        }
       );
 
       return result;
-
     } catch (error) {
       this.logger.error(`Match generation failed for brief ${brief.id}`, error, { traceId });
       emitMatchmakingEvent(
-        'matching.failed',
-        'GLOBAL',
+        "matching.failed",
+        "GLOBAL",
         {
           briefId: brief.id,
           traceId,
-          reason: error instanceof Error ? error.message : 'unknown_error',
+          reason: error instanceof Error ? error.message : "unknown_error"
         },
         {
           riskScore: 72,
-          performanceScore: 28,
-        },
+          performanceScore: 28
+        }
       );
       throw error;
     }
@@ -142,7 +141,7 @@ export class MatchingService {
 
     const values = [
       [brief.language], // Language preferences
-      brief.required_skills, // Required skills overlap
+      brief.required_skills // Required skills overlap
     ];
 
     const result = await this.pool.query(query, values);
@@ -158,12 +157,13 @@ export class MatchingService {
     for (const candidate of candidates) {
       const score = this.calculateMatchScore(brief, candidate);
 
-      if (score > 0.3) { // Minimum threshold
+      if (score > 0.3) {
+        // Minimum threshold
         matches.push({
           user_id: candidate.id,
           score,
           top_signals: [], // Will be populated by explainability
-          reason: '', // Will be populated by explainability
+          reason: "" // Will be populated by explainability
         });
       }
     }
@@ -213,8 +213,8 @@ export class MatchingService {
   private calculateSkillsScore(requiredSkills: string[], candidateSkills: string[]): number {
     if (requiredSkills.length === 0) return 1;
 
-    const overlap = requiredSkills.filter(skill =>
-      candidateSkills.some(candidateSkill =>
+    const overlap = requiredSkills.filter((skill) =>
+      candidateSkills.some((candidateSkill) =>
         candidateSkill.toLowerCase().includes(skill.toLowerCase())
       )
     ).length;
@@ -236,10 +236,14 @@ export class MatchingService {
    */
   private getVerificationScore(level: string): number {
     switch (level) {
-      case 'premium': return 1.0;
-      case 'verified': return 0.8;
-      case 'basic': return 0.5;
-      default: return 0.2;
+      case "premium":
+        return 1.0;
+      case "verified":
+        return 0.8;
+      case "basic":
+        return 0.5;
+      default:
+        return 0.2;
     }
   }
 
@@ -247,14 +251,14 @@ export class MatchingService {
    * Add explainability data to matches
    */
   private addExplainability(matches: Match[], brief: Brief): Match[] {
-    return matches.map(match => {
+    return matches.map((match) => {
       const signals = this.generateTopSignals(match, brief);
       const reason = this.generateReason(signals);
 
       return {
         ...match,
         top_signals: signals,
-        reason,
+        reason
       };
     });
   }
@@ -266,15 +270,15 @@ export class MatchingService {
     const signals: string[] = [];
 
     if (match.score > 0.8) {
-      signals.push('Excellent overall match');
+      signals.push("Excellent overall match");
     } else if (match.score > 0.6) {
-      signals.push('Good overall match');
+      signals.push("Good overall match");
     }
 
     // Add specific signals based on score components
-    signals.push('Skills alignment');
-    signals.push('Budget compatibility');
-    signals.push('Language match');
+    signals.push("Skills alignment");
+    signals.push("Budget compatibility");
+    signals.push("Language match");
 
     return signals.slice(0, 3); // Top 3 signals
   }
@@ -283,7 +287,7 @@ export class MatchingService {
    * Generate human-readable reason
    */
   private generateReason(signals: string[]): string {
-    if (signals.length === 0) return 'General match';
+    if (signals.length === 0) return "General match";
 
     const primarySignal = signals[0];
     return `Selected due to ${primarySignal.toLowerCase()} and complementary factors`;

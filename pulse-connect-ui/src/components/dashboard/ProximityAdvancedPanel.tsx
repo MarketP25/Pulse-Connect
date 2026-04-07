@@ -10,9 +10,14 @@ type Props = {
 
 export function ProximityAdvancedPanel({ title, data, enabled, disabledReason }: Props) {
   return (
-    <SectionCard title={title} subtitle="Proximity health, rules, and geospatial metrics for operational visibility.">
+    <SectionCard
+      title={title}
+      subtitle="Proximity health, rules, and geospatial metrics for operational visibility."
+    >
       {!enabled ? (
-        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">{disabledReason || "Proximity analytics unavailable."}</p>
+        <p className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">
+          {disabledReason || "Proximity analytics unavailable."}
+        </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-2 text-sm text-slate-700">
@@ -46,4 +51,3 @@ export function ProximityAdvancedPanel({ title, data, enabled, disabledReason }:
     </SectionCard>
   );
 }
-

@@ -1,4 +1,4 @@
-import { IsString, IsObject, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsObject, IsOptional, IsUUID } from "class-validator";
 
 /**
  * DTO for routing traffic requests

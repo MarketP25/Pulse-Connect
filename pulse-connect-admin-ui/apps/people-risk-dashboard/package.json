@@ -13,6 +13,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recharts": "^2.8.0",
+    "@pulsco/pulsco-ai-widget": "workspace:*",
     "@pulsco/pwa": "workspace:*",
     "@pulsco/admin-auth-client": "workspace:*",
     "@pulsco/admin-marp-client": "workspace:*",

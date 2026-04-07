@@ -1,8 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, CreateDateColumn } from "typeorm";
 
-@Entity('planetary_events')
+@Entity("planetary_events")
 export class PlanetaryEvent {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()
@@ -15,10 +15,10 @@ export class PlanetaryEvent {
   @Column()
   action: string;
 
-  @Column('jsonb')
+  @Column("jsonb")
   context: any;
 
-  @Column('jsonb', { nullable: true })
+  @Column("jsonb", { nullable: true })
   location: {
     country: string;
     region: string;
@@ -29,10 +29,10 @@ export class PlanetaryEvent {
     };
   };
 
-  @Column('decimal', { precision: 5, scale: 2, default: 0 })
+  @Column("decimal", { precision: 5, scale: 2, default: 0 })
   riskScore: number;
 
-  @Column('jsonb', { nullable: true })
+  @Column("jsonb", { nullable: true })
   metadata: any;
 
   @CreateDateColumn()

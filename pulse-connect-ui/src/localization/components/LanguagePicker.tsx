@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronDownIcon, CheckIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from "react";
+import { ChevronDownIcon, CheckIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 
 interface Language {
   code: string;
@@ -19,19 +19,19 @@ interface LanguagePickerProps {
 }
 
 const DEFAULT_LANGUAGES: Language[] = [
-  { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸', region: 'Global' },
-  { code: 'sw', name: 'Swahili', nativeName: 'Kiswahili', flag: '🇰🇪', region: 'Africa' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸', region: 'Europe' },
-  { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷', region: 'Europe' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪', region: 'Europe' },
-  { code: 'it', name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹', region: 'Europe' },
-  { code: 'pt', name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹', region: 'Europe' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺', region: 'Europe' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語', flag: '🇯🇵', region: 'Asia' },
-  { code: 'ko', name: 'Korean', nativeName: '한국어', flag: '🇰🇷', region: 'Asia' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文', flag: '🇨🇳', region: 'Asia' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', region: 'Asia' },
-  { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', region: 'Middle East' },
+  { code: "en", name: "English", nativeName: "English", flag: "🇺🇸", region: "Global" },
+  { code: "sw", name: "Swahili", nativeName: "Kiswahili", flag: "🇰🇪", region: "Africa" },
+  { code: "es", name: "Spanish", nativeName: "Español", flag: "🇪🇸", region: "Europe" },
+  { code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷", region: "Europe" },
+  { code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪", region: "Europe" },
+  { code: "it", name: "Italian", nativeName: "Italiano", flag: "🇮🇹", region: "Europe" },
+  { code: "pt", name: "Portuguese", nativeName: "Português", flag: "🇵🇹", region: "Europe" },
+  { code: "ru", name: "Russian", nativeName: "Русский", flag: "🇷🇺", region: "Europe" },
+  { code: "ja", name: "Japanese", nativeName: "日本語", flag: "🇯🇵", region: "Asia" },
+  { code: "ko", name: "Korean", nativeName: "한국어", flag: "🇰🇷", region: "Asia" },
+  { code: "zh", name: "Chinese", nativeName: "中文", flag: "🇨🇳", region: "Asia" },
+  { code: "hi", name: "Hindi", nativeName: "हिन्दी", flag: "🇮🇳", region: "Asia" },
+  { code: "ar", name: "Arabic", nativeName: "العربية", flag: "🇸🇦", region: "Middle East" }
   // Add more languages as needed
 ];
 
@@ -44,48 +44,52 @@ export const LanguagePicker: React.FC<LanguagePickerProps> = ({
   disabled = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const selectedLang = availableLanguages.find(lang => lang.code === selectedLanguage);
+  const selectedLang = availableLanguages.find((lang) => lang.code === selectedLanguage);
 
-  const filteredLanguages = availableLanguages.filter(lang =>
-    lang.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lang.nativeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lang.code.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLanguages = availableLanguages.filter(
+    (lang) =>
+      lang.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lang.nativeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lang.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const groupedLanguages = filteredLanguages.reduce((groups, lang) => {
-    const region = lang.region || 'Other';
-    if (!groups[region]) {
-      groups[region] = [];
-    }
-    groups[region].push(lang);
-    return groups;
-  }, {} as Record<string, Language[]>);
+  const groupedLanguages = filteredLanguages.reduce(
+    (groups, lang) => {
+      const region = lang.region || "Other";
+      if (!groups[region]) {
+        groups[region] = [];
+      }
+      groups[region].push(lang);
+      return groups;
+    },
+    {} as Record<string, Language[]>
+  );
 
   const handleLanguageSelect = (languageCode: string) => {
     onLanguageChange(languageCode);
     setIsOpen(false);
-    setSearchTerm('');
+    setSearchTerm("");
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       setIsOpen(false);
-      setSearchTerm('');
+      setSearchTerm("");
     }
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isOpen && !(event.target as Element).closest('.language-picker')) {
+      if (isOpen && !(event.target as Element).closest(".language-picker")) {
         setIsOpen(false);
-        setSearchTerm('');
+        setSearchTerm("");
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
   if (compact) {
@@ -95,14 +99,16 @@ export const LanguagePicker: React.FC<LanguagePickerProps> = ({
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={`flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           }`}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
         >
           <GlobeAltIcon className="w-4 h-4 text-gray-500" />
           <span className="font-medium">{selectedLang?.code.toUpperCase()}</span>
-          <ChevronDownIcon className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDownIcon
+            className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          />
         </button>
 
         {isOpen && (
@@ -128,7 +134,9 @@ export const LanguagePicker: React.FC<LanguagePickerProps> = ({
                       key={language.code}
                       onClick={() => handleLanguageSelect(language.code)}
                       className={`w-full flex items-center space-x-3 px-3 py-2 text-sm hover:bg-gray-100 focus:outline-none focus:bg-gray-100 ${
-                        selectedLanguage === language.code ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                        selectedLanguage === language.code
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-900"
                       }`}
                       role="option"
                       aria-selected={selectedLanguage === language.code}
@@ -160,7 +168,7 @@ export const LanguagePicker: React.FC<LanguagePickerProps> = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`flex items-center justify-between w-full px-4 py-3 text-left border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
         }`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -178,7 +186,9 @@ export const LanguagePicker: React.FC<LanguagePickerProps> = ({
             </>
           )}
         </div>
-        <ChevronDownIcon className={`w-5 h-5 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDownIcon
+          className={`w-5 h-5 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {isOpen && (
@@ -205,7 +215,7 @@ export const LanguagePicker: React.FC<LanguagePickerProps> = ({
                       <button
                         onClick={() => handleLanguageSelect(language.code)}
                         className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 ${
-                          selectedLanguage === language.code ? 'bg-blue-50' : ''
+                          selectedLanguage === language.code ? "bg-blue-50" : ""
                         }`}
                         role="option"
                         aria-selected={selectedLanguage === language.code}

@@ -7,7 +7,7 @@ export async function sendBookingConfirmation(booking: Booking): Promise<boolean
   try {
     return await sendEmail({
       to: booking.userId, // Assuming userId is the email
-      subject: "Booking Confirmation - Pulse Connect",
+      subject: "Booking Confirmation - Pulsco",
       template: "booking-confirmation",
       context: {
         bookingId: booking.id,

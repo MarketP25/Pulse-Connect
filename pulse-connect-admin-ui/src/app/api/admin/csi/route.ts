@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AdminRoleType } from "@pulsco/admin-shared-types";
+import { createPC365Guard } from "@pulsco/shared-lib";
 
 type GovernanceDecision = {
   id: string;
@@ -37,7 +38,7 @@ const ALLOWED_READ_ROLES: AdminRoleType[] = [
   "business-ops",
   "tech-security",
   "governance-registrar",
-  "dpo",
+  "dpo"
 ];
 
 const STRATEGIC_APPROVER_ROLES: AdminRoleType[] = ["superadmin"];
@@ -46,19 +47,36 @@ function getGatewayUrl() {
   return process.env.ADMIN_GATEWAY_URL || "http://localhost:3001";
 }
 
-function getAuthContext(req: NextRequest): { role: AdminRoleType; founderApproved: boolean; actorId: string } | null {
+function getAuthContext(
+  req: NextRequest
+): { role: AdminRoleType; founderApproved: boolean; actorId: string } | null {
   const role = req.headers.get("x-admin-role") as AdminRoleType | null;
   const attestation = req.headers.get("x-pc365-attestation");
+  const founder = req.headers.get("x-founder");
+  const device = req.headers.get("x-device");
   const actorId = req.headers.get("x-admin-id") || "admin-session";
 
-  if (!role || !attestation || attestation.length < 12) {
+  if (!role || !attestation || attestation.length < 12 || !founder || !device) {
+    return null;
+  }
+
+  try {
+    const guard = createPC365Guard();
+    guard.validateDestructiveAction({
+      authorization: req.headers.get("authorization") || undefined,
+      "x-pc365": attestation,
+      "x-founder": founder,
+      "x-device": device
+    });
+  } catch (error) {
+    console.error("PC365 attestation rejected", error);
     return null;
   }
 
   return {
     role,
     founderApproved: req.headers.get("x-founder-approved") === "true",
-    actorId,
+    actorId
   };
 }
 
@@ -68,14 +86,17 @@ function hasReadAccess(role: AdminRoleType): boolean {
 
 async function fetchGatewayIntelligence(req: NextRequest, role: AdminRoleType, action: string) {
   const gatewayUrl = getGatewayUrl();
-  const response = await fetch(`${gatewayUrl}/api/admin/intelligence?role=${role}&action=${action}`, {
-    method: "GET",
-    headers: {
-      "x-admin-role": role,
-      "x-pc365-attestation": req.headers.get("x-pc365-attestation") || "",
-      "x-founder-approved": req.headers.get("x-founder-approved") || "false",
-    },
-  });
+  const response = await fetch(
+    `${gatewayUrl}/api/admin/intelligence?role=${role}&action=${action}`,
+    {
+      method: "GET",
+      headers: {
+        "x-admin-role": role,
+        "x-pc365-attestation": req.headers.get("x-pc365-attestation") || "",
+        "x-founder-approved": req.headers.get("x-founder-approved") || "false"
+      }
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`Gateway intelligence request failed: ${response.status}`);
@@ -84,7 +105,12 @@ async function fetchGatewayIntelligence(req: NextRequest, role: AdminRoleType, a
   return response.json();
 }
 
-async function publishGatewayEvent(req: NextRequest, role: AdminRoleType, eventType: string, payload: Record<string, unknown>) {
+async function publishGatewayEvent(
+  req: NextRequest,
+  role: AdminRoleType,
+  eventType: string,
+  payload: Record<string, unknown>
+) {
   const gatewayUrl = getGatewayUrl();
   const response = await fetch(`${gatewayUrl}/api/admin/events`, {
     method: "POST",
@@ -92,14 +118,14 @@ async function publishGatewayEvent(req: NextRequest, role: AdminRoleType, eventT
       "Content-Type": "application/json",
       "x-admin-role": role,
       "x-pc365-attestation": req.headers.get("x-pc365-attestation") || "",
-      "x-founder-approved": req.headers.get("x-founder-approved") || "false",
+      "x-founder-approved": req.headers.get("x-founder-approved") || "false"
     },
     body: JSON.stringify({
       eventType,
       payload,
       source: "pulse-connect-admin-ui",
-      timestamp: new Date().toISOString(),
-    }),
+      timestamp: new Date().toISOString()
+    })
   });
 
   if (!response.ok) {
@@ -122,13 +148,17 @@ function buildProposalFromRequest(body: Record<string, unknown>): GovernanceProp
     riskAdjustment: Number(raw.riskAdjustment ?? 0),
     performanceAdjustment: Number(raw.performanceAdjustment ?? 0),
     requestedBy: typeof raw.requestedBy === "string" ? raw.requestedBy : undefined,
-    requestedByRole: typeof raw.requestedByRole === "string" ? raw.requestedByRole : undefined,
+    requestedByRole: typeof raw.requestedByRole === "string" ? raw.requestedByRole : undefined
   };
 }
 
 function buildSimulationReport(seed: string, proposal: GovernanceProposal): SimulationReport {
-  const trustDelta = Math.round((proposal.performanceAdjustment || 0) - (proposal.estimatedRisk / 12));
-  const performanceDelta = Math.round((proposal.performanceAdjustment || 0) - (proposal.riskAdjustment || 0) / 2);
+  const trustDelta = Math.round(
+    (proposal.performanceAdjustment || 0) - proposal.estimatedRisk / 12
+  );
+  const performanceDelta = Math.round(
+    (proposal.performanceAdjustment || 0) - (proposal.riskAdjustment || 0) / 2
+  );
   const combined = trustDelta + performanceDelta;
   const outcome = combined >= 4 ? "improve" : combined <= -3 ? "regress" : "neutral";
 
@@ -138,8 +168,8 @@ function buildSimulationReport(seed: string, proposal: GovernanceProposal): Simu
     deltas: { trustDelta, performanceDelta },
     notes: [
       "Advisory simulation only; no autonomous subsystem control applied.",
-      "Strategic change approvals remain Founder/Superadmin-gated via governance policy.",
-    ],
+      "Strategic change approvals remain Founder/Superadmin-gated via governance policy."
+    ]
   };
 }
 
@@ -159,12 +189,18 @@ function evaluateProposal(proposal: GovernanceProposal): GovernanceDecision {
   } else if (!proposal.guardrailsCompliant || proposal.estimatedRisk >= 35) {
     level = "Level2";
     status = "approved-with-notification";
-    rationale.push("Outside strict Level1 guardrails; supervised rollout with notifications required.");
+    rationale.push(
+      "Outside strict Level1 guardrails; supervised rollout with notifications required."
+    );
   } else {
-    rationale.push("Within configured guardrails and low risk; eligible for Level1 advisory auto-optimization.");
+    rationale.push(
+      "Within configured guardrails and low risk; eligible for Level1 advisory auto-optimization."
+    );
   }
 
-  rationale.push("CSI remains advisory through Admin Gateway and does not execute subsystem mutations.");
+  rationale.push(
+    "CSI remains advisory through Admin Gateway and does not execute subsystem mutations."
+  );
 
   const simulationReport = buildSimulationReport(decisionId, proposal);
 
@@ -174,7 +210,7 @@ function evaluateProposal(proposal: GovernanceProposal): GovernanceDecision {
     status,
     requiresFounderApproval,
     rationale,
-    simulationReport,
+    simulationReport
   };
 }
 
@@ -191,17 +227,18 @@ export async function GET(req: NextRequest) {
   try {
     const [metrics, intelligence] = await Promise.all([
       fetchGatewayIntelligence(req, auth.role, "metrics"),
-      fetchGatewayIntelligence(req, auth.role, "intelligence"),
+      fetchGatewayIntelligence(req, auth.role, "intelligence")
     ]);
 
     return NextResponse.json({
       intelligenceSummary: {
         source: "admin-gateway",
-        role: auth.role,
+        role: auth.role
       },
-      recommendedActions: intelligence?.data?.recommendations || intelligence?.recommendations || [],
+      recommendedActions:
+        intelligence?.data?.recommendations || intelligence?.recommendations || [],
       performanceInsights: metrics?.data || metrics || {},
-      generatedAt: Date.now(),
+      generatedAt: Date.now()
     });
   } catch (error) {
     console.error("CSI admin gateway GET failed", error);
@@ -230,12 +267,13 @@ export async function POST(req: NextRequest) {
       await publishGatewayEvent(req, auth.role, "csi.governance.proposal_evaluated", {
         proposal,
         decision,
-        actorId: auth.actorId,
+        actorId: auth.actorId
       });
 
       return NextResponse.json({
         decision,
-        message: "Proposal evaluated through Admin Gateway. CSI remains advisory and non-autonomous.",
+        message:
+          "Proposal evaluated through Admin Gateway. CSI remains advisory and non-autonomous."
       });
     }
 
@@ -248,18 +286,20 @@ export async function POST(req: NextRequest) {
       await publishGatewayEvent(req, auth.role, "csi.governance.simulation_requested", {
         change: proposal,
         report,
-        actorId: auth.actorId,
+        actorId: auth.actorId
       });
 
       return NextResponse.json({
         report,
-        message: "Simulation requested via Admin Gateway and persisted as advisory output.",
+        message: "Simulation requested via Admin Gateway and persisted as advisory output."
       });
     }
 
     if (action === "approve-level3") {
       if (!STRATEGIC_APPROVER_ROLES.includes(auth.role)) {
-        return new NextResponse("Forbidden - only superadmin can approve Level3 decisions", { status: 403 });
+        return new NextResponse("Forbidden - only superadmin can approve Level3 decisions", {
+          status: 403
+        });
       }
       if (!auth.founderApproved) {
         return new NextResponse("Forbidden - founder approval header required", { status: 403 });
@@ -277,18 +317,18 @@ export async function POST(req: NextRequest) {
         requiresFounderApproval: true,
         rationale: [
           "Level3 strategic decision approved by superadmin with founder approval attestation.",
-          "Execution remains downstream and policy-gated.",
-        ],
+          "Execution remains downstream and policy-gated."
+        ]
       };
 
       await publishGatewayEvent(req, auth.role, "csi.governance.level3_approved", {
         decisionId,
-        actorId: auth.actorId,
+        actorId: auth.actorId
       });
 
       return NextResponse.json({
         decision,
-        message: "Level3 decision approval recorded through Admin Gateway.",
+        message: "Level3 decision approval recorded through Admin Gateway."
       });
     }
 

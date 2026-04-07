@@ -20,13 +20,13 @@ describe("pulsco-ai client", () => {
     process.env.PULSCO_AI_API_URL = "http://localhost:4010";
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ response: "Live AI response" }),
+      json: async () => ({ response: "Live AI response" })
     } as Response);
 
     const result = await askPulscoAi({
       prompt: "hello",
       userId: "demo-basic",
-      language: "en",
+      language: "en"
     });
 
     expect(result.mode).toBe("live");
@@ -41,7 +41,7 @@ describe("pulsco-ai client", () => {
     const result = await askPulscoAi({
       prompt: "marketing tips",
       userId: "demo-basic",
-      language: "en",
+      language: "en"
     });
 
     expect(result.mode).toBe("fallback");

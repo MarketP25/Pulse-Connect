@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const result = await service.verifyEmail({
       token: body.token,
       ipAddress: getRequestIp(req),
-      userAgent: getUserAgent(req),
+      userAgent: getUserAgent(req)
     });
     return NextResponse.json(result);
   } catch (error) {

@@ -1,19 +1,22 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react'
-import { useSubsystemRegistry } from '../../hooks/useSubsystemRegistry'
+import { useMemo } from "react";
+import { useSubsystemRegistry } from "../../hooks/useSubsystemRegistry";
 
 type SubsystemModalProps = {
-  subsystemId: string
-  onClose: () => void
-}
+  subsystemId: string;
+  onClose: () => void;
+};
 
 export function SubsystemModal({ subsystemId, onClose }: SubsystemModalProps) {
-  const { subsystems } = useSubsystemRegistry()
-  const subsystem = useMemo(() => subsystems.find((s) => s.id === subsystemId), [subsystems, subsystemId])
-  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true
+  const { subsystems } = useSubsystemRegistry();
+  const subsystem = useMemo(
+    () => subsystems.find((s) => s.id === subsystemId),
+    [subsystems, subsystemId]
+  );
+  const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
-  if (!subsystem) return null
+  if (!subsystem) return null;
 
   return (
     <div
@@ -80,28 +83,32 @@ export function SubsystemModal({ subsystemId, onClose }: SubsystemModalProps) {
           <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
             <a
               className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                isOnline ? 'bg-purple-600 text-white hover:bg-purple-500' : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                isOnline
+                  ? "bg-purple-600 text-white hover:bg-purple-500"
+                  : "bg-slate-800 text-slate-500 cursor-not-allowed"
               }`}
               href={isOnline ? subsystem.endpoints.ui : undefined}
               target="_blank"
               rel="noreferrer"
               aria-disabled={!isOnline}
               onClick={(e) => {
-                if (!isOnline) e.preventDefault()
+                if (!isOnline) e.preventDefault();
               }}
             >
               Open UI
             </a>
             <a
               className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                isOnline ? 'bg-slate-800 text-slate-100 hover:bg-slate-700' : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                isOnline
+                  ? "bg-slate-800 text-slate-100 hover:bg-slate-700"
+                  : "bg-slate-800 text-slate-500 cursor-not-allowed"
               }`}
               href={isOnline ? subsystem.endpoints.health : undefined}
               target="_blank"
               rel="noreferrer"
               aria-disabled={!isOnline}
               onClick={(e) => {
-                if (!isOnline) e.preventDefault()
+                if (!isOnline) e.preventDefault();
               }}
             >
               Health Check
@@ -110,7 +117,7 @@ export function SubsystemModal({ subsystemId, onClose }: SubsystemModalProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default SubsystemModal
+export default SubsystemModal;

@@ -30,7 +30,7 @@ const FALLBACK_METRICS: DpoMetrics = {
   piiRecordsCount: 12000,
   encryptionCoverage: 92,
   retentionCompliance: 95,
-  avgResponseTime: 48,
+  avgResponseTime: 48
 };
 
 const FALLBACK_ALERTS: DpoAlert[] = [
@@ -40,8 +40,8 @@ const FALLBACK_ALERTS: DpoAlert[] = [
     title: "Unusual DSR spike",
     description: "High volume of data subject requests detected",
     source: "DPO API",
-    timestamp: "5 minutes ago",
-  },
+    timestamp: "5 minutes ago"
+  }
 ];
 
 export default function DpoDashboard() {
@@ -57,19 +57,41 @@ export default function DpoDashboard() {
         const payload = await res.json();
         const rawMetrics = payload.metrics || payload.data || payload || {};
         setMetrics({
-          privacyScore: Number(rawMetrics.privacyScore || rawMetrics.privacy_score || FALLBACK_METRICS.privacyScore),
-          openIncidents: Number(rawMetrics.openIncidents || rawMetrics.open_incidents || FALLBACK_METRICS.openIncidents),
-          dsrRequests: Number(rawMetrics.dsrRequests || rawMetrics.dsr_requests || FALLBACK_METRICS.dsrRequests),
-          piiRecordsCount: Number(rawMetrics.piiRecordsCount || rawMetrics.pii_records_count || FALLBACK_METRICS.piiRecordsCount),
+          privacyScore: Number(
+            rawMetrics.privacyScore || rawMetrics.privacy_score || FALLBACK_METRICS.privacyScore
+          ),
+          openIncidents: Number(
+            rawMetrics.openIncidents || rawMetrics.open_incidents || FALLBACK_METRICS.openIncidents
+          ),
+          dsrRequests: Number(
+            rawMetrics.dsrRequests || rawMetrics.dsr_requests || FALLBACK_METRICS.dsrRequests
+          ),
+          piiRecordsCount: Number(
+            rawMetrics.piiRecordsCount ||
+              rawMetrics.pii_records_count ||
+              FALLBACK_METRICS.piiRecordsCount
+          ),
           encryptionCoverage: Number(
-            rawMetrics.encryptionCoverage || rawMetrics.encryption_coverage || FALLBACK_METRICS.encryptionCoverage,
+            rawMetrics.encryptionCoverage ||
+              rawMetrics.encryption_coverage ||
+              FALLBACK_METRICS.encryptionCoverage
           ),
           retentionCompliance: Number(
-            rawMetrics.retentionCompliance || rawMetrics.retention_compliance || FALLBACK_METRICS.retentionCompliance,
+            rawMetrics.retentionCompliance ||
+              rawMetrics.retention_compliance ||
+              FALLBACK_METRICS.retentionCompliance
           ),
-          avgResponseTime: Number(rawMetrics.avgResponseTime || rawMetrics.avg_response_time || FALLBACK_METRICS.avgResponseTime),
+          avgResponseTime: Number(
+            rawMetrics.avgResponseTime ||
+              rawMetrics.avg_response_time ||
+              FALLBACK_METRICS.avgResponseTime
+          )
         });
-        setAlerts(Array.isArray(payload.alerts) && payload.alerts.length > 0 ? payload.alerts : FALLBACK_ALERTS);
+        setAlerts(
+          Array.isArray(payload.alerts) && payload.alerts.length > 0
+            ? payload.alerts
+            : FALLBACK_ALERTS
+        );
       } catch (err) {
         console.error("Failed to load DPO data from server API", err);
         setMetrics(FALLBACK_METRICS);
@@ -102,7 +124,9 @@ export default function DpoDashboard() {
           <div className="py-6 flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">DPO Dashboard</h1>
-              <p className="text-gray-600">Privacy posture, data subject requests, and compliance oversight</p>
+              <p className="text-gray-600">
+                Privacy posture, data subject requests, and compliance oversight
+              </p>
             </div>
             <div className="flex space-x-3">
               <Button variant="secondary" size="sm">
@@ -120,12 +144,17 @@ export default function DpoDashboard() {
         {alerts.length > 0 && (
           <div className="mb-6">
             {alerts.map((a) => (
-              <Alert key={a.id} type={a.type === "critical" ? "error" : a.type === "high" ? "warning" : "info"}>
+              <Alert
+                key={a.id}
+                type={a.type === "critical" ? "error" : a.type === "high" ? "warning" : "info"}
+              >
                 <div className="flex justify-between items-center">
                   <div className="flex-1">
                     <h4 className="font-medium">{a.title}</h4>
                     <p className="text-sm">{a.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">{a.source} • {a.timestamp}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {a.source} • {a.timestamp}
+                    </p>
                   </div>
                   <div className="flex space-x-2">
                     <Button size="sm" variant="secondary">
@@ -145,8 +174,20 @@ export default function DpoDashboard() {
                 <p className="text-sm font-medium text-gray-600">Privacy Score</p>
                 <p className="text-2xl font-bold text-gray-900">{metrics?.privacyScore}%</p>
               </div>
-              <Badge variant={metrics && metrics.privacyScore > 90 ? "success" : metrics && metrics.privacyScore > 75 ? "warning" : "error"}>
-                {metrics?.privacyScore && metrics.privacyScore > 90 ? "Excellent" : metrics?.privacyScore && metrics.privacyScore > 75 ? "Good" : "Review"}
+              <Badge
+                variant={
+                  metrics && metrics.privacyScore > 90
+                    ? "success"
+                    : metrics && metrics.privacyScore > 75
+                      ? "warning"
+                      : "error"
+                }
+              >
+                {metrics?.privacyScore && metrics.privacyScore > 90
+                  ? "Excellent"
+                  : metrics?.privacyScore && metrics.privacyScore > 75
+                    ? "Good"
+                    : "Review"}
               </Badge>
             </div>
           </Card>
@@ -157,7 +198,9 @@ export default function DpoDashboard() {
                 <p className="text-sm font-medium text-gray-600">Open Incidents</p>
                 <p className="text-2xl font-bold text-gray-900">{metrics?.openIncidents}</p>
               </div>
-              <Badge variant="warning">{metrics?.openIncidents && metrics.openIncidents > 0 ? "Open" : "None"}</Badge>
+              <Badge variant="warning">
+                {metrics?.openIncidents && metrics.openIncidents > 0 ? "Open" : "None"}
+              </Badge>
             </div>
           </Card>
 
@@ -175,7 +218,9 @@ export default function DpoDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">PII Records</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics?.piiRecordsCount?.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {metrics?.piiRecordsCount?.toLocaleString()}
+                </p>
               </div>
               <Badge variant="warning">Sensitive</Badge>
             </div>
@@ -186,11 +231,15 @@ export default function DpoDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{metrics?.encryptionCoverage}%</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {metrics?.encryptionCoverage}%
+                </div>
                 <div className="text-sm text-gray-600">Encrypted Data Coverage</div>
               </div>
               <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-red-600">{metrics?.retentionCompliance}%</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {metrics?.retentionCompliance}%
+                </div>
                 <div className="text-sm text-gray-600">Retention Policy Compliance</div>
               </div>
               <div className="text-center p-4 border rounded-lg">

@@ -4,7 +4,7 @@
 
 **Legal Entity: Pulsco Global Ltd.**
 
-**Registered Address: The Pulsco Complex, 123 Innovation Avenue, Nairobi, Kenya**
+**Registered Address: Marp Complex, Nairobi, Kenya**
 
 **Privacy Contact Email: privacy@pulsco.com**
 
@@ -33,8 +33,8 @@ This Privacy Policy explains how we collect, process, disclose, and protect Pers
 For the purposes of GDPR and other applicable data protection laws, the Data Controller is:
 
 *   **Pulsco Global Ltd.**
-*   The Pulsco Complex, 123 Innovation Avenue, Nairobi, Kenya
-*   Contact: privacy@pulsco.com
+*   The Marp Complex, Nairobi, Kenya
+*   Contact: dpo@pulsco.com
 
 Depending on your geographical location and the specific Services you use, certain Pulsco affiliates may act as joint controllers or processors under the governance of Pulsco Global Ltd.
 
@@ -43,7 +43,7 @@ Depending on your geographical location and the specific Services you use, certa
 *   **Personal Data**: Any information relating to an identified or identifiable natural person.
 *   **Processing**: Any operation performed on Personal Data, including collection, recording, organization, structuring, storage, analysis, adaptation, retrieval, use, disclosure, or erasure.
 *   **CSI (Central Super Intelligence)**: Pulsco’s proprietary, centralized AI learning layer. The CSI processes platform-wide data to enhance service intelligence, personalization, risk detection, and operational efficiency across the entire ecosystem.
-*   **MARP (Multi-layered Autonomous Response & Protection)**: Pulsco’s comprehensive governance, security, and arbitration framework that enforces policies and manages risk across all interconnected services.
+*   **MARP (Market pulse pro)**: Pulsco’s comprehensive governance, security, and arbitration framework that enforces policies and manages risk across all interconnected services. (parent company)
 
 ## 4. Data We Collect: An Ecosystem-Wide Approach
 
@@ -130,7 +130,7 @@ In line with GDPR and CCPA principles, you have the following rights over your d
 *   **Right to Data Portability**: You can request your data in a machine-readable format.
 *   **Right to Object**: You can object to our processing of your data for reasons related to your particular situation, especially where we rely on Legitimate Interest.
 
-To exercise these rights, please contact us at **privacy@pulsco.com**. We will respond to verifiable requests in accordance with applicable law.
+To exercise these rights, please contact us at **people-risk@pulsco.com**. We will respond to verifiable requests in accordance with applicable law.
 
 ## 10. Children's Privacy
 
@@ -142,12 +142,12 @@ We will update this Privacy Policy to reflect changes in our services, technolog
 
 ## 12. Contact and Data Protection Officer
 
-For any questions about this policy or our data practices, please contact our privacy team.
+For any questions about this policy or our data practices, please contact MARP team.
 
-*   **Email**: privacy@pulsco.com
-*   **Address**: Attn: Privacy Office, Pulsco Global Ltd., The Pulsco Complex, 123 Innovation Avenue, Nairobi, Kenya.
+*   **Email**: governance-registrar@pulsco.global
+*   **Address**:Marp Complex Nairobi, Kenya.
 
-We have appointed a Data Protection Officer who can be reached at **dpo@pulsco.com**. You also have the right to lodge a complaint with your local data protection authority.
+We have appointed a Data Protection Officer who can be reached at **dpo@pulsco.global**. You also have the right to lodge a complaint with your local data protection authority.
 
 ***
 

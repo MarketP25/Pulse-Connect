@@ -43,7 +43,7 @@ Detect and respond to unusual spending patterns in PAP.
 ### Immediate Actions
 
 1. **Pause**: Auto-pause if threshold exceeded
-2. **Alert**: Notify finance and PAP team
+2. **Alert**: Notify finance and dpo
 3. **Investigate**: Check for fraud or system issues
 
 ### Investigation
@@ -87,10 +87,10 @@ Detect and respond to unusual spending patterns in PAP.
 
 ### Contacts
 
-- Finance: finance@company.com
-- Security: security@company.com
-- Legal: legal@company.com
-- PAP Team: pap-team@company.com
+- Finance: finance@pulsco.global
+- Security: tech-security@pusco.global
+- Legal: legal@pulsco.global
+- Privacy: dpo@pulsco.global
 
 ## Reporting
 

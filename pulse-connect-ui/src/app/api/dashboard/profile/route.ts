@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     return noStoreJson({
       user: snapshot.user,
       access: snapshot.access,
-      consents: snapshot.consents,
+      consents: snapshot.consents
     });
   } catch (error) {
     return mapDashboardError(error);
@@ -21,14 +21,27 @@ export async function PATCH(req: NextRequest) {
     const userId = getDashboardUserId(req);
     const body = await parseJsonBody<{
       displayName?: string;
-      role?: "individual" | "business" | "creator" | "partner" | "developer" | "enterprise" | "government";
-      preferredLanguage?: "en" | "sw" | "fr" | "es";
+      role?: "individual" | "business" | "admin" | "partner" | "investor" | "organisation";
+      preferredLanguage?: string;
       country?: string;
       city?: string;
     }>(req);
 
     const result = await updateProfile(userId, body);
-    return noStoreJson(result);
+    const response = noStoreJson(result);
+    if (body.preferredLanguage) {
+      response.cookies.set("preferred_language", body.preferredLanguage, {
+        path: "/",
+        sameSite: "lax"
+      });
+    }
+    if (body.country) {
+      response.cookies.set("preferred_region", body.country, {
+        path: "/",
+        sameSite: "lax"
+      });
+    }
+    return response;
   } catch (error) {
     return mapDashboardError(error);
   }

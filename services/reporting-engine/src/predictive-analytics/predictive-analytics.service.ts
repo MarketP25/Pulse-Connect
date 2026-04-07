@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class PredictiveAnalyticsService {
@@ -45,7 +45,11 @@ export class PredictiveAnalyticsService {
    * Collaborative Filtering for Recommendations
    * Personalized matchmaking and content recommendations
    */
-  async generateRecommendations(userId: string, userHistory: any[], candidatePool: any[]): Promise<any> {
+  async generateRecommendations(
+    userId: string,
+    userHistory: any[],
+    candidatePool: any[]
+  ): Promise<any> {
     // User-item matrix factorization
     const userItemMatrix = this.buildUserItemMatrix(userHistory);
     const userFactors = this.factorizeMatrix(userItemMatrix);
@@ -80,7 +84,7 @@ export class PredictiveAnalyticsService {
 
   // LSTM Forecasting Implementation
   private prepareTimeSeries(data: any[]): number[] {
-    return data.map(item => item.value || item.amount || 0);
+    return data.map((item) => item.value || item.amount || 0);
   }
 
   private runLSTMForecast(timeSeries: number[], periods: number): number[] {
@@ -105,15 +109,16 @@ export class PredictiveAnalyticsService {
   private calculateConfidence(predictions: number[]): number {
     // Calculate prediction confidence based on variance
     const mean = predictions.reduce((sum, p) => sum + p, 0) / predictions.length;
-    const variance = predictions.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / predictions.length;
+    const variance =
+      predictions.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / predictions.length;
     const stdDev = Math.sqrt(variance);
 
     // Confidence decreases with higher variance
-    return Math.max(0.1, Math.min(1, 1 - (stdDev / mean)));
+    return Math.max(0.1, Math.min(1, 1 - stdDev / mean));
   }
 
   private analyzeTrend(predictions: number[]): string {
-    if (predictions.length < 2) return 'insufficient_data';
+    if (predictions.length < 2) return "insufficient_data";
 
     const firstHalf = predictions.slice(0, Math.floor(predictions.length / 2));
     const secondHalf = predictions.slice(Math.floor(predictions.length / 2));
@@ -123,9 +128,9 @@ export class PredictiveAnalyticsService {
 
     const change = (secondAvg - firstAvg) / firstAvg;
 
-    if (change > 0.05) return 'increasing';
-    if (change < -0.05) return 'decreasing';
-    return 'stable';
+    if (change > 0.05) return "increasing";
+    if (change < -0.05) return "decreasing";
+    return "stable";
   }
 
   private detectSeasonality(timeSeries: number[]): any {
@@ -133,7 +138,7 @@ export class PredictiveAnalyticsService {
     const lags = [7, 14, 30]; // Daily, weekly, monthly patterns
     const seasonality = {};
 
-    lags.forEach(lag => {
+    lags.forEach((lag) => {
       if (timeSeries.length > lag * 2) {
         const correlation = this.calculateAutocorrelation(timeSeries, lag);
         seasonality[`lag_${lag}`] = correlation;
@@ -146,7 +151,7 @@ export class PredictiveAnalyticsService {
   // Autoencoder Implementation
   private encodeData(data: any[]): any[] {
     // Simplified encoding (dimensionality reduction)
-    return data.map(item => ({
+    return data.map((item) => ({
       encoded: [
         this.normalizeValue(item.amount || 0),
         this.normalizeValue(item.frequency || 0),
@@ -157,7 +162,7 @@ export class PredictiveAnalyticsService {
 
   private decodeData(encodedData: any[]): any[] {
     // Simplified decoding (reconstruction)
-    return encodedData.map(item => ({
+    return encodedData.map((item) => ({
       reconstructed: item.encoded // Perfect reconstruction for simplicity
     }));
   }
@@ -173,26 +178,28 @@ export class PredictiveAnalyticsService {
     const sortedErrors = [...errors].sort((a, b) => b - a);
     const thresholdValue = sortedErrors[Math.floor(sortedErrors.length * (1 - threshold))];
 
-    return errors.map((error, index) => ({
-      index,
-      error,
-      isAnomaly: error > thresholdValue,
-      severity: error > thresholdValue * 2 ? 'high' : 'medium'
-    })).filter(item => item.isAnomaly);
+    return errors
+      .map((error, index) => ({
+        index,
+        error,
+        isAnomaly: error > thresholdValue,
+        severity: error > thresholdValue * 2 ? "high" : "medium"
+      }))
+      .filter((item) => item.isAnomaly);
   }
 
   private determineAlertLevel(anomalyCount: number, totalCount: number): string {
     const ratio = anomalyCount / totalCount;
-    if (ratio > 0.1) return 'critical';
-    if (ratio > 0.05) return 'high';
-    if (ratio > 0.02) return 'medium';
-    return 'low';
+    if (ratio > 0.1) return "critical";
+    if (ratio > 0.05) return "high";
+    if (ratio > 0.02) return "medium";
+    return "low";
   }
 
   // Collaborative Filtering Implementation
   private buildUserItemMatrix(history: any[]): any {
     const matrix = {};
-    history.forEach(item => {
+    history.forEach((item) => {
       if (!matrix[item.userId]) matrix[item.userId] = {};
       matrix[item.userId][item.itemId] = item.rating || item.score || 1;
     });
@@ -202,10 +209,10 @@ export class PredictiveAnalyticsService {
   private factorizeMatrix(matrix: any): any {
     // Simplified matrix factorization (SVD-like)
     const users = Object.keys(matrix);
-    const items = [...new Set(users.flatMap(u => Object.keys(matrix[u])))];
+    const items = [...new Set(users.flatMap((u) => Object.keys(matrix[u])))];
 
     const factors = {};
-    users.forEach(user => {
+    users.forEach((user) => {
       factors[user] = {
         latent: [Math.random(), Math.random(), Math.random()], // 3-factor model
         bias: Math.random() * 0.1
@@ -216,29 +223,33 @@ export class PredictiveAnalyticsService {
   }
 
   private predictRatings(userFactors: any, candidates: any[]): any[] {
-    return candidates.map(candidate => {
-      const userFactor = userFactors[candidate.userId] || { latent: [0, 0, 0], bias: 0 };
-      const itemFactor = [Math.random(), Math.random(), Math.random()]; // Item factors
+    return candidates
+      .map((candidate) => {
+        const userFactor = userFactors[candidate.userId] || { latent: [0, 0, 0], bias: 0 };
+        const itemFactor = [Math.random(), Math.random(), Math.random()]; // Item factors
 
-      // Dot product prediction
-      const prediction = userFactor.latent.reduce((sum, f, i) => sum + f * itemFactor[i], 0) + userFactor.bias;
+        // Dot product prediction
+        const prediction =
+          userFactor.latent.reduce((sum, f, i) => sum + f * itemFactor[i], 0) + userFactor.bias;
 
-      return {
-        ...candidate,
-        predictedRating: Math.max(0, Math.min(5, prediction)), // Clamp to 0-5 scale
-        confidence: 0.8
-      };
-    }).sort((a, b) => b.predictedRating - a.predictedRating);
+        return {
+          ...candidate,
+          predictedRating: Math.max(0, Math.min(5, prediction)), // Clamp to 0-5 scale
+          confidence: 0.8
+        };
+      })
+      .sort((a, b) => b.predictedRating - a.predictedRating);
   }
 
   private calculateRecommendationConfidence(recommendations: any[]): number {
-    const avgConfidence = recommendations.reduce((sum, r) => sum + r.confidence, 0) / recommendations.length;
+    const avgConfidence =
+      recommendations.reduce((sum, r) => sum + r.confidence, 0) / recommendations.length;
     return avgConfidence;
   }
 
   private measureDiversity(recommendations: any[]): number {
     // Measure diversity using category distribution
-    const categories = recommendations.map(r => r.category || r.type);
+    const categories = recommendations.map((r) => r.category || r.type);
     const uniqueCategories = new Set(categories);
     return uniqueCategories.size / categories.length;
   }
@@ -268,8 +279,8 @@ export class PredictiveAnalyticsService {
     const feature = Math.floor(Math.random() * 3); // Random feature selection
     const splitValue = this.calculateSplitValue(data, feature);
 
-    const leftData = data.filter(item => this.getFeatureValue(item, feature) < splitValue);
-    const rightData = data.filter(item => this.getFeatureValue(item, feature) >= splitValue);
+    const leftData = data.filter((item) => this.getFeatureValue(item, feature) < splitValue);
+    const rightData = data.filter((item) => this.getFeatureValue(item, feature) >= splitValue);
 
     return {
       feature,
@@ -280,8 +291,8 @@ export class PredictiveAnalyticsService {
   }
 
   private scoreAnomalies(forest: any, data: any[]): number[] {
-    return data.map(item => {
-      const pathLengths = forest.trees.map(tree => this.getPathLength(tree, item, 0));
+    return data.map((item) => {
+      const pathLengths = forest.trees.map((tree) => this.getPathLength(tree, item, 0));
       const avgPathLength = pathLengths.reduce((sum, len) => sum + len, 0) / pathLengths.length;
 
       // Convert path length to anomaly score (shorter paths = more anomalous)
@@ -290,16 +301,18 @@ export class PredictiveAnalyticsService {
   }
 
   private identifyFraudIndicators(scores: number[], data: any[]): any[] {
-    return scores.map((score, index) => ({
-      transactionId: data[index].id,
-      anomalyScore: score,
-      isFraudulent: score > 0.6,
-      indicators: this.extractFraudIndicators(data[index], score)
-    })).filter(item => item.isFraudulent);
+    return scores
+      .map((score, index) => ({
+        transactionId: data[index].id,
+        anomalyScore: score,
+        isFraudulent: score > 0.6,
+        indicators: this.extractFraudIndicators(data[index], score)
+      }))
+      .filter((item) => item.isFraudulent);
   }
 
   private calculateFalsePositiveRate(scores: number[]): number {
-    const highScores = scores.filter(s => s > 0.6);
+    const highScores = scores.filter((s) => s > 0.6);
     return highScores.length / scores.length;
   }
 
@@ -332,7 +345,10 @@ export class PredictiveAnalyticsService {
       seasonalValues.push(timeSeries[i]);
     }
 
-    return seasonalValues.reduce((sum, v) => sum + v, 0) / seasonalValues.length - this.average(timeSeries);
+    return (
+      seasonalValues.reduce((sum, v) => sum + v, 0) / seasonalValues.length -
+      this.average(timeSeries)
+    );
   }
 
   private calculateAutocorrelation(data: number[], lag: number): number {
@@ -358,7 +374,7 @@ export class PredictiveAnalyticsService {
   }
 
   private calculateSplitValue(data: any[], feature: number): number {
-    const values = data.map(item => this.getFeatureValue(item, feature)).sort((a, b) => a - b);
+    const values = data.map((item) => this.getFeatureValue(item, feature)).sort((a, b) => a - b);
     return values[Math.floor(values.length / 2)]; // Median split
   }
 
@@ -383,14 +399,14 @@ export class PredictiveAnalyticsService {
   }
 
   private averagePathLength(n: number): number {
-    return 2 * (Math.log(n - 1) + 0.5772156649) - 2 * (n - 1) / n;
+    return 2 * (Math.log(n - 1) + 0.5772156649) - (2 * (n - 1)) / n;
   }
 
   private extractFraudIndicators(transaction: any, score: number): string[] {
     const indicators = [];
-    if (score > 0.8) indicators.push('extreme_anomaly');
-    if (transaction.amount > 5000) indicators.push('high_amount');
-    if (transaction.frequency > 10) indicators.push('high_frequency');
+    if (score > 0.8) indicators.push("extreme_anomaly");
+    if (transaction.amount > 5000) indicators.push("high_amount");
+    if (transaction.frequency > 10) indicators.push("high_frequency");
     return indicators;
   }
 

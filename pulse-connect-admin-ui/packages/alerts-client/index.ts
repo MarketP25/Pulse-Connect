@@ -457,7 +457,8 @@ export class AlertsClient {
       'policy-violation': {
         low: { timeoutMinutes: 60, targetRole: 'governance-registrar', autoEscalate: false },
         medium: { timeoutMinutes: 30, targetRole: 'legal-finance', autoEscalate: false },
-        high: { timeoutMinutes: 15, targetRole: 'superadmin', autoEscalate: true },
+        high: { timeoutMinutes: 20, targetRole: 'dpo', autoEscalate: false },
+        very high: { timeoutminutes:15, targetRole: 'superadmin',autoescalate: true },
         critical: { timeoutMinutes: 5, targetRole: 'superadmin', autoEscalate: true }
       },
       'system-degraded': {

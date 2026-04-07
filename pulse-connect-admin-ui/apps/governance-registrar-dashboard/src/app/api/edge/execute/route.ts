@@ -1,12 +1,12 @@
-import { edgeExecuteOptions, proxyEdgeExecute } from '@pulsco/pwa/edge-execute-route'
+import { edgeExecuteOptions, proxyEdgeExecute } from "@pulsco/pwa/edge-execute-route";
 
 // Proxies critical actions to /edge/execute with reason_code=CSI_GATEWAY_ACCESS.
-const APP_ID = '@pulsco/governance-registrar-dashboard'
+const APP_ID = "@pulsco/governance-registrar-dashboard";
 
 export async function OPTIONS() {
-  return edgeExecuteOptions()
+  return edgeExecuteOptions();
 }
 
 export async function POST(request: Request) {
-  return proxyEdgeExecute(request, APP_ID)
+  return proxyEdgeExecute(request, APP_ID);
 }

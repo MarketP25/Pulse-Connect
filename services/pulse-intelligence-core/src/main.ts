@@ -1,5 +1,5 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -8,11 +8,11 @@ async function bootstrap() {
   app.enableCors();
 
   // Global prefix for all routes
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix("api/v1");
 
   // Start the server
   await app.listen(3001);
-  console.log('Pulse Intelligence Core running on http://localhost:3001');
+  console.log("Pulse Intelligence Core running on http://localhost:3001");
 }
 
 bootstrap();

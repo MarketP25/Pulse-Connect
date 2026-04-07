@@ -1,8 +1,16 @@
 // Zero-Trust Authentication Client for Pulsco Admin Governance System
 // Implements email-only login with one-time codes and 15-minute sessions
 
-import { AdminRole, AdminRoleType, ADMIN_EMAILS, MAX_ADMIN_COUNT, AuthSession, OneTimeCode, AuditEvent } from '@pulsco/admin-shared-types';
-import { createHash, randomBytes } from 'crypto';
+import {
+  AdminRole,
+  AdminRoleType,
+  ADMIN_EMAILS,
+  MAX_ADMIN_COUNT,
+  AuthSession,
+  OneTimeCode,
+  AuditEvent
+} from "@pulsco/admin-shared-types";
+import { createHash, randomBytes } from "crypto";
 
 export interface AuthConfig {
   apiBaseUrl: string;
@@ -45,21 +53,37 @@ export class AdminAuthClient {
       // Validate email is in allowed admin list
       const role = this.getAdminRoleByEmail(request.email);
       if (!role) {
-        await this.auditEvent('admin-login', request.email, 'unknown', 'login-attempt', 'blocked', 'Email not in admin registry', request.deviceFingerprint);
-        return { success: false, error: 'Unauthorized email address' };
+        await this.auditEvent(
+          "admin-login",
+          request.email,
+          "unknown",
+          "login-attempt",
+          "blocked",
+          "Email not in admin registry",
+          request.deviceFingerprint
+        );
+        return { success: false, error: "Unauthorized email address" };
       }
 
       // Check admin count limit
       const adminCount = await this.getActiveAdminCount();
       if (adminCount >= MAX_ADMIN_COUNT) {
-        await this.auditEvent('admin-login', request.email, role, 'login-attempt', 'blocked', 'Admin count limit exceeded', request.deviceFingerprint);
-        return { success: false, error: 'Maximum admin count reached' };
+        await this.auditEvent(
+          "admin-login",
+          request.email,
+          role,
+          "login-attempt",
+          "blocked",
+          "Admin count limit exceeded",
+          request.deviceFingerprint
+        );
+        return { success: false, error: "Maximum admin count reached" };
       }
 
       // Generate and send one-time code
       const codeResponse = await fetch(`${this.config.apiBaseUrl}/auth/generate-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: request.email,
           deviceFingerprint: request.deviceFingerprint
@@ -67,16 +91,31 @@ export class AdminAuthClient {
       });
 
       if (!codeResponse.ok) {
-        await this.auditEvent('admin-login', request.email, role, 'code-generation', 'failure', 'API error', request.deviceFingerprint);
-        return { success: false, error: 'Failed to generate authentication code' };
+        await this.auditEvent(
+          "admin-login",
+          request.email,
+          role,
+          "code-generation",
+          "failure",
+          "API error",
+          request.deviceFingerprint
+        );
+        return { success: false, error: "Failed to generate authentication code" };
       }
 
-      await this.auditEvent('admin-login', request.email, role, 'code-generation', 'success', undefined, request.deviceFingerprint);
+      await this.auditEvent(
+        "admin-login",
+        request.email,
+        role,
+        "code-generation",
+        "success",
+        undefined,
+        request.deviceFingerprint
+      );
       return { success: true, requiresCode: true };
-
     } catch (error) {
-      console.error('Login initiation failed:', error);
-      return { success: false, error: 'Authentication service unavailable' };
+      console.error("Login initiation failed:", error);
+      return { success: false, error: "Authentication service unavailable" };
     }
   }
 
@@ -87,12 +126,12 @@ export class AdminAuthClient {
     try {
       const role = this.getAdminRoleByEmail(request.email);
       if (!role) {
-        return { success: false, error: 'Unauthorized email address' };
+        return { success: false, error: "Unauthorized email address" };
       }
 
       const verifyResponse = await fetch(`${this.config.apiBaseUrl}/auth/verify-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: request.email,
           code: request.code,
@@ -101,8 +140,16 @@ export class AdminAuthClient {
       });
 
       if (!verifyResponse.ok) {
-        await this.auditEvent('admin-login', request.email, role, 'code-verification', 'failure', 'Invalid code', request.deviceFingerprint);
-        return { success: false, error: 'Invalid or expired code' };
+        await this.auditEvent(
+          "admin-login",
+          request.email,
+          role,
+          "code-verification",
+          "failure",
+          "Invalid code",
+          request.deviceFingerprint
+        );
+        return { success: false, error: "Invalid or expired code" };
       }
 
       const sessionData = await verifyResponse.json();
@@ -118,13 +165,20 @@ export class AdminAuthClient {
       };
 
       this.currentSession = session;
-      await this.auditEvent('admin-login', request.email, role, 'session-established', 'success', undefined, request.deviceFingerprint);
-      
-      return { success: true, session };
+      await this.auditEvent(
+        "admin-login",
+        request.email,
+        role,
+        "session-established",
+        "success",
+        undefined,
+        request.deviceFingerprint
+      );
 
+      return { success: true, session };
     } catch (error) {
-      console.error('Code verification failed:', error);
-      return { success: false, error: 'Authentication service unavailable' };
+      console.error("Code verification failed:", error);
+      return { success: false, error: "Authentication service unavailable" };
     }
   }
 
@@ -133,7 +187,7 @@ export class AdminAuthClient {
    */
   getCurrentSession(): AuthSession | null {
     if (!this.currentSession) return null;
-    
+
     // Check if session is expired
     if (new Date() > this.currentSession.expiresAt) {
       this.currentSession = null;
@@ -151,16 +205,24 @@ export class AdminAuthClient {
 
     try {
       await fetch(`${this.config.apiBaseUrl}/auth/logout`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.currentSession.id}`
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.currentSession.id}`
         }
       });
 
-      await this.auditEvent('admin-logout', this.currentSession.email, this.currentSession.role, 'session-terminated', 'success', undefined, this.currentSession.deviceFingerprint);
+      await this.auditEvent(
+        "admin-logout",
+        this.currentSession.email,
+        this.currentSession.role,
+        "session-terminated",
+        "success",
+        undefined,
+        this.currentSession.deviceFingerprint
+      );
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     } finally {
       this.currentSession = null;
     }
@@ -186,9 +248,9 @@ export class AdminAuthClient {
 
     try {
       const response = await fetch(`${this.config.apiBaseUrl}/auth/session`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
       });
 
       if (!response.ok) {
@@ -205,7 +267,7 @@ export class AdminAuthClient {
         adminId: sessionData.adminId || sessionData.sessionId,
         email: sessionData.email,
         role: sessionData.role as AdminRoleType,
-        deviceFingerprint: sessionData.deviceFingerprint || 'server',
+        deviceFingerprint: sessionData.deviceFingerprint || "server",
         issuedAt: new Date(sessionData.issuedAt || Date.now()),
         expiresAt: new Date(sessionData.expiresAt || Date.now()),
         isActive: sessionData.isActive !== false
@@ -214,7 +276,7 @@ export class AdminAuthClient {
       this.currentSession = session;
       return session;
     } catch (error) {
-      console.error('Session validation failed:', error);
+      console.error("Session validation failed:", error);
       return null;
     }
   }
@@ -242,7 +304,7 @@ export class AdminAuthClient {
         return data.count || 0;
       }
     } catch (error) {
-      console.error('Failed to get admin count:', error);
+      console.error("Failed to get admin count:", error);
     }
     return 0;
   }
@@ -251,12 +313,12 @@ export class AdminAuthClient {
    * Generate device fingerprint for browser identification
    */
   static generateDeviceFingerprint(): string {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     if (ctx) {
-      ctx.textBaseline = 'top';
-      ctx.font = '14px Arial';
-      ctx.fillText('Device fingerprint', 2, 2);
+      ctx.textBaseline = "top";
+      ctx.font = "14px Arial";
+      ctx.fillText("Device fingerprint", 2, 2);
     }
 
     const fingerprint = {
@@ -269,10 +331,7 @@ export class AdminAuthClient {
       timestamp: Date.now()
     };
 
-    return createHash('sha256')
-      .update(JSON.stringify(fingerprint))
-      .digest('hex')
-      .substring(0, 16);
+    return createHash("sha256").update(JSON.stringify(fingerprint)).digest("hex").substring(0, 16);
   }
 
   /**
@@ -280,7 +339,7 @@ export class AdminAuthClient {
    */
   static generateOneTimeCode(): string {
     const bytes = randomBytes(3);
-    return bytes.toString('hex').toUpperCase();
+    return bytes.toString("hex").toUpperCase();
   }
 
   /**
@@ -289,9 +348,9 @@ export class AdminAuthClient {
   private async auditEvent(
     type: string,
     email: string,
-    role: AdminRoleType | 'unknown',
+    role: AdminRoleType | "unknown",
     action: string,
-    result: 'success' | 'failure' | 'blocked',
+    result: "success" | "failure" | "blocked",
     reason?: string,
     deviceFingerprint?: string
   ): Promise<void> {
@@ -303,17 +362,17 @@ export class AdminAuthClient {
         action,
         result,
         reason,
-        deviceFingerprint: deviceFingerprint || 'unknown',
+        deviceFingerprint: deviceFingerprint || "unknown",
         timestamp: new Date()
       };
 
       await fetch(`${this.config.apiBaseUrl}/audit/events`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(auditEvent)
       });
     } catch (error) {
-      console.error('Audit event failed:', error);
+      console.error("Audit event failed:", error);
     }
   }
 }

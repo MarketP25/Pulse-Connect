@@ -1,13 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { EdgeTelemetryService } from '../services/telemetry.service';
-import { AiRuleInterpreter } from '@/shared/lib/src/ai-rule-interpreter';
+import { Injectable, Logger } from "@nestjs/common";
+import { ClientKafka } from "@nestjs/microservices";
+import { EdgeTelemetryService } from "../services/telemetry.service";
+import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
 
 export interface PlacesRequest {
   venueId: string;
   userId: string;
   regionCode: string;
-  action: 'check_in' | 'book' | 'info' | 'review' | 'report';
+  action: "check_in" | "book" | "info" | "review" | "report";
   location?: {
     latitude: number;
     longitude: number;
@@ -41,7 +41,7 @@ export class PlacesAdapter {
   constructor(
     private readonly kafkaClient: ClientKafka,
     private readonly telemetryService: EdgeTelemetryService,
-    private readonly aiRuleInterpreter: AiRuleInterpreter,
+    private readonly aiRuleInterpreter: AiRuleInterpreter
   ) {}
 
   /**
@@ -54,19 +54,19 @@ export class PlacesAdapter {
       // 1. Validate venue operating status and regional compliance
       const venueCheck = await this.validateVenueStatus(request);
       if (!venueCheck.allowed) {
-        await this.telemetryService.recordEvent('places_blocked', {
+        await this.telemetryService.recordEvent("places_blocked", {
           venueId: request.venueId,
           userId: request.userId,
           action: request.action,
           reason: venueCheck.blockedReason,
-          regionCode: request.regionCode,
+          regionCode: request.regionCode
         });
         return {
           venueId: request.venueId,
           allowed: false,
           blockedReason: venueCheck.blockedReason,
           complianceFlags: venueCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -78,7 +78,7 @@ export class PlacesAdapter {
           allowed: false,
           blockedReason: locationCheck.blockedReason,
           complianceFlags: locationCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -90,7 +90,7 @@ export class PlacesAdapter {
           allowed: false,
           blockedReason: capacityCheck.blockedReason,
           complianceFlags: capacityCheck.flags,
-          processingTime: Date.now() - startTime,
+          processingTime: Date.now() - startTime
         };
       }
 
@@ -98,48 +98,40 @@ export class PlacesAdapter {
       const result = await this.executePlacesOperation(request);
 
       // 5. Record telemetry
-      await this.telemetryService.recordEvent('places_operation', {
+      await this.telemetryService.recordEvent("places_operation", {
         venueId: request.venueId,
         userId: request.userId,
         action: request.action,
         regionCode: request.regionCode,
         allowed: true,
-        complianceFlags: [
-          ...venueCheck.flags,
-          ...locationCheck.flags,
-          ...capacityCheck.flags,
-        ].length,
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...venueCheck.flags, ...locationCheck.flags, ...capacityCheck.flags]
+          .length,
+        processingTime: Date.now() - startTime
       });
 
       return {
         venueId: request.venueId,
         allowed: true,
         venueData: result.venueData,
-        complianceFlags: [
-          ...venueCheck.flags,
-          ...locationCheck.flags,
-          ...capacityCheck.flags,
-        ],
-        processingTime: Date.now() - startTime,
+        complianceFlags: [...venueCheck.flags, ...locationCheck.flags, ...capacityCheck.flags],
+        processingTime: Date.now() - startTime
       };
-
     } catch (error) {
       this.logger.error(`Places processing failed: ${error.message}`, error.stack);
-      await this.telemetryService.recordEvent('places_error', {
+      await this.telemetryService.recordEvent("places_error", {
         venueId: request.venueId,
         userId: request.userId,
         action: request.action,
         error: error.message,
-        processingTime: Date.now() - startTime,
+        processingTime: Date.now() - startTime
       });
 
       return {
         venueId: request.venueId,
         allowed: false,
-        blockedReason: 'System error during processing',
-        complianceFlags: ['error'],
-        processingTime: Date.now() - startTime,
+        blockedReason: "System error during processing",
+        complianceFlags: ["error"],
+        processingTime: Date.now() - startTime
       };
     }
   }
@@ -159,16 +151,16 @@ export class PlacesAdapter {
     if (!venueStatus.exists) {
       return {
         allowed: false,
-        blockedReason: 'Venue not found',
-        flags: ['venue_not_found'],
+        blockedReason: "Venue not found",
+        flags: ["venue_not_found"]
       };
     }
 
     if (!venueStatus.active) {
       return {
         allowed: false,
-        blockedReason: 'Venue is currently inactive',
-        flags: ['venue_inactive'],
+        blockedReason: "Venue is currently inactive",
+        flags: ["venue_inactive"]
       };
     }
 
@@ -176,23 +168,23 @@ export class PlacesAdapter {
     if (!this.isWithinOperatingHours(request, venueStatus)) {
       return {
         allowed: false,
-        blockedReason: 'Venue is outside operating hours',
-        flags: ['outside_hours'],
+        blockedReason: "Venue is outside operating hours",
+        flags: ["outside_hours"]
       };
     }
 
-    flags.push('venue_active', 'within_hours');
+    flags.push("venue_active", "within_hours");
 
     // Check regional compliance
     if (!this.isRegionallyCompliant(request.venueId, request.regionCode)) {
       return {
         allowed: false,
-        blockedReason: 'Venue not authorized for this region',
-        flags: ['regional_violation'],
+        blockedReason: "Venue not authorized for this region",
+        flags: ["regional_violation"]
       };
     }
 
-    flags.push('regional_compliant');
+    flags.push("regional_compliant");
     return { allowed: true, flags };
   }
 
@@ -208,14 +200,14 @@ export class PlacesAdapter {
 
     if (!request.location) {
       // Location not required for all actions
-      if (['info', 'review'].includes(request.action)) {
-        flags.push('location_not_required');
+      if (["info", "review"].includes(request.action)) {
+        flags.push("location_not_required");
         return { allowed: true, flags };
       }
       return {
         allowed: false,
-        blockedReason: 'Location required for this action',
-        flags: ['location_required'],
+        blockedReason: "Location required for this action",
+        flags: ["location_required"]
       };
     }
 
@@ -230,7 +222,7 @@ export class PlacesAdapter {
       return {
         allowed: false,
         blockedReason: geofenceCheck.blockedReason,
-        flags: geofenceCheck.flags,
+        flags: geofenceCheck.flags
       };
     }
 
@@ -248,27 +240,27 @@ export class PlacesAdapter {
   }> {
     const flags = [];
 
-    if (request.action === 'book') {
+    if (request.action === "book") {
       // Check booking availability
       const availability = await this.checkBookingAvailability(request);
       if (!availability.allowed) {
         return {
           allowed: false,
           blockedReason: availability.blockedReason,
-          flags: availability.flags,
+          flags: availability.flags
         };
       }
       flags.push(...availability.flags);
     }
 
-    if (request.action === 'check_in') {
+    if (request.action === "check_in") {
       // Check current capacity
       const capacity = await this.checkCurrentCapacity(request.venueId);
       if (!capacity.allowed) {
         return {
           allowed: false,
           blockedReason: capacity.blockedReason,
-          flags: capacity.flags,
+          flags: capacity.flags
         };
       }
       flags.push(...capacity.flags);
@@ -281,16 +273,18 @@ export class PlacesAdapter {
    * Execute places operation
    */
   private async executePlacesOperation(request: PlacesRequest): Promise<any> {
-    const result = await this.kafkaClient.send('places.execute', {
-      venueId: request.venueId,
-      userId: request.userId,
-      action: request.action,
-      regionCode: request.regionCode,
-      location: request.location,
-      context: request.context,
-      edgeValidated: true,
-      timestamp: new Date().toISOString(),
-    }).toPromise();
+    const result = await this.kafkaClient
+      .send("places.execute", {
+        venueId: request.venueId,
+        userId: request.userId,
+        action: request.action,
+        regionCode: request.regionCode,
+        location: request.location,
+        context: request.context,
+        edgeValidated: true,
+        timestamp: new Date().toISOString()
+      })
+      .toPromise();
 
     return result;
   }
@@ -308,9 +302,9 @@ export class PlacesAdapter {
       exists: true,
       active: true,
       operatingHours: {
-        monday: { open: '09:00', close: '23:00' },
+        monday: { open: "09:00", close: "23:00" }
         // ... other days
-      },
+      }
     };
   }
 
@@ -321,7 +315,7 @@ export class PlacesAdapter {
     if (!venueStatus.operatingHours) return true;
 
     const now = new Date();
-    const dayOfWeek = now.toLocaleLowerCase('en-US', { weekday: 'long' });
+    const dayOfWeek = now.toLocaleLowerCase("en-US", { weekday: "long" });
     const currentTime = now.toTimeString().slice(0, 5); // HH:MM
 
     const hours = venueStatus.operatingHours[dayOfWeek];
@@ -350,13 +344,13 @@ export class PlacesAdapter {
     // For check-ins, user must be at venue
     // For bookings, more lenient geofence allowed
 
-    const flags = ['location_verified'];
+    const flags = ["location_verified"];
 
-    if (action === 'check_in') {
-      flags.push('geofence_strict');
+    if (action === "check_in") {
+      flags.push("geofence_strict");
       // Strict geofence check would go here
     } else {
-      flags.push('geofence_lenient');
+      flags.push("geofence_lenient");
     }
 
     return { allowed: true, flags };
@@ -373,7 +367,7 @@ export class PlacesAdapter {
     // Would check venue booking system
     return {
       allowed: true,
-      flags: ['booking_available'],
+      flags: ["booking_available"]
     };
   }
 
@@ -388,7 +382,7 @@ export class PlacesAdapter {
     // Would check current occupancy vs capacity
     return {
       allowed: true,
-      flags: ['capacity_ok'],
+      flags: ["capacity_ok"]
     };
   }
 }

@@ -1,10 +1,10 @@
-import { Client } from 'pg';
-import { Policy, Offer, WalletRecord, LedgerEntry } from './types';
+import { Client } from "pg";
+import { Policy, Offer, WalletRecord, LedgerEntry } from "./types";
 
 export class PostgresPersistence {
   private client: Client;
   constructor(connection: string | Client) {
-    if (typeof connection === 'string') {
+    if (typeof connection === "string") {
       this.client = new Client({ connectionString: connection });
     } else {
       this.client = connection;
@@ -58,11 +58,14 @@ export class PostgresPersistence {
 
   async savePolicy(p: Policy) {
     const id = `${p.policyId}@${p.version}`;
-    await this.client.query(`
+    await this.client.query(
+      `
       INSERT INTO policies(id, policy_id, version, data)
       VALUES($1,$2,$3,$4)
       ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data;
-    `, [id, p.policyId, p.version, p]);
+    `,
+      [id, p.policyId, p.version, p]
+    );
   }
 
   async loadPolicies(): Promise<Policy[]> {
@@ -71,9 +74,12 @@ export class PostgresPersistence {
   }
 
   async saveOffer(o: Offer) {
-    await this.client.query(`
+    await this.client.query(
+      `
       INSERT INTO offers(offer_id, data) VALUES($1,$2) ON CONFLICT (offer_id) DO UPDATE SET data = EXCLUDED.data;
-    `, [o.offerId, o]);
+    `,
+      [o.offerId, o]
+    );
   }
 
   async loadOffers(): Promise<Offer[]> {
@@ -82,9 +88,12 @@ export class PostgresPersistence {
   }
 
   async saveWallet(w: WalletRecord) {
-    await this.client.query(`
+    await this.client.query(
+      `
       INSERT INTO wallets(wallet_id, account_id, data) VALUES($1,$2,$3) ON CONFLICT (wallet_id) DO UPDATE SET data = EXCLUDED.data;
-    `, [w.walletId, w.accountId, w]);
+    `,
+      [w.walletId, w.accountId, w]
+    );
   }
 
   async loadWallets(): Promise<WalletRecord[]> {
@@ -104,10 +113,13 @@ export class PostgresPersistence {
 
   async saveSubscription(s: any) {
     const id = s.accountId;
-    await this.client.query(`
+    await this.client.query(
+      `
       INSERT INTO subscriptions(account_id, data) VALUES($1,$2)
       ON CONFLICT (account_id) DO UPDATE SET data = EXCLUDED.data;
-    `, [id, s]);
+    `,
+      [id, s]
+    );
   }
 
   async loadSubscriptions(): Promise<any[]> {
