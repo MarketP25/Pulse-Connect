@@ -22,10 +22,10 @@ import { GovernancePanel } from "@/components/dashboard/GovernancePanel";
 import { LocalizationAdvancedPanel } from "@/components/dashboard/LocalizationAdvancedPanel";
 import { ProximityAdvancedPanel } from "@/components/dashboard/ProximityAdvancedPanel";
 import { PartnerInvestorNav } from "@/components/dashboard/PartnerInvestorNav";
+import { SystemFlowPanel } from "@/components/dashboard/SystemFlowPanel";
 import { useDashboardStore } from "./useDashboardStore";
 import { mergeDashboardDictionary } from "@/lib/dashboard/i18n";
 import { useLanguage } from "@/lib/localization/language-provider";
-import { useT } from "@/lib/localization/i18n-provider";
 import { DashboardModuleKey } from "@/types/dashboard";
 
 function moduleState(
@@ -44,7 +44,6 @@ export default function DashboardPage() {
   const queryUserId = searchParams?.get("userId") || undefined;
 
   const { language } = useLanguage();
-  const t = useT();
   const {
     userId,
     snapshot,
@@ -92,16 +91,16 @@ export default function DashboardPage() {
 
   if (loading && !snapshot) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100">
-        <p className="text-sm text-slate-700">Loading dashboard...</p>
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orbit-blue-700 via-nebula-900 to-orbit-blue-900">
+        <p className="text-sm text-slate-200">Loading dashboard...</p>
       </main>
     );
   }
 
   if (!snapshot) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100">
-        <p className="text-sm text-rose-700">Unable to load dashboard state.</p>
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orbit-blue-700 via-nebula-900 to-orbit-blue-900">
+        <p className="text-sm text-rose-300">Unable to load dashboard state.</p>
       </main>
     );
   }
@@ -115,7 +114,7 @@ export default function DashboardPage() {
   const matchmaking = moduleState(snapshot.access, "matchmaking");
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-100 via-sky-50 to-emerald-50 px-4 py-8 md:px-8">
+    <main className="min-h-screen bg-gradient-to-br from-orbit-blue-700 via-nebula-900 to-orbit-blue-900 px-4 py-8 md:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <DashboardHeader
           title={text.title}
@@ -152,20 +151,31 @@ export default function DashboardPage() {
           </p>
         ) : null}
         {snapshot.localizationProvider ? (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-300">
             Localization provider:{" "}
-            <span className="font-semibold">{snapshot.localizationProvider}</span>
+            <span className="font-semibold text-pulse-cyan-300">{snapshot.localizationProvider}</span>
           </p>
         ) : null}
         {aiStatus ? (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-300">
             PULSCO AI:{" "}
-            <span className="font-semibold">
+            <span className="font-semibold text-pulse-cyan-300">
               {aiStatus.available ? "Available" : "Unavailable"}
             </span>{" "}
             ({aiStatus.provider}, {aiStatus.mode})
           </p>
         ) : null}
+
+        <SystemFlowPanel
+          title={text.systemFlow}
+          user={snapshot.user}
+          access={snapshot.access}
+          recommendations={snapshot.recommendations}
+          alerts={snapshot.alerts}
+          aiStatus={aiStatus || snapshot.aiStatus}
+          identity={snapshot.identity}
+          proximity={snapshot.proximityAdvanced}
+        />
 
         <OnboardingPanel
           title={text.onboarding}
@@ -244,6 +254,7 @@ export default function DashboardPage() {
           title={text.places}
           places={snapshot.nearbyPlaces}
           matchmaking={snapshot.matchmaking}
+          recommendations={snapshot.recommendations}
           enabled={places.enabled}
           disabledReason={places.reason}
         />

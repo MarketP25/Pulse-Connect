@@ -73,7 +73,7 @@ export function CommunicationPanel({
             placeholder="Ask about fraud alerts, optimization, marketing, or KYC"
           />
           <button
-            className="mt-2 rounded bg-indigo-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-800 disabled:opacity-60"
+            className="mt-2 rounded bg-pulse-cyan-500 px-3 py-1.5 text-xs font-semibold text-orbit-blue-700 hover:bg-pulse-cyan-400 disabled:opacity-60"
             onClick={() => onSend(prompt)}
             disabled={loading || prompt.trim().length === 0}
           >

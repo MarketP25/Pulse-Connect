@@ -398,7 +398,7 @@ export class DashboardStore {
       id: userId,
       email: `${userId}@pulsco.local`,
       displayName: userId,
-      role: tier === "enterprise" ? "organisation" : tier === "premium" ? "business" : "individual",
+      role: "individual",
       tier,
       preferredLanguage: "en",
       country: "US",
@@ -1205,3 +1205,4 @@ export function getDashboardStore(): DashboardStore {
 
   return global.__pulscoDashboardStore;
 }
+

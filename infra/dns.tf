@@ -1,7 +1,7 @@
 resource "google_dns_managed_zone" "pulsco_zone" {
   name        = "pulsco-zone"
   dns_name    = "pulsco.global."
-  description = "Managed DNS zone for Pulsco Global"
+  description = "Managed DNS zone for Pulsco Global Ltd"
   project     = var.project_id
 }
 

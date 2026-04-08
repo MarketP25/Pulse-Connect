@@ -5,7 +5,7 @@ type BillingPlan = { planId: string; price: number };
 const PLAN_MAPPING: Record<string, BillingPlan> = {
   basic: { planId: "basic", price: 29 },
   premium: { planId: "premium-monthly", price: 99 },
-  enterprise: { planId: "enterprise-monthly", price: 150 }
+  enterprise: { planId: "enterprise-monthly", price: 349 }
 };
 
 export interface BillingClient {

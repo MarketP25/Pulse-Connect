@@ -132,6 +132,13 @@ PULSCO_BRAND_ICON_ORIGINS=https://icons-us.pulsco.global,https://icons-eu.pulsco
 
 # Firewall endpoint for CSI-bound support telemetry (required for forwarding)
 PULSCO_MARP_FIREWALL_URL=https://marp-firewall.pulsco.global/marp/enforcement/enforce
+
+# Optional adapter rollout controls for /edge/execute
+# off (default): policy-only; shadow: run adapter without blocking; strict: enforce adapter failures
+EDGE_ADAPTER_EXECUTION_MODE=off
+# Optional strict scope (comma-separated subsystem names)
+EDGE_ADAPTER_STRICT_SUBSYSTEMS=ecommerce,billing
+# Optional request override in non-production: x-edge-adapter-mode: off|shadow|strict
 ```
 
 ### Planetary Deployment

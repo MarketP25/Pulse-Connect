@@ -61,11 +61,13 @@ INSERT INTO edge_brand_profiles (version, config_json, is_active)
 VALUES (
     'pulsco-icons-v2026.02',
     '{
-      "themeColor": "#7c3aed",
-      "backgroundColor": "#0f172a",
+      "themeColor": "#0A1428",
+      "backgroundColor": "#0F1929",
       "origins": []
     }'::jsonb,
     true
 )
-ON CONFLICT (version) DO NOTHING;
-
+ON CONFLICT (version) DO UPDATE
+SET config_json = EXCLUDED.config_json,
+    is_active = EXCLUDED.is_active,
+    updated_at = NOW();

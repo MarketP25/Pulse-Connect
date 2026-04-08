@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from "@nestjs/common";
+import { Injectable, Logger, Inject, Optional } from "@nestjs/common";
 import { createHash } from "crypto";
 import { Pool } from "pg";
 import { PC365Guard } from "@pulsco/shared-lib";
@@ -8,10 +8,14 @@ import { SignatureVerifierService } from "./signature-verifier.service";
 import { PolicyCacheService } from "./policy-cache.service";
 import { ExecutionEngineService } from "./execution-engine.service";
 import { TelemetryService } from "./telemetry.service";
+import { CrossModuleEnrichmentService } from "./cross-module-enrichment.service";
+import { SubsystemAdapterRegistryService } from "./subsystem-adapter-registry.service";
+import { AdapterContext, AdapterResult } from "../adapters/subsystem-adapter.interface";
 
 const CSI_REASON_CODE = "CSI_GATEWAY_ACCESS";
 
 type ExecuteHeaders = Record<string, string | undefined>;
+type AdapterExecutionMode = "off" | "shadow" | "strict";
 
 type EmergencyControls = {
   disableMajorFeatures: boolean;
@@ -58,7 +62,9 @@ export class EdgeGatewayService {
     private readonly signatureVerifier: SignatureVerifierService,
     private readonly policyCache: PolicyCacheService,
     private readonly executionEngine: ExecutionEngineService,
-    private readonly telemetryService: TelemetryService
+    private readonly telemetryService: TelemetryService,
+    private readonly crossModuleEnrichment: CrossModuleEnrichmentService,
+    @Optional() private readonly adapterRegistry?: SubsystemAdapterRegistryService
   ) {
     this.pc365Guard = this.buildPc365Guard();
   }
@@ -73,6 +79,8 @@ export class EdgeGatewayService {
     const startTime = Date.now();
     const reasonCode = request.reasonCode || headers["x-csi-reason-code"] || CSI_REASON_CODE;
     const sourceApp = headers["x-pulsco-source-app"] || "unknown";
+    const adapterMode = this.resolveAdapterExecutionMode(headers);
+    let coordinatedRequest: ExecuteRequestDto = request;
 
     try {
       this.logger.log(`Processing request ${request.requestId} for ${request.subsystem}`);
@@ -121,50 +129,81 @@ export class EdgeGatewayService {
         throw new Error("MARP signature verification failed");
       }
 
+      coordinatedRequest = this.crossModuleEnrichment.enrichRequest(request, headers);
+
       // Step 2: Get active policy snapshot
-      const policySnapshot = await this.policyCache.getActivePolicy(request.subsystem);
+      const policySnapshot = await this.policyCache.getActivePolicy(coordinatedRequest.subsystem);
 
       // Step 3: Execute policy rules
-      const decision = await this.executionEngine.evaluateRequest(request, policySnapshot);
+      const decision = await this.executionEngine.evaluateRequest(coordinatedRequest, policySnapshot);
+      let finalDecision = decision.type;
+      let finalRationale = decision.rationale;
+      let finalRiskScore = decision.riskScore;
+      let finalQuarantine:
+        | { reason: string; duration: number; escalationRequired: boolean }
+        | undefined;
 
-      // Step 4: Generate response
+      if (decision.type === DecisionType.QUARANTINE) {
+        finalQuarantine = {
+          reason: decision.quarantineReason || "Policy violation",
+          duration: decision.quarantineDuration || 3600000,
+          escalationRequired: decision.escalationRequired || false
+        };
+      }
+
+      // Step 4: Execute subsystem adapter in controlled rollout mode
+      const adapterFlow = await this.executeAdapterFlow({
+        request: coordinatedRequest,
+        headers,
+        sourceApp,
+        mode: adapterMode,
+        initialDecision: decision.type,
+        policyVersion: policySnapshot.version,
+        policyContent: policySnapshot.content
+      });
+
+      coordinatedRequest = adapterFlow.request;
+      if (adapterFlow.override) {
+        finalDecision = adapterFlow.override.decision;
+        finalRationale = adapterFlow.override.rationale;
+        finalRiskScore = adapterFlow.override.riskScore;
+        finalQuarantine = adapterFlow.override.quarantine;
+      }
+
+      // Step 5: Generate response
       const response: ExecuteResponseDto = {
-        requestId: request.requestId,
-        decision: decision.type,
-        rationale: decision.rationale,
+        requestId: coordinatedRequest.requestId,
+        decision: finalDecision,
+        rationale: finalRationale,
         policyVersion: policySnapshot.version,
         executionTime: Date.now() - startTime,
-        riskScore: decision.riskScore,
+        riskScore: finalRiskScore,
         telemetry: {
-          subsystem: request.subsystem,
-          action: request.action,
+          subsystem: coordinatedRequest.subsystem,
+          action: coordinatedRequest.action,
           timestamp: new Date().toISOString(),
-          hash: this.generateRequestHash(request),
+          hash: this.generateRequestHash(coordinatedRequest),
           reasonCode: CSI_REASON_CODE,
           sourceApp
         }
       };
 
       // Add quarantine details if needed
-      if (decision.type === DecisionType.QUARANTINE) {
-        response.quarantine = {
-          reason: decision.quarantineReason || "Policy violation",
-          duration: decision.quarantineDuration || 3600000, // 1 hour default
-          escalationRequired: decision.escalationRequired || false
-        };
+      if (finalDecision === DecisionType.QUARANTINE && finalQuarantine) {
+        response.quarantine = finalQuarantine;
       }
 
-      // Step 5: Send telemetry to MARP
+      // Step 6: Send telemetry to MARP
       await this.telemetryService.sendTelemetry({
         ...response,
-        originalRequest: request,
+        originalRequest: coordinatedRequest,
         policySnapshot: policySnapshot.id,
         reasonCode: CSI_REASON_CODE,
         sourceApp
       });
 
-      // Step 6: Audit log
-      await this.auditRequest(request, response, sourceApp);
+      // Step 7: Audit log
+      await this.auditRequest(coordinatedRequest, response, sourceApp);
 
       return response;
     } catch (error: unknown) {
@@ -175,30 +214,32 @@ export class EdgeGatewayService {
       await this.telemetryService.sendAnomaly({
         anomalyType: "edge_execute_failure",
         severity: "high",
-        requestId: request.requestId || "unknown",
-        subsystem: request.subsystem,
+        requestId: coordinatedRequest.requestId || "unknown",
+        subsystem: coordinatedRequest.subsystem,
         description: message,
         context: {
-          action: request.action,
+          action: coordinatedRequest.action,
           reasonCode: CSI_REASON_CODE,
-          sourceApp
+          sourceApp,
+          adapterMode,
+          coordination: this.extractCoordinationMetadata(coordinatedRequest)
         },
         timestamp: new Date().toISOString()
       });
 
       // Return blocked decision on error
       return {
-        requestId: request.requestId,
+        requestId: coordinatedRequest.requestId,
         decision: DecisionType.BLOCK,
         rationale: `Execution failed: ${message}`,
         policyVersion: "error",
         executionTime: Date.now() - startTime,
         riskScore: 1.0,
         telemetry: {
-          subsystem: request.subsystem,
-          action: request.action,
+          subsystem: coordinatedRequest.subsystem,
+          action: coordinatedRequest.action,
           timestamp: new Date().toISOString(),
-          hash: this.generateRequestHash(request),
+          hash: this.generateRequestHash(coordinatedRequest),
           reasonCode: CSI_REASON_CODE,
           sourceApp
         }
@@ -271,6 +312,325 @@ export class EdgeGatewayService {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Audit logging failed: ${message}`);
     }
+  }
+
+  private async executeAdapterFlow(input: {
+    request: ExecuteRequestDto;
+    headers: ExecuteHeaders;
+    sourceApp: string;
+    mode: AdapterExecutionMode;
+    initialDecision: DecisionType;
+    policyVersion: string;
+    policyContent: unknown;
+  }): Promise<{
+    request: ExecuteRequestDto;
+    override?: {
+      decision: DecisionType;
+      rationale: string;
+      riskScore: number;
+      quarantine?: { reason: string; duration: number; escalationRequired: boolean };
+    };
+  }> {
+    if (input.initialDecision !== DecisionType.ALLOW || input.mode === "off") {
+      return { request: input.request };
+    }
+
+    const adapterSubsystem = this.resolveAdapterForSubsystem(input.request.subsystem);
+    if (!adapterSubsystem) {
+      return {
+        request: this.attachAdapterTrace(input.request, {
+          mode: input.mode,
+          status: "skipped_unmapped",
+          subsystem: input.request.subsystem
+        })
+      };
+    }
+
+    const strictEnforcement = this.isStrictAdapterEnforcementEnabled(
+      input.mode,
+      input.request.subsystem
+    );
+
+    if (!this.adapterRegistry) {
+      const requestWithTrace = this.attachAdapterTrace(input.request, {
+        mode: input.mode,
+        status: "registry_unavailable",
+        subsystem: adapterSubsystem
+      });
+
+      if (!strictEnforcement) {
+        await this.telemetryService.sendAnomaly({
+          anomalyType: "edge_adapter_registry_unavailable",
+          severity: "medium",
+          requestId: input.request.requestId,
+          subsystem: input.request.subsystem,
+          description: `Adapter mode ${input.mode} skipped because registry is unavailable`,
+          context: {
+            sourceApp: input.sourceApp,
+            adapterSubsystem,
+            adapterMode: input.mode
+          },
+          timestamp: new Date().toISOString()
+        });
+        return { request: requestWithTrace };
+      }
+
+      return {
+        request: requestWithTrace,
+        override: {
+          decision: DecisionType.BLOCK,
+          rationale: `Strict adapter enforcement blocked ${input.request.subsystem}: adapter registry unavailable`,
+          riskScore: 0.92
+        }
+      };
+    }
+
+    if (!this.adapterRegistry.isInitialized()) {
+      await this.adapterRegistry.waitUntilInitialized();
+    }
+
+    if (!this.adapterRegistry.isInitialized()) {
+      const requestWithTrace = this.attachAdapterTrace(input.request, {
+        mode: input.mode,
+        status: "registry_initializing",
+        subsystem: adapterSubsystem
+      });
+
+      if (!strictEnforcement) {
+        return { request: requestWithTrace };
+      }
+
+      return {
+        request: requestWithTrace,
+        override: {
+          decision: DecisionType.BLOCK,
+          rationale: `Strict adapter enforcement blocked ${input.request.subsystem}: adapter registry not ready`,
+          riskScore: 0.9
+        }
+      };
+    }
+
+    if (!this.adapterRegistry.hasAdapter(adapterSubsystem)) {
+      const requestWithTrace = this.attachAdapterTrace(input.request, {
+        mode: input.mode,
+        status: "adapter_missing",
+        subsystem: adapterSubsystem
+      });
+
+      if (!strictEnforcement) {
+        await this.telemetryService.sendAnomaly({
+          anomalyType: "edge_adapter_missing",
+          severity: "medium",
+          requestId: input.request.requestId,
+          subsystem: input.request.subsystem,
+          description: `Adapter ${adapterSubsystem} not registered in ${input.mode} mode`,
+          context: {
+            sourceApp: input.sourceApp,
+            adapterSubsystem,
+            adapterMode: input.mode
+          },
+          timestamp: new Date().toISOString()
+        });
+        return { request: requestWithTrace };
+      }
+
+      return {
+        request: requestWithTrace,
+        override: {
+          decision: DecisionType.BLOCK,
+          rationale: `Strict adapter enforcement blocked ${input.request.subsystem}: adapter ${adapterSubsystem} unavailable`,
+          riskScore: 0.9
+        }
+      };
+    }
+
+    const adapterContext: AdapterContext = {
+      policy: {
+        version: input.policyVersion,
+        content: input.policyContent
+      },
+      regionCode: input.request.regionCode,
+      instanceId: process.env.EDGE_INSTANCE_ID || "unknown",
+      telemetryEnabled: true,
+      headers: input.headers
+    };
+
+    const adapterResult = await this.adapterRegistry.executeThroughAdapter(
+      adapterSubsystem,
+      input.request,
+      adapterContext
+    );
+
+    const requestWithTrace = this.attachAdapterTrace(input.request, {
+      mode: input.mode,
+      status: adapterResult.success ? "adapter_success" : "adapter_failed",
+      subsystem: adapterSubsystem,
+      riskFactors: adapterResult.riskFactors || [],
+      error: adapterResult.error
+    });
+
+    if (adapterResult.success) {
+      return { request: requestWithTrace };
+    }
+
+    if (!strictEnforcement) {
+      await this.telemetryService.sendAnomaly({
+        anomalyType: "edge_adapter_execution_failed",
+        severity: "medium",
+        requestId: input.request.requestId,
+        subsystem: input.request.subsystem,
+        description: adapterResult.error || "Adapter execution reported failure",
+        context: {
+          sourceApp: input.sourceApp,
+          adapterSubsystem,
+          adapterMode: input.mode,
+          riskFactors: adapterResult.riskFactors
+        },
+        timestamp: new Date().toISOString()
+      });
+      return { request: requestWithTrace };
+    }
+
+    const normalizedFactors = new Set(
+      (adapterResult.riskFactors || []).map((factor) => String(factor).toLowerCase())
+    );
+    const shouldQuarantine =
+      normalizedFactors.has("requires_review") ||
+      normalizedFactors.has("high_fraud_risk") ||
+      normalizedFactors.has("adapter_error");
+
+    const rationale = this.extractAdapterFailureReason(adapterResult, adapterSubsystem);
+    const riskScore = this.deriveAdapterRiskScore(adapterResult);
+
+    if (shouldQuarantine) {
+      return {
+        request: requestWithTrace,
+        override: {
+          decision: DecisionType.QUARANTINE,
+          rationale,
+          riskScore,
+          quarantine: {
+            reason: "Adapter enforcement flagged request for manual review",
+            duration: 3600000,
+            escalationRequired: true
+          }
+        }
+      };
+    }
+
+    return {
+      request: requestWithTrace,
+      override: {
+        decision: DecisionType.BLOCK,
+        rationale,
+        riskScore
+      }
+    };
+  }
+
+  private resolveAdapterExecutionMode(headers: ExecuteHeaders): AdapterExecutionMode {
+    const configured = (process.env.EDGE_ADAPTER_EXECUTION_MODE || "off").toLowerCase();
+    const requestedHeaderMode = this.getHeader(headers, "x-edge-adapter-mode")?.toLowerCase();
+    const allowHeaderOverride =
+      process.env.NODE_ENV !== "production" || this.isAuthorizedEmergencyMutation(headers);
+
+    const mode = requestedHeaderMode && allowHeaderOverride ? requestedHeaderMode : configured;
+    if (mode === "shadow" || mode === "strict") {
+      return mode;
+    }
+    return "off";
+  }
+
+  private resolveAdapterForSubsystem(subsystem: string): string | null {
+    const map: Record<string, string> = {
+      ecommerce: "ecommerce",
+      payments: "payments",
+      fraud: "fraud",
+      matchmaking: "matchmaking",
+      "ai-programs": "ai-programs",
+      "ai-engine-chatbot": "chatbot",
+      "proximity-geocoding": "proximity-geocoding",
+      communication: "communication",
+      "automated-marketing": "marketing",
+      "places-venues": "places",
+      localization: "localization",
+      translations: "translations",
+      billing: "billing"
+    };
+    return map[subsystem] || null;
+  }
+
+  private isStrictAdapterEnforcementEnabled(mode: AdapterExecutionMode, subsystem: string): boolean {
+    if (mode !== "strict") {
+      return false;
+    }
+
+    const scopedSubsystems = (process.env.EDGE_ADAPTER_STRICT_SUBSYSTEMS || "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (scopedSubsystems.length === 0) {
+      return true;
+    }
+
+    return scopedSubsystems.includes(subsystem.toLowerCase());
+  }
+
+  private extractAdapterFailureReason(adapterResult: AdapterResult, adapterSubsystem: string): string {
+    const error =
+      typeof adapterResult.error === "string" && adapterResult.error.trim()
+        ? adapterResult.error.trim()
+        : "adapter_rejected";
+    return `Strict adapter enforcement blocked ${adapterSubsystem}: ${error}`;
+  }
+
+  private deriveAdapterRiskScore(adapterResult: AdapterResult): number {
+    const normalizedFactors = new Set(
+      (adapterResult.riskFactors || []).map((factor) => String(factor).toLowerCase())
+    );
+    let score = 0.82;
+
+    if (normalizedFactors.has("high_fraud_risk")) {
+      score += 0.1;
+    } else if (normalizedFactors.has("requires_review") || normalizedFactors.has("adapter_error")) {
+      score += 0.07;
+    } else if (normalizedFactors.has("moderate_risk")) {
+      score += 0.04;
+    }
+
+    if (normalizedFactors.has("compliance_violation") || normalizedFactors.has("policy_block")) {
+      score += 0.06;
+    }
+
+    return Math.min(1, Number(score.toFixed(4)));
+  }
+
+  private attachAdapterTrace(
+    request: ExecuteRequestDto,
+    trace: {
+      mode: AdapterExecutionMode;
+      status: string;
+      subsystem: string;
+      riskFactors?: string[];
+      error?: string;
+    }
+  ): ExecuteRequestDto {
+    const context =
+      request.context && typeof request.context === "object" && !Array.isArray(request.context)
+        ? (request.context as Record<string, unknown>)
+        : {};
+
+    return {
+      ...request,
+      context: {
+        ...context,
+        adapterExecution: {
+          ...trace,
+          recordedAt: new Date().toISOString()
+        }
+      }
+    };
   }
 
   private isHighRiskAction(request: ExecuteRequestDto) {
@@ -617,5 +977,32 @@ export class EdgeGatewayService {
     } catch {
       return null;
     }
+  }
+
+  private extractCoordinationMetadata(request: ExecuteRequestDto) {
+    const context =
+      request.context && typeof request.context === "object" && !Array.isArray(request.context)
+        ? (request.context as Record<string, unknown>)
+        : {};
+    const crossModule =
+      context.crossModule &&
+      typeof context.crossModule === "object" &&
+      !Array.isArray(context.crossModule)
+        ? (context.crossModule as Record<string, unknown>)
+        : {};
+    const orchestration =
+      crossModule.orchestration &&
+      typeof crossModule.orchestration === "object" &&
+      !Array.isArray(crossModule.orchestration)
+        ? (crossModule.orchestration as Record<string, unknown>)
+        : {};
+
+    return {
+      version: typeof crossModule.version === "string" ? crossModule.version : undefined,
+      coordinationHash:
+        typeof crossModule.coordinationHash === "string" ? crossModule.coordinationHash : undefined,
+      globalReady:
+        typeof orchestration.globalReady === "boolean" ? orchestration.globalReady : undefined
+    };
   }
 }

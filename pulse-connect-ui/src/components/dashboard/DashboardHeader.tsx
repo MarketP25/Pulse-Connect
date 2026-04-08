@@ -18,20 +18,20 @@ const demoUsers = [
 
 export function DashboardHeader({ title, subtitle, user, currentUserId, onUserIdChange }: Props) {
   return (
-    <header className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+    <header className="rounded-2xl border border-pulse-cyan-500/30 bg-nebula-800/90 p-6 shadow-md backdrop-blur-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-          <p className="text-sm text-slate-600">{subtitle}</p>
-          <p className="mt-2 text-xs text-slate-500">
+          <h1 className="text-2xl font-bold text-tech-white">{title}</h1>
+          <p className="text-sm text-slate-300">{subtitle}</p>
+          <p className="mt-2 text-xs text-slate-400">
             User: {user.displayName} | Tier: {user.tier} | Role: {user.role}
           </p>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-slate-600">
+        <label className="flex items-center gap-2 text-sm text-slate-300">
           Demo user
           <select
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-nebula-400 bg-nebula-900/70 px-3 py-2 text-tech-white"
             value={currentUserId}
             onChange={(event) => onUserIdChange(event.target.value)}
           >

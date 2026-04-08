@@ -12,7 +12,11 @@ import {
   SubscriptionTier
 } from "./types";
 
-const ALWAYS_HIGH_RISK_ROLES = new Set<OnboardingRole>(["organisation", "partner"]);
+const TIER_KYC_REQUIREMENTS: Record<SubscriptionTier, KycRequirementLevel> = {
+  basic: "none",
+  premium: "full",
+  enterprise: "full"
+};
 
 export class InMemoryKycRepository implements KycRepository {
   private records = new Map<string, KycRecord>();
@@ -39,19 +43,10 @@ export class PulseKycService {
   constructor(private readonly repository: KycRepository) {}
 
   determineRequirementLevel(
-    role: OnboardingRole,
+    _role: OnboardingRole,
     subscriptionTier: SubscriptionTier
   ): KycRequirementLevel {
-    if (ALWAYS_HIGH_RISK_ROLES.has(role)) {
-      return "full";
-    }
-
-    // Paid tiers are high-assurance and require full verification.
-    if (subscriptionTier === "premium" || subscriptionTier === "enterprise") {
-      return "full";
-    }
-
-    return "none";
+    return TIER_KYC_REQUIREMENTS[subscriptionTier] || "none";
   }
 
   requiresKyc(role: OnboardingRole, subscriptionTier: SubscriptionTier): boolean {

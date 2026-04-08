@@ -207,6 +207,32 @@ export class ExecutionEngineService {
    */
   private applySubsystemRiskFactors(request: ExecuteRequestDto, baseRisk: number): number {
     let risk = baseRisk;
+    const crossModule = this.extractCrossModuleSignals(request);
+
+    if (crossModule.aiRiskAmplifier > 0) {
+      risk += crossModule.aiRiskAmplifier;
+    }
+    if (
+      crossModule.crossRegion &&
+      (request.subsystem === "ecommerce" ||
+        request.subsystem === "payments" ||
+        request.subsystem === "matchmaking")
+    ) {
+      risk += 0.1;
+    }
+    if (crossModule.localizationLanguage !== "en" && request.subsystem === "ecommerce") {
+      risk += 0.02;
+    }
+    if (
+      request.subsystem === "ecommerce" &&
+      crossModule.placesSignalScore > 0.7 &&
+      crossModule.matchmakingCompatibilityScore > 0.65
+    ) {
+      risk -= 0.06;
+    }
+    if (request.subsystem === "ecommerce" && crossModule.placesSignalScore < 0.3) {
+      risk += 0.08;
+    }
 
     switch (request.subsystem) {
       case "payments":
@@ -224,6 +250,20 @@ export class ExecutionEngineService {
         if (request.context?.ageDifference > 10) risk += 0.1;
         break;
 
+      case "ecommerce":
+        if (crossModule.dynamicPricingZone === "high-regulation") risk += 0.08;
+        if (crossModule.placeZone === "global") risk += 0.05;
+        break;
+
+      case "proximity-geocoding":
+        if (!crossModule.coordinatesAvailable) risk += 0.05;
+        break;
+
+      case "places-venues":
+        if (!crossModule.coordinatesAvailable) risk += 0.2;
+        if (crossModule.placeZone === "global") risk += 0.12;
+        break;
+
       case "automated-marketing":
         if (request.context?.frequency > 5) risk += 0.3;
         if (!request.context?.consent) risk += 0.5;
@@ -231,6 +271,94 @@ export class ExecutionEngineService {
     }
 
     return Math.min(risk, 1.0); // Cap at 1.0
+  }
+
+  private extractCrossModuleSignals(request: ExecuteRequestDto): {
+    aiRiskAmplifier: number;
+    placesSignalScore: number;
+    matchmakingCompatibilityScore: number;
+    localizationLanguage: string;
+    crossRegion: boolean;
+    dynamicPricingZone: string;
+    coordinatesAvailable: boolean;
+    placeZone: string;
+  } {
+    const context =
+      request.context && typeof request.context === "object" && !Array.isArray(request.context)
+        ? (request.context as Record<string, unknown>)
+        : {};
+    const crossModule =
+      context.crossModule &&
+      typeof context.crossModule === "object" &&
+      !Array.isArray(context.crossModule)
+        ? (context.crossModule as Record<string, unknown>)
+        : {};
+    const ai =
+      crossModule.ai && typeof crossModule.ai === "object" && !Array.isArray(crossModule.ai)
+        ? (crossModule.ai as Record<string, unknown>)
+        : {};
+    const places =
+      crossModule.places &&
+      typeof crossModule.places === "object" &&
+      !Array.isArray(crossModule.places)
+        ? (crossModule.places as Record<string, unknown>)
+        : {};
+    const matchmaking =
+      crossModule.matchmaking &&
+      typeof crossModule.matchmaking === "object" &&
+      !Array.isArray(crossModule.matchmaking)
+        ? (crossModule.matchmaking as Record<string, unknown>)
+        : {};
+    const localization =
+      crossModule.localization &&
+      typeof crossModule.localization === "object" &&
+      !Array.isArray(crossModule.localization)
+        ? (crossModule.localization as Record<string, unknown>)
+        : {};
+    const ecommerce =
+      crossModule.ecommerce &&
+      typeof crossModule.ecommerce === "object" &&
+      !Array.isArray(crossModule.ecommerce)
+        ? (crossModule.ecommerce as Record<string, unknown>)
+        : {};
+    const geocoding =
+      crossModule.geocoding &&
+      typeof crossModule.geocoding === "object" &&
+      !Array.isArray(crossModule.geocoding)
+        ? (crossModule.geocoding as Record<string, unknown>)
+        : {};
+
+    return {
+      aiRiskAmplifier: this.toNumber(ai.riskAmplifier, 0),
+      placesSignalScore: this.toNumber(places.signalScore, 0.5),
+      matchmakingCompatibilityScore: this.toNumber(matchmaking.compatibilityScore, 0.5),
+      localizationLanguage: this.toString(localization.language, "en"),
+      crossRegion: this.toBoolean(matchmaking.crossRegion),
+      dynamicPricingZone: this.toString(ecommerce.dynamicPricingZone, "regional-standard"),
+      coordinatesAvailable: this.toBoolean(geocoding.coordinatesAvailable),
+      placeZone: this.toString(places.zone, "unknown")
+    };
+  }
+
+  private toNumber(value: unknown, fallback: number): number {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+    return fallback;
+  }
+
+  private toString(value: unknown, fallback: string): string {
+    return typeof value === "string" && value.trim() ? value.trim() : fallback;
+  }
+
+  private toBoolean(value: unknown): boolean {
+    return value === true;
   }
 
   /**

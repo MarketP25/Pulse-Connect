@@ -72,13 +72,15 @@ API endpoints under `src/app/api/dashboard/*`:
 - Dashboard onboarding language input is no longer restricted to a fixed shortlist; it accepts any valid ISO language code and uses Localization+CSI coverage feeds for suggestions.
 - Nearby places are now distance-ranked using geocoded user location from proximity integration in `src/server/dashboard/proximity-client.ts`.
 - Geocoding endpoint uses `PULSCO_PROXIMITY_API_URL` / `PROXIMITY_API_URL` (default: `http://localhost:3002/api/v1/proximity`).
+- Dashboard places tile map uses Google Maps JS API via `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` sourced from `.env.local`.
 
 ## PULSCO AI Availability in Dashboard
 
 - Dashboard chatbot is powered by `src/server/dashboard/pulsco-ai-client.ts`.
 - AI resolution order:
-  1. `PULSCO_AI_API_URL` / `AI_COORDINATOR_URL` live endpoints
-  2. Built-in PULSCO AI fallback mode for continuity
+  1. Backend chatbot service (`PULSCO_CHATBOT_API_URL` / `PULSE_INTELLIGENCE_CORE_URL`) with CSI reason-code context forwarding
+  2. Direct AI engine fallback (`PULSCO_AI_API_URL` / `AI_COORDINATOR_URL`)
+  3. Built-in PULSCO AI fallback mode for continuity
 - UI exposes AI status/provider/mode in dashboard header area.
 
 ## CSI Guardrails

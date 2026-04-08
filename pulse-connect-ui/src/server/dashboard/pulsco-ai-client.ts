@@ -1,4 +1,4 @@
-﻿export interface PulscoAiStatus {
+export interface PulscoAiStatus {
   available: boolean;
   provider: string;
   mode: "live" | "fallback";
@@ -8,11 +8,24 @@ export interface PulscoAiChatResult extends PulscoAiStatus {
   response: string;
 }
 
+const SOURCE_APP = "@pulsco/pulse-connect-ui";
+const CSI_REASON_CODE = "CSI_GATEWAY_ACCESS";
+
 function normalizeBaseUrl(url: string): string {
   return url.endsWith("/") ? url.slice(0, -1) : url;
 }
 
-function getAiBaseUrl(): string {
+function getBackendChatbotBaseUrl(): string {
+  return (
+    process.env.PULSCO_CHATBOT_API_URL ||
+    process.env.PULSCO_BACKEND_CHATBOT_URL ||
+    process.env.PULSE_INTELLIGENCE_CORE_URL ||
+    process.env.PULSCO_INTELLIGENCE_CORE_URL ||
+    ""
+  );
+}
+
+function getAiEngineBaseUrl(): string {
   return process.env.PULSCO_AI_API_URL || process.env.AI_COORDINATOR_URL || "";
 }
 
@@ -57,7 +70,8 @@ async function tryLiveAi(
   baseUrl: string,
   prompt: string,
   userId: string,
-  language: string
+  language: string,
+  context?: Record<string, string | number | boolean>
 ): Promise<string | null> {
   const endpoints = [
     `${normalizeBaseUrl(baseUrl)}/chat`,
@@ -72,14 +86,75 @@ async function tryLiveAi(
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-pulsco-source-app": "@pulsco/pulse-connect-ui"
+          "x-pulsco-source-app": SOURCE_APP,
+          "x-csi-reason-code": CSI_REASON_CODE,
+          "x-pulsco-ai-routing": "direct-ai-engine"
         },
         cache: "no-store",
         body: JSON.stringify({
           prompt,
           userId,
           language,
-          context: "dashboard"
+          context: {
+            module: "dashboard",
+            csiReasonCode: CSI_REASON_CODE,
+            ...(context || {})
+          }
+        })
+      });
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+      const text = extractResponse(payload);
+      if (text) {
+        return text;
+      }
+    } catch {
+      // Continue trying known endpoints.
+    }
+  }
+
+  return null;
+}
+
+async function tryBackendChatbot(
+  baseUrl: string,
+  prompt: string,
+  userId: string,
+  language: string,
+  context?: Record<string, string | number | boolean>
+): Promise<string | null> {
+  const endpoints = [
+    `${normalizeBaseUrl(baseUrl)}/chatbot/message`,
+    `${normalizeBaseUrl(baseUrl)}/api/chatbot/message`,
+    `${normalizeBaseUrl(baseUrl)}/api/v1/chatbot/message`,
+    `${normalizeBaseUrl(baseUrl)}/v1/chatbot/message`
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-pulsco-source-app": SOURCE_APP,
+          "x-csi-reason-code": CSI_REASON_CODE,
+          "x-pulsco-ai-routing": "backend-chatbot"
+        },
+        cache: "no-store",
+        body: JSON.stringify({
+          message: prompt,
+          userId,
+          sessionId: `dashboard-${userId}`,
+          context: {
+            module: "dashboard",
+            language,
+            csiReasonCode: CSI_REASON_CODE,
+            ...(context || {})
+          }
         })
       });
 
@@ -101,19 +176,28 @@ async function tryLiveAi(
 }
 
 export function getPulscoAiStatus(): PulscoAiStatus {
-  const baseUrl = getAiBaseUrl();
-  if (!baseUrl) {
+  const backendChatbotBaseUrl = getBackendChatbotBaseUrl();
+  if (backendChatbotBaseUrl) {
     return {
       available: true,
-      provider: "pulsco-ai-fallback",
-      mode: "fallback"
+      provider: "pulse-intelligence-chatbot",
+      mode: "live"
+    };
+  }
+
+  const aiEngineBaseUrl = getAiEngineBaseUrl();
+  if (aiEngineBaseUrl) {
+    return {
+      available: true,
+      provider: "pulsco-ai-engine",
+      mode: "live"
     };
   }
 
   return {
     available: true,
-    provider: "pulsco-ai-service",
-    mode: "live"
+    provider: "pulsco-ai-fallback",
+    mode: "fallback"
   };
 }
 
@@ -121,16 +205,43 @@ export async function askPulscoAi(params: {
   prompt: string;
   userId: string;
   language: string;
+  context?: Record<string, string | number | boolean>;
 }): Promise<PulscoAiChatResult> {
-  const baseUrl = getAiBaseUrl();
+  const backendChatbotBaseUrl = getBackendChatbotBaseUrl();
 
-  if (baseUrl) {
-    const liveResponse = await tryLiveAi(baseUrl, params.prompt, params.userId, params.language);
+  if (backendChatbotBaseUrl) {
+    const chatbotResponse = await tryBackendChatbot(
+      backendChatbotBaseUrl,
+      params.prompt,
+      params.userId,
+      params.language,
+      params.context
+    );
+    if (chatbotResponse) {
+      return {
+        response: chatbotResponse,
+        available: true,
+        provider: "pulse-intelligence-chatbot",
+        mode: "live"
+      };
+    }
+  }
+
+  const aiEngineBaseUrl = getAiEngineBaseUrl();
+
+  if (aiEngineBaseUrl) {
+    const liveResponse = await tryLiveAi(
+      aiEngineBaseUrl,
+      params.prompt,
+      params.userId,
+      params.language,
+      params.context
+    );
     if (liveResponse) {
       return {
         response: liveResponse,
         available: true,
-        provider: "pulsco-ai-service",
+        provider: "pulsco-ai-engine",
         mode: "live"
       };
     }

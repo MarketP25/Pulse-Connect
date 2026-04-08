@@ -5,3 +5,4 @@ export * from "./pc365Guard.nest";
 export * from "./signature-verifier";
 export * from "./ai-rule-interpreter";
 export * from "./types";
+export * from "./localization/global-locale-catalog";

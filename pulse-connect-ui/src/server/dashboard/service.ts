@@ -576,7 +576,14 @@ export async function askDashboardChatbot(userId: string, prompt: string) {
     const ai = await askPulscoAi({
       prompt,
       userId,
-      language: user.preferredLanguage
+      language: user.preferredLanguage,
+      context: {
+        tier: user.tier,
+        role: user.role,
+        kycStatus: user.kycStatus,
+        recommendations: store.getRecommendations(user.id).length,
+        alerts: store.getAlerts(user.id).length
+      }
     });
 
     return {

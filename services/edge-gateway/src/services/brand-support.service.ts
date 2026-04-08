@@ -420,8 +420,8 @@ export class BrandSupportService {
   private async readActiveBrandProfile(): Promise<BrandProfile> {
     const fallback: BrandProfile = {
       iconVersion: DEFAULT_ICON_VERSION,
-      themeColor: "#7c3aed",
-      backgroundColor: "#0f172a",
+      themeColor: "#0A1428",
+      backgroundColor: "#0F1929",
       origins: []
     };
 

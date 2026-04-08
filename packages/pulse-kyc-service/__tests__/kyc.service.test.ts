@@ -28,10 +28,10 @@ describe("PulseKycService", () => {
     expect(started?.level).toBe("full");
   });
 
-  it("applies full level for organisation and partner roles", () => {
+  it("does not require KYC for basic tier regardless of role", () => {
     const service = new PulseKycService(new InMemoryKycRepository());
-    expect(service.determineRequirementLevel("organisation", "basic")).toBe("full");
-    expect(service.determineRequirementLevel("partner", "basic")).toBe("full");
+    expect(service.determineRequirementLevel("organisation", "basic")).toBe("none");
+    expect(service.determineRequirementLevel("partner", "basic")).toBe("none");
   });
 
   it("updates status through verification callbacks", async () => {

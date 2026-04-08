@@ -32,9 +32,9 @@ function Card({
 }) {
   if (disabled) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-70">
-        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-        <p className="mt-1 text-sm text-slate-600">{description}</p>
+      <div className="rounded-xl border border-nebula-500 bg-nebula-900/70 p-4 opacity-70">
+        <h3 className="text-sm font-semibold text-tech-white">{title}</h3>
+        <p className="mt-1 text-sm text-slate-300">{description}</p>
       </div>
     );
   }
@@ -42,10 +42,10 @@ function Card({
   return (
     <Link
       href={href}
-      className="block rounded-xl border border-sky-200 bg-white p-4 hover:border-sky-400 hover:bg-sky-50"
+      className="block rounded-xl border border-pulse-cyan-500/50 bg-nebula-900/70 p-4 hover:border-pulse-cyan-300 hover:bg-nebula-900"
     >
-      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-      <p className="mt-1 text-sm text-slate-600">{description}</p>
+      <h3 className="text-sm font-semibold text-tech-white">{title}</h3>
+      <p className="mt-1 text-sm text-slate-300">{description}</p>
     </Link>
   );
 }
@@ -55,10 +55,10 @@ export function PartnerInvestorNav({ user, userId, labels }: Props) {
   const suffix = `?userId=${encodeURIComponent(userId)}`;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-pulse-cyan-500/30 bg-nebula-800/85 p-5 shadow-md">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">{labels.title}</h2>
-        <p className="text-sm text-slate-600">{labels.subtitle}</p>
+        <h2 className="text-lg font-semibold text-tech-white">{labels.title}</h2>
+        <p className="text-sm text-slate-300">{labels.subtitle}</p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -77,7 +77,7 @@ export function PartnerInvestorNav({ user, userId, labels }: Props) {
       </div>
 
       {!enterpriseEligible ? (
-        <p className="mt-3 text-xs font-medium text-amber-700">{labels.enterpriseRequired}</p>
+        <p className="mt-3 text-xs font-medium text-amber-300">{labels.enterpriseRequired}</p>
       ) : null}
     </section>
   );

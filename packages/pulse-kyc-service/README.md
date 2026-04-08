@@ -4,11 +4,12 @@ Isolated KYC workflow service for onboarding and subscription upgrades.
 
 ## Scope
 
-- Determines whether KYC is required from role + subscription tier.
+- Determines whether KYC is required from subscription tier.
 - Starts and tracks KYC session state (`pending`, `verified`, `rejected`).
 - Provides risk-based automation evaluation for pending KYC sessions.
 - Stores auditable KYC actions through a repository interface.
 - Keeps KYC logic isolated from identity/account creation.
+- Role metadata is retained for audit trails, but tier drives KYC requirement levels.
 
 ## Usage
 

@@ -15,8 +15,10 @@ Next.js application for Pulse Connect (PULSCO). This UI consumes backend service
 - Localization and geocoding are subsystem-backed:
   - Localization dictionary translation via `PULSCO_LOCALIZATION_API_URL` (or Azure translator fallback).
   - Places distance ranking via proximity geocoding (`PULSCO_PROXIMITY_API_URL`).
+  - Places tile map rendering via Google Maps JS API (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` from `.env.local`).
 - PULSCO AI chatbot is available in the dashboard:
-  - Live mode via `PULSCO_AI_API_URL` (or `AI_COORDINATOR_URL`)
+  - Primary live mode via backend chatbot (`PULSCO_CHATBOT_API_URL` or `PULSE_INTELLIGENCE_CORE_URL`)
+  - Secondary live mode via direct AI engine (`PULSCO_AI_API_URL` or `AI_COORDINATOR_URL`)
   - Automatic fallback mode if live endpoint is unavailable
 
 ## Getting Started
@@ -46,6 +48,8 @@ Open http://localhost:3000 in your browser when the dev server is running.
   - `PULSCO_CSI_GATEWAY_URL`
   - `PULSCO_LOCALIZATION_API_URL`
   - `PULSCO_PROXIMITY_API_URL`
+  - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+  - `PULSCO_CHATBOT_API_URL` or `PULSE_INTELLIGENCE_CORE_URL`
   - `PULSCO_AI_API_URL` or `AI_COORDINATOR_URL`
   - `PULSCO_REPORTING_API_URL`
   - `PULSCO_IDENTITY_API_URL`

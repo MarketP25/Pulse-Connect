@@ -2,6 +2,10 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ClientKafka } from "@nestjs/microservices";
 import { EdgeTelemetryService } from "../services/telemetry.service";
 import { AiRuleInterpreter } from "@/shared/lib/src/ai-rule-interpreter";
+import {
+  isSupportedLanguage,
+  isSupportedRegion
+} from "@/shared/localization/global-locale-catalog";
 
 export interface LocalizationRequest {
   requestId: string;
@@ -143,12 +147,7 @@ export class LocalizationAdapter {
     const flags = [];
 
     // Validate supported languages
-    const supportedLanguages = ["en", "es", "fr", "de", "zh", "ja", "ar", "hi", "pt", "ru"];
-
-    if (
-      request.context?.sourceLanguage &&
-      !supportedLanguages.includes(request.context.sourceLanguage)
-    ) {
+    if (request.context?.sourceLanguage && !isSupportedLanguage(request.context.sourceLanguage)) {
       return {
         allowed: false,
         blockedReason: "Unsupported source language",
@@ -158,7 +157,7 @@ export class LocalizationAdapter {
 
     if (
       request.context?.targetLanguage &&
-      !supportedLanguages.includes(request.context.targetLanguage)
+      !isSupportedLanguage(request.context.targetLanguage)
     ) {
       return {
         allowed: false,
@@ -168,6 +167,23 @@ export class LocalizationAdapter {
     }
 
     flags.push("languages_supported");
+
+    // Validate region code only when ISO-like (avoid blocking cloud region identifiers)
+    if (request.context?.regionCode) {
+      const regionCode = request.context.regionCode.trim();
+      const looksIsoRegion = /^[A-Za-z]{2}$/.test(regionCode) || /^[0-9]{3}$/.test(regionCode);
+      if (looksIsoRegion && !isSupportedRegion(regionCode)) {
+        return {
+          allowed: false,
+          blockedReason: "Unsupported region code",
+          flags: ["unsupported_region_code"]
+        };
+      }
+
+      if (looksIsoRegion) {
+        flags.push("region_supported");
+      }
+    }
 
     // Validate content length
     if (request.context?.content && request.context.content.length > 50000) {

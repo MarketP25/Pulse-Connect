@@ -10,6 +10,10 @@ import { PolicyCacheService } from "./services/policy-cache.service";
 import { ExecutionEngineService } from "./services/execution-engine.service";
 import { TelemetryService } from "./services/telemetry.service";
 import { BrandSupportService } from "./services/brand-support.service";
+import { CrossModuleEnrichmentService } from "./services/cross-module-enrichment.service";
+import { SubsystemAdapterRegistryService } from "./services/subsystem-adapter-registry.service";
+import { EcommerceAdapter } from "./adapters/ecommerce.adapter";
+import { BillingAdapter } from "./adapters/billing.adapter";
 
 @Module({
   imports: [
@@ -71,6 +75,10 @@ import { BrandSupportService } from "./services/brand-support.service";
     PolicyCacheService,
     ExecutionEngineService,
     TelemetryService,
+    CrossModuleEnrichmentService,
+    SubsystemAdapterRegistryService,
+    EcommerceAdapter,
+    BillingAdapter,
     BrandSupportService
   ],
   exports: [EdgeGatewayService]

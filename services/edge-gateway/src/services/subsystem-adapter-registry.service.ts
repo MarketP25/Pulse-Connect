@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import {
   SubsystemAdapter,
@@ -21,6 +21,7 @@ import { AiProgramsAdapter } from "../adapters/ai-programs.adapter";
 import { LocalizationAdapter } from "../adapters/localization.adapter";
 import { TranslationsAdapter } from "../adapters/translations.adapter";
 import { BillingAdapter } from "../adapters/billing.adapter";
+import { CrossModuleEnrichmentService } from "./cross-module-enrichment.service";
 
 export interface AdapterRegistration {
   subsystem: string;
@@ -34,52 +35,63 @@ export interface AdapterRegistration {
 export class SubsystemAdapterRegistryService {
   private readonly logger = new Logger(SubsystemAdapterRegistryService.name);
   private readonly adapters = new Map<string, AdapterRegistration>();
+  private initialized = false;
+  private readonly initializationPromise: Promise<void>;
 
-  constructor(private readonly moduleRef: ModuleRef) {
-    this.initializeAdapters();
+  constructor(
+    private readonly moduleRef: ModuleRef,
+    private readonly crossModuleEnrichment: CrossModuleEnrichmentService
+  ) {
+    this.initializationPromise = this.initializeAdapters();
   }
 
   /**
    * Initialize and register all subsystem adapters
    */
   private async initializeAdapters() {
-    try {
-      this.logger.log("Initializing subsystem adapter registry...");
+    this.logger.log("Initializing subsystem adapter registry...");
 
-      // Register core adapters
-      await this.registerAdapter("ecommerce", EcommerceAdapter);
-      await this.registerAdapter("chatbot", ChatbotAdapter);
-      await this.registerAdapter("places", PlacesAdapter);
-      await this.registerAdapter("matchmaking", MatchmakingAdapter);
+    const specs: Array<[string, new (...args: any[]) => unknown]> = [
+      ["ecommerce", EcommerceAdapter],
+      ["chatbot", ChatbotAdapter],
+      ["places", PlacesAdapter],
+      ["matchmaking", MatchmakingAdapter],
+      ["payments", PaymentsAdapter],
+      ["fraud", FraudAdapter],
+      ["proximity-geocoding", ProximityGeocodingAdapter],
+      ["communication", CommunicationAdapter],
+      ["marketing", MarketingAdapter],
+      ["ai-programs", AiProgramsAdapter],
+      ["localization", LocalizationAdapter],
+      ["translations", TranslationsAdapter],
+      ["billing", BillingAdapter]
+    ];
 
-      // Register additional adapters
-      await this.registerAdapter("payments", PaymentsAdapter);
-      await this.registerAdapter("fraud", FraudAdapter);
-      await this.registerAdapter("proximity-geocoding", ProximityGeocodingAdapter);
-      await this.registerAdapter("communication", CommunicationAdapter);
-      await this.registerAdapter("marketing", MarketingAdapter);
-      await this.registerAdapter("ai-programs", AiProgramsAdapter);
-      await this.registerAdapter("localization", LocalizationAdapter);
-      await this.registerAdapter("translations", TranslationsAdapter);
-      await this.registerAdapter("billing", BillingAdapter);
-
-      this.logger.log(`Registered ${this.adapters.size} subsystem adapters`);
-    } catch (error) {
-      this.logger.error(`Failed to initialize adapter registry: ${error.message}`);
-      throw error;
+    let registeredCount = 0;
+    for (const [subsystemType, adapterClass] of specs) {
+      const registered = await this.registerAdapter(subsystemType, adapterClass);
+      if (registered) {
+        registeredCount += 1;
+      }
     }
+
+    this.initialized = true;
+    this.logger.log(`Adapter registry ready: ${registeredCount}/${specs.length} adapters registered`);
   }
 
   /**
    * Register a subsystem adapter
    */
-  private async registerAdapter(subsystemType: string, adapterClass: any) {
+  private async registerAdapter(subsystemType: string, adapterClass: any): Promise<boolean> {
     try {
       // Get adapter instance from module
       const adapter = this.moduleRef.get(adapterClass, { strict: false });
 
       if (!adapter) {
-        throw new Error(`Failed to resolve adapter instance for ${subsystemType}`);
+        this.logger.warn(
+          `Skipping adapter registration for ${subsystemType}: provider not available in module context`
+        );
+        return false;
       }
 
       const registration: AdapterRegistration = {
@@ -98,9 +110,12 @@ export class SubsystemAdapterRegistryService {
 
       this.adapters.set(subsystemType, registration);
       this.logger.debug(`Registered adapter for subsystem: ${subsystemType}`);
+      return true;
     } catch (error) {
-      this.logger.error(`Failed to register adapter for ${subsystemType}: ${error.message}`);
-      throw error;
+      this.logger.warn(
+        `Skipping adapter registration for ${subsystemType}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return false;
     }
   }
 
@@ -113,6 +128,12 @@ export class SubsystemAdapterRegistryService {
     context: AdapterContext
   ): Promise<AdapterResult> {
     try {
+      const coordinatedRequest = this.hasCrossModuleContext(request)
+        ? request
+        : this.crossModuleEnrichment.enrichRequest(
+            request,
+            (context?.headers as Record<string, string | undefined>) || {}
+          );
       const registration = this.adapters.get(subsystem);
 
       if (!registration) {
@@ -128,14 +149,25 @@ export class SubsystemAdapterRegistryService {
       this.logger.debug(`Executing request through ${subsystem} adapter`);
 
       // Execute through adapter
-      const result = await this.runAdapter(subsystem, registration.adapter, request, context);
+      const result = await this.runAdapter(
+        subsystem,
+        registration.adapter,
+        coordinatedRequest,
+        context
+      );
 
       // Add adapter metadata
       result.metadata = {
         ...result.metadata,
         adapterVersion: registration.version,
         adapterCapabilities: registration.capabilities,
-        executedAt: new Date().toISOString()
+        executedAt: new Date().toISOString(),
+        coordination:
+          coordinatedRequest.context &&
+          typeof coordinatedRequest.context === "object" &&
+          !Array.isArray(coordinatedRequest.context)
+            ? (coordinatedRequest.context as Record<string, unknown>).crossModule
+            : undefined
       };
 
       return result;
@@ -178,6 +210,14 @@ export class SubsystemAdapterRegistryService {
    */
   hasAdapter(subsystem: string): boolean {
     return this.adapters.has(subsystem);
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  waitUntilInitialized(): Promise<void> {
+    return this.initializationPromise;
   }
 
   /**
@@ -327,6 +367,15 @@ export class SubsystemAdapterRegistryService {
       intent: String(context.intent || ""),
       amount: Number(context.amount || 0)
     };
+  }
+
+  private hasCrossModuleContext(request: ExecuteRequestDto): boolean {
+    const context =
+      request.context && typeof request.context === "object" && !Array.isArray(request.context)
+        ? (request.context as Record<string, unknown>)
+        : {};
+    const crossModule = context.crossModule;
+    return Boolean(crossModule && typeof crossModule === "object" && !Array.isArray(crossModule));
   }
 
   /**

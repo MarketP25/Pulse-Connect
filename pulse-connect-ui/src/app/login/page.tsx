@@ -37,7 +37,7 @@ export default function LoginPage() {
       >
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold text-indigo-700">Pulsco</h1>
-          <p className="text-gray-500 text-sm mt-1">Your digital marketing command center</p>
+          <p className="text-gray-500 text-sm mt-1">Your planetary digital marketing command center</p>
         </div>
 
         <h2 className="text-2xl font-bold mb-6 text-center">Sign In to Pulsco</h2>

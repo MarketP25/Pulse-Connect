@@ -5,6 +5,10 @@ describe("pulsco-ai client", () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+    delete process.env.PULSCO_CHATBOT_API_URL;
+    delete process.env.PULSCO_BACKEND_CHATBOT_URL;
+    delete process.env.PULSE_INTELLIGENCE_CORE_URL;
+    delete process.env.PULSCO_INTELLIGENCE_CORE_URL;
     delete process.env.PULSCO_AI_API_URL;
     delete process.env.AI_COORDINATOR_URL;
   });
@@ -16,7 +20,31 @@ describe("pulsco-ai client", () => {
     expect(status.mode).toBe("fallback");
   });
 
-  it("uses live PULSCO AI when endpoint responds", async () => {
+  it("uses backend chatbot before direct AI engine when both are configured", async () => {
+    process.env.PULSCO_CHATBOT_API_URL = "http://localhost:4020";
+    process.env.PULSCO_AI_API_URL = "http://localhost:4010";
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ response: "Backend chatbot response" })
+    } as Response);
+    global.fetch = fetchMock;
+
+    const result = await askPulscoAi({
+      prompt: "hello",
+      userId: "demo-basic",
+      language: "en"
+    });
+
+    expect(result.mode).toBe("live");
+    expect(result.provider).toBe("pulse-intelligence-chatbot");
+    expect(result.response).toBe("Backend chatbot response");
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("http://localhost:4020"),
+      expect.any(Object)
+    );
+  });
+
+  it("uses direct AI engine when backend chatbot is unavailable", async () => {
     process.env.PULSCO_AI_API_URL = "http://localhost:4010";
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -30,7 +58,7 @@ describe("pulsco-ai client", () => {
     });
 
     expect(result.mode).toBe("live");
-    expect(result.provider).toBe("pulsco-ai-service");
+    expect(result.provider).toBe("pulsco-ai-engine");
     expect(result.response).toBe("Live AI response");
   });
 
