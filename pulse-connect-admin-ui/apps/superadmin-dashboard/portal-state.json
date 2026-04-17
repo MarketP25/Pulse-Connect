@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0-planetary",
+  "checksum": "sha256:8f3e2b1c...",
+  "governance": {
+    "marp_enforced": true,
+    "dual_control_port": 3009,
+    "required_tiers": {
+      "asset_freeze": 4,
+      "identity_ban": 3,
+      "marketing_blast": 2
+    }
+  },
+  "visual_protocols": {
+    "emergency_overlay": "pulse-red-700",
+    "founder_accent": "gold-signature",
+    "environment_badge": "mandatory"
+  }
+}

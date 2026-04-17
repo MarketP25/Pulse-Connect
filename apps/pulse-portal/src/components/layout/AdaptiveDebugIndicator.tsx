@@ -1,6 +1,6 @@
 "use client";
 
-import { useAdaptiveLayout } from "@pulsco/ui-components";
+import { useAdaptiveLayout } from "@/packages/ui-components";
 
 export function AdaptiveDebugIndicator() {
   const { width, screenClass, isTouch, prefersDark, prefersLight } = useAdaptiveLayout();

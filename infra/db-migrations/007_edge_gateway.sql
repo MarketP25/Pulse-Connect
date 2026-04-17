@@ -162,9 +162,11 @@ CREATE INDEX idx_edge_anomalies_type_severity ON edge_anomalies(anomaly_type, se
 CREATE INDEX idx_edge_anomalies_created_at ON edge_anomalies(created_at DESC);
 
 CREATE INDEX idx_edge_policy_snapshots_subsystem_region ON edge_policy_snapshots(subsystem, region_code);
-CREATE INDEX idx_edge_policy_snapshots_active ON edge_policy_snapshots(is_active) WHERE is_active = true;
+-- Composite index to speed up the specific query used by the Gateway for current active policies
+CREATE INDEX idx_edge_policy_snapshots_active_lookup ON edge_policy_snapshots(subsystem, region_code, effective_from DESC) WHERE is_active = true;
 
 CREATE INDEX idx_edge_adapter_registry_subsystem ON edge_adapter_registry(subsystem);
+CREATE INDEX idx_edge_adapter_registry_capabilities ON edge_adapter_registry USING GIN (capabilities);
 
 -- Extended subsystem indexes
 CREATE INDEX idx_matchmaking_events_match_id ON edge_matchmaking_events(match_id);

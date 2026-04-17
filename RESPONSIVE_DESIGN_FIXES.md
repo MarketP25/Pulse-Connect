@@ -14,40 +14,34 @@ export default {
   theme: {
     extend: {
       screens: {
-        // Add these new tiny screen breakpoints
-        'xs': '320px',    // Small phones (iPhone SE)
-        'xxs': '280px',   // Smartwatch
-        
-        // Existing (keep these)
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
-        
-        // Add these new ultra-wide breakpoints
-        '3xl': '1920px',  // Full HD wide
-        '4xl': '2560px',  // QHD (2K)
-        '5xl': '3840px',  // 4K Ultra HD
-        '6xl': '5120px',  // 5K
-        '7xl': '7680px',  // 8K
+        xs: "320px", // NEW: Smallest supported phone (iPhone SE/Mini)
+        xxs: "280px", // Smartwatch/Legacy
+
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1536px",
+        "3xl": "2560px", // NEW: QHD (2K) / Ultra-wide monitors
+        "5xl": "3840px", // 4K Ultra HD
+        "6xl": "5120px", // 5K
+        "7xl": "7680px" // 8K
       },
-      
+
       // Update max container widths for wide screens
       maxWidth: {
-        'xs': '320px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
-        '3xl': '1728px',  // NEW - For 1920px screens
-        '4xl': '1920px',  // NEW - For 2560px screens
-        '5xl': '2560px',  // NEW - For 4K
-        '6xl': '3440px',  // NEW - For ultra-wide cinema
-      },
-    },
-  },
+        xs: "320px",
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1536px",
+        "3xl": "2240px", // NEW - Constraint for 2560px displays
+        "5xl": "2560px", // NEW - For 4K
+        "6xl": "3440px" // NEW - For ultra-wide cinema
+      }
+    }
+  }
 };
 ```
 
@@ -125,6 +119,17 @@ Replace your `styles/design-tokens.css` typography section:
   }
 }
 
+/* Ultra-Wide (2560px+) */
+@media (min-width: 2560px) {
+  :root {
+    --font-size-h1: 64px;
+    --font-size-h2: 48px;
+    --font-size-h3: 36px;
+    --font-size-body: 18px;
+    --font-size-caption: 14px;
+  }
+}
+
 /* Ultra-Wide (1920px+) */
 @media (min-width: 1920px) {
   :root {
@@ -170,16 +175,16 @@ Update your Navigation component:
 
 ```tsx
 // packages/ui-components/src/components/Navigation.tsx
-import React, { HTMLAttributes, useState } from 'react';
-import clsx from 'clsx';
-import { Menu, X } from 'lucide-react';
+import React, { HTMLAttributes, useState } from "react";
+import clsx from "clsx";
+import { Menu, X } from "lucide-react";
 
 interface NavigationProps extends HTMLAttributes<HTMLElement> {
   logo?: React.ReactNode;
   title?: string;
   children?: React.ReactNode;
   sticky?: boolean;
-  variant?: 'light' | 'dark';
+  variant?: "light" | "dark";
   onMobileMenuToggle?: (open: boolean) => void;
 }
 
@@ -190,7 +195,7 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
       title,
       children,
       sticky = true,
-      variant = 'dark',
+      variant = "dark",
       onMobileMenuToggle,
       className,
       ...props
@@ -206,13 +211,13 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
     };
 
     const baseStyles =
-      'flex items-center justify-between w-full px-sm md:px-md lg:px-lg py-sm md:py-md border-b transition-all duration-300';
+      "flex items-center justify-between w-full px-xs xs:px-sm md:px-md lg:px-lg py-sm md:py-md border-b transition-all duration-300 gap-safe-gap";
 
-    const stickyStyles = sticky ? 'sticky top-0 z-50' : '';
+    const stickyStyles = sticky ? "sticky top-0 z-50" : "";
 
     const variantStyles = {
-      light: 'bg-cosmic-slate border-nebula-500',
-      dark: 'bg-nebula-900 border-nebula-500',
+      light: "bg-brand-surface-low border-brand-border-subtle",
+      dark: "bg-brand-surface-md border-brand-border-subtle"
     };
 
     return (
@@ -222,12 +227,10 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
         {...props}
       >
         {/* Left Side - Logo & Title */}
-        <div className="flex items-center gap-sm md:gap-md">
+        <div className="flex items-center gap-xs xs:gap-sm md:gap-md">
           {logo && <div className="flex-shrink-0">{logo}</div>}
           {title && (
-            <h1 className="text-h4 font-bold text-tech-white hidden sm:block">
-              {title}
-            </h1>
+            <h1 className="text-h4 font-bold text-tech-white hidden xs:block sm:block">{title}</h1>
           )}
         </div>
 
@@ -235,9 +238,7 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
         {children && (
           <>
             {/* Desktop Navigation (hidden on mobile) */}
-            <div className="hidden md:flex items-center gap-sm md:gap-md">
-              {children}
-            </div>
+            <div className="hidden md:flex items-center gap-sm md:gap-md">{children}</div>
 
             {/* Mobile Hamburger Button */}
             <button
@@ -245,19 +246,13 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
               onClick={toggleMobileMenu}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? (
-                <X size={24} />
-              ) : (
-                <Menu size={24} />
-              )}
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
             {/* Mobile Menu Dropdown */}
             {mobileMenuOpen && (
               <div className="absolute top-full left-0 right-0 bg-nebula-800 border-b border-nebula-500 p-md md:hidden">
-                <div className="flex flex-col gap-sm">
-                  {children}
-                </div>
+                <div className="flex flex-col gap-sm">{children}</div>
               </div>
             )}
           </>
@@ -267,7 +262,7 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
   }
 );
 
-Navigation.displayName = 'Navigation';
+Navigation.displayName = "Navigation";
 
 export default Navigation;
 export type { NavigationProps };
@@ -281,8 +276,8 @@ Update your Card component:
 
 ```tsx
 // packages/ui-components/src/components/Card.tsx
-import React, { HTMLAttributes } from 'react';
-import clsx from 'clsx';
+import React, { HTMLAttributes } from "react";
+import clsx from "clsx";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   elevated?: boolean;
@@ -293,15 +288,15 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ elevated = false, interactive = false, className, children, ...props }, ref) => {
     const baseStyles =
-      'bg-nebula-800 border border-nebula-500 rounded-sm md:rounded-md lg:rounded-lg p-md md:p-lg 3xl:p-2xl transition-all duration-300';
+      "bg-nebula-800 border border-nebula-500 rounded-sm md:rounded-md lg:rounded-lg p-md md:p-lg 3xl:p-2xl transition-all duration-300";
 
     const elevatedStyles = elevated
-      ? 'shadow-sm md:shadow-md 3xl:shadow-lg hover:shadow-md md:hover:shadow-lg 3xl:hover:shadow-xl'
-      : 'shadow-sm hover:shadow-md md:shadow-md md:hover:shadow-lg';
+      ? "shadow-sm md:shadow-md 3xl:shadow-lg hover:shadow-md md:hover:shadow-lg 3xl:hover:shadow-xl"
+      : "shadow-sm hover:shadow-md md:shadow-md md:hover:shadow-lg";
 
     const interactiveStyles = interactive
-      ? 'cursor-pointer hover:border-pulse-cyan-500 hover:border-opacity-50'
-      : '';
+      ? "cursor-pointer hover:border-pulse-cyan-500 hover:border-opacity-50"
+      : "";
 
     return (
       <div
@@ -315,7 +310,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
   }
 );
 
-Card.displayName = 'Card';
+Card.displayName = "Card";
 
 export default Card;
 export type { CardProps };
@@ -330,16 +325,16 @@ Update Button component to adapt to screen size:
 ```tsx
 // Update the sizeStyles in your Button component
 const sizeStyles = {
-  sm: 'px-sm py-xs text-xs md:text-sm',     // More responsive
-  md: 'px-md py-sm text-sm md:text-base lg:text-base',
-  lg: 'px-lg py-md text-base md:text-lg 3xl:text-xl',
+  sm: "px-sm py-xs text-xs md:text-sm", // More responsive
+  md: "px-md py-sm text-sm md:text-base lg:text-base",
+  lg: "px-lg py-md text-base md:text-lg 3xl:text-xl"
 };
 
 // Or add fully responsive size variants
 const responsiveSizeStyles = {
-  'responsive-sm': 'px-xs md:px-sm py-xs md:py-xs text-xs md:text-sm',
-  'responsive-md': 'px-sm md:px-md py-sm md:py-md text-sm md:text-base',
-  'responsive-lg': 'px-md md:px-lg py-md md:py-md text-base md:text-lg',
+  "responsive-sm": "px-xs md:px-sm py-xs md:py-xs text-xs md:text-sm",
+  "responsive-md": "px-sm md:px-md py-sm md:py-md text-sm md:text-base",
+  "responsive-lg": "px-md md:px-lg py-md md:py-md text-base md:text-lg"
 };
 ```
 
@@ -390,15 +385,17 @@ Add to `styles/tailwind.css`:
 @media (pointer: coarse) {
   /* Touch devices - increase touch targets */
   button {
-    @apply min-h-11 min-w-11;  /* 44x44px minimum */
+    @apply min-h-11 min-w-11; /* 44x44px minimum */
   }
-  
+
   a {
     @apply min-h-10;
     padding: var(--spacing-sm) var(--spacing-md);
   }
-  
-  input, textarea, select {
+
+  input,
+  textarea,
+  select {
     @apply min-h-11;
   }
 }
@@ -409,7 +406,7 @@ Add to `styles/tailwind.css`:
   a:hover {
     @apply underline;
   }
-  
+
   button:hover {
     @apply scale-105;
   }
@@ -421,7 +418,7 @@ Add to `styles/tailwind.css`:
   nav {
     @apply py-xs;
   }
-  
+
   body {
     @apply text-sm;
   }
@@ -467,10 +464,10 @@ Add this to your app to visualize breakpoints:
 
 ```tsx
 // utils/useResponsive.ts
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export function useResponsive() {
-  const [screenSize, setScreenSize] = useState<string>('');
+  const [screenSize, setScreenSize] = useState<string>("");
   const [width, setWidth] = useState<number>(0);
 
   useEffect(() => {
@@ -478,23 +475,23 @@ export function useResponsive() {
       const w = window.innerWidth;
       setWidth(w);
 
-      if (w < 280) setScreenSize('xxs (< 280px)');
-      else if (w < 360) setScreenSize('tiny (280-360px)');
-      else if (w < 480) setScreenSize('small (360-480px)');
-      else if (w < 640) setScreenSize('mobile (480-640px)');
-      else if (w < 768) setScreenSize('sm (640-768px)');
-      else if (w < 1024) setScreenSize('md (768-1024px)');
-      else if (w < 1280) setScreenSize('lg (1024-1280px)');
-      else if (w < 1536) setScreenSize('xl (1280-1536px)');
-      else if (w < 1920) setScreenSize('2xl (1536-1920px)');
-      else if (w < 2560) setScreenSize('3xl (1920-2560px)');
-      else if (w < 3840) setScreenSize('4xl (2560-3840px)');
-      else setScreenSize('5xl+ (3840+px)');
+      if (w < 280) setScreenSize("xxs (< 280px)");
+      else if (w < 360) setScreenSize("tiny (280-360px)");
+      else if (w < 480) setScreenSize("small (360-480px)");
+      else if (w < 640) setScreenSize("mobile (480-640px)");
+      else if (w < 768) setScreenSize("sm (640-768px)");
+      else if (w < 1024) setScreenSize("md (768-1024px)");
+      else if (w < 1280) setScreenSize("lg (1024-1280px)");
+      else if (w < 1536) setScreenSize("xl (1280-1536px)");
+      else if (w < 1920) setScreenSize("2xl (1536-1920px)");
+      else if (w < 2560) setScreenSize("3xl (1920-2560px)");
+      else if (w < 3840) setScreenSize("4xl (2560-3840px)");
+      else setScreenSize("5xl+ (3840+px)");
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return { screenSize, width };
@@ -507,16 +504,16 @@ export function BreakpointDebugger() {
   return (
     <div
       style={{
-        position: 'fixed',
+        position: "fixed",
         bottom: 16,
         right: 16,
-        padding: '8px 16px',
-        background: 'rgba(0, 0, 0, 0.8)',
-        color: '#00d9ff',
-        borderRadius: '4px',
-        fontSize: '12px',
-        fontFamily: 'monospace',
-        zIndex: 9999,
+        padding: "8px 16px",
+        background: "rgba(0, 0, 0, 0.8)",
+        color: "#00d9ff",
+        borderRadius: "4px",
+        fontSize: "12px",
+        fontFamily: "monospace",
+        zIndex: 9999
       }}
     >
       <div>{width}px</div>
@@ -531,21 +528,25 @@ export function BreakpointDebugger() {
 ## Implementation Timeline
 
 ### Day 1 (2 hours)
+
 - [ ] Add breakpoints to tailwind.config.js
 - [ ] Update typography CSS variables
 - [ ] Test at 360px and 1920px
 
 ### Day 2 (3 hours)
+
 - [ ] Update Navigation component
 - [ ] Update Card component
 - [ ] Update Button component
 
 ### Day 3 (2 hours)
+
 - [ ] Add touch/pointer detection
 - [ ] Test all breakpoints
 - [ ] Deploy with feature flag
 
 ### Day 4 (1 hour)
+
 - [ ] Monitor for issues
 - [ ] Fine-tune breakpoints if needed
 - [ ] Remove feature flag
@@ -554,19 +555,19 @@ export function BreakpointDebugger() {
 
 ## Responsive Design Checklist
 
-| Breakpoint | Component | Status | Done |
-|------------|-----------|--------|------|
-| 280px | All | Design | ✅ |
-| 360px | Nav, Button, Card | Test | ✅ |
-| 480px | Typography, Form | Test | ✅ |
-| 640px | Grid layouts | Test | ✅ |
-| 768px | Tablet layout | Existing | ✅ |
-| 1024px | Desktop layout | Existing | ✅ |
-| 1280px | Large desktop | Existing | ✅ |
-| 1536px | XL desktop | Existing | ✅ |
-| 1920px | Full HD | Test | ✅ |
-| 2560px | QHD | Test | ✅ |
-| 3840px | 4K | Optional | - |
+| Breakpoint | Component         | Status   | Done |
+| ---------- | ----------------- | -------- | ---- |
+| 280px      | All               | Design   | ✅   |
+| 360px      | Nav, Button, Card | Test     | ✅   |
+| 480px      | Typography, Form  | Test     | ✅   |
+| 640px      | Grid layouts      | Test     | ✅   |
+| 768px      | Tablet layout     | Existing | ✅   |
+| 1024px     | Desktop layout    | Existing | ✅   |
+| 1280px     | Large desktop     | Existing | ✅   |
+| 1536px     | XL desktop        | Existing | ✅   |
+| 1920px     | Full HD           | Test     | ✅   |
+| 2560px     | QHD               | Test     | ✅   |
+| 3840px     | 4K                | Optional | -    |
 
 ---
 
@@ -597,7 +598,7 @@ export function BreakpointDebugger() {
    - In production, add central middleware to prefill server-side via `headers['user-agent']` heuristics (optional).
 
 4. **Component library strategy**
-   - Build all atomic components (`Button`, `Card`, `Navigation`, etc.) with responsive variants `xxs`, `xs`, ... 
+   - Build all atomic components (`Button`, `Card`, `Navigation`, etc.) with responsive variants `xxs`, `xs`, ...
    - Add `@variants` helper to components via `screenClass` state for on-demand content swap.
 
 5. **CMS / content strategy**
@@ -624,9 +625,10 @@ export function BreakpointDebugger() {
    - Add `Theming and Adaptive API` docs in central wiki or repo root.
 
 10. **Planetary scaling**
-   - Use CDN + `cache-control` aggressively for static tokens and icons.
-   - edge compute for localization + responsive content adaptation API.
-   - optimize watchers for low bandwidth and high-latency environments.
+
+- Use CDN + `cache-control` aggressively for static tokens and icons.
+- edge compute for localization + responsive content adaptation API.
+- optimize watchers for low bandwidth and high-latency environments.
 
 This central strategy ensures the system is wired across UI + backend with long-term maintainability and consistency at scale.
 
@@ -676,15 +678,15 @@ npx responsively --url <your-url>
 
 After implementing these fixes:
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Smallest breakpoint | 640px | 280px |
-| Largest breakpoint | 1536px | 7680px |
+| Metric                | Before  | After   |
+| --------------------- | ------- | ------- |
+| Smallest breakpoint   | 640px   | 280px   |
+| Largest breakpoint    | 1536px  | 7680px  |
 | Responsive typography | 2 sizes | 6 sizes |
-| Mobile menu | ❌ | ✅ |
-| Touch optimization | ❌ | ✅ |
-| Ultra-wide support | ❌ | ✅ |
-| Overall grade | D+ | A- |
+| Mobile menu           | ❌      | ✅      |
+| Touch optimization    | ❌      | ✅      |
+| Ultra-wide support    | ❌      | ✅      |
+| Overall grade         | D+      | A-      |
 
 ---
 

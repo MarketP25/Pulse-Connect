@@ -14,6 +14,7 @@ interface NavigationProps extends HTMLAttributes<HTMLElement> {
   children?: React.ReactNode;
   sticky?: boolean;
   variant?: "light" | "dark";
+  environment?: "production" | "staging" | "sandbox" | "development";
   onMobileMenuToggle?: (open: boolean) => void;
 }
 
@@ -25,6 +26,7 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
       children,
       sticky = true,
       variant = "dark",
+      environment = "development",
       onMobileMenuToggle,
       className,
       ...props
@@ -56,6 +58,19 @@ const Navigation = React.forwardRef<HTMLElement, NavigationProps>(
           className={clsx(baseStyles, stickyStyles, variantStyles[variant], className)}
           {...props}
         >
+          {/* Environment Protocol Indicator */}
+          {environment !== "production" && (
+            <div
+              className={clsx(
+                "absolute top-0 left-1/2 -translate-x-1/2 px-3 py-0.5 text-[10px] font-bold uppercase rounded-b-md z-[60]",
+                environment === "sandbox"
+                  ? "bg-pulse-cyan-accent text-orbit-blue-primary"
+                  : "bg-warning text-orbit-blue-primary"
+              )}
+            >
+              {environment} MODE
+            </div>
+          )}
           <div className="flex items-center gap-2 xs:gap-4 sm:gap-6 flex-shrink-0">
             {logo && <div className="flex-shrink-0 w-8 h-8 xs:w-10 xs:h-10">{logo}</div>}
             {title && (

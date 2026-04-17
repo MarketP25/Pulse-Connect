@@ -3,25 +3,31 @@
 
 :root {
   /* === PRIMARY COLORS === */
-  --color-orbit-blue-primary: #0A1428;
-  --color-pulse-cyan-accent: #00D9FF;
-  --color-stellar-purple-secondary: #9D00FF;
+  --color-orbit-blue-primary: #0a1428;
+  --color-pulse-cyan-accent: #00d9ff;
+  --color-stellar-purple-secondary: #9d00ff;
 
   /* === BACKGROUND & SURFACE COLORS === */
-  --color-nebula-dark: #0F1929;
-  --color-cosmic-slate: #1A2744;
-  --color-grid-silver: #3A4A6A;
-  --color-tech-white: #F0F4F8;
+  --color-nebula-dark: #0f1929;
+  --color-cosmic-slate: #1a2744;
+  --color-grid-silver: #3a4a6a;
+  --color-tech-white: #f0f4f8;
 
   /* === SEMANTIC COLORS === */
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-critical: #EF4444;
-  --color-info: #3B82F6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-critical: #ef4444;
+  --color-info: #3b82f6;
+
+  /* === GOVERNANCE & STATE TOKENS === */
+  --color-emergency-freeze: #7f1d1d;
+  --color-degraded-state: #7c2d12;
+  --color-founder-gold: #d4af37;
+  --color-founder-signature: #800000;
 
   /* === TYPOGRAPHY === */
-  --font-family-sans: 'Inter', system-ui, sans-serif;
-  --font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-family-sans: "Inter", system-ui, sans-serif;
+  --font-family-mono: "JetBrains Mono", "Courier New", monospace;
 
   /* Font Sizes - Desktop */
   --font-size-h1: 48px;
@@ -223,13 +229,18 @@ body {
 /* Touch Device Optimizations */
 @media (pointer: coarse) {
   /* Increase touch target sizes for touch devices */
-  button, a, input, textarea, select {
+  button,
+  a,
+  input,
+  textarea,
+  select {
     min-height: 44px;
     min-width: 44px;
   }
 
   /* Reduce hover effects on touch devices */
-  button:hover, a:hover {
+  button:hover,
+  a:hover {
     transform: none;
   }
 }
@@ -261,7 +272,8 @@ body {
 /* No Hover (Touch) Devices */
 @media (hover: none) {
   /* Remove hover effects for touch devices */
-  button:hover, a:hover {
+  button:hover,
+  a:hover {
     transform: none;
     text-decoration: none;
   }

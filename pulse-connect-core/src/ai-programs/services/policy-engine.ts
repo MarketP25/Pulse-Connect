@@ -1,5 +1,5 @@
 /**
- * Policy Engine for Privacy-Aware Platform (PAP)
+ * Policy Engine for Privacy-Aware Platform
  * Evaluates user consent, data policies, and privacy requirements
  */
 
@@ -159,7 +159,7 @@ export class PolicyEngine {
   }
 }
 
-// Default policies for PAP
+// Default policies
 export const DEFAULT_POLICIES: Policy[] = [
   {
     id: "data_collection",

@@ -24,7 +24,7 @@ variable "csi_directives" {
     min_replicas    = map(number)
     routing_weights = map(number) # sum to 1.0 for LB
     slo_latency_p95 = number      # ms
-    slo_uptime      = number      # % 
+    slo_uptime      = number      # %
     firewall_rules = list(object({
       service       = string
       protocol      = string
@@ -34,10 +34,10 @@ variable "csi_directives" {
     }))
   })
   default = {
-    replicas        = { us = 3, eu = 3, asia = 3, africa = 3 }
+    replicas        = { us = 3, eu = 3, asia = 3, africa = 3, gke = 20, "gke-canary" = 1 }
     cpu_targets     = { us = 0.65, eu = 0.65, asia = 0.65, africa = 0.65 }
-    max_replicas    = { us = 15, eu = 15, asia = 15, africa = 15 }
-    min_replicas    = { us = 2, eu = 2, asia = 2, africa = 2 }
+    max_replicas    = { us = 15, eu = 15, asia = 15, africa = 15, gke = 100, "gke-canary" = 3 }
+    min_replicas    = { us = 2, eu = 2, asia = 2, africa = 2, gke = 20, "gke-canary" = 1 }
     routing_weights = { us = 0.4, eu = 0.3, asia = 0.2, africa = 0.1 }
     slo_latency_p95 = 250
     slo_uptime      = 99.9
@@ -72,4 +72,3 @@ variable "env_file" {
   type        = string
   default     = ".env.local"
 }
-

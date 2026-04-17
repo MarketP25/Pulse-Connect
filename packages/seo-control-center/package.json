@@ -1,0 +1,27 @@
+﻿{
+    "name":  "@pulsco/seo-control-center",
+    "version":  "1.0.0",
+    "private":  true,
+    "main":  "dist/index.js",
+    "types":  "dist/index.d.ts",
+    "scripts":  {
+                    "test":  "echo \"No standalone tests\"",
+                    "build":  "tsc -p tsconfig.json"
+                },
+    "dependencies":  {
+                         "@pulsco/aseo-content-engine":  "workspace:*",
+                         "@pulsco/aseo-csi-adapter":  "workspace:*",
+                         "@pulsco/linking-engine":  "workspace:*",
+                         "@pulsco/seo-schema-engine":  "workspace:*",
+                         "@pulsco/programmatic-seo":  "workspace:*",
+                         "@pulsco/authority-engine":  "workspace:*",
+                         "@pulsco/aseo-core":  "workspace:*",
+                         "@pulsco/gso-delivery-engine":  "workspace:*",
+                         "@pulsco/seo-realtime-engine":  "workspace:*",
+                         "@pulsco/csi":  "workspace:*",
+                         "@pulsco/content-refresh-engine":  "workspace:*"
+                     },
+    "devDependencies":  {
+                            "typescript":  "^5.9.3"
+                        }
+}

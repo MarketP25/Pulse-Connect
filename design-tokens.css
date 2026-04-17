@@ -1,0 +1,31 @@
+/* === FLUID TYPOGRAPHY SYSTEM === */
+
+:root {
+  /* Base mobile-first sizes */
+  --font-size-h1: 1.75rem; /* 28px */
+  --font-size-body: 0.875rem; /* 14px */
+}
+
+/* XS Support (320px) */
+@media (max-width: 359px) {
+  :root {
+    --font-size-h1: 1.5rem;
+    --font-size-body: 0.8125rem;
+  }
+}
+
+/* XL Desktop (1536px+) */
+@media (min-width: 1536px) {
+  :root {
+    --font-size-h1: 3.5rem;
+    --font-size-body: 1rem;
+  }
+}
+
+/* 3XL Ultra-Wide (2560px+) */
+@media (min-width: 2560px) {
+  :root {
+    --font-size-h1: 4.5rem;
+    --font-size-body: 1.125rem;
+  }
+}

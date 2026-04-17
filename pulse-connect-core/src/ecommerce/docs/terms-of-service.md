@@ -252,8 +252,7 @@ See our complete Restricted Goods Policy for details.
 
 For questions about these Terms, contact:
 
-- Email: legal@pulsco.com
-- Address: [Platform Address]
+- Email: legal@pulsco.global Address: [Platform Address]
 - Phone: [Support Phone]
 
 ## 17. Severability

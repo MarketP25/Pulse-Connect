@@ -3,6 +3,7 @@ export * from "./engine/ingestion";
 export * from "./engine/analysis";
 export * from "./engine/scoring";
 export * from "./engine/recommendations";
+export * from "./engine/aseo-directives";
 export * from "./vault";
 export * from "./governance";
 export * from "./simulate";

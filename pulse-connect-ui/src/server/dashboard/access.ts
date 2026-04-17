@@ -1,4 +1,4 @@
-import {
+﻿import {
   DashboardFeatureAccess,
   DashboardModuleKey,
   DashboardTier,
@@ -81,7 +81,7 @@ export function resolveModuleAccess(user: DashboardUser): DashboardFeatureAccess
       return {
         module,
         enabled: false,
-        reason: "Full KYC verification required for paid tier features"
+        reason: "Full KYC verification required for Premium and Enterprise tier features"
       };
     }
 
@@ -98,4 +98,3 @@ export function moduleEnabled(
 ): boolean {
   return access.some((entry) => entry.module === module && entry.enabled);
 }
-

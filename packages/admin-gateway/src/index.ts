@@ -21,6 +21,8 @@ const BILLING_SERVICE_URL = process.env.BILLING_SERVICE_URL || "http://localhost
 const GOVERNANCE_SERVICE_URL = process.env.GOVERNANCE_SERVICE_URL || "http://localhost:4002";
 const REPORTING_SERVICE_URL = process.env.REPORTING_SERVICE_URL || "http://localhost:3004";
 const OBSERVABILITY_SERVICE_URL = process.env.OBSERVABILITY_SERVICE_URL || "http://localhost:3005";
+const SEO_DISCOVERY_SERVICE_URL =
+  process.env.SEO_DISCOVERY_SERVICE_URL || "http://localhost:3120";
 
 const ALLOW_LEGACY_PC365_ATTESTATION = process.env.ALLOW_LEGACY_PC365_ATTESTATION === "true";
 const PC365_GUARD_SECRET =
@@ -200,11 +202,12 @@ const ROLE_PERMISSIONS: Record<AdminRoleType, string[]> = {
     "governance",
     "billing",
     "events",
-    "emergency-protocol"
+    "emergency-protocol",
+    "seo-discovery"
   ],
-  "business-ops": ["metrics", "anomalies", "intelligence", "reporting"],
-  "commercial-outreach": ["metrics", "intelligence", "reporting"],
-  coo: ["metrics", "anomalies", "intelligence", "reporting", "operations"],
+  "business-ops": ["metrics", "anomalies", "intelligence", "reporting", "seo-discovery"],
+  "commercial-outreach": ["metrics", "intelligence", "reporting", "seo-discovery"],
+  coo: ["metrics", "anomalies", "intelligence", "reporting", "operations", "seo-discovery"],
   "customer-experience": ["metrics", "intelligence", "reporting"],
   dpo: ["metrics", "intelligence", "compliance"],
   "governance-registrar": ["metrics", "governance", "compliance"],
@@ -261,6 +264,18 @@ export async function handleIntelligenceRequest(
         role,
         ...params
       });
+
+    case "seo-discovery": {
+      const view = params?.view || "dashboard";
+      let endpoint = "/api/v1/seo/dashboard";
+      if (view === "cycles") endpoint = "/api/v1/seo/cycles";
+      if (view === "csi") endpoint = "/api/v1/seo/csi/latest";
+
+      return await fetchFromService(SEO_DISCOVERY_SERVICE_URL, endpoint, {
+        role,
+        ...(view === "cycles" ? { limit: params?.limit || "20" } : {})
+      });
+    }
 
     default:
       throw new Error(`Unknown action: ${action}`);

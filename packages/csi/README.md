@@ -17,6 +17,9 @@ CSI is advisory-only by design: it learns from subsystem events, stores intellig
   - Computes trust/performance scores per subsystem and globally.
 - `engine/recommendations.ts`
   - Generates actionable advisory recommendations with governance approval level hints.
+- `engine/aseo-directives.ts`
+  - Produces CSI-driven SEO/ASEO directives from query/ranking/citation signals.
+  - Prioritizes actions for content generation, refresh, metadata, distribution, and linking.
 - `vault.ts`
   - Secure storage abstraction for intelligence/audit records.
   - Enforces PC365-authenticated, audited reads/writes.

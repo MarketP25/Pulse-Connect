@@ -1,54 +1,55 @@
-/**
- * Button Component
- * Reusable button component with multiple variants based on PULSCO branding
- * Supports primary, secondary, tertiary, ghost, danger, and success variants
- */
-
-import React, { ButtonHTMLAttributes } from "react";
+import React from "react";
 import clsx from "clsx";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "tertiary" | "ghost" | "danger" | "success";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "ghost"
+  | "danger"
+  | "success"
+  | "emergency"
+  | "founder";
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   isFullWidth?: boolean;
-  children: React.ReactNode;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+/**
+ * Button Component
+ * Optimized for planetary-scale UI with MARP-governed states and Tier 4 Founder variants.
+ */
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    {
-      variant = "primary",
-      size = "md",
-      isLoading = false,
-      isFullWidth = false,
-      className,
-      disabled,
-      children,
-      ...props
-    },
+    { className, variant = "primary", size = "md", isLoading, isFullWidth, children, ...props },
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-semibold rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95";
+      "inline-flex items-center justify-center font-medium transition-all duration-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pulse-cyan-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
     const sizeStyles = {
-      sm: "px-2 xxs:px-3 py-1 xxs:py-1.5 text-xs xxs:text-sm min-h-8 xxs:min-h-9",
-      md: "px-4 xxs:px-6 py-2 xxs:py-2.5 text-sm xxs:text-base min-h-9 xxs:min-h-11",
-      lg: "px-6 xxs:px-8 py-3 xxs:py-3.5 text-base xxs:text-lg min-h-11 xxs:min-h-12"
+      sm: "px-3 py-1.5 text-xs",
+      md: "px-4 py-2 text-sm",
+      lg: "px-6 py-3 text-base"
     };
 
     const variantStyles = {
-      primary:
-        "bg-pulse-cyan-500 text-orbit-blue-600 hover:bg-pulse-cyan-400 active:bg-pulse-cyan-600 shadow-md hover:shadow-lg",
+      primary: "bg-pulse-cyan-accent text-orbit-blue-primary hover:shadow-glow-cyan",
       secondary:
-        "border-2 border-pulse-cyan-500 text-pulse-cyan-500 hover:bg-pulse-cyan-500 hover:bg-opacity-10 hover:border-opacity-80",
-      tertiary: "bg-nebula-800 text-tech-white hover:bg-nebula-700 border border-nebula-500",
-      ghost: "text-tech-white hover:bg-nebula-800 bg-transparent border border-transparent",
-      danger:
-        "bg-critical text-white hover:bg-opacity-90 active:bg-opacity-100 shadow-md hover:shadow-lg",
-      success:
-        "bg-success text-white hover:bg-opacity-90 active:bg-opacity-100 shadow-md hover:shadow-lg"
+        "border border-pulse-cyan-accent text-pulse-cyan-accent hover:bg-pulse-cyan-accent/10",
+      tertiary: "bg-cosmic-slate text-tech-white hover:bg-grid-silver",
+      ghost: "text-tech-white hover:bg-white/5",
+      danger: "bg-critical text-tech-white hover:bg-red-600",
+      success: "bg-success text-tech-white hover:bg-emerald-600",
+      // Emergency state: Pulsing deep red background with critical accent borders
+      emergency:
+        "bg-[var(--color-emergency-freeze)] text-tech-white border border-[var(--color-critical)] animate-pulse shadow-[0_0_20px_rgba(127,29,29,0.5)] font-bold uppercase",
+      // Founder Variant: Tier 4 authority signature using gold tokens and signature colors
+      founder:
+        "bg-[var(--color-founder-gold)] text-[var(--color-founder-signature)] border-2 border-[var(--color-founder-signature)] font-black italic tracking-tighter shadow-glow-cyan hover:scale-105"
     };
 
     return (
@@ -59,19 +60,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           sizeStyles[size],
           variantStyles[variant],
           isFullWidth && "w-full",
+          isLoading && "cursor-wait opacity-80",
           className
         )}
-        disabled={disabled || isLoading}
         {...props}
       >
         {isLoading ? (
-          <>
-            <svg
-              className="animate-spin -ml-1 mr-2 h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
+          <div className="flex items-center gap-2">
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
               <circle
                 className="opacity-25"
                 cx="12"
@@ -79,6 +75,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 r="10"
                 stroke="currentColor"
                 strokeWidth="4"
+                fill="none"
               />
               <path
                 className="opacity-75"
@@ -87,7 +84,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               />
             </svg>
             Loading...
-          </>
+          </div>
         ) : (
           children
         )}
@@ -97,6 +94,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
-
-export default Button;
-export type { ButtonProps };

@@ -64,6 +64,7 @@ export class RedisSessionStore implements SessionStore {
     await client.del(this.key(sessionId));
   }
 
+
   private key(sessionId: string): string {
     return `pulse-identity:session:${hashValue(sessionId)}`;
   }

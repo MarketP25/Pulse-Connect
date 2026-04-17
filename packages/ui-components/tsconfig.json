@@ -17,6 +17,9 @@
     "outDir": "./dist",
     "jsx": "react-jsx",
 
+    /* Bundler mode */
+    "rewriteRelativeImportExtensions": true,
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

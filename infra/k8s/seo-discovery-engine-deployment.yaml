@@ -1,0 +1,217 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seo-discovery-engine
+  namespace: planetary-pulse
+  labels:
+    app: seo-discovery-engine
+    component: discovery
+    intelligence: csi-driven
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: seo-discovery-engine
+  template:
+    metadata:
+      labels:
+        app: seo-discovery-engine
+        component: discovery
+        intelligence: csi-driven
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3120"
+        prometheus.io/path: "/health"
+    spec:
+      serviceAccountName: seo-discovery-engine-sa
+      containers:
+      - name: seo-discovery-engine
+        image: planetary/seo-discovery-engine:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3120
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3120"
+        - name: HOST
+          value: "0.0.0.0"
+        - name: SEO_AUTO_CYCLE_ENABLED
+          value: "false"
+        - name: SEO_CYCLE_INTERVAL_MS
+          value: "900000"
+        - name: SEO_CYCLE_ACTOR_ID
+          value: "seo-superadmin"
+        - name: SEO_HISTORY_LIMIT
+          value: "500"
+        - name: SEO_STATE_FILE_PATH
+          value: "/var/lib/seo/state.json"
+        - name: INTERNAL_SERVICE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: internal-service-token
+        - name: SEO_TRENDS_FEED_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: seo-trends-feed-url
+              optional: true
+        - name: SEO_CSI_EVENTS_FEED_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: seo-csi-events-feed-url
+              optional: true
+        - name: SEO_PROGRAMMATIC_FEED_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: seo-programmatic-feed-url
+              optional: true
+        - name: SEO_PERFORMANCE_FEED_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: seo-performance-feed-url
+              optional: true
+        - name: SEO_REFRESH_FEED_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: seo-refresh-feed-url
+              optional: true
+        - name: SEO_DELIVERY_FEED_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: seo-delivery-feed-url
+              optional: true
+        resources:
+          requests:
+            cpu: 300m
+            memory: 512Mi
+          limits:
+            cpu: 1200m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3120
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3120
+          initialDelaySeconds: 8
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: seo-state
+          mountPath: /var/lib/seo
+      volumes:
+      - name: seo-state
+        persistentVolumeClaim:
+          claimName: seo-discovery-state-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seo-discovery-engine
+  namespace: planetary-pulse
+  labels:
+    app: seo-discovery-engine
+spec:
+  selector:
+    app: seo-discovery-engine
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3120
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: seo-discovery-engine-hpa
+  namespace: planetary-pulse
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: seo-discovery-engine
+  minReplicas: 4
+  maxReplicas: 30
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: seo-discovery-engine-sa
+  namespace: planetary-pulse
+  labels:
+    app: seo-discovery-engine
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: seo-discovery-cycle-trigger
+  namespace: planetary-pulse
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: cycle-trigger
+            image: curlimages/curl:8.8.0
+            env:
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: planetary-secrets
+                  key: internal-service-token
+            command:
+            - /bin/sh
+            - -c
+            - |
+              curl -sS -X POST \
+                -H "x-internal-service-token: ${INTERNAL_SERVICE_TOKEN}" \
+                -H "content-type: application/json" \
+                --data '{"cycleId":"cron-cycle-$(date +%s)"}' \
+                http://seo-discovery-engine/api/v1/seo/cycle/run

@@ -342,7 +342,7 @@ export class DecisionEngine {
   static getEscalationRules(adminRole: AdminRoleType): EscalationRule[] {
     const escalationMatrix: Record<AdminRoleType, EscalationRule[]> = {
       superadmin: [], // Cannot escalate further
-      coo: [
+      "coo": [
         {
           id: "coo-to-superadmin",
           condition: "unacknowledged_critical_alert",
@@ -396,7 +396,7 @@ export class DecisionEngine {
           action: "escalate"
         }
       ],
-      dpo: [
+      "dpo": [
         {
           id: "dpo-to-governance-registrar and people-risk",
           condition: "data_breach_and_policy_violations",

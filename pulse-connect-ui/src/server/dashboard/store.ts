@@ -343,7 +343,7 @@ export class DashboardStore {
         {
           id: randomUUID(),
           from: "support@pulsco.global",
-          subject: "Welcome to Pulsco",
+          subject: "Welcome to Pulsco Global Ltd",
           preview: "Your universal dashboard is ready.",
           createdAt: now,
           unread: false
