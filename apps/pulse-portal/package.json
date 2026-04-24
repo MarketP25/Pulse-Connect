@@ -15,7 +15,6 @@
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "@pulsco/pwa": "workspace:*",
-    "@pulsco/packages": "workspace:*",
     "@pulsco/pulse-connect-admin-ui": "workspace:*",
     "@pulsco/pulse-connect-core": "workspace:*",
     "@pulsco/pulse-connect-ui": "workspace:*",

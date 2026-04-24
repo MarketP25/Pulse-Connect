@@ -10,13 +10,12 @@ Keep Pulsco globally discoverable across search engines, AI answer systems, and 
 - `packages/seo-control-center`
 - `packages/csi` (analysis, scoring, recommendations, directives, governance)
 - `infra/k8s/seo-discovery-engine-deployment.yaml`
-- `infra/k8s/seo-discovery-engine-pvc.yaml`
+- Redis state backend via `SEO_REDIS_URL` (preferred for multi-replica safety)
 
 ## Deploy
 
 1. Build and publish `planetary/seo-discovery-engine:latest`.
 2. Apply manifests:
-   - `kubectl apply -f infra/k8s/seo-discovery-engine-pvc.yaml`
    - `kubectl apply -f infra/k8s/seo-discovery-engine-deployment.yaml`
 3. Confirm health:
    - `kubectl -n planetary-pulse get pods -l app=seo-discovery-engine`
@@ -28,6 +27,7 @@ Keep Pulsco globally discoverable across search engines, AI answer systems, and 
 - Readiness: `GET /ready`
 - Latest dashboard: `GET /api/v1/seo/dashboard`
 - CSI output: `GET /api/v1/seo/csi/latest`
+- GSO linkage output: `GET /api/v1/seo/gso/latest`
 
 ## Manual Cycle Trigger
 
@@ -54,5 +54,6 @@ curl -X POST \
 
 ## Data Integrity
 
-- State file is written atomically using temp-file rename.
+- If `SEO_REDIS_URL` is configured, cycles and lock state are distributed via Redis.
+- If Redis is not configured, state file fallback is written atomically using temp-file rename.
 - CSI intelligence, directives, and governance decisions are persisted each cycle.

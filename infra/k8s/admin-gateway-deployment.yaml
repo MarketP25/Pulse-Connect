@@ -37,6 +37,8 @@ spec:
           value: "http://edge-gateway-service.planetary-pulse.svc.cluster.local"
         - name: BILLING_SERVICE_URL
           value: "http://billing-engine-service.planetary-pulse.svc.cluster.local:3100"
+        - name: SEO_DISCOVERY_SERVICE_URL
+          value: "http://seo-discovery-engine.planetary-pulse.svc.cluster.local"
         - name: EMERGENCY_BROADCAST_ENDPOINTS
           value: "http://edge-gateway-service.planetary-pulse.svc.cluster.local/edge/internal/emergency-protocol/event,http://billing-engine-service.planetary-pulse.svc.cluster.local:3100/internal/emergency-protocol/event"
         livenessProbe:

@@ -2,6 +2,9 @@ export type AdminRole =
   | "superadmin"
   | "tech-security"
   | "coo"
+  | "customer-experience"
+  | "commercial"
+  | "procurement"
   | "people-risk"
   | "legal-finance"
   | "governance-registrar"
@@ -9,13 +12,16 @@ export type AdminRole =
   | "business-ops";
 
 const ROLE_ROUTES: Record<AdminRole, string[]> = {
-  superadmin: ["/admin/superadmin", "/admin/emergency", "/admin/intelligence"],
+  "superadmin": ["/admin/superadmin", "/admin/emergency", "/admin/intelligence"],
   "tech-security": ["/admin/tech-security", "/admin/intelligence"],
-  coo: ["/admin/coo", "/admin/intelligence"],
+  "coo": ["/admin/coo", "/admin/intelligence"],
+  "customer-experience": ["/admin/customer-experience","/admin/intelligence"],
+  "commercial-outreach": ["/admin/commercial-outreach","/admin/intelligence"],
+  "procurement": ["/admin/procurement","/admin/intelligence"]
   "people-risk": ["/admin/people-risk", "/admin/intelligence"],
   "legal-finance": ["/admin/legal-finance", "/admin/intelligence"],
   "governance-registrar": ["/admin/governance-registrar", "/admin/intelligence"],
-  dpo: ["/admin/dpo", "/admin/intelligence"],
+  "dpo": ["/admin/dpo", "/admin/intelligence"],
   "business-ops": ["/admin/business-ops", "/admin/intelligence"]
 };
 

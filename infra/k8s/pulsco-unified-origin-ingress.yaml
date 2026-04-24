@@ -13,11 +13,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - pulsco.com
-        - www.pulsco.com
+        - pulsco.global
+        - www.pulsco.global
       secretName: pulsco-unified-origin-tls
   rules:
-    - host: pulsco.com
+    - host: pulsco.global
       http:
         paths:
           # Sensitive routes: governed only
@@ -153,7 +153,7 @@ spec:
                   number: 80
 
     # Redirect WWW to canonical root origin
-    - host: www.pulsco.com
+    - host: www.pulsco.global
       http:
         paths:
           - path: /

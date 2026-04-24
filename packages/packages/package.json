@@ -1,0 +1,11 @@
+{
+  "name": "@pulsco/packages",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "echo \"@pulsco/packages meta package - no build output\"",
+    "test": "echo \"No standalone tests\""
+  }
+}

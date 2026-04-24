@@ -19,7 +19,7 @@ import { TelemetryService } from "../services/telemetry.service";
 import { DeviceKeyService } from "../services/device-key.service";
 import { RateLimiterService } from "../services/rate-limiter.service";
 import { WalletService } from "../services/wallet.service";
-import { PC365Guard } from "../../../shared/lib/src/pc365Guard";
+import { PC365Guard } from "../shared/lib/src/pc365Guard";
 import { AiSafetyService } from "../services/ai-safety.service";
 import { Redis } from "ioredis";
 import * as crypto from "crypto";

@@ -270,6 +270,7 @@ export async function handleIntelligenceRequest(
       let endpoint = "/api/v1/seo/dashboard";
       if (view === "cycles") endpoint = "/api/v1/seo/cycles";
       if (view === "csi") endpoint = "/api/v1/seo/csi/latest";
+      if (view === "gso") endpoint = "/api/v1/seo/gso/latest";
 
       return await fetchFromService(SEO_DISCOVERY_SERVICE_URL, endpoint, {
         role,

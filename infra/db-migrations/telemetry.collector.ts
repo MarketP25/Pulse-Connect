@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Pool } from "pg";
-import { HashChain } from "../../../shared/lib/src/hashChain";
+import { HashChain } from "../../shared/lib/src/hashChain";
 
 @Injectable()
 export class TelemetryCollector {

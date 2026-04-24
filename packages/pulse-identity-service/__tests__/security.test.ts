@@ -30,26 +30,30 @@ function createService() {
 }
 
 describe("identity security controls", () => {
-  it("rejects weak passwords", async () => {
+  it.each([
+    ["too short", "12345"],
+    ["no numbers", "PasswordNoNums"],
+    ["common password", "password123"]
+  ])("rejects weak password because it is %s", async (_, password) => {
     const service = createService();
-    await expect(
-      service.registerUser({
-        email: "weak@example.com",
-        password: "weakpass",
-        username: "weak_user",
-        role: "individual",
-        preferredLanguage: "en",
-        country: "US",
-        consents: {
-          privacyPolicy: { accepted: true, version: "2026.03" },
-          termsOfService: { accepted: true, version: "2026.03" },
-          dataProcessing: { accepted: true, version: "2026.03" }
-        },
-        deviceFingerprint: "device-weak-1",
-        ipAddress: "127.0.0.1",
-        userAgent: "Mozilla/5.0 PulscoWeb"
-      })
-    ).rejects.toMatchObject<IdentityError>({ code: "weak_password" } as IdentityError);
+    const registrationData = {
+      email: "test@example.com",
+      password: password,
+      username: "test_user",
+      role: "individual" as const,
+      preferredLanguage: "en",
+      country: "US",
+      consents: {
+        privacyPolicy: { accepted: true, version: "2026.03" },
+        termsOfService: { accepted: true, version: "2026.03" },
+        dataProcessing: { accepted: true, version: "2026.03" }
+      },
+      deviceFingerprint: "device-test",
+      ipAddress: "127.0.0.1",
+      userAgent: "Mozilla/5.0 PulscoWeb"
+    };
+    await expect(service.registerUser(registrationData))
+      .rejects.toMatchObject({ code: "weak_password" });
   });
 
   it("blocks bot user agents", async () => {

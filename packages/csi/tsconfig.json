@@ -10,8 +10,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "dist",
-    "ignoreDeprecations": "6.0"
+    "outDir": "dist"
   },
   "include": ["index.ts", "events.ts", "governance.ts", "simulate.ts", "vault.ts", "engine/**/*.ts"],
   "exclude": ["node_modules", "dist", "__tests__"]

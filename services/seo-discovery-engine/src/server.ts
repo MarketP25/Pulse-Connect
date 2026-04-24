@@ -1,20 +1,94 @@
-﻿import express from "express";
+import express from "express";
 import cors from "cors";
 import { loadConfig } from "./config";
 import { requireInternalToken } from "./auth";
 import { DiscoveryCycleScheduler } from "./scheduler";
-import { DiscoveryEngineRuntime, HttpDiscoveryFeeds } from "./runtime";
+import {
+  DiscoveryEngineRuntime,
+  HttpDiscoveryFeeds,
+  RedisCycleLock,
+  RedisStateStore
+} from "./runtime";
+
+type RedisClient = {
+  connect?: () => Promise<void>;
+  ping: () => Promise<unknown>;
+  quit: () => Promise<unknown>;
+  get: (key: string) => Promise<string | null>;
+  set: (...args: unknown[]) => Promise<unknown>;
+  eval: (...args: unknown[]) => Promise<unknown>;
+};
+
+type RedisConstructor = new (
+  url: string,
+  options?: Record<string, unknown>
+) => RedisClient;
+
+function loadRedisConstructor(): RedisConstructor | null {
+  try {
+    const required = (eval("require") as (id: string) => unknown)("ioredis") as {
+      default?: RedisConstructor;
+    } & RedisConstructor;
+    return required.default ?? (required as RedisConstructor);
+  } catch {
+    return null;
+  }
+}
 
 async function bootstrap() {
   const config = loadConfig();
   const feeds = new HttpDiscoveryFeeds(config.feedEndpoints, config.feedTimeoutMs);
+
+  let redisClient: RedisClient | undefined;
+  let runtimeStorage: "file" | "redis" = "file";
+  let runtimeDeps: ConstructorParameters<typeof DiscoveryEngineRuntime>[2] = {};
+
+  if (config.redisUrl) {
+    const Redis = loadRedisConstructor();
+    if (Redis) {
+      try {
+        redisClient = new Redis(config.redisUrl, {
+          lazyConnect: true,
+          maxRetriesPerRequest: 1,
+          enableReadyCheck: true
+        });
+        await redisClient.connect?.();
+        await redisClient.ping();
+
+        const redisPrefix = config.redisKeyPrefix;
+        runtimeDeps = {
+          stateStore: new RedisStateStore(redisClient, `${redisPrefix}:state`, config.historyLimit),
+          cycleLock: new RedisCycleLock(
+            redisClient,
+            `${redisPrefix}:cycle-lock`,
+            config.cycleLockTtlMs
+          )
+        };
+        runtimeStorage = "redis";
+      } catch {
+        if (redisClient) {
+          await redisClient.quit().catch(() => undefined);
+        }
+        redisClient = undefined;
+        runtimeDeps = {};
+        runtimeStorage = "file";
+      }
+    }
+  }
+
   const runtime = new DiscoveryEngineRuntime(
     {
       stateFilePath: config.stateFilePath,
       historyLimit: config.historyLimit,
-      cycleActorId: config.cycleActorId
+      cycleActorId: config.cycleActorId,
+      internalToken: config.internalToken,
+      redisKeyPrefix: config.redisKeyPrefix,
+      cycleLockTtlMs: config.cycleLockTtlMs,
+      gsoRouteUrl: config.feedEndpoints.gsoRouteUrl,
+      gsoRouteTimeoutMs: config.feedTimeoutMs
     },
-    feeds
+    feeds,
+    runtimeDeps
   );
 
   await runtime.init();
@@ -44,6 +118,8 @@ async function bootstrap() {
       executing: runtime.isExecuting(),
       autoCycleEnabled: config.autoCycleEnabled,
       scheduler: scheduler.status(),
+      storage: runtimeStorage,
+      gsoLinkage: latest?.delivery.mode ?? "local-only",
       lastCycleId: latest?.cycleId,
       lastCycleCompletedAt: latest?.completedAt
     });
@@ -60,7 +136,8 @@ async function bootstrap() {
 
     return res.json({
       status: "ready",
-      version: state.version
+      version: state.version,
+      storage: runtimeStorage
     });
   });
 
@@ -73,7 +150,8 @@ async function bootstrap() {
             cycleId: latest.cycleId,
             completedAt: latest.completedAt,
             deployed: latest.result.deployed,
-            violations: latest.result.violations
+            violations: latest.result.violations,
+            delivery: latest.delivery
           }
         : null
     });
@@ -102,7 +180,8 @@ async function bootstrap() {
           directives: cycle.csi.directives.length,
           recommendations: cycle.csi.recommendations.length,
           governanceDecisions: cycle.csi.governanceDecisions.length
-        }
+        },
+        delivery: cycle.delivery
       }));
 
     res.json({ cycles });
@@ -120,6 +199,13 @@ async function bootstrap() {
             governanceDecisions: latest.csi.governanceDecisions
           }
         : null
+    });
+  });
+
+  app.get("/api/v1/seo/gso/latest", (_req, res) => {
+    const latest = runtime.getState().latest;
+    res.json({
+      gso: latest?.delivery ?? null
     });
   });
 
@@ -149,7 +235,8 @@ async function bootstrap() {
             directives: run.csi.directives.length,
             recommendations: run.csi.recommendations.length,
             governanceDecisions: run.csi.governanceDecisions.length
-          }
+          },
+          delivery: run.delivery
         });
       } catch (error) {
         res.status(409).json({
@@ -188,7 +275,8 @@ async function bootstrap() {
       res.json({
         executed: Boolean(run),
         cycleId: run?.cycleId,
-        deployed: run?.result.deployed ?? null
+        deployed: run?.result.deployed ?? null,
+        delivery: run?.delivery ?? null
       });
     }
   );
@@ -203,19 +291,26 @@ async function bootstrap() {
         host: config.host,
         autoCycleEnabled: config.autoCycleEnabled,
         cycleIntervalMs: config.cycleIntervalMs,
+        storage: runtimeStorage,
         timestamp: new Date().toISOString()
       })
     );
   });
 
-  process.on("SIGINT", () => {
+  const close = async () => {
     scheduler.stop();
+    if (redisClient) {
+      await redisClient.quit().catch(() => undefined);
+    }
     server.close(() => process.exit(0));
+  };
+
+  process.on("SIGINT", () => {
+    void close();
   });
 
   process.on("SIGTERM", () => {
-    scheduler.stop();
-    server.close(() => process.exit(0));
+    void close();
   });
 }
 

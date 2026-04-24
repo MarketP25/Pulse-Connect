@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "@pulsco/seo-discovery-engine",
   "version": "1.0.0",
   "private": true,
@@ -11,8 +11,13 @@
     "test": "echo \"No standalone tests\""
   },
   "dependencies": {
-    "@pulsco/seo-control-center": "workspace:*",
+    "@pulsco/aseo-core": "workspace:*",
     "@pulsco/csi": "workspace:*",
+    "@pulsco/content-refresh-engine": "workspace:*",
+    "@pulsco/gso-delivery-engine": "workspace:*",
+    "@pulsco/programmatic-seo": "workspace:*",
+    "@pulsco/seo-control-center": "workspace:*",
+    "@pulsco/seo-realtime-engine": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.19.2"
   },

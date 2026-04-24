@@ -15,8 +15,8 @@ export interface MARPActionInput {
   approved: boolean;
   actorId: string;
   versionTag?: string;
-  previousState?: Record<string, unknown>;
-  nextState?: Record<string, unknown>;
+  previousState?: unknown;
+  nextState?: unknown;
   reversible?: boolean;
   notes?: string;
 }

@@ -431,6 +431,13 @@ data:
   admin-gateway-url: aHR0cDovL2FkbWluLWdhdGV3YXktc2VydmljZS5wbGFuZXRhcnktcHVsc2Uuc3ZjLmNsdXN0ZXIubG9jYWw6MzAwMQ==
   billing-service-url: aHR0cDovL2JpbGxpbmctZW5naW5lLXNlcnZpY2UucGxhbmV0YXJ5LXB1bHNlLnN2Yy5jbHVzdGVyLmxvY2FsOjMxMDA=
   edge-gateway-url: aHR0cDovL2VkZ2UtZ2F0ZXdheS1zZXJ2aWNlLnBsYW5ldGFyeS1wdWxzZS5zdmMuY2x1c3Rlci5sb2NhbA==
+  seo-trends-feed-url: <base64-encoded>
+  seo-csi-events-feed-url: <base64-encoded>
+  seo-programmatic-feed-url: <base64-encoded>
+  seo-performance-feed-url: <base64-encoded>
+  seo-refresh-feed-url: <base64-encoded>
+  seo-delivery-feed-url: <base64-encoded>
+  seo-gso-route-url: <base64-encoded>
 
 ---
 # Network policies for planetary security

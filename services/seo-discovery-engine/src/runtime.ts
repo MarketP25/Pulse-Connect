@@ -1,4 +1,4 @@
-﻿import { randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import { mkdir, readFile, rename, writeFile } from "fs/promises";
 import { dirname } from "path";
 import {
@@ -20,13 +20,22 @@ import type {
 import type { KeywordSignal } from "@pulsco/aseo-core";
 import type { PagePerformanceSignal } from "@pulsco/seo-realtime-engine";
 import type { RefreshCandidate } from "@pulsco/content-refresh-engine";
-import type { DeliveryRequest } from "@pulsco/gso-delivery-engine";
+import {
+  GSOInfraBridge,
+  type DeliveryRequest,
+  type GSOInfraResolution
+} from "@pulsco/gso-delivery-engine";
 import type { ProgrammaticSEOInput } from "@pulsco/programmatic-seo";
 
 export interface ServiceConfig {
   stateFilePath: string;
   historyLimit: number;
   cycleActorId: string;
+  internalToken?: string;
+  redisKeyPrefix?: string;
+  cycleLockTtlMs?: number;
+  gsoRouteUrl?: string;
+  gsoRouteTimeoutMs?: number;
 }
 
 export interface DiscoveryFeeds {
@@ -51,12 +60,41 @@ export interface PersistedCycleEnvelope {
     directives: ReturnType<CSISEODirectiveEngine["build"]>;
     governanceDecisions: GovernanceDecision[];
   };
+  delivery: {
+    mode: "local-only" | "infra-linked";
+    requested: number;
+    infraResolved: number;
+    infraFallback: number;
+    decisions: GSOInfraResolution[];
+  };
 }
 
 export interface PersistedState {
   version: string;
   latest?: PersistedCycleEnvelope;
   cycles: PersistedCycleEnvelope[];
+}
+
+export interface StateStore {
+  load(): Promise<PersistedState>;
+  save(envelope: PersistedCycleEnvelope): Promise<PersistedState>;
+}
+
+export interface CycleLock {
+  acquire(): Promise<{ acquired: boolean; token?: string }>;
+  release(token?: string): Promise<void>;
+}
+
+export interface RedisClientLike {
+  get(key: string): Promise<string | null>;
+  set(...args: unknown[]): Promise<unknown>;
+  eval(...args: unknown[]): Promise<unknown>;
+}
+
+export interface RuntimeDependencies {
+  stateStore?: StateStore;
+  cycleLock?: CycleLock;
+  gsoInfraBridge?: GSOInfraBridge;
 }
 
 const EMPTY_STATE: PersistedState = {
@@ -76,7 +114,27 @@ function safeNumber(value: unknown, fallback: number): number {
   return value;
 }
 
-export class JsonStateStore {
+function normalizePersistedState(
+  parsed: Partial<PersistedState> | undefined,
+  historyLimit: number
+): PersistedState {
+  if (!parsed || typeof parsed !== "object") {
+    return EMPTY_STATE;
+  }
+
+  const cycles = Array.isArray(parsed.cycles) ? parsed.cycles : [];
+  const normalizedCycles = cycles
+    .filter((cycle): cycle is PersistedCycleEnvelope => Boolean(cycle && typeof cycle === "object"))
+    .slice(-Math.max(20, historyLimit));
+
+  return {
+    version: typeof parsed.version === "string" ? parsed.version : "1.0.0",
+    latest: parsed.latest,
+    cycles: normalizedCycles
+  };
+}
+
+export class JsonStateStore implements StateStore {
   private readonly filePath: string;
   private readonly historyLimit: number;
 
@@ -89,16 +147,7 @@ export class JsonStateStore {
     try {
       const raw = await readFile(this.filePath, "utf8");
       const parsed = JSON.parse(raw) as Partial<PersistedState>;
-      if (!parsed || typeof parsed !== "object") {
-        return EMPTY_STATE;
-      }
-
-      const cycles = Array.isArray(parsed.cycles) ? parsed.cycles : [];
-      return {
-        version: typeof parsed.version === "string" ? parsed.version : "1.0.0",
-        latest: parsed.latest,
-        cycles: cycles.slice(-this.historyLimit)
-      };
+      return normalizePersistedState(parsed, this.historyLimit);
     } catch {
       return EMPTY_STATE;
     }
@@ -123,10 +172,103 @@ export class JsonStateStore {
   }
 }
 
+export class RedisStateStore implements StateStore {
+  private readonly redis: RedisClientLike;
+  private readonly stateKey: string;
+  private readonly historyLimit: number;
+
+  constructor(redis: RedisClientLike, stateKey: string, historyLimit: number) {
+    this.redis = redis;
+    this.stateKey = stateKey;
+    this.historyLimit = Math.max(20, historyLimit);
+  }
+
+  async load(): Promise<PersistedState> {
+    try {
+      const raw = await this.redis.get(this.stateKey);
+      if (!raw) {
+        return EMPTY_STATE;
+      }
+
+      const parsed = JSON.parse(raw) as Partial<PersistedState>;
+      return normalizePersistedState(parsed, this.historyLimit);
+    } catch {
+      return EMPTY_STATE;
+    }
+  }
+
+  async save(envelope: PersistedCycleEnvelope): Promise<PersistedState> {
+    const state = await this.load();
+    const cycles = [...state.cycles, envelope].slice(-this.historyLimit);
+
+    const next: PersistedState = {
+      version: "1.0.0",
+      latest: envelope,
+      cycles
+    };
+
+    await this.redis.set(this.stateKey, JSON.stringify(next));
+    return next;
+  }
+}
+
+export class LocalCycleLock implements CycleLock {
+  private locked = false;
+
+  async acquire(): Promise<{ acquired: boolean; token?: string }> {
+    if (this.locked) {
+      return { acquired: false };
+    }
+
+    this.locked = true;
+    return { acquired: true, token: "local-lock" };
+  }
+
+  async release(_token?: string): Promise<void> {
+    this.locked = false;
+  }
+}
+
+export class RedisCycleLock implements CycleLock {
+  private readonly redis: RedisClientLike;
+  private readonly lockKey: string;
+  private readonly ttlMs: number;
+
+  constructor(redis: RedisClientLike, lockKey: string, ttlMs: number) {
+    this.redis = redis;
+    this.lockKey = lockKey;
+    this.ttlMs = Math.max(15_000, ttlMs);
+  }
+
+  async acquire(): Promise<{ acquired: boolean; token?: string }> {
+    const token = randomUUID();
+    const response = await this.redis.set(this.lockKey, token, "PX", this.ttlMs, "NX");
+    if (response === "OK") {
+      return { acquired: true, token };
+    }
+
+    return { acquired: false };
+  }
+
+  async release(token?: string): Promise<void> {
+    if (!token) {
+      return;
+    }
+
+    await this.redis.eval(
+      "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+      1,
+      this.lockKey,
+      token
+    );
+  }
+}
+
 export class DiscoveryEngineRuntime {
   private readonly config: ServiceConfig;
   private readonly feeds: DiscoveryFeeds;
-  private readonly stateStore: JsonStateStore;
+  private readonly stateStore: StateStore;
+  private readonly cycleLock: CycleLock;
   private readonly discovery = new PlanetaryDiscoverySystem();
   private readonly csiAnalysis = new CSIAnalysisEngine(10_000);
   private readonly csiScoring = new CSIScoringEngine();
@@ -134,13 +276,25 @@ export class DiscoveryEngineRuntime {
   private readonly csiDirectives = new CSISEODirectiveEngine();
   private readonly csiVault = new CSIIntelligenceVault(new InMemorySecureDatabaseAdapter());
   private readonly csiGovernance = new CSIGovernanceEngine(this.csiVault);
+  private readonly gsoInfraBridge?: GSOInfraBridge;
   private executing = false;
   private lastState: PersistedState = EMPTY_STATE;
 
-  constructor(config: ServiceConfig, feeds: DiscoveryFeeds) {
+  constructor(config: ServiceConfig, feeds: DiscoveryFeeds, dependencies: RuntimeDependencies = {}) {
     this.config = config;
     this.feeds = feeds;
-    this.stateStore = new JsonStateStore(config.stateFilePath, config.historyLimit);
+    this.stateStore =
+      dependencies.stateStore ?? new JsonStateStore(config.stateFilePath, config.historyLimit);
+    this.cycleLock = dependencies.cycleLock ?? new LocalCycleLock();
+    this.gsoInfraBridge =
+      dependencies.gsoInfraBridge ??
+      (config.gsoRouteUrl
+        ? new GSOInfraBridge({
+            routeEndpoint: config.gsoRouteUrl,
+            internalToken: config.internalToken,
+            timeoutMs: config.gsoRouteTimeoutMs ?? 2500
+          })
+        : undefined);
   }
 
   async init(): Promise<void> {
@@ -160,6 +314,11 @@ export class DiscoveryEngineRuntime {
     override?: Partial<DiscoveryCycleInput>
   ): Promise<PersistedCycleEnvelope> {
     if (this.executing) {
+      throw new Error("A discovery cycle is already running");
+    }
+
+    const lock = await this.cycleLock.acquire();
+    if (!lock.acquired) {
       throw new Error("A discovery cycle is already running");
     }
 
@@ -187,10 +346,11 @@ export class DiscoveryEngineRuntime {
       });
       const directives = this.csiDirectives.build(csiEvents, { minPriority: "medium" });
 
+      const attestationSeed = this.config.internalToken ?? randomUUID();
       const context = {
         actorId: this.config.cycleActorId,
         actorRole: "superadmin",
-        pc365Attestation: "pc365_attestation_token_12345"
+        pc365Attestation: `pc365:${attestationSeed}`
       };
 
       await this.csiVault.storeAggregatedIntelligence(
@@ -204,7 +364,7 @@ export class DiscoveryEngineRuntime {
       );
 
       const governanceDecisions: GovernanceDecision[] = [];
-      for (const directive of directives.slice(0, 5)) {
+      for (const directive of directives.slice(0, 20)) {
         const estimatedRisk =
           directive.priority === "critical"
             ? 85
@@ -227,7 +387,8 @@ export class DiscoveryEngineRuntime {
           },
           context,
           {
-            runSimulation: false
+            runSimulation: true,
+            historicalEvents: csiEvents.slice(-500)
           }
         );
 
@@ -258,6 +419,13 @@ export class DiscoveryEngineRuntime {
 
       const result = this.discovery.runCycle(cycleInput);
 
+      const infraDecisions = this.gsoInfraBridge
+        ? await this.gsoInfraBridge.resolveBatch(deliveryRequests)
+        : [];
+      const deliveryMode: PersistedCycleEnvelope["delivery"]["mode"] = this.gsoInfraBridge
+        ? "infra-linked"
+        : "local-only";
+
       const envelope: PersistedCycleEnvelope = {
         cycleId: cycleInput.cycleId,
         reason,
@@ -270,6 +438,13 @@ export class DiscoveryEngineRuntime {
           recommendations,
           directives,
           governanceDecisions
+        },
+        delivery: {
+          mode: deliveryMode,
+          requested: deliveryRequests.length,
+          infraResolved: infraDecisions.length,
+          infraFallback: Math.max(0, deliveryRequests.length - infraDecisions.length),
+          decisions: infraDecisions
         }
       };
 
@@ -277,6 +452,7 @@ export class DiscoveryEngineRuntime {
       return envelope;
     } finally {
       this.executing = false;
+      await this.cycleLock.release(lock.token);
     }
   }
 }
@@ -432,6 +608,7 @@ export class HttpDiscoveryFeeds implements DiscoveryFeeds {
     performanceUrl?: string;
     refreshUrl?: string;
     deliveryUrl?: string;
+    gsoRouteUrl?: string;
   };
 
   constructor(endpoints: HttpDiscoveryFeeds["endpoints"], timeoutMs = 8000) {

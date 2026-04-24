@@ -1,7 +1,10 @@
-﻿export interface AppConfig {
+export interface AppConfig {
   port: number;
   host: string;
   internalToken?: string;
+  redisUrl?: string;
+  redisKeyPrefix: string;
+  cycleLockTtlMs: number;
   autoCycleEnabled: boolean;
   cycleIntervalMs: number;
   cycleStartupJitterMs: number;
@@ -16,6 +19,7 @@
     performanceUrl?: string;
     refreshUrl?: string;
     deliveryUrl?: string;
+    gsoRouteUrl?: string;
   };
 }
 
@@ -65,6 +69,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     port: parseNumber(env.PORT, 3120),
     host: parseString(env.HOST) ?? "0.0.0.0",
     internalToken: parseString(env.INTERNAL_SERVICE_TOKEN),
+    redisUrl: parseString(env.SEO_REDIS_URL),
+    redisKeyPrefix: parseString(env.SEO_REDIS_KEY_PREFIX) ?? "seo-discovery-engine",
+    cycleLockTtlMs: parseNumber(env.SEO_CYCLE_LOCK_TTL_MS, 30 * 60 * 1000),
     autoCycleEnabled: parseBoolean(env.SEO_AUTO_CYCLE_ENABLED, true),
     cycleIntervalMs: intervalMs,
     cycleStartupJitterMs: parseNumber(env.SEO_CYCLE_STARTUP_JITTER_MS, Math.floor(intervalMs / 5)),
@@ -78,7 +85,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       programmaticUrl: parseString(env.SEO_PROGRAMMATIC_FEED_URL),
       performanceUrl: parseString(env.SEO_PERFORMANCE_FEED_URL),
       refreshUrl: parseString(env.SEO_REFRESH_FEED_URL),
-      deliveryUrl: parseString(env.SEO_DELIVERY_FEED_URL)
+      deliveryUrl: parseString(env.SEO_DELIVERY_FEED_URL),
+      gsoRouteUrl: parseString(env.SEO_GSO_ROUTE_URL)
     }
   };
 }

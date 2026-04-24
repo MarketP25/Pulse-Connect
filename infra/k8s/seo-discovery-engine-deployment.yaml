@@ -47,12 +47,22 @@ spec:
         - name: SEO_HISTORY_LIMIT
           value: "500"
         - name: SEO_STATE_FILE_PATH
-          value: "/var/lib/seo/state.json"
+          value: "/tmp/seo/state.json"
+        - name: SEO_REDIS_KEY_PREFIX
+          value: "seo-discovery-engine"
+        - name: SEO_CYCLE_LOCK_TTL_MS
+          value: "1800000"
         - name: INTERNAL_SERVICE_TOKEN
           valueFrom:
             secretKeyRef:
               name: planetary-secrets
               key: internal-service-token
+        - name: SEO_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: redis-url
+              optional: true
         - name: SEO_TRENDS_FEED_URL
           valueFrom:
             secretKeyRef:
@@ -89,6 +99,12 @@ spec:
               name: planetary-secrets
               key: seo-delivery-feed-url
               optional: true
+        - name: SEO_GSO_ROUTE_URL
+          valueFrom:
+            secretKeyRef:
+              name: planetary-secrets
+              key: seo-gso-route-url
+              optional: true
         resources:
           requests:
             cpu: 300m
@@ -119,13 +135,6 @@ spec:
           capabilities:
             drop:
             - ALL
-        volumeMounts:
-        - name: seo-state
-          mountPath: /var/lib/seo
-      volumes:
-      - name: seo-state
-        persistentVolumeClaim:
-          claimName: seo-discovery-state-pvc
 
 ---
 apiVersion: v1

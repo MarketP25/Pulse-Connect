@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { Pool } from "pg";
-import { RoutingEngine } from "./routing/routing.engine";
+import { RoutingEngine } from "../routing.engine";
 import { PC365Guard } from "../../shared/lib/src/pc365Guard";
 import { HashChain } from "../../shared/lib/src/hashChain";
 
@@ -56,7 +56,12 @@ export class GSOService {
         brand_config = EXCLUDED.brand_config,
         locale_config = EXCLUDED.locale_config,
         updated_at = NOW()`,
-      [code, params.parentRegionCode?.toUpperCase() || null, params.brandConfig, params.localeConfig]
+      [
+        code,
+        params.parentRegionCode?.toUpperCase() || null,
+        params.brandConfig,
+        params.localeConfig
+      ]
     );
 
     this.logger.log(`Region ${code} added to catalog.`);

@@ -117,19 +117,11 @@ t                      t"xt-tech-white">"
                       : "bg-stellar-purple-500/10 text-stellar-purple-100 border border-stellar-purple-500/20"
                   }`}
                 >
-                  {ms
-g               .text}""
+                  {msg.text}""
 
+                  </div >""
 
-
-
-                </div
-               >""
-
-
-
-
-              </div>
+                   </div>
             ))}
           </div>
 

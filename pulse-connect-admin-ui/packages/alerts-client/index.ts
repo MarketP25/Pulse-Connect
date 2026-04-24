@@ -436,7 +436,7 @@ export class AlertsClient {
   /**
    * Get escalation rules for alert types
    */
-  static getEscalationRules(alertType: Alert['type'], severity: Alert['severity']): {
+  static getEscalationRules(alertType: Alert["type"], severity: Alert["severity"]): {
     timeoutMinutes: number;
     targetRole: AdminRoleType;
     autoEscalate: boolean;
@@ -471,7 +471,7 @@ export class AlertsClient {
 
     return escalationMatrix[alertType]?.[severity] || {
       timeoutMinutes: 60,
-      targetRole: 'superadmin',
+      targetRole: "superadmin",
       autoEscalate: true
     };
   }

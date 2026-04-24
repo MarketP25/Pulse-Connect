@@ -1,9 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { Pool } from "pg";
-import { RoutingEngine } from "./routing/routing.engine";
-import { PC365Guard } from "../../shared/lib/src/pc365Guard";
-import { HashChain } from "../../shared/lib/src/hashChain";
+import { RoutingEngine } from "././routing.engine";
+import { PC365Guard } from "./../shared/lib/src/pc365Guard";
+import { HashChain } from "./../shared/lib/src/hashChain";
 
 @Injectable()
 export class GSOService {

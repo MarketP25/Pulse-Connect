@@ -21,6 +21,7 @@ CSI remains the intelligence brain:
 - `GET /api/v1/seo/dashboard`
 - `GET /api/v1/seo/cycles?limit=20`
 - `GET /api/v1/seo/csi/latest`
+- `GET /api/v1/seo/gso/latest`
 - `POST /api/v1/seo/cycle/run` (internal token required)
 - `POST /api/v1/seo/scheduler/pause` (internal token required)
 - `POST /api/v1/seo/scheduler/resume` (internal token required)
@@ -38,6 +39,9 @@ Privileged endpoints require `INTERNAL_SERVICE_TOKEN` via either:
 - `PORT` (default `3120`)
 - `HOST` (default `0.0.0.0`)
 - `INTERNAL_SERVICE_TOKEN`
+- `SEO_REDIS_URL` (recommended for multi-replica state + distributed cycle locking)
+- `SEO_REDIS_KEY_PREFIX` (default `seo-discovery-engine`)
+- `SEO_CYCLE_LOCK_TTL_MS` (default `1800000`)
 - `SEO_AUTO_CYCLE_ENABLED` (default `true`)
 - `SEO_CYCLE_INTERVAL_MS` (default `900000`)
 - `SEO_CYCLE_STARTUP_JITTER_MS` (default interval/5)
@@ -54,6 +58,7 @@ Optional data feed URLs:
 - `SEO_PERFORMANCE_FEED_URL`
 - `SEO_REFRESH_FEED_URL`
 - `SEO_DELIVERY_FEED_URL`
+- `SEO_GSO_ROUTE_URL` (optional infra GSO routing endpoint for linked delivery decisions)
 
 ## Run
 
