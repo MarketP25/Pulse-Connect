@@ -2,6 +2,15 @@
 -- Migration: 006_global_languages.sql
 -- Description: Expand localization support for 200+ languages with regional variants
 
+-- Ensure the trigger helper is available
+CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Language Registry (ISO 639-3 codes for comprehensive coverage)
 CREATE TABLE supported_languages (
     id SERIAL PRIMARY KEY,
@@ -85,9 +94,9 @@ CREATE INDEX idx_translation_cache_expires ON translation_cache (expires_at);
 CREATE INDEX idx_translation_cache_access ON translation_cache (last_accessed);
 
 -- Triggers for updated_at
-CREATE TRIGGER update_supported_languages_updated_at BEFORE UPDATE ON supported_languages FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_language_pair_capabilities_updated_at BEFORE UPDATE ON language_pair_capabilities FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_regional_language_preferences_updated_at BEFORE UPDATE ON regional_language_preferences FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_supported_languages_updated_at BEFORE UPDATE ON supported_languages FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+CREATE TRIGGER update_language_pair_capabilities_updated_at BEFORE UPDATE ON language_pair_capabilities FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+CREATE TRIGGER update_regional_language_preferences_updated_at BEFORE UPDATE ON regional_language_preferences FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
 
 -- Insert core supported languages (sample - would be expanded to 200+)
 INSERT INTO supported_languages (iso_code, iso_639_1, name_en, name_native, script, region_code, translation_available, speech_available, sign_available, quality_score, speakers_millions) VALUES
@@ -109,7 +118,8 @@ INSERT INTO supported_languages (iso_code, iso_639_1, name_en, name_native, scri
 -- Sign languages
 ('ase', NULL, 'American Sign Language', 'American Sign Language', 'Sign', 'US', false, false, true, 0.80, 0),
 ('bfi', NULL, 'British Sign Language', 'British Sign Language', 'Sign', 'GB', false, false, true, 0.75, 0),
-('ssp', NULL, 'Spanish Sign Language', 'Lengua de Signos Española', 'Sign', 'ES', false, false, true, 0.70, 0);
+('ssp', NULL, 'Spanish Sign Language', 'Lengua de Signos Española', 'Sign', 'ES', false, false, true, 0.70, 0)
+ON CONFLICT (iso_code) DO NOTHING;
 
 -- Insert regional preferences
 INSERT INTO regional_language_preferences (region_code, primary_languages, fallback_languages, data_residency_required) VALUES
@@ -118,7 +128,8 @@ INSERT INTO regional_language_preferences (region_code, primary_languages, fallb
 ('KE', ARRAY['swa', 'eng'], ARRAY['fra', 'ara'], false),
 ('IN', ARRAY['hin', 'eng'], ARRAY['ben', 'tam'], true),
 ('CN', ARRAY['cmn', 'eng'], ARRAY['kor', 'jpn'], true),
-('RU', ARRAY['rus', 'eng'], ARRAY['deu', 'fra'], true);
+('RU', ARRAY['rus', 'eng'], ARRAY['deu', 'fra'], true)
+ON CONFLICT (region_code) DO NOTHING;
 
 -- Insert sample language pair capabilities
 INSERT INTO language_pair_capabilities (source_language, target_language, provider, quality_score, latency_ms, cost_per_char, supports_speech) VALUES
@@ -126,4 +137,5 @@ INSERT INTO language_pair_capabilities (source_language, target_language, provid
 ('eng', 'fra', 'deepl', 0.97, 150, 0.0002, true),
 ('spa', 'eng', 'azure', 0.94, 180, 0.00015, true),
 ('fra', 'deu', 'google', 0.93, 220, 0.00012, false),
-('hin', 'eng', 'aws', 0.88, 300, 0.00018, false);
+('hin', 'eng', 'aws', 0.88, 300, 0.00018, false)
+ON CONFLICT (source_language, target_language, provider) DO NOTHING;

@@ -29,7 +29,7 @@ process.on('SIGINT', () => {
 app.post("/launch", async (req, res) => {
   const { clientName } = req.body;
   await createDroplet(clientName);
-  res.send(`🚀 Hosting launched for ${clientName}`);
+  res.send(`Hosting launched for ${clientName}`);
 });
 
 app.listen(3000, () => {

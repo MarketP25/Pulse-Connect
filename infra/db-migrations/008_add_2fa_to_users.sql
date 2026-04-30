@@ -5,9 +5,9 @@
 
 -- Column to store the encrypted secret key for TOTP (Time-based One-Time Password)
 -- generation. This will be unique for each user who enables 2FA.
-ALTER TABLE users ADD COLUMN two_factor_secret TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
 
 -- Column to track whether a user has enabled 2FA.
 -- By default, it is set to false. Users will need to go through an
 -- enrollment process to enable it.
-ALTER TABLE users ADD COLUMN two_factor_enabled BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN NOT NULL DEFAULT false;

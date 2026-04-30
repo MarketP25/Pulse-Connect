@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Fraud Events Table (core fraud detection events)
 CREATE TABLE fraud_events (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID DEFAULT uuid_generate_v4(),
     event_type VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL, -- 'user', 'device', 'payment', 'ai_program'
     entity_id VARCHAR(255) NOT NULL,
@@ -26,7 +26,8 @@ CREATE TABLE fraud_events (
     processed_at TIMESTAMP WITH TIME ZONE,
     trace_id VARCHAR(255) NOT NULL,
     policy_version VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (id, created_at)
 ) PARTITION BY RANGE (created_at);
 
 -- Create monthly partitions for fraud_events (current + 3 months ahead)
@@ -162,7 +163,7 @@ ALTER TABLE pap_audit_log ADD COLUMN IF NOT EXISTS fraud_case_id UUID REFERENCES
 
 -- Extend existing compliance_audit_log with fraud fields
 ALTER TABLE compliance_audit_log ADD COLUMN IF NOT EXISTS fraud_related BOOLEAN DEFAULT false;
-ALTER TABLE compliance_audit_log ADD COLUMN IF NOT EXISTS fraud_event_id UUID REFERENCES fraud_events(id);
+ALTER TABLE compliance_audit_log ADD COLUMN IF NOT EXISTS fraud_event_id UUID;
 
 -- Indexes for performance
 CREATE INDEX idx_fraud_events_entity_type_id ON fraud_events (entity_type, entity_id);

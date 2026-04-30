@@ -1,8 +1,14 @@
-// Shared library exports for Pulsco Edge
-export * from "./hashChain";
+/**
+ * Shared Security and Governance Primitives
+ */
+
+// Security Primitives
 export * from "./pc365Guard";
-export * from "./pc365Guard.nest";
-export * from "./signature-verifier";
-export * from "./ai-rule-interpreter";
+export * from "./hashChain";
+export * from "./auditLog";
+export * from "./requestContext";
+
+// Shared Domain Types
 export * from "./types";
-export * from "./localization/global-locale-catalog";
+
+export const PLATFORM_VERSION = "1.0.0";

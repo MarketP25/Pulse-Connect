@@ -18,7 +18,18 @@ module.exports = {
       },
       colors: {
         // Reference the variables injected by the layout
-        brand: "var(--brand-primary)"
+        brand: "var(--brand-primary)",
+        "stellar-purple": {
+          100: "#e0ccff",
+          400: "#a855f7",
+          500: "#8b5cf6",
+          600: "#7c3aed",
+          900: "#4c1d95"
+        },
+        "nebula-900": "#0b011d",
+        "grid-silver": "#94a3b8",
+        "cosmic-slate": "#1e293b",
+        "tech-white": "#f8fafc"
       }
     }
   },

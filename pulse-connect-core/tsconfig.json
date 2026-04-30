@@ -4,7 +4,6 @@
     "module": "commonjs",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,18 +15,16 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
-    "ignoreDeprecations": "5.0",
-    "baseUrl": "./src",
+    "moduleResolution": "node16",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"],
-      "@/services/*": ["services/*"],
-      "@/routes/*": ["routes/*"],
-      "@/middleware/*": ["middleware/*"],
-      "@/utils/*": ["utils/*"],
-      "@/types/*": ["types/*"]
+      "@/*": ["src/*"],
+      "@shared/*": ["../shared/lib/src/*"],
+      "@shared": ["../shared/lib/src/index"]
     }
   },
+  "references": [{ "path": "../shared/lib" }],
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

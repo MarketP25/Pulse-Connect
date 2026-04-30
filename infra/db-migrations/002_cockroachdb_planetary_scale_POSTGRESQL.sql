@@ -1,9 +1,10 @@
 -- Planetary-Scale Database Migration for Trillions of Tasks
--- CockroachDB/YugabyteDB Enhancement for Global Scale
+-- PostgreSQL 15+ Native Partitioning (Converted from CockroachDB)
 
 -- Enable necessary extensions for planetary scale
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS pg_partman;
 
 -- Enhanced partitioning strategy for exabyte-scale data
@@ -11,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS pg_partman;
 
 -- Create geo-partitioned tables for planetary scale
 CREATE TABLE IF NOT EXISTS global_tasks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     task_type TEXT NOT NULL,
     payload JSONB NOT NULL,
     priority INTEGER DEFAULT 1,
@@ -27,17 +28,18 @@ CREATE TABLE IF NOT EXISTS global_tasks (
     execution_time_ms BIGINT,
     error_message TEXT,
     -- Hash partitioning key for even distribution
-    task_hash INTEGER GENERATED ALWAYS AS (mod(hashtext(id::text), 1000)) STORED
+    task_hash INTEGER GENERATED ALWAYS AS (mod(hashtext(id::text), 1000)) STORED,
+    PRIMARY KEY (id, continent)
 ) PARTITION BY LIST (continent);
 
 -- Create continent-based partitions
-CREATE TABLE global_tasks_north_america PARTITION OF global_tasks FOR VALUES IN ('north_america');
-CREATE TABLE global_tasks_south_america PARTITION OF global_tasks FOR VALUES IN ('south_america');
-CREATE TABLE global_tasks_europe PARTITION OF global_tasks FOR VALUES IN ('europe');
-CREATE TABLE global_tasks_africa PARTITION OF global_tasks FOR VALUES IN ('africa');
-CREATE TABLE global_tasks_asia PARTITION OF global_tasks FOR VALUES IN ('asia');
-CREATE TABLE global_tasks_oceania PARTITION OF global_tasks FOR VALUES IN ('oceania');
-CREATE TABLE global_tasks_antartica PARTITION OF global_tasks FOR VALUES IN ('antartica');
+CREATE TABLE IF NOT EXISTS global_tasks_north_america PARTITION OF global_tasks FOR VALUES IN ('north_america');
+CREATE TABLE IF NOT EXISTS global_tasks_south_america PARTITION OF global_tasks FOR VALUES IN ('south_america');
+CREATE TABLE IF NOT EXISTS global_tasks_europe PARTITION OF global_tasks FOR VALUES IN ('europe');
+CREATE TABLE IF NOT EXISTS global_tasks_africa PARTITION OF global_tasks FOR VALUES IN ('africa');
+CREATE TABLE IF NOT EXISTS global_tasks_asia PARTITION OF global_tasks FOR VALUES IN ('asia');
+CREATE TABLE IF NOT EXISTS global_tasks_oceania PARTITION OF global_tasks FOR VALUES IN ('oceania');
+CREATE TABLE IF NOT EXISTS global_tasks_antartica PARTITION OF global_tasks FOR VALUES IN ('antartica');
 
 -- Sub-partition by time for each continent (hourly partitions)
 -- This creates ~17K partitions total (7 continents × 24 hours × rolling window)
@@ -88,15 +90,17 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_global_tasks_failed
 
 -- Global task queue table for distributed processing
 CREATE TABLE IF NOT EXISTS global_task_queue (
-    id BIGSERIAL PRIMARY KEY,
-    task_id UUID REFERENCES global_tasks(id) ON DELETE CASCADE,
+    id BIGSERIAL,
+    task_id uuid,
     queue_name TEXT NOT NULL,
     priority INTEGER DEFAULT 1,
     added_at TIMESTAMPTZ DEFAULT NOW(),
     locked_until TIMESTAMPTZ,
     worker_id TEXT,
     region TEXT NOT NULL,
-    continent TEXT NOT NULL
+    continent TEXT NOT NULL,
+    PRIMARY KEY (id, queue_name),
+    FOREIGN KEY (task_id, continent) REFERENCES global_tasks(id, continent) ON DELETE CASCADE
 ) PARTITION BY HASH (queue_name);
 
 -- Create hash partitions for task queue (100 partitions for even distribution)
@@ -113,13 +117,14 @@ END $$;
 
 -- Global metrics table for planetary monitoring
 CREATE TABLE IF NOT EXISTS global_system_metrics (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL,
     metric_name TEXT NOT NULL,
     metric_value NUMERIC NOT NULL,
     region TEXT NOT NULL,
     continent TEXT NOT NULL,
     collected_at TIMESTAMPTZ DEFAULT NOW(),
-    tags JSONB DEFAULT '{}'
+    tags JSONB DEFAULT '{}',
+    PRIMARY KEY (id, collected_at)
 ) PARTITION BY RANGE (collected_at);
 
 -- Create daily partitions for metrics (rolling 90 days)
@@ -144,7 +149,7 @@ SELECT create_metrics_partitions();
 
 -- Global worker registry for distributed execution
 CREATE TABLE IF NOT EXISTS global_workers (
-    id TEXT PRIMARY KEY, -- UUID or hostname
+    id TEXT PRIMARY KEY,
     region TEXT NOT NULL,
     continent TEXT NOT NULL,
     capabilities JSONB DEFAULT '[]',
@@ -202,7 +207,7 @@ $$ LANGUAGE plpgsql;
 -- Create automated maintenance job (would be scheduled externally)
 -- This is a placeholder - actual scheduling would be done by external job scheduler
 CREATE TABLE IF NOT EXISTS maintenance_jobs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     job_name TEXT NOT NULL UNIQUE,
     schedule_cron TEXT NOT NULL,
     last_run TIMESTAMPTZ,

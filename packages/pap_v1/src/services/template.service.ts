@@ -1,5 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, ValidationError } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { RequestContext, AuditLogger } from "@shared";
 import { Repository } from "typeorm";
 import {
   PAPTemplate,
@@ -7,8 +8,7 @@ import {
   TemplateLocalization,
   CreateTemplateRequest,
   UpdateTemplateRequest,
-  TemplateError,
-  ValidationError
+  TemplateError
 } from "../types/pap";
 import { TemplateEntity } from "../entities/template.entity";
 
@@ -27,27 +27,60 @@ export class TemplateService {
   async createTemplate(request: CreateTemplateRequest): Promise<PAPTemplate> {
     this.validateCreateTemplateRequest(request);
 
-    const templateEntity = this.templateRepository.create({
-      name: request.name,
-      description: request.description,
-      type: request.type,
-      channel: request.channel,
-      subject: request.subject,
-      body: request.body,
-      variables: request.variables || [],
-      localization: request.localization || {
-        enabled: false,
-        languages: [],
-        fallbackLanguage: "en"
-      },
-      tags: request.tags || [],
-      createdBy: request.createdBy,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+    // Get the current actor from the shared RequestContext
+    const actor = RequestContext.current;
+    if (!actor) {
+      throw new ValidationError("Actor context missing. All marketing actions must be identified.");
+    }
 
-    const savedTemplate = await this.templateRepository.save(templateEntity);
-    return this.mapEntityToTemplate(savedTemplate);
+    return await this.templateRepository.manager.transaction(async (transactionalEntityManager) => {
+      if (transactionalEntityManager.queryRunner) {
+        // The Billing Engine is the source house. We must attach the canonical
+        // Transaction ID provided by the billing engine to this operation to ensure
+        // marketing actions are financially authorized.
+        const billingId = (request as any).billingTransactionId;
+        transactionalEntityManager.queryRunner.data.billingTransactionId = billingId;
+        transactionalEntityManager.queryRunner.data.auditReason =
+          "Marketing Template Listing - Paid Transaction";
+      }
+
+      const templateEntity = transactionalEntityManager.create(TemplateEntity, {
+        name: request.name,
+        description: request.description,
+        type: request.type,
+        channel: request.channel,
+        subject: request.subject,
+        body: request.body,
+        variables: request.variables || [],
+        localization: request.localization || {
+          enabled: false,
+          languages: [],
+          fallbackLanguage: "en"
+        },
+        tags: request.tags || [],
+        createdBy: request.createdBy,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      const savedTemplate = await transactionalEntityManager.save(templateEntity);
+
+      // Manually trigger a high-integrity audit entry linked to the billing transaction
+      const auditEntry = AuditLogger.createEntry(
+        "MARKETING_TEMPLATE_CREATE",
+        { id: actor.userId, role: actor.role },
+        {
+          templateId: savedTemplate.id,
+          billingTransactionId: (request as any).billingTransactionId,
+          shardId: "pap_v1_global"
+        },
+        undefined, // lastHash - in production, fetch from service-local chain state
+        "pap_v1"  shardId for parallel processing
+      );
+      this.logger.log(`Template created with Billing Link: ${auditEntry.hash}`);
+
+      return this.mapEntityToTemplate(savedTemplate);
+    });
   }
 
   /**
@@ -58,9 +91,6 @@ export class TemplateService {
       where: { id: request.id }
     });
 
-    if (!template) {
-      throw new ValidationError("Template not found");
-    }
 
     Object.assign(template, request);
     template.updatedAt = new Date();
@@ -136,30 +166,21 @@ export class TemplateService {
   async renderTemplate(
     templateId: string,
     variables: Record<string, any>
+  ): Promise<{ subject?: string; body: string }>;
+  renderTemplate(
+    template: PAPTemplate,
+    variables: Record<string, any>
+  ): { subject?: string; body: string };
+  async renderTemplate(
+    idOrTemplate: string | PAPTemplate,
+    variables: Record<string, any>
   ): Promise<{
     subject?: string;
     body: string;
   }> {
-    const template = await this.getTemplate(templateId);
+    const template =
+      typeof idOrTemplate === "string" ? await this.getTemplate(idOrTemplate) : idOrTemplate;
 
-    return {
-      subject: template.subject
-        ? this.interpolateVariables(template.subject, variables)
-        : undefined,
-      body: this.interpolateVariables(template.body, variables)
-    };
-  }
-
-  /**
-   * Render template object directly
-   */
-  renderTemplate(
-    template: PAPTemplate,
-    variables: Record<string, any>
-  ): {
-    subject?: string;
-    body: string;
-  } {
     return {
       subject: template.subject
         ? this.interpolateVariables(template.subject, variables)

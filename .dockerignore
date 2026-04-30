@@ -19,8 +19,8 @@ media/
 *.log
 *.zip
 *.json
-run-*/ 
-job-*/ 
+run-*/
+job-*/
 
 # Python caches
 __pycache__/
@@ -41,3 +41,5 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+node_modules
+**/node_modules

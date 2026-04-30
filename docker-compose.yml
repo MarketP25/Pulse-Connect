@@ -5,11 +5,9 @@ services:
     build: .
     container_name: pulsco_app
     working_dir: /app
-    command: >
-      sh -c "python manage.py migrate &&
-             gunicorn pulsco.wsgi:application --bind 0.0.0.0:8000"
     volumes:
-      - .:/app
+      - ./pulsco:/app   # Mount the pulsco subfolder where manage.py lives
+    command: ./entrypoint.sh
     expose:
       - "8000"
     depends_on:
@@ -17,10 +15,14 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: pulsco.settings
       DATABASE_URL: postgres://pulsco:password@db:5432/pulsco
-      # Django connects to db:5432 inside Docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   db:
-    image: postgres:15
+    image: postgis/postgis:15-3.4   # Postgres 15 with PostGIS preinstalled
     container_name: pulsco_db
     environment:
       POSTGRES_USER: pulsco
@@ -28,8 +30,14 @@ services:
       POSTGRES_DB: pulsco
     volumes:
       - db_data:/var/lib/postgresql/data
+      - .:/app   # Mount your whole project root so SQL files are visible
     ports:
-      - "5433:5432"   # host:container mapping, avoids conflict with other Postgres
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulsco -d pulsco"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   nginx:
     image: nginx:latest
@@ -41,6 +49,11 @@ services:
       - ./static:/static
     depends_on:
       - web
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   db_data:

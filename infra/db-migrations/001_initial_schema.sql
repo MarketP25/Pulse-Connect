@@ -116,6 +116,8 @@ CREATE TABLE IF NOT EXISTS order_items (
   unit_price_cents BIGINT,
   metadata JSONB
 );
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
 
 -- Table: payments
 CREATE TABLE IF NOT EXISTS payments (
@@ -129,6 +131,7 @@ CREATE TABLE IF NOT EXISTS payments (
   details JSONB,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE INDEX IF NOT EXISTS idx_payments_order_id ON payments(order_id);
 
 -- Table: sessions (for simple session storage)
 CREATE TABLE IF NOT EXISTS sessions (

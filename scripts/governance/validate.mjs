@@ -172,7 +172,7 @@ async function checkPwaPackageDependency(repoRoot) {
 
 async function checkUnifiedOriginRouting(repoRoot) {
   const errors = []
-  const canonicalHostTokens = ['pulsco.com', 'www.pulsco.com']
+  const canonicalHostTokens = ['pulsco.global', 'www.pulsco.global']
 
   for (const relPath of UNIFIED_ORIGIN_FILES) {
     const absolutePath = path.join(repoRoot, relPath)

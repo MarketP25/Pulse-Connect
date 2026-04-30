@@ -3,7 +3,7 @@
 
 -- MARP audit table: Comprehensive audit log for all MARP actions
 CREATE TABLE marp_audit (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID DEFAULT gen_random_uuid(),
     action_type VARCHAR(100) NOT NULL, -- 'policy_validation', 'firewall_enforce', 'signature_verify', etc.
     action_subtype VARCHAR(100), -- more specific action classification
     subsystem_name VARCHAR(100),
@@ -17,14 +17,17 @@ CREATE TABLE marp_audit (
     action_result VARCHAR(50) NOT NULL, -- 'success', 'failure', 'blocked', 'escalated'
     error_message TEXT,
     processing_time_ms INTEGER,
-    audit_hash VARCHAR(64) NOT NULL UNIQUE,
+    audit_hash VARCHAR(64) NOT NULL,
     prev_hash VARCHAR(64),
-    curr_hash VARCHAR(64) NOT NULL UNIQUE,
+    curr_hash VARCHAR(64) NOT NULL,
     pc365_attestation JSONB, -- PC365 guard attestation data
     marp_signature VARCHAR(500), -- MARP signature for the action
     council_notified BOOLEAN NOT NULL DEFAULT false,
     founder_notified BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (audit_hash, created_at),
+    UNIQUE (curr_hash, created_at),
+    PRIMARY KEY (id, created_at)
 ) PARTITION BY RANGE (created_at);
 
 -- Create monthly partitions for marp_audit (example for 2024)

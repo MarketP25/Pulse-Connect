@@ -121,9 +121,9 @@ fallbackLocales.forEach((locale) => {
     existingMap[locale] = commonTranslations;
     fs.writeFileSync(langMapPath, JSON.stringify(existingMap, null, 2));
 
-    console.log(`✅ Generated translations for: ${locale}`);
+    console.log(`Generated translations for: ${locale}`);
   } catch (err) {
-    console.error(`❌ Failed to generate translations for ${locale}:`, err);
+    console.error(`Failed to generate translations for ${locale}:`, err);
   }
 });
 
@@ -136,4 +136,4 @@ function logMissingKey(key: string, locale: string) {
   fs.writeFileSync(untranslatedLogPath, JSON.stringify(existing, null, 2));
 }
 
-console.log("🎉 Translation templates generated successfully!");
+console.log("Translation templates generated successfully");

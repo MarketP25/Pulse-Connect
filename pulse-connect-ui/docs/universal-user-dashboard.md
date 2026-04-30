@@ -2,7 +2,7 @@
 
 ## Scope
 
-This dashboard supports all user tiers (`basic`, `premium`, `enterprise`) with role-aware onboarding, localization, KYC-gated paid features, referral crediting, ecommerce/subscription management, communication, places/matchmaking, security controls, and CSI/PULSCO AI advisories.
+This dashboard supports all user tiers (`basic`, `premium`, `enterprise`) with role-aware onboarding, localization, KYC-gated paid features, referral crediting, ecommerce/subscription management, communication, places/matchmaking, security controls,CSI advisories and PULSCO AI assistance bot.
 
 ## Delivery Planning
 

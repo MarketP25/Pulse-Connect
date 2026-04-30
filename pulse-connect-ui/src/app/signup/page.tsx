@@ -100,7 +100,7 @@ export default function SignupPage() {
     "Pick Your Role",
     "Choose Your Language & Region",
     "Referral & Review",
-    "🎉 You’re In!"
+    " Welcome to Pulsco Global Ltd"
   ] as const;
 
   const onSubmit = async (data: SignupForm) => {

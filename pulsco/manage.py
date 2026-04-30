@@ -2,11 +2,28 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
 
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pulsco.settings')
+
+    # --- Monorepo support ---
+    BASE_DIR = Path(__file__).resolve().parent
+
+    # Add monorepo root (C:\Users\user\PULSCO) to Python path
+    sys.path.append(str(BASE_DIR))
+
+    # Add key subsystem roots to Python path
+    sys.path.append(str(BASE_DIR / "apps"))
+    sys.path.append(str(BASE_DIR / "packages"))
+    sys.path.append(str(BASE_DIR / "pulse-connect"))
+    sys.path.append(str(BASE_DIR / "pulse-connect-admin-ui"))
+    sys.path.append(str(BASE_DIR / "pulse-connect-core"))
+    sys.path.append(str(BASE_DIR / "pulse-connect-ui"))
+    sys.path.append(str(BASE_DIR / "pulse-hosting-backend"))
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -5,7 +5,7 @@ import "../../styles/tailwind.css";
 import "../../styles/design-tokens.css";
 import { PwaRegister } from "@pulsco/pwa";
 import { ClientLayout } from "@/components/ClientLayout";
-import { getBrandConfig } from "@/lib/branding";
+import { getBrandConfig } from "./branding";
 import { I18nProvider } from "@/components/I18nProvider";
 
 const geistSans = Geist({

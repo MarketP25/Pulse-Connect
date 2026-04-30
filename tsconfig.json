@@ -37,7 +37,9 @@
       "@hooks/*": ["src/hooks/*"],
       "@lib/*": ["src/lib/*"],
       "@services/*": ["src/services/*"],
-      "@types/*": ["src/types/*"]
+      "@types/*": ["src/types/*"],
+      "@shared/*": ["shared/lib/src/*"],
+      "@shared": ["shared/lib/src/index"]
     },
 
     /* Next.js plugin */
@@ -48,5 +50,13 @@
 
     /* Ignore deprecation warnings for TypeScript 6.0 */
     "ignoreDeprecations": "6.0"
-  }
+  },
+  "references": [
+    { "path": "shared/lib" },
+    { "path": "pulse-connect-core" },
+    { "path": "services/marp-governance-core" },
+    { "path": "packages/admin-gateway" },
+    { "path": "packages/pap_v1" }
+  ],
+  "files": []
 }

@@ -2,6 +2,7 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import "taliwind" from "./taliwind.config";
 
 /* Import Design Tokens */
 @import "./design-tokens.css";

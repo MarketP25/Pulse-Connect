@@ -36,9 +36,9 @@
 4. Typography consistency cleanup
 - Some legacy localization components include encoding artifacts and should be normalized as part of visual quality hardening.
 
-## 30-60-90 Day Execution Plan
+## Phase 1-3 Execution Plan
 
-## 30 Days (Stabilize)
+## Phase 1.Stabilize
 
 1. Move all runtime secrets to managed secret backends
 - Adopt External Secrets Operator or sealed-secrets for `planetary-secrets`.
@@ -51,7 +51,7 @@
 3. Add translation reliability SLOs
 - Track Localization+CSI translation success %, p95 latency, and fallback ratio.
 
-## 60 Days (Scale)
+## Phase 2.Scale
 
 1. Expand localization registry to 1000+ codes server-side
 - Source from internal language registry in localization domain.
@@ -63,7 +63,7 @@
 3. Dashboard UX for large language catalogs
 - Replace static pickers with searchable virtualized language selector using server pagination.
 
-## 90 Days (Global Certify)
+## Phase 3.Global Certify
 
 1. Launch regional production canaries
 - 3-region staged rollout with emergency fan-out drills.

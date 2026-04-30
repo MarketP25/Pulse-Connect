@@ -22,7 +22,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'ecommerce',
+    'billing',
+    'matchmaking',
+    'ai_programs',
+    'pap_v1',
+    'places',
+    'localization',
+    'proximity',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -83,7 +92,7 @@ STATIC_URL = '/static/'
 # Where collectstatic will gather all static files for production
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# 👇 Point to the correct source folder (your logo lives here)
+#  Point to the correct source folder (your logo lives here)
 STATICFILES_DIRS = [
     BASE_DIR / "pulsco" / "static",
 ]

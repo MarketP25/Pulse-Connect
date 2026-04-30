@@ -1,6 +1,6 @@
-# PULSCO (Pulse Connect) — Matchmaking
+# PULSCO — Matchmaking
 
-Proximity-powered matchmaking for Pulse Connect (PULSCO). This service uses geospatial inputs and contextual preferences to return candidate matches, aligning with planetary routing in the Pulse Intelligence Core and governance via MARP.
+Proximity-powered matchmaking for Pulsco. This service uses geospatial inputs and contextual preferences to return candidate matches, aligning with planetary routing in the Pulse Intelligence Core and governance via MARP.
 
 This document reflects implemented code and points to exact files.
 

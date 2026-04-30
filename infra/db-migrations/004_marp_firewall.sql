@@ -42,14 +42,14 @@ CREATE TABLE subsystem_registry (
 
 -- Conflict logs table: Records conflicts and escalations
 CREATE TABLE conflict_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID DEFAULT gen_random_uuid(),
     conflict_type VARCHAR(100) NOT NULL, -- 'policy_violation', 'security_breach', 'compliance_issue'
     severity VARCHAR(20) NOT NULL DEFAULT 'medium', -- 'low', 'medium', 'high', 'critical'
     subsystem_name VARCHAR(100),
     conflict_data JSONB NOT NULL,
-    conflict_hash VARCHAR(64) NOT NULL UNIQUE,
+    conflict_hash VARCHAR(64) NOT NULL,
     prev_hash VARCHAR(64),
-    curr_hash VARCHAR(64) NOT NULL UNIQUE,
+    curr_hash VARCHAR(64) NOT NULL,
     resolution_status VARCHAR(50) NOT NULL DEFAULT 'open', -- 'open', 'investigating', 'resolved', 'escalated'
     assigned_to VARCHAR(255),
     resolved_by VARCHAR(255),
@@ -58,7 +58,10 @@ CREATE TABLE conflict_logs (
     council_notified BOOLEAN NOT NULL DEFAULT false,
     founder_notified BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (conflict_hash, created_at),
+    UNIQUE (curr_hash, created_at),
+    PRIMARY KEY (id, created_at)
 ) PARTITION BY RANGE (created_at);
 
 -- Create monthly partitions for conflict_logs (example for 2024)

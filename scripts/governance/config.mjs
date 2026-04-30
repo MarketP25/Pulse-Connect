@@ -41,6 +41,7 @@ export const EDGE_EXECUTE_PROXY_ROUTES = [
   'pulse-connect-admin-ui/apps/procurement-dashboard/src/app/api/edge/execute/route.ts',
   'pulse-connect-admin-ui/apps/superadmin-dashboard/src/app/api/edge/execute/route.ts',
   'pulse-connect-admin-ui/apps/tech-security-dashboard/src/app/api/edge/execute/route.ts',
+  ''
 ]
 
 export const REQUIRED_CANONICAL_ICONS = [
@@ -89,4 +90,3 @@ export const UNIFIED_ORIGIN_REQUIRED_SERVICE_NAMES = [
   'tech-security-dashboard-service',
   'dpo-dashboard-service',
 ]
-

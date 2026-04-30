@@ -8,7 +8,7 @@ declare module "next-auth" {
     id: string;
     role: UserRole;
     subscription?: {
-      tier: "FREE" | "PRO" | "ENTERPRISE";
+      tier: "BASIC" | "PREMIUM" | "ENTERPRISE";
       status: "active" | "inactive" | "cancelled";
       expiresAt?: string;
     };
@@ -19,7 +19,7 @@ declare module "next-auth" {
       id: string;
       role: UserRole;
       subscription?: {
-        tier: "FREE" | "PRO" | "ENTERPRISE";
+        tier: "BASIC" | "PREMIUM" | "ENTERPRISE";
         status: "active" | "inactive" | "cancelled";
         expiresAt?: string;
       };
@@ -32,7 +32,7 @@ declare module "next-auth/jwt" {
     id: string;
     role: UserRole;
     subscription?: {
-      tier: "FREE" | "PRO" | "ENTERPRISE";
+      tier: "BASIC" | "PREMIUM" | "ENTERPRISE";
       status: "active" | "inactive" | "cancelled";
       expiresAt?: string;
     };

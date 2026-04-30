@@ -3,7 +3,8 @@
 // All CSI interactions happen here, dashboards only communicate through this gateway
 
 import { AdminRoleType } from "@pulsco/admin-shared-types";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { AuditLogger } from "@shared";
+import crypto, { createHmac, timingSafeEqual } from "node:crypto";
 import {
   EmergencyCSILinkage,
   EmergencyMutationAction,
@@ -21,9 +22,7 @@ const BILLING_SERVICE_URL = process.env.BILLING_SERVICE_URL || "http://localhost
 const GOVERNANCE_SERVICE_URL = process.env.GOVERNANCE_SERVICE_URL || "http://localhost:4002";
 const REPORTING_SERVICE_URL = process.env.REPORTING_SERVICE_URL || "http://localhost:3004";
 const OBSERVABILITY_SERVICE_URL = process.env.OBSERVABILITY_SERVICE_URL || "http://localhost:3005";
-const SEO_DISCOVERY_SERVICE_URL =
-  process.env.SEO_DISCOVERY_SERVICE_URL || "http://localhost:3120";
-
+const SEO_DISCOVERY_SERVICE_URL = process.env.SEO_DISCOVERY_SERVICE_URL || "http://localhost:3006";
 const ALLOW_LEGACY_PC365_ATTESTATION = process.env.ALLOW_LEGACY_PC365_ATTESTATION === "true";
 const PC365_GUARD_SECRET =
   process.env.ADMIN_GUARD_SIGNING_SECRET || process.env.PC365_GUARD_SIGNING_SECRET || "";
@@ -378,7 +377,7 @@ const EMERGENCY_READ_ROLES: AdminRoleType[] = ["superadmin", "tech-security", "c
 const EMERGENCY_WRITE_ROLES: AdminRoleType[] = ["superadmin"];
 
 function isInternalPolicyReader(req: Request): boolean {
-  const internalToken = process.env.INTERNAL_SERVICE_TOKEN;
+  const internalToken = process.env.INTERNAL_SERVICE_TOKEN || "";
   if (!internalToken) return process.env.NODE_ENV !== "production";
 
   const provided = req.headers.get("x-internal-service-token");
@@ -723,6 +722,24 @@ export async function emergencyProtocolRoute(req: Request) {
     };
 
     const state = await mutateEmergencyProtocolState(mutation);
+
+    // Generate a tamper-evident audit log entry
+    // In a real system, 'lastHash' would be fetched from the Audit Log DB
+    const lastHash =
+      state.history.length > 0
+        ? (state as any).lastAuditHash // Assuming state tracks the last chain hash
+        : undefined;
+
+    const auditEntry = AuditLogger.createEntry(
+      `EMERGENCY_PROTOCOL_${action.toUpperCase()}`,
+      { id: mutation.triggeredBy, role: guard.role },
+      { mutation, protocolVersion: state.version },
+      lastHash
+    );
+
+    // Logic to persist auditEntry to the immutable audit table would go here
+    console.log(`[Audit] New hash: ${auditEntry.hash} (prev: ${auditEntry.previousHash})`);
+
     await broadcastEmergencyMutation({
       action,
       state,

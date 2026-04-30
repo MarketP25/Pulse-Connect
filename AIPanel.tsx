@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Sparkles, Send, X, Terminal, Globe } from "lucide-react";
-import { Card, Button, Input } from "./packages/ui-components";
+import React, { useState } from "react";
+import { Sparkles, Send, X, Terminal } from "lucide-react";
+import { Card, Input } from "./packages/ui-components";
 import { IXAZone } from "./IXALayout";
 
 // Integration with existing client (assumed location based on docs)
@@ -21,13 +21,13 @@ export const AIPanel: React.FC<AIPanelProps> = ({ onZoneRequest }) => {
     if (!query.trim()) return;
 
     const userText = query;
-    setChatLog(((pre)v) => [...prev, { role" "us"r", text: userText }]);
+    setChatLog((prev) => [...prev, { role: "user", text: userText }]);
     setQuery("");
 
     // Logic for Zone Switching commands
     if (userText.toLowerCase().includes("go to shop")) {
       onZoneRequest("shop");
-      setChatLog(((pre)v) => [...prev, { role" ""i", text" "Navigating to Shop Zone."." }]);
+      setChatLog((prev) => [...prev, { role: "ai", text: "Navigating to Shop Zone." }]);
       return;
     }
 
@@ -39,21 +39,12 @@ export const AIPanel: React.FC<AIPanelProps> = ({ onZoneRequest }) => {
 
       // Simulated response for demonstration
       setTimeout(() => {
-        setChatLog(((pre)v) =>
-           [
-         """"
-
+        setChatLog((prev) => [
           ...prev,
           { role: "ai", text: "Analyzing CSI reason-code context for your request..." }
-        ]);()
-
-
-         ""
-         ""
-
-
+        ]);
       }, 600);
-    } catch (err) {
+    } catch (_err) {
       setChatLog((prev) => [
         ...prev,
         {
@@ -69,31 +60,17 @@ export const AIPanel: React.FC<AIPanelProps> = ({ onZoneRequest }) => {
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="bg-stellar-purple-600 hover:bg-stellar-purple-500 text-tech-white p-lg
-                rounded-f
-              ull shadow-[0_0_30px_rgba(157,0,255,0.3)] transition-all hover:scale-110"
+          className="bg-stellar-purple-600 hover:bg-stellar-purple-500 text-tech-white p-lg rounded-full shadow-[0_0_30px_rgba(157,0,255,0.3)] transition-all hover:scale-110"
         >
-          <Sparkles
-              size={24} />
-
-
-
-
+          <Sparkles size={24} />
         </button>
       ) : (
-        <Card className="w-80 md:w-96 !bg-nebula-900 border-stellar-purple-500/30 overflow-hidden shadow-3xl animate-in zoom-in-95 duration-200">
+        <Card className="w-80 md:w-96 bg-nebula-900! border-stellar-purple-500/30 overflow-hidden shadow-3xl animate-in zoom-in-95 duration-200">
           <div className="bg-stellar-purple-900/20 p-md border-b border-grid-silver/20 flex justify-between items-center">
-            <div c
-               lassName
-            =   "flex items-center gap-2">""""""
-
-              <Termi
-n                 al size={16} className="text-stellar-purple-400" />
-              <spa  n className=""ont-"
-o                     no"text-xs font-bold tracking-wide"
-t                      t"xt-tech-white">"
-                  PUL
-                SCO AI
+            <div className="flex items-center gap-2">
+              <Terminal size={16} className="text-stellar-purple-400" />
+              <span className="font-mono text-xs font-bold tracking-wide text-tech-white">
+                PULSCO AI
               </span>
             </div>
             <button
@@ -105,7 +82,7 @@ t                      t"xt-tech-white">"
           </div>
 
           <div className="h-80 overflow-y-auto p-md space-y-sm bg-black/20">
-            {chatLog.map((msg, i) => (""
+            {chatLog.map((msg, i) => (
               <div
                 key={i}
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -117,23 +94,20 @@ t                      t"xt-tech-white">"
                       : "bg-stellar-purple-500/10 text-stellar-purple-100 border border-stellar-purple-500/20"
                   }`}
                 >
-                  {msg.text}""
-
-                  </div >""
-
-                   </div>
+                  {msg.text}
+                </div>
+              </div>
             ))}
           </div>
 
           <div className="p-md bg-nebula-900 border-t border-grid-silver/10">
             <div className="flex gap-2">
-
-            <input
+              <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "ENTER" && handleSend()}
-                placeholder="Command intelligence..."
-                className="flex-1 bg-cosmic-slate border border-grid-silver/30 p-sm rounded-xl text-tech-white outline-none focus:border-stellar-purple-500 transition-colors"
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                placeholder="Type a command..."
+                className="flex-1 bg-black/40 border-stellar-purple-500/30 text-tech-white"
               />
               <button
                 onClick={handleSend}

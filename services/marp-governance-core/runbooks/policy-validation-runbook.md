@@ -10,16 +10,16 @@ This runbook provides procedures for validating policies through the MARP govern
 - Policy content in JSON format
 
 ## Emergency Contacts
-- **Primary**: MARP Governance Team (`marp-governance@pulsco.com`)
-- **Secondary**: Founder Arbitration (`founder-arbitration@pulsco.com`)
-- **CSI Emergency**: Central Super Intelligence Center (`csi-emergency@pulsco.com`)
+- **Primary**: MARP Governance Team (`marp-governance@pulsco.global`)
+- **Secondary**: Founder Arbitration (`founder-arbitration@pulsco.global`)
+- **CSI Emergency**: Central Super Intelligence Center (`csi-emergency@pulsco.global`)
 
 ## Policy Validation Process
 
 ### Step 1: Prepare Policy Package
 ```bash
 # Create policy validation request
-curl -X POST https://marp-governance.pulsco.com/marp/policies/validate \
+curl -X POST https://marp-governance.pulsco.global/marp/policies/validate \
   -H "Authorization: Bearer <pc365-token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -106,10 +106,10 @@ curl -X POST https://marp-governance.pulsco.com/marp/policies/validate \
 
 ```bash
 # Sign validated policy
-curl -X POST https://marp-governance.pulsco.com/marp/policies/sign \
+curl -X POST https://marp-governance.pulsco.global/marp/policies/sign \
   -H "Authorization: Bearer <pc365-token>" \
   -H "x-pc365: <pc365-attestation>" \
-  -H "x-founder: superadmin@pulsco.com" \
+  -H "x-founder: superadmin@pulsco.global" \
   -H "x-device: <device-fingerprint>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -118,7 +118,7 @@ curl -X POST https://marp-governance.pulsco.com/marp/policies/sign \
     "pc365Attestation": {
       "authorization": "<service-token>",
       "x-pc365": "<attestation-token>",
-      "x-founder": "superadmin@pulsco.com",
+      "x-founder": "superadmin@pulsco.global",
       "x-device": "<device-fingerprint>"
     },
     "founderOverride": false

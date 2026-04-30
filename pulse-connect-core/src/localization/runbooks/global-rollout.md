@@ -54,9 +54,9 @@ FROM regional_pricing_matrix;
 - [ ] Content moderation policies per region
 - [ ] Audit logging for all jurisdictions
 
-## Phase 2: Regional Rollout (Months 2-6)
+## Phase 2: Regional Rollout
 
-### Wave 1: Core Markets (Month 2)
+### Wave 1: Core Markets
 **Regions:** US, EU, Kenya, India, China
 **Languages:** 50+ languages
 **Capacity:** 1000 concurrent translations
@@ -78,18 +78,17 @@ curl -X POST "http://admin-api/features/global-enable" \
 - [ ] 95%+ translation accuracy
 - [ ] Zero data residency violations
 
-### Wave 2: Expansion Markets (Month 3)
+### Wave 2: Expansion Markets
 **Regions:** Southeast Asia, Middle East, Latin America
 **Languages:** 80+ additional languages
 **Capacity:** 2500 concurrent translations
 
-### Wave 3: Global Coverage (Months 4-6)
+### Wave 3: Global Coverage
 **Regions:** All remaining regions
 **Languages:** All 200+ languages
 **Capacity:** 10000+ concurrent translations
 
-## Phase 3: Capacity & Performance Optimization (Months 7-9)
-
+## Phase 3: Capacity & Performance Optimization
 ### Auto-Scaling Configuration
 ```yaml
 # Kubernetes HPA for localization service
@@ -149,7 +148,7 @@ ORDER BY hour DESC, region_code;
 - [ ] Batch processing for high-volume requests
 - [ ] Dynamic scaling based on demand patterns
 
-## Phase 4: Feature Expansion (Months 10-12)
+## Phase 4: Feature Expansion
 
 ### Advanced Features
 - [ ] Real-time video translation with live subtitles
