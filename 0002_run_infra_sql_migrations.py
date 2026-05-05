@@ -225,9 +225,125 @@ INSERT INTO edge_policy_snapshots (
     'initial_policy_hash',
     NOW()
 );
+
+-- GSO Orchestration Schema (Planetary Routing & Isolation)
+-- Required for GSOService and Planetary Load Balancing
+
+CREATE TABLE region_catalog (
+    region_code VARCHAR(50) PRIMARY KEY,
+    parent_region_code VARCHAR(50) REFERENCES region_catalog(region_code),
+    brand_config JSONB NOT NULL DEFAULT '{}',
+    locale_config JSONB NOT NULL DEFAULT '{}',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE gso_network_nodes (
+    node_id VARCHAR(100) PRIMARY KEY,
+    region_code VARCHAR(50) REFERENCES region_catalog(region_code),
+    node_type VARCHAR(50) NOT NULL, -- 'cloud_region', 'external_network', 'satellite'
+    endpoint_url TEXT NOT NULL,
+    health_status VARCHAR(20) DEFAULT 'healthy',
+    is_active BOOLEAN DEFAULT true,
+    metadata JSONB DEFAULT '{}',
+    last_seen TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE gso_routing_decisions (
+    request_id VARCHAR(100) PRIMARY KEY,
+    session_key VARCHAR(255) NOT NULL,
+    user_hash VARCHAR(64) NOT NULL,
+    source_region VARCHAR(50),
+    selected_node_id VARCHAR(100) REFERENCES gso_network_nodes(node_id),
+    decision_score DECIMAL(5,2),
+    decision_vector JSONB,
+    decision_time_ms INTEGER,
+    routing_mode VARCHAR(20),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE gso_region_isolations (
+    region_code VARCHAR(50) PRIMARY KEY REFERENCES region_catalog(region_code),
+    is_active BOOLEAN DEFAULT false,
+    emergency_level INTEGER NOT NULL,
+    reason TEXT,
+    activated_at TIMESTAMPTZ,
+    deactivated_at TIMESTAMPTZ
+);
+
+CREATE TABLE gso_emergency_incidents (
+    incident_id VARCHAR(100) PRIMARY KEY,
+    status VARCHAR(20) DEFAULT 'active',
+    level INTEGER NOT NULL,
+    region_code VARCHAR(50) REFERENCES region_catalog(region_code),
+    reason TEXT,
+    pc365_verified BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    resolved_at TIMESTAMPTZ
+);
+
+CREATE TABLE gso_action_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    action_type VARCHAR(50) NOT NULL,
+    outcome VARCHAR(20) NOT NULL,
+    region_code VARCHAR(50),
+    detail JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE gso_degraded_tx_queue (
+    tx_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    idempotency_key VARCHAR(255) UNIQUE NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'completed', 'failed'
+    payload_encrypted TEXT NOT NULL,
+    payload_checksum VARCHAR(64) NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    processed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE gso_vault_documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_key VARCHAR(255) NOT NULL,
+    payload JSONB NOT NULL,
+    payload_checksum VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE gso_session_routes (
+    session_key VARCHAR(255) PRIMARY KEY,
+    active_node_id VARCHAR(100) REFERENCES gso_network_nodes(node_id),
+    metadata JSONB DEFAULT '{}',
+    last_switch_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed initial region
+INSERT INTO region_catalog (region_code, brand_config, locale_config)
+VALUES ('AF-EAST', '{"primary_color": "#000000"}', '{"timezone": "Africa/Nairobi"}');
+
+-- Seed a default Cloud Node
+INSERT INTO gso_network_nodes (node_id, region_code, node_type, endpoint_url)
+VALUES ('cloud-af-east-01', 'AF-EAST', 'cloud_region', 'https://af-east.pulsco.global');
+
+CREATE INDEX idx_gso_routing_session ON gso_routing_decisions(session_key);
+CREATE INDEX idx_gso_tx_queue_status ON gso_degraded_tx_queue(status, created_at);
+CREATE INDEX idx_gso_vault_key ON gso_vault_documents(document_key);
 """
 
 REVERSE_SQL_007_EDGE_GATEWAY = """
+DROP TABLE IF EXISTS gso_session_routes;
+DROP TABLE IF EXISTS gso_vault_documents;
+DROP TABLE IF EXISTS gso_degraded_tx_queue;
+DROP TABLE IF EXISTS gso_action_logs;
+DROP TABLE IF EXISTS gso_emergency_incidents;
+DROP TABLE IF EXISTS gso_region_isolations;
+DROP TABLE IF EXISTS gso_routing_decisions;
+DROP TABLE IF EXISTS gso_network_nodes;
+DROP TABLE IF EXISTS region_catalog;
+
 DROP INDEX IF EXISTS idx_geocoding_logs_provider;
 DROP INDEX IF EXISTS idx_geocoding_logs_request_id;
 DROP INDEX IF EXISTS idx_marketing_deliveries_region;

@@ -96,3 +96,27 @@ All Emergency Protocol events are meticulously audited:
 
 - Activation and deactivation events are Founder-gated and logged in `gso_emergency_incidents` and `gso_action_logs`.
 - These logs are hash-chained, ensuring an immutable, tamper-evident record for post-incident analysis and compliance.
+
+## 7. Manual Intervention & Diagnostics
+
+Authorized administrators can manage the governance state and verify system health using the following toolset:
+
+### 7.1 invocation via Management Command
+
+To manually invoke or lift a freeze from within the application container:
+
+```bash
+# Invoke Emergency Freeze
+python manage.py invoke_emergency --activate --reason "Critical security patch deployment"
+
+# Restore Active State (Homecoming)
+python manage.py invoke_emergency --deactivate
+```
+
+### 7.2 Planetary Sanity Check
+
+To verify connectivity, security layers (PC365), and cache persistence across the stack:
+
+```bash
+python sanity_check.py
+```

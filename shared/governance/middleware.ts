@@ -24,6 +24,7 @@ export const governanceGuard = (subsystem: string) => {
       return res.status(503).json({
         error: "Service Unavailable",
         message:
+          "PULSCO is currently in an EMERGENCY FREEZE state due to critical system events. All non-essential operations are temporarily suspended."
       });
     }
 

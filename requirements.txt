@@ -22,3 +22,6 @@ requests==2.31.0
 celery[redis]==5.3.6
 django-celery-beat==2.6.0
 redis==5.0.1
+
+# AWS SDK for Python (Infrastructure Reconciliation)
+boto3==1.34.0

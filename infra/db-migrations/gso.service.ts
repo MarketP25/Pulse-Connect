@@ -4,6 +4,8 @@ import { Pool } from "pg";
 import { RoutingEngine } from "../routing.engine";
 import { PC365Guard } from "../../shared/lib/src/pc365Guard";
 import { HashChain } from "../../shared/lib/src/hashChain";
+import { WAFV2Client, GetWebACLCommand, UpdateWebACLCommand } from "@aws-sdk/client-wafv2";
+import Redis from "ioredis";
 
 @Injectable()
 export class GSOService {
@@ -34,7 +36,8 @@ export class GSOService {
   constructor(
     private readonly pool: Pool,
     private readonly routingEngine: RoutingEngine,
-    private readonly pc365Guard: PC365Guard
+    private readonly pc365Guard: PC365Guard,
+    private readonly redis: Redis
   ) {}
 
   /**
@@ -78,6 +81,155 @@ export class GSOService {
     );
 
     return res.rows[0] || null;
+  }
+
+  /**
+   * Synchronizes the planetary WAF state with the global governance status.
+   * Dynamically updates the SearchString in the byte_match_statement to enforce FREEZE.
+   * Aligned with EMERGENCY_PROTOCOL.md Section 3.4.
+   */
+  async syncWafGovernanceState() {
+    // 1. Fetch current status from Redis (Source of Truth)
+    const status = (await this.redis.get("pulsco:governance:status")) || "ACTIVE";
+    this.logger.log(`Syncing WAF state with governance status: ${status}`);
+
+    const client = new WAFV2Client({ region: process.env.AWS_REGION || "us-east-1" });
+    const webAclName = `${process.env.PROJECT_NAME || "pulse-edge"}-containment-policy`;
+
+    try {
+      // 2. Fetch the Web ACL and its LockToken
+      // In practice, WAF_WEB_ACL_ID would be stored in the GSO configuration
+      const getRes = await client.send(
+        new GetWebACLCommand({
+          Name: webAclName,
+          Scope: "REGIONAL",
+          Id: process.env.WAF_WEB_ACL_ID
+        })
+      );
+
+      if (!getRes.WebACL || !getRes.WebACL.Id) return;
+
+      // 3. Clone and modify the RedirectToEmergencyLandingPage rule
+      const updatedRules = getRes.WebACL.Rules?.map((rule) => {
+        if (rule.Name === "RedirectToEmergencyLandingPage") {
+          const statement = rule.Statement as any;
+          if (statement.ByteMatchStatement) {
+            statement.ByteMatchStatement.SearchString =
+              status === "EMERGENCY_FREEZE" ? "EMERGENCY_FREEZE" : "DISABLED_BY_GSO";
+          }
+        }
+        return rule;
+      });
+
+      // 4. Update the Web ACL
+      await client.send(
+        new UpdateWebACLCommand({
+          Name: webAclName,
+          Id: getRes.WebACL.Id,
+          Scope: "REGIONAL",
+          LockToken: getRes.LockToken!,
+          DefaultAction: getRes.WebACL.DefaultAction!,
+          Rules: updatedRules,
+          VisibilityConfig: getRes.WebACL.VisibilityConfig!
+        })
+      );
+
+      this.logger.log(`WAF containment policy successfully updated for state: ${status}`);
+    } catch (err) {
+      this.logger.error(`Planetary WAF synchronization failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Bulk syncs sessions from Vault to pre-warm a restored region.
+   * Identifies sessions currently on backup/satellite nodes and pulls their state.
+   * Logic follows Section 5.4 of EMERGENCY_PROTOCOL.md (Homecoming).
+   */
+  async bulkSyncSessionsFromVault(regionCode: string) {
+    this.logger.log(`Pre-warming: Initiating bulk session sync for restored region ${regionCode}`);
+
+    const client = await this.pool.connect();
+    try {
+      // Identify sessions currently on external/satellite networks.
+      // Prioritization: Founder status first, then priority score.
+      const sessionRes = await client.query(
+        `SELECT r.session_key, r.active_node_id
+         FROM gso_session_routes r
+         JOIN gso_network_nodes n ON r.active_node_id = n.node_id
+         WHERE n.node_type = 'external_network'
+         ORDER BY
+           (r.metadata->>'is_founder')::boolean DESC NULLS LAST,
+           (r.metadata->>'priority_score')::int DESC NULLS LAST,
+           r.last_switch_at ASC
+         LIMIT 200
+         FOR UPDATE OF r SKIP LOCKED`
+      );
+
+      this.logger.debug(`Found ${sessionRes.rows.length} sessions to potentially bring home.`);
+
+      // Sync each session pro-actively
+      for (const row of sessionRes.rows) {
+        await this.syncSessionFromVault(row.session_key, regionCode);
+      }
+    } catch (err) {
+      this.logger.error(`Bulk pre-warming failed: ${err.message}`);
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Syncs the latest session state from the Global Vault back to the local node.
+   * Critical for "Homecoming" when moving from Satellite failover back to Cloud.
+   */
+  private async syncSessionFromVault(sessionKey: string, targetRegion: string) {
+    this.logger.log(
+      `Initiating State Homecoming for session ${sessionKey} to region ${targetRegion}`
+    );
+
+    const client = await this.pool.connect();
+    try {
+      // 1. Fetch the latest state from the Vault using the sessionKey as a document_key
+      const vaultRes = await client.query(
+        `SELECT payload, payload_checksum FROM gso_vault_documents
+         WHERE document_key = $1
+         ORDER BY created_at DESC LIMIT 1`,
+        [sessionKey]
+      );
+
+      if (vaultRes.rows.length > 0) {
+        const { payload, payload_checksum } = vaultRes.rows[0];
+
+        // 2. Verify integrity before allowing the restored region to assume control
+        // Logic follows HashChain requirements in shared/lib/src/hashChain.ts
+        const computedHash = HashChain.hash(JSON.stringify(payload));
+        if (computedHash !== payload_checksum) {
+          throw new Error(
+            `MARP Integrity Breach: Vault checksum mismatch for session ${sessionKey}`
+          );
+        }
+
+        // 3. Atomic Idempotent Update: Only move if it's still on an external network
+        // This resolves conflicts if another GSO instance already moved the session
+        const updateRes = await client.query(
+          `UPDATE gso_session_routes r
+           SET active_node_id = n.node_id, last_switch_at = NOW(), updated_at = NOW()
+           FROM gso_network_nodes n
+           WHERE r.session_key = $1
+           AND n.region_code = $2 AND n.node_type = 'cloud_region'
+           AND EXISTS (SELECT 1 FROM gso_network_nodes n2 WHERE n2.node_id = r.active_node_id AND n2.node_type = 'external_network')`,
+          [sessionKey, targetRegion]
+        );
+
+        if (updateRes.rowCount > 0) {
+          this.logger.debug(`Session ${sessionKey} successfully brought home to ${targetRegion}`);
+        }
+      }
+    } catch (err) {
+      this.logger.error(`Failed to sync session from Vault: ${err.message}`);
+    } finally {
+      client.release();
+    }
   }
 
   /**
@@ -260,10 +412,23 @@ export class GSOService {
             throw new Error("Tamper detection: Checksum mismatch in queue");
           }
 
-          // 2. Replay Logic (In production, this routes to the target subsystem adapter)
+          // 2. Replay Logic: Route to the target subsystem adapter
+          const targetSubsystem = tx.metadata?.target_subsystem;
+          const targetAction = tx.metadata?.target_action;
+
+          if (!targetSubsystem || !targetAction) {
+            throw new Error("Missing target subsystem or action in degraded transaction metadata.");
+          }
+
           this.logger.log(
-            `Replaying transaction ${tx.tx_id} for region ${tx.metadata?.region_code}`
+            `Replaying transaction ${tx.tx_id} for subsystem ${targetSubsystem}, action ${targetAction} ` +
+              `for region ${tx.metadata?.region_code || "N/A"}`
           );
+
+          // In a real system, this would involve an actual API call, message queue publish,
+          // or a dedicated service registry lookup to invoke the target subsystem adapter.
+          // Example: await this.subsystemAdapterService.execute(targetSubsystem, targetAction, JSON.parse(payloadString));
+          this.logger.debug(`Simulated execution for TX ${tx.tx_id}: ${payloadString}`);
 
           await client.query(
             `UPDATE gso_degraded_tx_queue SET status = 'completed', processed_at = NOW() WHERE tx_id = $1`,
@@ -347,6 +512,11 @@ export class GSOService {
 
       await client.query("COMMIT");
 
+      // Dynamically update WAF containment policy
+      this.syncWafGovernanceState().catch((err) =>
+        this.logger.error(`Immediate WAF containment sync failed: ${err.message}`)
+      );
+
       // Notify users asynchronously
       this.notifyAffectedUsers(params.regionCode, "activated", params.reason, params.level).catch(
         (err) => this.logger.error(`Failed to send activation alerts: ${err.message}`)
@@ -425,6 +595,11 @@ export class GSOService {
       );
 
       await client.query("COMMIT");
+
+      // Release planetary containment via WAF update
+      this.syncWafGovernanceState().catch((err) =>
+        this.logger.error(`Immediate WAF restoration sync failed: ${err.message}`)
+      );
 
       // Notify users of restoration
       this.notifyAffectedUsers(

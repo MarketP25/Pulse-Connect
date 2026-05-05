@@ -216,6 +216,29 @@ variable "monitoring_interval" {
   default     = 0
 }
 
+variable "elp_domain_name" {
+  description = "Domain name for the Emergency Landing Page (e.g., status.pulsco.global)."
+  type        = string
+  default     = "status.pulsco.global"
+}
+
+variable "elp_s3_bucket_name" {
+  description = "Name for the S3 bucket hosting the Emergency Landing Page."
+  type        = string
+  default     = "pulsco-emergency-landing-page"
+}
+
+ variable "elp_acm_certificate_arn" {
+  description = "The ARN of the ACM certificate for the Emergency Landing Page (must be in us-east-1)."
+  type        = string
+  default     = null
+}
+
+variable "route53_zone_id" {
+  description = "The Route53 Hosted Zone ID where the status domain record will be created."
+  type        = string
+}
+
 # Optional: Create a Kubernetes Secret with DATABASE_URL
 variable "create_k8s_secret" {
   description = "Whether to create a Kubernetes Secret with DATABASE_URL."
@@ -428,6 +451,174 @@ resource "aws_security_group_rule" "db_egress_all" {
 
 locals {
   selected_sg_ids = var.create_db_sg ? [aws_security_group.edge_db[0].id] : var.vpc_security_group_ids
+}
+
+###############################################
+# Emergency Landing Page (ELP) S3 Bucket
+###############################################
+resource "aws_s3_bucket" "elp_content" {
+  bucket = var.elp_s3_bucket_name
+
+  tags = {
+    Project = var.project_name
+    Service = "EmergencyLandingPage"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "elp_content" {
+  bucket = aws_s3_bucket.elp_content.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "elp_content" {
+  bucket = aws_s3_bucket.elp_content.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "elp_content" {
+  depends_on = [
+    aws_s3_bucket_ownership_controls.elp_content,
+    aws_s3_bucket_public_access_block.elp_content,
+  ]
+
+  bucket = aws_s3_bucket.elp_content.id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_policy" "elp_content" {
+  bucket = aws_s3_bucket.elp_content.id
+  policy = data.aws_iam_policy_document.elp_s3_policy.json
+}
+
+data "aws_iam_policy_document" "elp_s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.elp_content.arn}/*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.elp_cdn.arn]
+    }
+  }
+}
+
+# Example ELP content (index.html)
+resource "aws_s3_bucket_object" "elp_index" {
+  bucket       = aws_s3_bucket.elp_content.id
+  key          = "index.html"
+  content_type = "text/html"
+  content      = <<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSCO - Service Unavailable</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f0f2f5; color: #333; }
+        .container { background-color: #fff; margin: 0 auto; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; }
+        h1 { color: #e74c3c; }
+        p { line-height: 1.6; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Service Unavailable</h1>
+        <p>PULSCO is currently in an EMERGENCY FREEZE state due to critical system events.</p>
+        <p>All non-essential operations are temporarily suspended to ensure the integrity and security of the planetary platform.</p>
+        <p>Please visit our official status page for real-time updates: <a href="https://status.pulsco.global">status.pulsco.global</a></p>
+        <p>We apologize for any inconvenience.</p>
+    </div>
+</body>
+</html>
+EOF
+}
+
+###############################################
+# AWS WAF (Equivalent to "Cloud Armor" for AWS)
+###############################################
+resource "aws_wafv2_web_acl" "gso_containment" {
+  name        = "${var.project_name}-containment-policy"
+  description = "Planetary containment policy for Emergency Protocol enforcement."
+  scope       = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  # Rule to enforce Emergency Landing Page redirection during FREEZE.
+  # This WAF is regional, so it would be associated with an ALB or API Gateway
+  # that sits in front of the main application.
+  # It redirects to the CloudFront distribution serving the ELP.
+  rule {
+    name     = "RedirectToEmergencyLandingPage"
+    priority = 1
+
+    action {
+      block {
+        custom_response {
+          response_code = 503
+          custom_response_body_key = "emergency_landing_page"
+          # Changed to 302 redirect to the ELP CloudFront distribution
+          response_code = 302
+          response_headers {
+            name = "Location"
+            value = "https://${aws_cloudfront_distribution.elp_cdn.domain_name}"
+          }
+        }
+      }
+    }
+
+    statement {
+      # In production, this would be triggered by a specific header or IP set
+      # managed dynamically by GSO/CSI signals.
+      byte_match_statement {
+        field_to_match {
+          single_header {
+            name = "x-pulsco-governance-state"
+          }
+        }
+        positional_constraint = "EXACTLY"
+        search_string         = "EMERGENCY_FREEZE"
+        text_transformation {
+          priority = 0
+          type     = "NONE"
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "RedirectToEmergencyLandingPage"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  custom_response_body {
+    key          = "emergency_landing_page"
+    content      = "{\"error\": \"Service Unavailable\", \"message\": \"PULSCO is currently in an EMERGENCY FREEZE state. Please visit https://status.pulsco.global for updates.\"}"
+    content_type = "APPLICATION_JSON"
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${var.project_name}-waf-main"
+    sampled_requests_enabled   = true
+  }
 }
 
 resource "aws_db_instance" "edge" {

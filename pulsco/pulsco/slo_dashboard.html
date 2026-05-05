@@ -68,12 +68,40 @@
         font-weight: bold;
         color: #2980b9;
       }
+      .gov-banner {
+        margin-bottom: 25px;
+        padding: 15px;
+        border-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .gov-banner-active {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .gov-banner-freeze {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
     </style>
   </head>
   <body>
     <div class="dashboard-container">
       <h1>MARP Governance Monitor</h1>
       <p class="subtitle">Planetary-scale Service Level Objectives (SLO) Observability</p>
+
+      <div
+        class="gov-banner {% if gov_status == 'EMERGENCY_FREEZE' %}gov-banner-freeze{% else %}gov-banner-active{% endif %}"
+      >
+        <span><strong>Global Governance Status:</strong> {{ gov_status }}</span>
+        <small
+          >{% if gov_status == 'EMERGENCY_FREEZE' %}ENFORCING 503 SERVICE RESTRICTIONS{% else
+          %}SYSTEM OPERATING NORMALLY{% endif %}</small
+        >
+      </div>
 
       <table>
         <thead>

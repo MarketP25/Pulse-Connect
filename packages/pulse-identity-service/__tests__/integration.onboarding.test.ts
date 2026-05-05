@@ -93,7 +93,7 @@ describe("PulseIdentityService onboarding integration", () => {
     );
 
     const registered = await service.registerUser({
-      email: "auto-kyc@example.com",
+      email: "auto-kyc@example.global",
       password: "StrongPass!234",
       username: "auto_kyc",
       role: "business",
