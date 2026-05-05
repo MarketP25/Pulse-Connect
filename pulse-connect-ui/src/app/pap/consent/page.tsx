@@ -22,7 +22,7 @@ import {
   MarketingChannel,
   MarketingPurpose,
   ConsentScope
-} from "../../../../packages/pap_v1/src/types/pap";
+} from "../../../../../packages/pap_v1/src/types/pap";
 
 interface ConsentPreferences {
   [key: string]: boolean;

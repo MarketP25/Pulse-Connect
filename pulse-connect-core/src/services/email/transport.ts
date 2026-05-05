@@ -43,7 +43,7 @@ export async function sendEmail({
 }: EmailOptions): Promise<boolean> {
   try {
     const info = await transporter.sendMail({
-      from: `Pulse Connect <${env.EMAIL_FROM}>`,
+      from: `Pulsco <${env.EMAIL_FROM}>`,
       to,
       subject,
       template,

@@ -1,11 +1,11 @@
-# PULSCO (Pulse Connect)
+# PULSCO Global Ltd
 
 Planetary-scale proximity and governance platform integrating multiple subsystems (ecommerce, places/venues, marketing/PAP, geocoding, AI/chatbot, communication, localization, translations, fraud, matchmaking) under a MARP-governed edge. This document reflects the implementation in this repository and clarifies that “PULSCO” is an abbreviation of “Pulse Connect.”
 
 
-## What is PULSCO (Pulse Connect)
+## What is PULSCO
 
-PULSCO (Pulse Connect) is a privacy- and governance-first platform that:
+PULSCO is a privacy- and governance-first platform that:
 - Enforces signed policies and immutable audits around every subsystem action (MARP governance perimeter + Edge Gateway).
 - Provides proximity/location intelligence (geocoding, distance, clustering foundations) and planetary load balancing.
 - Integrates domain subsystems through adapters registered at the edge (internal and third‑party).
@@ -181,4 +181,3 @@ ISC (see LICENSE if present in this repository).
 ## Acknowledgments
 
 This repository implements a governance-first, planetary architecture for Pulse Connect (PULSCO). Claims in this README are aligned with the current codebase; integration points (payments, FX, Redis caching, model-backed NLP) are intentionally marked for implementation.
-

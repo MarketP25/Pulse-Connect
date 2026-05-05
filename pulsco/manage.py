@@ -18,7 +18,7 @@ def main():
     # Add key subsystem roots to Python path
     sys.path.append(str(BASE_DIR / "apps"))
     sys.path.append(str(BASE_DIR / "packages"))
-    sys.path.append(str(BASE_DIR / "pulse-connect"))
+    sys.path.append(str(BASE_DIR / "pulse-portal"))
     sys.path.append(str(BASE_DIR / "pulse-connect-admin-ui"))
     sys.path.append(str(BASE_DIR / "pulse-connect-core"))
     sys.path.append(str(BASE_DIR / "pulse-connect-ui"))

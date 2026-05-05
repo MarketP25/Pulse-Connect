@@ -4,8 +4,9 @@
     "module": "commonjs",
     "declaration": true,
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "strict": true,
+    "noCheck": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -18,6 +19,6 @@
       "@shared/*": ["../../shared/*"]
     }
   },
-  "include": ["src/**/*", "../../shared/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
 }

@@ -107,32 +107,32 @@ export async function initializeMARPGovernance(config: MARPGovernanceConfig): Pr
   // Initialize event bus
   await initializeEventBus(config);
 
-  console.log("🛡️ MARP Governance Core initialized successfully");
-  console.log("🔥 Constitutional Firewall active");
-  console.log("🧠 CSI-powered intelligence enabled");
+  console.log("MARP Governance Core initialized successfully");
+  console.log("Constitutional Firewall active");
+  console.log("CSI-powered intelligence enabled");
 }
 
 // CSI Integration Validation
 async function validateCSIIntegration(): Promise<void> {
   // Validate CSI connectivity and permissions
   // This would check if MARP can securely query CSI
-  console.log("🔗 Validating CSI integration...");
+  console.log("Validating CSI integration...");
 }
 
 // Database Initialization
 async function initializeDatabase(config: MARPGovernanceConfig["database"]): Promise<void> {
   // Initialize PostgreSQL connection with hash chain triggers
-  console.log("💾 Initializing MARP database...");
+  console.log("Initializing MARP database...");
 }
 
 // Event Bus Initialization
 async function initializeEventBus(config: MARPGovernanceConfig): Promise<void> {
   // Initialize Kafka/Pulsar event bus for governance events
-  console.log("📡 Initializing MARP event bus...");
+  console.log("Initializing MARP event bus...");
 }
 
 // Graceful Shutdown
 export async function shutdownMARPGovernance(): Promise<void> {
-  console.log("🛑 Shutting down MARP Governance Core...");
+  console.log("Shutting down MARP Governance Core...");
   // Cleanup resources, close connections, flush pending events
 }

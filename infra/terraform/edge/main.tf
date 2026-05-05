@@ -226,7 +226,7 @@ variable "create_k8s_secret" {
 variable "k8s_namespace" {
   description = "Kubernetes namespace where the secret/ingress will be created."
   type        = string
-  default     = "pulse-connect"
+  default     = "pulsco"
 }
 
 variable "k8s_secret_name" {

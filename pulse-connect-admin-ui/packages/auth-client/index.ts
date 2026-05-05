@@ -10,7 +10,6 @@ import {
   OneTimeCode,
   AuditEvent
 } from "@pulsco/admin-shared-types";
-import { createHash, randomBytes } from "crypto";
 
 export interface AuthConfig {
   apiBaseUrl: string;
@@ -331,15 +330,36 @@ export class AdminAuthClient {
       timestamp: Date.now()
     };
 
-    return createHash("sha256").update(JSON.stringify(fingerprint)).digest("hex").substring(0, 16);
+    return AdminAuthClient.hashToHex(JSON.stringify(fingerprint)).slice(0, 16);
   }
 
   /**
    * Generate secure one-time code
    */
   static generateOneTimeCode(): string {
-    const bytes = randomBytes(3);
-    return bytes.toString("hex").toUpperCase();
+    const bytes = new Uint8Array(3);
+    if (typeof globalThis.crypto !== "undefined" && typeof globalThis.crypto.getRandomValues === "function") {
+      globalThis.crypto.getRandomValues(bytes);
+    } else {
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
+
+    return Array.from(bytes)
+      .map((value) => value.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase();
+  }
+
+  private static hashToHex(value: string): string {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < value.length; i++) {
+      hash ^= value.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+
+    return (hash >>> 0).toString(16).padStart(8, "0") + (value.length >>> 0).toString(16).padStart(8, "0");
   }
 
   /**

@@ -132,8 +132,8 @@ export class FounderCommsService {
 
   private async sendEmail(message: FounderMessage, body: string): Promise<void> {
     const mailOptions = {
-      from: process.env.EMAIL_FROM || "noreply@pulsco.com",
-      to: process.env.FOUNDER_EMAIL || "superadmin@pulsco.com",
+      from: process.env.EMAIL_FROM || "noreply@pulsco.global",
+      to: process.env.FOUNDER_EMAIL || "superadmin@pulsco.global",
       subject: message.subject,
       text: body
       // DKIM signing would be configured at SMTP level

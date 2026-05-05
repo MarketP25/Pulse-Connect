@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import { PwaRegister } from "@pulsco/pwa";
 
@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "Policy management, compliance oversight, and governance administration for Pulsco"
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: any }) {
   return (
     <html lang="en">
       <head>
@@ -28,3 +28,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

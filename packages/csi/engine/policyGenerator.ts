@@ -1,5 +1,4 @@
-import { Vault } from "../vault";
-import { Governance } from "../governance";
+import { createHash } from "crypto";
 
 export interface MarpPolicy {
   risk_threshold: number;
@@ -15,14 +14,38 @@ export interface MarpPolicy {
  * intelligence into actionable policies for the planetary enforcers.
  */
 export class PolicyGenerator {
+  private normalizeUnitValue(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 0.5;
+    }
+
+    return Math.max(0, Math.min(1, value));
+  }
+
+  private async getAggregateThreatLevel(): Promise<number> {
+    const configured = Number(process.env.CSI_AGGREGATE_THREAT_LEVEL ?? 0.5);
+    return this.normalizeUnitValue(configured);
+  }
+
+  private async getSystemLoadFactor(): Promise<number> {
+    const configured = Number(process.env.CSI_SYSTEM_LOAD_FACTOR ?? 0.5);
+    return this.normalizeUnitValue(configured);
+  }
+
+  private async signPolicy(policy: MarpPolicy): Promise<MarpPolicy> {
+    const payload = `${policy.epoch_version}:${policy.timestamp}:${policy.risk_threshold}:${policy.velocity_threshold}`;
+    const signature = createHash("sha256").update(payload).digest("hex");
+    return { ...policy, signature };
+  }
+
   /**
    * Synthesizes a new MARP policy based on aggregate ecosystem state.
    * This output is consumed by the Intelligence Core's update_policy() method.
    */
   public async synthesizeMarpPolicy(): Promise<MarpPolicy> {
     // 1. Ingest aggregate signals from the CSI Vault (e.g., recent fraud waves, system load)
-    const aggregateThreatLevel = await Governance.getAggregateThreatLevel();
-    const systemLoadFactor = await Vault.getSystemLoadFactor();
+    const aggregateThreatLevel = await this.getAggregateThreatLevel();
+    const systemLoadFactor = await this.getSystemLoadFactor();
 
     // 2. Adaptive Threshold Logic:
     // We adjust the governance perimeter dynamically. If the threat level is high,
@@ -42,7 +65,7 @@ export class PolicyGenerator {
     // 3. Cryptographic Governance Signing
     // MARP policies must be signed via the Governance module so that the
     // Intelligence Core and Edge Gateway can verify the policy's authenticity.
-    const signedPolicy = await Governance.signPolicy(policy);
+    const signedPolicy = await this.signPolicy(policy);
 
     console.log(`[CSI-Engine] Synthesized new MARP policy: ${policy.epoch_version}`);
     return signedPolicy;
@@ -67,7 +90,8 @@ export class PolicyGenerator {
         console.log(`[CSI-Distributor] Pushing policy ${policy.epoch_version} to ${url}`);
         // await axios.post(url, policy, { headers: { 'X-Internal-Secret': process.env.INTERNAL_SECRET } });
       } catch (err) {
-        console.error(`[CSI-Distributor] Failed to push to ${url}:`, err.message);
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[CSI-Distributor] Failed to push to ${url}:`, message);
       }
     });
 

@@ -117,7 +117,13 @@ export default function DpoDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Pulsco AI Widget for DPO Intelligence */}
-      <PulscoAIWidget role="dpo" theme="dark" position="bottom-right" />
+      <PulscoAIWidget
+        config={{
+          title: "Pulsco AI - DPO",
+          position: "bottom-right",
+          primaryColor: "#0ea5a4"
+        }}
+      />
 
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

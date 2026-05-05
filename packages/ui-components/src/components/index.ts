@@ -3,7 +3,7 @@
  * Central export for all reusable PULSCO design system components
  */
 
-export { default as Button } from "./Button";
+export { Button } from "./Button";
 export type { ButtonProps } from "./Button";
 
 export { default as Card } from "./Card";

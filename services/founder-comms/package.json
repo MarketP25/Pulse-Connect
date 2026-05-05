@@ -4,7 +4,7 @@
   "description": "Founder communications backend for Central Super Intelligence Centre - email sender + secure inbox",
   "main": "dist/main.js",
   "scripts": {
-    "build": "nest build",
+    "build": "tsc -p tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

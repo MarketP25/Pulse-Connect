@@ -39,7 +39,7 @@ export function LocalizationAdvancedPanel({ title, data }: Props) {
             <article className="mt-3 rounded-lg border border-slate-200 p-2 text-sm text-slate-700">
               <p className="font-semibold text-slate-900">Sample Translation</p>
               <p>
-                {data.sampleTranslation.sourceText} -> {data.sampleTranslation.translatedText}
+                {data.sampleTranslation.sourceText} {"->"} {data.sampleTranslation.translatedText}
               </p>
               <p className="text-xs text-slate-500">Provider: {data.sampleTranslation.provider}</p>
             </article>
@@ -49,4 +49,3 @@ export function LocalizationAdvancedPanel({ title, data }: Props) {
     </SectionCard>
   );
 }
-

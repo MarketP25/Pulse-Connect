@@ -231,11 +231,11 @@ export class CouncilService {
         scopes: ['risk', 'assessment', 'mitigation'],
       },
       {
-        name: 'Data protection Council',
-        type: CouncilType.DATA PROTECTION,
-        description: 'Independent data protection,audit and oversight functions',
+        name: 'Data Protection Council',
+        type: CouncilType.DATA_PROTECTION,
+        description: 'Independent data protection, audit, and oversight functions',
         quorumRequired: 3,
-        scopes: ['audit', 'oversight', 'transparency''data protection'],
+        scopes: ['audit', 'oversight', 'transparency', 'data_protection'],
       },
     ];
 

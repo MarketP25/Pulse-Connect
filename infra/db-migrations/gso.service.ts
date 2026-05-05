@@ -190,14 +190,32 @@ export class GSOService {
       }
     ].filter((u) => u.regionCode === regionCode);
 
-    const subject = `Pulsco Global Ltd Service Alert: Region ${regionCode} - Emergency Protocol ${status}`;
-    const dashboardMessage = `Emergency Protocol for ${regionCode} ${status}. Reason: ${reason}. Level: ${emergencyLevel || "N/A"}. Check global status dashboard for updates.`;
+    const subject = `[Service Alert] Pulsco ${regionCode}: Emergency Protocol ${status.toUpperCase()}`;
+
+    const dashboardMessage =
+      status === "activated"
+        ? `🚨 EMERGENCY ALERT: ${regionCode} is currently restricted (Level ${emergencyLevel}). Reason: ${reason}. Visit status.pulsco.global for live updates.`
+        : `✅ SERVICE RESTORED: ${regionCode} operations have resumed. We appreciate your patience during this security interval.`;
+
     const emailBody =
-      `Dear Pulsco User,\n\nThis is an important update regarding services in the ${regionCode} region.\n\n` +
-      `Our Emergency Protocol has been ${status}. Reason: ${reason}. (Level: ${emergencyLevel || "N/A"})\n\n` +
-      `During this time, you may experience degraded performance or temporary unavailability of certain services in this region.\n\n` +
-      `We are working diligently to restore full service and will provide further updates on your dashboard and via email.\n\n` +
-      `Thank you for your understanding.\n\nPulsco Global Ltd Operations Team`;
+      status === "activated"
+        ? `Dear Pulsco User,\n\n` +
+          `This is a priority notification regarding the ${regionCode} region.\n\n` +
+          `Our Emergency Protocol has been ACTIVATED (Level ${emergencyLevel || "N/A"}) due to: ${reason}.\n\n` +
+          `WHAT THIS MEANS FOR YOU:\n` +
+          `- Financial transactions (Wallet, Payouts, Payments) are temporarily suspended in this region to protect your assets.\n` +
+          `- Marketplace and Discovery services may experience high latency or temporary unavailability.\n` +
+          `- Real-time messaging remains operational but may be subject to stricter MARP filtering.\n\n` +
+          `ACTION REQUIRED:\n` +
+          `Please refrain from initiating sensitive transactions until this protocol is deactivated. You can monitor the real-time recovery status at https://status.pulsco.global.\n\n` +
+          `Thank you for your patience while we secure the ecosystem.\n\n` +
+          `Best regards,\n\nPulsco Global Ltd Operations Team`
+        : `Dear Pulsco User,\n\n` +
+          `We are pleased to inform you that the Emergency Protocol for the ${regionCode} region has been DEACTIVATED.\n\n` +
+          `Normal operations have resumed following: ${reason}.\n\n` +
+          `All services, including Wallet transactions and Marketplace activities, are now fully operational. If you were in the middle of a transaction, please check your activity logs for status confirmation.\n\n` +
+          `Thank you for your trust in our security framework.\n\n` +
+          `Sincerely,\n\nPulsco Global Ltd Operations Team`;
 
     for (const user of affectedUsers) {
       await this.notificationService.sendEmail(user.email, subject, emailBody);
@@ -328,6 +346,12 @@ export class GSOService {
       );
 
       await client.query("COMMIT");
+
+      // Notify users asynchronously
+      this.notifyAffectedUsers(params.regionCode, "activated", params.reason, params.level).catch(
+        (err) => this.logger.error(`Failed to send activation alerts: ${err.message}`)
+      );
+
       this.logger.warn(`Emergency Level ${params.level} activated for ${params.regionCode}`);
     } catch (e) {
       await client.query("ROLLBACK");
@@ -401,6 +425,14 @@ export class GSOService {
       );
 
       await client.query("COMMIT");
+
+      // Notify users of restoration
+      this.notifyAffectedUsers(
+        params.regionCode,
+        "deactivated",
+        "System restoration and safety verification complete."
+      ).catch((err) => this.logger.error(`Failed to send deactivation alerts: ${err.message}`));
+
       this.logger.log(
         `Emergency Protocol deactivated for ${params.regionCode}. Nodes will return to pool.`
       );

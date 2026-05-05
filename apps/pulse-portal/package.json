@@ -1,7 +1,7 @@
 {
   "name": "pulse-portal",
   "version": "1.0.0",
-  "description": " A Unified Portal for guests exploring Pulsco  (Single Entry Point for All Planetary Services)",
+  "description": " A Unified Portal for guests exploring Pulsco",
   "private": true,
   "scripts": {
     "dev": "pnpm exec next dev -p 3000",

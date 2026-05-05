@@ -22,7 +22,7 @@ const createDroplet = async (clientName) => {
         }
       }
     );
-    console.log(`🎉 Droplet created for ${clientName}:`, response.data.droplet);
+    console.log(`Droplet created for ${clientName}:`, response.data.droplet);
   } catch (error) {
     console.error("❌ Error creating droplet:", error.response?.data || error.message);
   }

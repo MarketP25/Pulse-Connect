@@ -36,7 +36,7 @@ import { CouncilEventEmitter } from "./events/council-events";
         // Initialize PC365 Guard with environment variables
         const config = {
           pc365MasterToken: process.env.PC_365_MASTER_TOKEN || "",
-          founderEmail: process.env.FOUNDER_EMAIL || "superadmin@pulsco.com",
+          founderEmail: process.env.FOUNDER_EMAIL || "superadmin@pulsco.global",
           serviceDeviceFingerprint: process.env.SERVICE_DEVICE_FINGERPRINT || ""
         };
         return new PC365Guard(config);

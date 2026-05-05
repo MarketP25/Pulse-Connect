@@ -75,7 +75,7 @@ export class TemplateService {
           shardId: "pap_v1_global"
         },
         undefined, // lastHash - in production, fetch from service-local chain state
-        "pap_v1"  shardId for parallel processing
+        "pap_v1" // shardId for parallel processing
       );
       this.logger.log(`Template created with Billing Link: ${auditEntry.hash}`);
 

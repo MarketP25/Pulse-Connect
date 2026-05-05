@@ -141,7 +141,7 @@ export function useResponsive(customBreakpoints?: Partial<Breakpoints>): Respons
  * Shows current viewport info - use in development only
  */
 export function BreakpointDebugger() {
-  const { width, height, breakpoint, isLandscape, isPortrait } = useResponsive();
+  const { width, height, breakpoint, isLandscape } = useResponsive();
   
   return (
     <div

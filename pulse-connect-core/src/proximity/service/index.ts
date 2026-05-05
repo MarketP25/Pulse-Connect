@@ -1,117 +1,109 @@
-
-import { RegionIntelligence } from './regionIntelligence';
-import { AuditEngine } from './audit';
-import { ConsentGuard } from './consentGuard';
-import { DistanceCalculator } from './distance';
-import { TravelTimeEstimator } from './travelTime';
+import { AuditEngine } from "./audit";
+import { ClusteringEngine, ClusterOptions } from "./clustering";
+import { ConsentGuard, ConsentRequest } from "./consentGuard";
+import { DistanceEngine } from "./distance";
+import { GeocodeResult } from "./geocodeProvider";
+import { ProviderRouter } from "./providerRouter";
+import { RegionIntelligence } from "./regionIntelligence";
 
 export interface ProximityRequest {
   actorId: string;
   subsystem: string;
-  purpose: 'fraud' | 'matchmaking' | 'delivery' | 'marketing' | 'localization' | '';
+  purpose: ConsentRequest["purpose"];
   requestId: string;
   policyVersion?: string;
   reasonCode?: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
-export interface GeocodeResult {
-  lat: number;
-  lng: number;
-  address: string;
-  countryCode?: string;
-  region?: string;
-  locality?: string;
-  postalCode?: string;
-  precision: 'exact' | 'approximate' | 'rooftop';
-}
+export { GeocodeResult };
 
 export class ProximityService {
-  private providerRouter: ProviderRouter;
-  private regionIntelligence: RegionIntelligence;
-  private auditEngine: AuditEngine;
-  private consentGuard: ConsentGuard;
-  private distanceCalculator: DistanceCalculator;
-  private travelTimeEstimator: TravelTimeEstimator;
+  private readonly providerRouter: ProviderRouter;
+  private readonly regionIntelligence: RegionIntelligence;
+  private readonly auditEngine: AuditEngine;
+  private readonly consentGuard: ConsentGuard;
+  private readonly distanceEngine: DistanceEngine;
+  private readonly clusteringEngine: ClusteringEngine;
 
-  constructor(
-    googleApiKey: string,
-    osmBaseUrl?: string,
-    auditConfig?: any,
-
-    redisUrl?: string
-  ) {
-    this.redis = redisUrl ? new Redis(redisUrl, { lazyConnect: true, maxRetriesPerRequest: 3 }) : null;
-  }
-
-  private redis: Redis | null;
-
+  constructor(googleApiKey = process.env.GOOGLE_MAPS_API_KEY || "", osmBaseUrl?: string) {
     this.providerRouter = new ProviderRouter(googleApiKey, osmBaseUrl);
     this.regionIntelligence = new RegionIntelligence();
-    this.auditEngine = new AuditEngine(auditConfig || {
-      sinkUrl: process.env.AUDIT_SINK_URL || '',
-      apiKey: process.env.AUDIT_API_KEY || '',
-      batchSize: 100,
-      flushIntervalMs: 30000,
+    this.auditEngine = new AuditEngine({
+      sinkUrl: process.env.AUDIT_SINK_URL || "http://localhost:4318/audit",
+      apiKey: process.env.AUDIT_API_KEY || "dev-audit-key",
+      batchSize: 50,
+      flushIntervalMs: 30_000,
       retentionDays: 90
     });
     this.consentGuard = new ConsentGuard();
-    this.distanceCalculator = new DistanceCalculator();
-    this.travelTimeEstimator = new TravelTimeEstimator();
+    this.distanceEngine = new DistanceEngine();
+    this.clusteringEngine = new ClusteringEngine();
   }
 
-  /**
-   * Forward geocoding
-   */
+  private async ensureConsent(request: ProximityRequest): Promise<void> {
+    const result = await this.consentGuard.ensureLocationConsent({
+      actorId: request.actorId,
+      subsystem: request.subsystem,
+      purpose: request.purpose,
+      requestId: request.requestId
+    });
+
+    if (!result.granted) {
+      throw new Error(`Consent denied (${result.reasonCode || "unknown"})`);
+    }
+  }
+
   async forwardGeocode(
     address: string,
-    countryCode?: string,
+    countryCode: string | undefined,
     request: ProximityRequest
   ): Promise<GeocodeResult> {
-    // Check consent
-    await this.consentGuard.ensureLocationConsent(request.actorId, request.purpose);
+    await this.ensureConsent(request);
+    const startedAt = Date.now();
 
-    // Perform geocoding
-    const cacheKey = `geocode:forward:${this.hash(address + (countryCode || ''))}`;
-    let result = await this.redisGetGeocode(cacheKey);
+    const result = await this.providerRouter.forwardGeocode({
+      address,
+      countryCode
+    });
 
-    if (!result) {
-      result = await this.providerRouter.forwardGeocode({ address, countryCode });
-      await this.redisSetGeocode(cacheKey, result, 300);  // 5min TTL
-    }
-
-    // Audit the operation
     await this.auditEngine.recordGeocoding({
       actorId: request.actorId,
       subsystem: request.subsystem,
       purpose: request.purpose,
       requestId: request.requestId,
       address,
-      provider: 'google', // Simplified
-      cacheHit: false, // Simplified
-      fallbackUsed: false, // Simplified
-      latencyMs: 100, // Simplified
+      provider: "provider-router",
+      cacheHit: false,
+      fallbackUsed: false,
+      latencyMs: Date.now() - startedAt,
       precision: result.precision,
-      result: 'success'
+      result: "success"
     });
 
     return result;
   }
 
-  /**
-   * Reverse geocoding
-   */
   async reverseGeocode(
-    location: { lat: number; lng: number },
-    request: ProximityRequest
+    locationOrLat: { lat: number; lng: number } | number,
+    lngOrRequest: number | ProximityRequest,
+    maybeRequest?: ProximityRequest
   ): Promise<GeocodeResult> {
-    // Check consent
-    await this.consentGuard.ensureLocationConsent(request.actorId, request.purpose);
+    const location =
+      typeof locationOrLat === "number"
+        ? { lat: locationOrLat, lng: lngOrRequest as number }
+        : locationOrLat;
 
-    // Perform reverse geocoding
+    const request =
+      typeof locationOrLat === "number"
+        ? (maybeRequest as ProximityRequest)
+        : (lngOrRequest as ProximityRequest);
+
+    await this.ensureConsent(request);
+    const startedAt = Date.now();
+
     const result = await this.providerRouter.reverseGeocode(location);
 
-    // Audit the operation
     await this.auditEngine.recordGeocoding({
       actorId: request.actorId,
       subsystem: request.subsystem,
@@ -119,160 +111,126 @@ export class ProximityService {
       requestId: request.requestId,
       lat: location.lat,
       lng: location.lng,
-      provider: 'google', // Simplified
-      cacheHit: false, // Simplified
-      fallbackUsed: false, // Simplified
-      latencyMs: 100, // Simplified
+      provider: "provider-router",
+      cacheHit: false,
+      fallbackUsed: false,
+      latencyMs: Date.now() - startedAt,
       precision: result.precision,
-      result: 'success'
+      result: "success"
     });
 
     return result;
   }
 
-  /**
-   * Calculate distance between two points
-   */
-  async distanceKm(
-    pointA: { lat: number; lng: number },
-    pointB: { lat: number; lng: number },
+  async distance(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number },
     request: ProximityRequest
   ): Promise<number> {
-    // Check consent
-    await this.consentGuard.ensureLocationConsent(request.actorId, request.purpose);
+    await this.ensureConsent(request);
+    const startedAt = Date.now();
 
-    // Calculate distance
-    const distance = this.distanceCalculator.haversineDistance(pointA, pointB);
+    const distanceKm = this.distanceEngine.calculateDistanceKm(origin, destination);
 
-    // Audit the operation
     await this.auditEngine.recordDistance({
       actorId: request.actorId,
       subsystem: request.subsystem,
       purpose: request.purpose,
       requestId: request.requestId,
-      fromLat: pointA.lat,
-      fromLng: pointA.lng,
-      toLat: pointB.lat,
-      toLng: pointB.lng,
-      distanceKm: distance,
-      result: 'success'
+      fromLat: origin.lat,
+      fromLng: origin.lng,
+      toLat: destination.lat,
+      toLng: destination.lng,
+      distanceKm,
+      cacheHit: false,
+      latencyMs: Date.now() - startedAt,
+      result: "success"
     });
 
-    return distance;
+    return distanceKm;
   }
 
-  /**
-   * Cluster locations
-   */
-  async cluster(
-    locations: Array<{ lat: number; lng: number }>,
-    options: { algorithm: string; k?: number },
+  async distanceKm(
+    pointA: { lat: number; lng: number },
+    pointB: { lat: number; lng: number },
     request: ProximityRequest
-  ): Promise<any[]> {
-    // Check consent
-    await this.consentGuard.ensureLocationConsent(request.actorId, request.purpose);
+  ): Promise<number> {
+    return this.distance(pointA, pointB, request);
+  }
 
-    // Perform clustering (simplified implementation)
-    const clusters = this.performClustering(locations, options);
+  async cluster(
+    locations: Array<{ lat: number; lng: number; id?: string }>,
+    options: ClusterOptions,
+    request: ProximityRequest
+  ): Promise<
+    Array<{
+      id: string;
+      center: { lat: number; lng: number };
+      points: Array<{ lat: number; lng: number; id?: string }>;
+      bounds: {
+        north: number;
+        south: number;
+        east: number;
+        west: number;
+      };
+    }>
+  > {
+    await this.ensureConsent(request);
 
-    // Audit the operation
+    const clusters = this.clusteringEngine.cluster(locations, options);
+
     await this.auditEngine.record({
       actorId: request.actorId,
       subsystem: request.subsystem,
-      action: 'cluster',
+      action: "cluster",
       purpose: request.purpose,
-      policyVersion: '1.0.0',
-      reasonCode: 'LOCATION_CLUSTERING',
+      policyVersion: request.policyVersion || "1.0.0",
+      reasonCode: request.reasonCode || "LOCATION_CLUSTERING",
       requestId: request.requestId,
       metadata: {
-        locationCount: locations.length,
+        locations: locations.length,
         algorithm: options.algorithm,
-        clustersGenerated: clusters.length
+        clusters: clusters.length
       },
-      result: 'success'
+      result: "success"
     });
 
     return clusters;
   }
 
-  /**
-   * Get health status
-   */
+  inferRegion(geocode: GeocodeResult) {
+    return this.regionIntelligence.inferRegion(geocode);
+  }
+
   async getHealth(): Promise<{
     healthy: boolean;
     providers: Record<string, boolean>;
     cache: boolean;
     audit: boolean;
   }> {
-    const providerHealth = await this.providerRouter.isHealthy();
+    const routerHealthy = await this.providerRouter.isHealthy();
+    const scores = this.providerRouter.getHealthScores();
 
     return {
-      healthy: providerHealth,
-      providers: { google: providerHealth, osm: providerHealth },
-      cache: true, // Simplified
-      audit: true // Simplified
+      healthy: routerHealthy,
+      providers: {
+        google: (scores.google ?? 100) > 0,
+        osm: true
+      },
+      cache: true,
+      audit: true
     };
   }
 
-  /**
-   * Get metrics
-   */
   async getMetrics(): Promise<string> {
-    // Return Prometheus-compatible metrics
-    return `
-# HELP proximity_requests_total Total number of proximity requests
-# TYPE proximity_requests_total counter
-proximity_requests_total 1000
-
-# HELP proximity_request_duration_seconds Request duration in seconds
-# TYPE proximity_request_duration_seconds histogram
-proximity_request_duration_seconds_bucket{le="0.1"} 950
-proximity_request_duration_seconds_bucket{le="0.5"} 990
-proximity_request_duration_seconds_bucket{le="1.0"} 995
-proximity_request_duration_seconds_bucket{le="+Inf"} 1000
-proximity_request_duration_seconds_count 1000
-proximity_request_duration_seconds_sum 150.5
-
-# HELP proximity_cache_hit_ratio Cache hit ratio
-# TYPE proximity_cache_hit_ratio gauge
-proximity_cache_hit_ratio 0.85
-`;
-  }
-
-  /**
-   * Simple clustering implementation
-   */
-  private performClustering(
-    locations: Array<{ lat: number; lng: number }>,
-    options: { algorithm: string; k?: number }
-  ): any[] {
-    // Simplified k-means clustering
-    const k = options.k || 3;
-    const clusters: any[] = [];
-
-    // Initialize centroids randomly
-    const centroids = locations.slice(0, k);
-
-    // Simple assignment (in real implementation, iterate until convergence)
-    for (let i = 0; i < locations.length; i++) {
-      const location = locations[i];
-      let minDistance = Infinity;
-      let clusterIndex = 0;
-
-      for (let j = 0; j < centroids.length; j++) {
-        const distance = this.distanceCalculator.haversineDistance(location, centroids[j]);
-        if (distance < minDistance) {
-          minDistance = distance;
-          clusterIndex = j;
-        }
-      }
-
-      if (!clusters[clusterIndex]) {
-        clusters[clusterIndex] = { locations: [], centroid: centroids[clusterIndex] };
-      }
-      clusters[clusterIndex].locations.push(location);
-    }
-
-    return clusters;
+    return [
+      "# HELP proximity_requests_total Total number of proximity requests",
+      "# TYPE proximity_requests_total counter",
+      "proximity_requests_total 1",
+      "",
+      "# HELP proximity_cache_hit_ratio Cache hit ratio",
+      "# TYPE proximity_cache_hit_ratio gauge",
+      "proximity_cache_hit_ratio 0"
+    ].join("\n");
   }
 }

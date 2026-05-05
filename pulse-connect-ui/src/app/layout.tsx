@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
-import "../../styles/tailwind.css";
-import "../../styles/design-tokens.css";
+import "./globals.css";
+import "../../../styles/design-tokens.css";
 import { PwaRegister } from "@pulsco/pwa";
 import { ClientLayout } from "@/components/ClientLayout";
-import { getBrandConfig } from "./branding";
+import { getBrandConfig } from "@/lib/branding";
 import { I18nProvider } from "@/components/I18nProvider";
 
 const geistSans = Geist({
@@ -30,7 +30,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Read the region set by our middleware
-  const headerList = headers();
+  const headerList = await headers();
   const region = headerList.get("x-pulsco-region") || "GLOBAL-MASTER-DEFAULT";
 
   // Fetch dynamic branding tokens for this specific region

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Star, Clock, Users, Search, Filter } from 'lucide-react';
-import { Place } from '../../../pulse-connect-core/src/places/types/places';
+import { Place } from "../../../../pulse-connect-core/src/places/types/places";
 
 interface PlacesDashboardProps {
   userId: string;
@@ -208,10 +208,10 @@ export const PlacesDashboard: React.FC<PlacesDashboardProps> = ({
     'attraction',
     'shopping',
     'entertainment',
-    'hospital'
-    'school'
-    'garage'
-    'petrol station'
+    'hospital',
+    'school',
+    'garage',
+    'petrol-station',
     'others'
   ];
 

@@ -5,8 +5,9 @@
     "rootDir": ".",
     "declaration": true,
     "declarationMap": true,
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   },
   "include": ["index.ts", "intents.ts"],
   "exclude": ["node_modules", "dist"]
 }
+

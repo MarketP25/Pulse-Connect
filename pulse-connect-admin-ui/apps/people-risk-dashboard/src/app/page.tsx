@@ -482,7 +482,7 @@ export default function PeopleRiskDashboard() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Regulatory Updates</span>
-                        <Badge variant="info">2 Pending</Badge>
+                        <Badge variant="warning">2 Pending</Badge>
                       </div>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.9'
 
 services:
   web:
@@ -6,23 +6,52 @@ services:
     container_name: pulsco_app
     working_dir: /app
     volumes:
-      - ./pulsco:/app   # Mount the pulsco subfolder where manage.py lives
+      - ./pulsco:/app
     command: ./entrypoint.sh
     expose:
       - "8000"
     depends_on:
       - db
-    environment:
-      DJANGO_SETTINGS_MODULE: pulsco.settings
-      DATABASE_URL: postgres://pulsco:password@db:5432/pulsco
+      - redis
+    env_file:
+      - .env.local
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: always
+
+  celery_worker:
+    build: .
+    container_name: pulsco_worker
+    working_dir: /app
+    volumes:
+      - ./pulsco:/app
+    command: celery -A pulsco worker -l info
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env.local
+    restart: always
+
+  celery_beat:
+    build: .
+    container_name: pulsco_beat
+    working_dir: /app
+    volumes:
+      - ./pulsco:/app
+    command: celery -A pulsco beat -l info
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env.local
+    restart: always
 
   db:
-    image: postgis/postgis:15-3.4   # Postgres 15 with PostGIS preinstalled
+    image: postgis/postgis:15-3.4
     container_name: pulsco_db
     environment:
       POSTGRES_USER: pulsco
@@ -30,7 +59,7 @@ services:
       POSTGRES_DB: pulsco
     volumes:
       - db_data:/var/lib/postgresql/data
-      - .:/app   # Mount your whole project root so SQL files are visible
+      - .:/app
     ports:
       - "5433:5432"
     healthcheck:
@@ -38,6 +67,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: pulsco_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+    restart: always
 
   nginx:
     image: nginx:latest

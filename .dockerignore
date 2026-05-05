@@ -43,3 +43,15 @@ build/
 *.egg-info/
 node_modules
 **/node_modules
+
+.git
+node_modules
+__pycache__
+*.log
+*.tmp
+*.sqlite3
+staticfiles
+media
+build
+dist
+.vscode

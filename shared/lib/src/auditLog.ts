@@ -103,4 +103,22 @@ export class AuditLogger {
 
     return true;
   }
+
+  /**
+   * Verifies that a service audit entry correctly references a valid billing ledger entry.
+   * This ensures the "Marketing Agent" or "Ecommerce Service" acted under financial authority.
+   */
+  static verifyBillingLink(
+    entry: AuditLogEntry,
+    ledgerEntry: { id: string; status: string; amount?: number; currency?: string }
+  ): boolean {
+    const payload = entry.payload || {};
+    const linkedId = payload.billingTransactionId;
+
+    if (!linkedId || linkedId !== ledgerEntry.id) return false;
+    if (ledgerEntry.status !== "COMPLETED" && ledgerEntry.status !== "SUCCESS") return false;
+
+    // Additional deep-match logic (e.g., amount verification) can be added here
+    return true;
+  }
 }

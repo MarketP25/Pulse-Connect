@@ -1,8 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import { Pool } from "pg";
-import { PC365Guard } from "../../../shared/lib/src/pc365Guard";
-import { HashChain } from "../../../shared/lib/src/hashChain";
+import { PC365Guard, HashChain } from "@pulsco/shared-lib";
 import {
   RequestArbitrationDto,
   FounderApprovalDto,
@@ -182,9 +181,9 @@ export class FounderApprovalService {
   }
 
   private async validateFounderAuthority(userId: string): Promise<void> {
-    // Check if user is founder (superadmin@pulsco.com)
+    // Check if user is founder (superadmin@pulsco.global)
     const query = `SELECT email FROM users WHERE id = $1 AND email = $2`;
-    const result = await this.db.query(query, [userId, "superadmin@pulsco.com"]);
+    const result = await this.db.query(query, [userId, "superadmin@pulsco.global"]);
 
     if (result.rows.length === 0) {
       throw new Error("Unauthorized: Founder authority required");

@@ -9,12 +9,14 @@
       "@/types/*": ["./src/types/*"],
       "@/services/*": ["./services/*"],
       "@/guards/*": ["./guards/*"],
+      "@pulsco/admin-auth-client": ["../../packages/auth-client"],
+      "@pulsco/admin-shared-types": ["../../packages/shared-types"],
       "@pulsco/*": ["../../../packages/*", "../../../packages/*/src"],
       "@pulsco/pulsco-ai-widget": ["../../../packages/pulsco-ai-widget"],
       "@pulsco/pulsco-ai-widget/*": ["../../../packages/pulsco-ai-widget/*"]
     },
     "types": ["node", "react", "react-dom"],
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   },
   "include": [
     "next-env.d.ts",
@@ -28,3 +30,4 @@
     "out"
   ]
 }
+

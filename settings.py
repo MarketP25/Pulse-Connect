@@ -1,12 +1,13 @@
+import os
 # Database
 # Use Postgres in Docker; SQLite only for local dev
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pulsco',          # matches POSTGRES_DB in docker-compose
-        'USER': 'pulsco',          # matches POSTGRES_USER
-        'PASSWORD': 'password',    # matches POSTGRES_PASSWORD
-        'HOST': 'db',              # service name in docker-compose.yml
-        'PORT': 5432,
+        'NAME': os.environ.get('POSTGRES_DB', 'pulsco'),
+        'USER': os.environ.get('POSTGRES_USER', 'pulsco'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'password'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', 5432),
     }
 }

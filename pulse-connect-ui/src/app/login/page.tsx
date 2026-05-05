@@ -11,6 +11,7 @@ export default function LoginPage() {
   const { language, region, setLanguage, setRegion } = useLanguage();
   const t = useT();
   const { email, password, error, loading, setEmail, setPassword, handleLogin } = useAuthForm();
+  const resolvedRegion = region || getDefaultRegionForLanguage(language) || "US";
 
   useEffect(() => {
     if (typeof navigator === "undefined") return;
@@ -70,7 +71,7 @@ export default function LoginPage() {
           </h3>
           <GlobalLocalePicker
             language={language}
-            region={region}
+            region={resolvedRegion}
             onLanguageChange={(value) => {
               setLanguage(value);
               const defaultRegion = getDefaultRegionForLanguage(value);

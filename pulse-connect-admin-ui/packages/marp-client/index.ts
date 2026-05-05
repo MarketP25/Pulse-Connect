@@ -454,10 +454,14 @@ export class MARPClient {
 
     for (let i = 0; i < sortedLogs.length; i++) {
       const log = sortedLogs[i];
-      const prevLog = i > 0 ? sortedLogs[i - 1] : null;
+      if (!log) {
+        return false;
+      }
+
+      const prevLog = i > 0 ? sortedLogs[i - 1] : undefined;
 
       // Validate hash chain
-      const expectedPrevHash = prevLog ? prevLog.hashChain : undefined;
+      const expectedPrevHash = prevLog?.hashChain;
       if (log.prevHash !== expectedPrevHash) {
         return false;
       }

@@ -15,3 +15,10 @@ python-decouple==3.8
 
 # For healthcheck curl (already in system, but safe to include requests if needed)
 requests==2.31.0
+
+# Redis client for caching and session management
+
+# Task Queue and Scheduling
+celery[redis]==5.3.6
+django-celery-beat==2.6.0
+redis==5.0.1

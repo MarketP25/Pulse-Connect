@@ -20,7 +20,7 @@ import { PC365Guard } from "../../../shared/lib/src/pc365Guard";
       useFactory: () => {
         const config = {
           pc365MasterToken: process.env.PC_365_MASTER_TOKEN || "",
-          founderEmail: process.env.FOUNDER_EMAIL || "superadmin@pulsco.com",
+          founderEmail: process.env.FOUNDER_EMAIL || "superadmin@pulsco.global",
           serviceDeviceFingerprint: process.env.SERVICE_DEVICE_FINGERPRINT || ""
         };
         return new PC365Guard(config);

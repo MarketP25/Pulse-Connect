@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ProximityMap from '../../components/map/ProximityMap';
-import { Venue } from '../../../pulse-connect-core/src/places/proximityIntegration';
+import { Venue } from "../../../../pulse-connect-core/src/places/proximityIntegration";
 
 const MapDemoPage: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
@@ -239,7 +239,7 @@ const MapDemoPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                    <span className="text-sm">Poor Proximity (<40)</span>
+                    <span className="text-sm">Poor Proximity ({"<40"})</span>
                   </div>
                 </div>
 

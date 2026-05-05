@@ -1,7 +1,12 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0",
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ]
   },
   "include": [
     "next-env.d.ts",
@@ -15,3 +20,4 @@
     "out"
   ]
 }
+

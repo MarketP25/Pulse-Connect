@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ArbitrationController } from "./controllers/arbitration.controller";
 import { ArbitrationService } from "./services/arbitration.service";
-import { PC365Guard } from "../../../shared/lib/src/pc365Guard";
+import { PC365Guard } from "@pulsco/shared-lib";
 
 @Module({
   controllers: [ArbitrationController],
@@ -12,7 +12,7 @@ import { PC365Guard } from "../../../shared/lib/src/pc365Guard";
       useFactory: () => {
         const config = {
           pc365MasterToken: process.env.PC_365_MASTER_TOKEN || "",
-          founderEmail: process.env.FOUNDER_EMAIL || "superadmin@pulsco.com",
+          founderEmail: process.env.FOUNDER_EMAIL || "superadmin@pulsco.global",
           serviceDeviceFingerprint: process.env.SERVICE_DEVICE_FINGERPRINT || ""
         };
         return new PC365Guard(config);

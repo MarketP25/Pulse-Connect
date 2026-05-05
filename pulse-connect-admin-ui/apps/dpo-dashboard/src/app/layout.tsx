@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "..W/globals.css";
+import "./globals.css";
 import { PwaRegister } from "@pulsco/pwa";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Data protection, privacy compliance, and incident oversight"
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: any }) {
   return (
     <html lang="en">
       <head>
@@ -26,3 +26,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

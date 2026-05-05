@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Navigation from "@pulsco/ui-components/Navigation";
 import { RiskIndicator } from "@/components/RiskIndicator";
 import "@/styles/design-tokens.css";
@@ -9,7 +9,7 @@ export const metadata = {
   description: "Unified Intelligent Digital Ecosystem"
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: any }) {
   // In a production scenario, these are derived from environment variables or CSI signals
   const currentEnv = "sandbox";
   const csiRiskScore = 0.12;
@@ -30,3 +30,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

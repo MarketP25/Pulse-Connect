@@ -6,7 +6,7 @@ async function bootstrap() {
 
   // Enable CORS for cross-service communication
   app.enableCors({
-    origin: ["https://admin.pulsco.com", "https://app.pulsco.com"],
+    origin: ["https://admin.pulsco.global", "https://app.pulsco.global"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "X-PC365-Token"]
   });
