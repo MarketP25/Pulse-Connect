@@ -28,20 +28,20 @@ fi
 echo "Navigating to Terraform directory: ${TERRAFORM_DIR}"
 cd "${TERRAFORM_DIR}"
 
-# Ensure Terraform is initialized
+# Get the waf_web_acl_arn output
 echo "Initializing Terraform (if not already initialized)..."
 terraform init -backend=false
 
 # Get the waf_web_acl_id output
-echo "Fetching 'waf_web_acl_id' from Terraform outputs..."
-WAF_ACL_ID=$(terraform output -json waf_web_acl_id | jq -r .value)
+echo "Fetching 'waf_web_acl_arn' from Terraform outputs..."
+WAF_ACL_ARN=$(terraform output -json waf_web_acl_arn | jq -r .value)
 
-if [ -z "$WAF_ACL_ID" ] || [ "$WAF_ACL_ID" == "null" ]; then
-    echo "Error: 'waf_web_acl_id' output not found or is null. Ensure Terraform has been applied successfully."
+if [ -z "$WAF_ACL_ARN" ] || [ "$WAF_ACL_ARN" == "null" ]; then
+    echo "Error: 'waf_web_acl_arn' output not found or is null. Ensure Terraform has been applied successfully."
     exit 1
 fi
 
-echo "Found WAF_WEB_ACL_ID: ${WAF_ACL_ID}"
+echo "Found WAF_WEB_ACL_ARN: ${WAF_ACL_ARN}"
 
 # Navigate back to the project root
 cd "${PROJECT_ROOT}"
@@ -49,16 +49,16 @@ cd "${PROJECT_ROOT}"
 # Update or add WAF_WEB_ACL_ID in .env.local
 echo "Updating ${ENV_FILE}..."
 if [ -f "$ENV_FILE" ]; then
-    if grep -q "^WAF_WEB_ACL_ID=" "$ENV_FILE"; then
-        sed -i'' -e "s|^WAF_WEB_ACL_ID=.*|WAF_WEB_ACL_ID=${WAF_ACL_ID}|" "$ENV_FILE"
-        echo "Updated existing WAF_WEB_ACL_ID in ${ENV_FILE}"
+    if grep -q "^WAF_WEB_ACL_ARN=" "$ENV_FILE"; then
+        sed -i'' -e "s|^WAF_WEB_ACL_ARN=.*|WAF_WEB_ACL_ARN=${WAF_ACL_ARN}|" "$ENV_FILE"
+        echo "Updated existing WAF_WEB_ACL_ARN in ${ENV_FILE}"
     else
-        echo "WAF_WEB_ACL_ID=${WAF_ACL_ID}" >> "$ENV_FILE"
-        echo "Added WAF_WEB_ACL_ID to ${ENV_FILE}"
+        echo "WAF_WEB_ACL_ARN=${WAF_ACL_ARN}" >> "$ENV_FILE"
+        echo "Added WAF_WEB_ACL_ARN to ${ENV_FILE}"
     fi
 else
-    echo "Creating new ${ENV_FILE} and adding WAF_WEB_ACL_ID."
-    echo "WAF_WEB_ACL_ID=${WAF_ACL_ID}" > "$ENV_FILE"
+    echo "Creating new ${ENV_FILE} and adding WAF_WEB_ACL_ARN."
+    echo "WAF_WEB_ACL_ARN=${WAF_ACL_ARN}" > "$ENV_FILE"
 fi
 
 echo "--- Update Complete ---"

@@ -2,7 +2,7 @@
 
 The **PULSCO Portal** is your single entry point for guests to explore and access all planetary subsystems across multiple monorepos. It provides unified authentication, navigation, and cross-subsystem integration while maintaining the independence of each subsystem.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
 PULSCO Portal (apps/pulse-portal)
@@ -21,7 +21,7 @@ Individual Subsystems (Independent Monorepos)
 └── packages/* (Shared Libraries)
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install Dependencies
 ```bash
@@ -57,7 +57,7 @@ pnpm dev
 
 The portal will be available at `http://localhost:3000`
 
-## 🎯 Key Features
+## Key Features
 
 ### Unified Access
 - **Single Sign-On**: Authenticate once, access all subsystems
@@ -77,7 +77,7 @@ The portal will be available at `http://localhost:3000`
 - **Workspace Management**: pnpm workspace for efficient development
 - **Micro-frontend Architecture**: Independent deployment of subsystems
 
-## 📋 Subsystem Registry
+## Subsystem Registry
 
 The portal maintains a registry of all available subsystems:
 
@@ -129,7 +129,7 @@ emit('user:updated', userData)
 subscribe('order:completed', handleOrderCompletion)
 ```
 
-## 🔍 Monitoring & Debugging
+##  Monitoring & Debugging
 
 ### Health Checks
 - Visit `/health` for overall system health
@@ -146,7 +146,7 @@ subscribe('order:completed', handleOrderCompletion)
 - Source maps for production debugging
 - Performance profiling tools
 
-## 🚀 Deployment
+##  Deployment
 
 ### Development
 ```bash
@@ -177,21 +177,21 @@ docker run -p 3000:3000 \
   pulsco-portal
 ```
 
-## 🔐 Security
+##  Security
 
 - **Zero Trust Architecture**: Every request validated
 - **End-to-End Encryption**: All inter-subsystem communication
 - **Policy Enforcement**: MARP governance across all access
 - **Audit Trails**: Complete activity logging
 
-## 📊 Performance
+##  Performance
 
 - **Lazy Loading**: Subsystems loaded on demand
 - **Code Splitting**: Optimized bundle sizes
 - **Caching**: Intelligent caching strategies
 - **CDN Integration**: Global content delivery
 
-## 🤝 Contributing
+##  Contributing
 
 1. Follow the monorepo structure
 2. Use the shared TypeScript configurations
@@ -199,14 +199,14 @@ docker run -p 3000:3000 \
 4. Add comprehensive tests
 5. Update documentation
 
-## 📚 API Reference
+## API Reference
 
 - [Subsystem Registry API](./docs/registry-api.md)
 - [Event Bus API](./docs/event-bus.md)
 - [Authentication API](./docs/auth.md)
 - [Monitoring API](./docs/monitoring.md)
 
-## 🆘 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -233,4 +233,4 @@ docker run -p 3000:3000 \
 
 ---
 
-**PULSCO Portal** - Your gateway to the planetary nervous system 🌍
+**PULSCO Portal** - Your gateway to the planetary nervous system.

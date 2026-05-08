@@ -3,6 +3,7 @@
 Local dev README and examples for subscription endpoints.
 
 Docs
+
 - Swagger UI: `GET /docs` (served from the OpenAPI spec)
 
 Quick curl examples
@@ -80,6 +81,7 @@ Run simulation (fast mode):
 ```powershell
 $env:SIMULATE_FAST=1; $env:SIMULATE_SEED='local-001'; pnpm run simulate
 ```
+
 # @pulsco/billing-engine
 
 Local scaffold for the Pulsco billing engine. Provides:
@@ -103,11 +105,14 @@ pnpm test
 ```
 
 Notes:
+
 - This is a development scaffold for simulation and validation. Production persistence, KMS signing, and hardened APIs must be implemented before live use.
-Environment variables (optional):
+  Environment variables (optional):
 
 -- `DATABASE_URL`: PostgreSQL connection string. When set, the server uses Postgres persistence instead of local JSON files.
+-- `SECONDARY_DATABASE_URL`: PostgreSQL connection string for the Aurora read replica. Required for the `/health/secondary` endpoint.
 -- MARP endpoints: server exposes MARP-branded endpoints under `/marp/*` (e.g. `/marp/billing/charge`).
+
 - `PORT`: port for the express server (default 3100).
 
 KMS / MARP signing integration (optional):
@@ -116,10 +121,20 @@ KMS / MARP signing integration (optional):
 - For Azure Key Vault, set `MARP_AZURE_KEY_VAULT_URL` and `MARP_AZURE_KEY_NAME` and ensure the Azure SDK packages are installed; the adapter is provided in this scaffold.
 - If no KMS variables are provided, the server falls back to an HMAC-based local signer (development only). Do NOT use HMAC in production.
 
+When using Postgres, the package will create simple tables automatically. The migrations include a hardened schema and an atomic function `marp_create_ledger_entry` which must be used for ledger writes to guarantee no overdrafts and idempotency at the DB level.
 
- When using Postgres, the package will create simple tables automatically. The migrations include a hardened schema and an atomic function `marp_create_ledger_entry` which must be used for ledger writes to guarantee no overdrafts and idempotency at the DB level.
+When using Postgres, the package will create simple tables automatically. The migrations include a hardened schema and an atomic function `marp_create_ledger_entry` which must be used for ledger writes to guarantee no overdrafts and idempotency at the DB level.
 
- Ensure you run the migrations in order (001, 002, 003) so the DB function and constraints are created before ledger writes occur.
+Ensure you run the migrations in order (001, 002, 003, 004, 005) so the DB function, constraints, and indexes are created before ledger writes occur.
+
+## Health Checks
+
+- `GET /health`: Verifies connectivity to the primary write database.
+- `GET /health/secondary`: Verifies connectivity to the global read replica.
+
+## Request Context
+
+For endpoints like `POST /marp/ledger/create`, the `RequestContext` (from `@pulsco/shared/lib/requestContext`) is expected to be populated with `userId` and `role`. This information is automatically included in the ledger entry's metadata for audit purposes.
 
 ## Emergency Protocol Distribution Setup
 

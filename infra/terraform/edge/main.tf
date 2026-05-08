@@ -53,6 +53,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
   }
   # For production, configure a remote backend (S3 + DynamoDB) using a backend.hcl file:
   #   terraform -chdir=infra/terraform/edge init -backend-config=backend.hcl
@@ -64,6 +68,11 @@ terraform {
 ###############################################
 provider "aws" {
   region = var.region
+}
+
+provider "aws" {
+  alias  = "secondary"
+  region = var.secondary_region
 }
 
 # Kubernetes provider: uses local kubeconfig by default if not explicitly set
@@ -91,9 +100,21 @@ variable "region" {
   default     = "us-east-1"
 }
 
+variable "secondary_region" {
+  description = "Secondary AWS region for Aurora Global Database read replica."
+  type        = string
+  default     = "us-west-2"
+}
+
 variable "subnet_ids" {
   description = "List of private subnet IDs for RDS subnet group."
   type        = list(string)
+}
+
+variable "secondary_subnet_ids" {
+  description = "List of private subnet IDs in the secondary region."
+  type        = list(string)
+  default     = []
 }
 
 variable "vpc_security_group_ids" {
@@ -104,6 +125,12 @@ variable "vpc_security_group_ids" {
 
 variable "vpc_id" {
   description = "VPC ID (required if create_db_sg=true)."
+  type        = string
+  default     = null
+}
+
+variable "secondary_vpc_id" {
+  description = "VPC ID in the secondary region (required if create_db_sg=true)."
   type        = string
   default     = null
 }
@@ -148,6 +175,12 @@ variable "db_instance_class" {
   description = "RDS instance class."
   type        = string
   default     = "db.t3.micro"
+}
+
+variable "enable_rds_proxy" {
+  description = "Whether to use RDS Proxy for connection pooling (recommended for K8s scale)."
+  type        = bool
+  default     = false
 }
 
 variable "db_allocated_storage" {
@@ -368,12 +401,27 @@ locals {
   effective_password = var.db_password != null ? var.db_password : random_password.db[0].result
 }
 
+resource "random_password" "origin_token" {
+  length  = 32
+  special = false
+}
+
 ###############################################
 # RDS: PostgreSQL
 ###############################################
 resource "aws_db_subnet_group" "edge" {
   name       = "${var.project_name}-db-subnets"
   subnet_ids = var.subnet_ids
+  tags = {
+    Project = var.project_name
+  }
+}
+
+resource "aws_db_subnet_group" "secondary" {
+  count      = length(var.secondary_subnet_ids) > 0 ? 1 : 0
+  provider   = aws.secondary
+  name       = "${var.project_name}-db-subnets-secondary"
+  subnet_ids = var.secondary_subnet_ids
   tags = {
     Project = var.project_name
   }
@@ -415,6 +463,17 @@ resource "aws_security_group" "edge_db" {
   }
 }
 
+resource "aws_security_group" "secondary_db" {
+  count       = var.create_db_sg && length(var.secondary_subnet_ids) > 0 ? 1 : 0
+  provider    = aws.secondary
+  name        = "${var.project_name}-db-secondary-${random_id.suffix.hex}"
+  description = "Security Group for ${var.project_name} PostgreSQL Secondary"
+  vpc_id      = var.secondary_vpc_id
+  tags = {
+    Project = var.project_name
+  }
+}
+
 # Allow inbound from CIDR blocks
 resource "aws_security_group_rule" "db_in_cidr" {
   count             = var.create_db_sg ? length(var.allowed_cidr_blocks) : 0
@@ -424,6 +483,17 @@ resource "aws_security_group_rule" "db_in_cidr" {
   protocol          = "tcp"
   cidr_blocks       = [element(var.allowed_cidr_blocks, count.index)]
   security_group_id = aws_security_group.edge_db[0].id
+}
+
+resource "aws_security_group_rule" "secondary_db_in_cidr" {
+  count             = var.create_db_sg && length(var.secondary_subnet_ids) > 0 ? length(var.allowed_cidr_blocks) : 0
+  provider          = aws.secondary
+  type              = "ingress"
+  from_port         = 5432
+  to_port           = 5432
+  protocol          = "tcp"
+  cidr_blocks       = [element(var.allowed_cidr_blocks, count.index)]
+  security_group_id = aws_security_group.secondary_db[0].id
 }
 
 # Allow inbound from other Security Groups
@@ -449,8 +519,21 @@ resource "aws_security_group_rule" "db_egress_all" {
   security_group_id = aws_security_group.edge_db[0].id
 }
 
+resource "aws_security_group_rule" "secondary_db_egress_all" {
+  count             = var.create_db_sg && length(var.secondary_subnet_ids) > 0 ? 1 : 0
+  provider          = aws.secondary
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  ipv6_cidr_blocks  = ["::/0"]
+  security_group_id = aws_security_group.secondary_db[0].id
+}
+
 locals {
   selected_sg_ids = var.create_db_sg ? [aws_security_group.edge_db[0].id] : var.vpc_security_group_ids
+  secondary_selected_sg_ids = var.create_db_sg && length(var.secondary_subnet_ids) > 0 ? [aws_security_group.secondary_db[0].id] : []
 }
 
 ###############################################
@@ -515,49 +598,202 @@ data "aws_iam_policy_document" "elp_s3_policy" {
 }
 
 # Example ELP content (index.html)
-resource "aws_s3_bucket_object" "elp_index" {
+resource "aws_s3_object" "elp_index" {
   bucket       = aws_s3_bucket.elp_content.id
   key          = "index.html"
   content_type = "text/html"
-  content      = <<EOF
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSCO - Service Unavailable</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f0f2f5; color: #333; }
-        .container { background-color: #fff; margin: 0 auto; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px; }
-        h1 { color: #e74c3c; }
-        p { line-height: 1.6; }
-        a { color: #3498db; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Service Unavailable</h1>
-        <p>PULSCO is currently in an EMERGENCY FREEZE state due to critical system events.</p>
-        <p>All non-essential operations are temporarily suspended to ensure the integrity and security of the planetary platform.</p>
-        <p>Please visit our official status page for real-time updates: <a href="https://status.pulsco.global">status.pulsco.global</a></p>
-        <p>We apologize for any inconvenience.</p>
-    </div>
-</body>
-</html>
-EOF
+  # Loading from a file makes it easier to edit in an IDE during an incident
+  source       = "${path.module}/static/elp_index.html"
+  etag         = filemd5("${path.module}/static/elp_index.html")
+}
+
+resource "aws_cloudfront_distribution" "elp_cdn" {
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "CloudFront distribution for Emergency Landing Page"
+  default_root_object = "index.html"
+
+  origin {
+    domain_name = aws_s3_bucket.elp_content.bucket_regional_domain_name
+    origin_id   = "S3-ELP-Bucket"
+
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.elp_oai.cloudfront_access_identity_path
+    }
+  }
+
+  default_cache_behavior {
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "S3-ELP-Bucket"
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+    compress               = true
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = var.elp_acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  aliases = [var.elp_domain_name]
+
+  tags = {
+    Project = var.project_name
+    Service = "EmergencyLandingPage"
+  }
+}
+
+resource "aws_cloudfront_origin_access_identity" "elp_oai" {
+  comment = "OAI for ELP S3 bucket"
+}
+
+resource "aws_route53_record" "elp_cname" {
+  zone_id = var.route53_zone_id
+  name    = var.elp_domain_name
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.elp_cdn.domain_name
+    zone_id                = aws_cloudfront_distribution.elp_cdn.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# New CloudFront distribution for the main application
+resource "aws_cloudfront_distribution" "app_cdn" {
+  count = var.app_domain_name != null && var.app_origin_domain_name != null ? 1 : 0
+
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "CloudFront distribution for Main Application"
+  web_acl_id          = aws_wafv2_web_acl.gso_containment.arn # Associate the global WAF
+
+  origin {
+    domain_name = var.app_origin_domain_name
+    origin_id   = "ALB-App-Origin"
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+
+    custom_header {
+      name  = "X-CloudFront-Verify-Token"
+      value = random_password.origin_token.result
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "ALB-App-Origin"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods         = ["GET", "HEAD", "OPTIONS"]
+    compress               = true
+    forwarded_values {
+      query_string = true
+      headers      = ["*"] # Forward all headers to the origin
+      cookies {
+        forward = "all"
+      }
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = var.app_acm_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  aliases = [var.app_domain_name]
+
+  tags = {
+    Project = var.project_name
+    Service = "MainApplication"
+  }
+}
+
+resource "aws_route53_record" "app_cname" {
+  count = var.app_domain_name != null && var.app_origin_domain_name != null ? 1 : 0
+
+  zone_id = var.route53_zone_id
+  name    = var.app_domain_name
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.app_cdn[0].domain_name
+    zone_id                = aws_cloudfront_distribution.app_cdn[0].hosted_zone_id
+    evaluate_target_health = false
+  }
 }
 
 ###############################################
 # AWS WAF (Equivalent to "Cloud Armor" for AWS)
 ###############################################
+resource "aws_wafv2_ip_set" "marp_authorized_ips" {
+  name               = "${var.project_name}-marp-authorized-ips"
+  description        = "IP ranges for MARP team VPNs and GSO Dashboards to bypass Emergency Freeze."
+  scope              = "CLOUDFRONT"
+  ip_address_version = "IPV4"
+  addresses          = ["1.2.3.4/32", "5.6.7.8/32"] # Replace with actual MARP infrastructure IPs
+
+  tags = {
+    Project = var.project_name
+    Service = "Governance"
+  }
+}
+
 resource "aws_wafv2_web_acl" "gso_containment" {
   name        = "${var.project_name}-containment-policy"
   description = "Planetary containment policy for Emergency Protocol enforcement."
-  scope       = "REGIONAL"
+  scope       = "CLOUDFRONT"
 
   default_action {
     allow {}
+  }
+
+  # Rule 0: MARP Authorized Access Bypass
+  # Allows the MARP team to reach the gateway during a freeze for incident resolution.
+  rule {
+    name     = "MarpBypass"
+    priority = 0
+
+    action {
+      allow {}
+    }
+
+    statement {
+      ip_set_reference_statement {
+        arn = aws_wafv2_ip_set.marp_authorized_ips.arn
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "MarpBypass"
+      sampled_requests_enabled   = true
+    }
   }
 
   # Rule to enforce Emergency Landing Page redirection during FREEZE.
@@ -571,9 +807,7 @@ resource "aws_wafv2_web_acl" "gso_containment" {
     action {
       block {
         custom_response {
-          response_code = 503
-          custom_response_body_key = "emergency_landing_page"
-          # Changed to 302 redirect to the ELP CloudFront distribution
+          # Redirect to the ELP CloudFront distribution
           response_code = 302
           response_headers {
             name = "Location"
@@ -608,54 +842,115 @@ resource "aws_wafv2_web_acl" "gso_containment" {
     }
   }
 
+  # Rule 2: Origin Protection
+  # Enforces that traffic MUST come through CloudFront by verifying the secret token.
+  rule {
+    name     = "EnforceCloudFrontOrigin"
+    priority = 2
+
+    action {
+      block {}
+    }
+
+    statement {
+      not_statement {
+        byte_match_statement {
+          field_to_match {
+            single_header {
+              name = "x-cloudfront-verify-token"
+            }
+          }
+          positional_constraint = "EXACTLY"
+          search_string         = random_password.origin_token.result
+          text_transformation {
+            priority = 0
+            type     = "NONE"
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "EnforceCloudFrontOrigin"
+      sampled_requests_enabled   = true
+    }
+  }
+
   custom_response_body {
     key          = "emergency_landing_page"
     content      = "{\"error\": \"Service Unavailable\", \"message\": \"PULSCO is currently in an EMERGENCY FREEZE state. Please visit https://status.pulsco.global for updates.\"}"
     content_type = "APPLICATION_JSON"
   }
-
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    metric_name                = "${var.project_name}-waf-main"
-    sampled_requests_enabled   = true
-  }
 }
 
-resource "aws_db_instance" "edge" {
-  identifier                  = "${var.project_name}-pg-${random_id.suffix.hex}"
-  engine                      = "postgres"
-  engine_version              = var.db_engine_version
-  instance_class              = var.db_instance_class
-  allocated_storage           = var.db_allocated_storage
-  max_allocated_storage       = var.db_max_allocated_storage
-  storage_type                = "gp3"
-  storage_encrypted           = true
-  kms_key_id                  = var.kms_key_id
+resource "aws_rds_global_cluster" "edge" {
+  global_cluster_identifier = "${var.project_name}-global"
+  engine                    = "aurora-postgresql"
+  engine_version            = var.db_engine_version
+  database_name             = var.db_name
+  storage_encrypted         = true
+}
 
-  db_name                     = var.db_name
-  username                    = var.db_username
-  password                    = local.effective_password
+resource "aws_rds_cluster" "edge" {
+  cluster_identifier      = "${var.project_name}-cluster"
+  global_cluster_identifier = aws_rds_global_cluster.edge.id
+  engine                  = aws_rds_global_cluster.edge.engine
+  engine_version          = aws_rds_global_cluster.edge.engine_version
+  database_name           = var.db_name
+  master_username         = var.db_username
+  master_password         = local.effective_password
+  db_subnet_group_name    = aws_db_subnet_group.edge.name
+  vpc_security_group_ids  = local.selected_sg_ids
+  storage_encrypted       = true
+  kms_key_id              = var.kms_key_id
 
-  db_subnet_group_name        = aws_db_subnet_group.edge.name
-  vpc_security_group_ids      = local.selected_sg_ids
-  parameter_group_name        = aws_db_parameter_group.edge.name
+  backup_retention_period = var.backup_retention_period
+  preferred_backup_window = var.preferred_backup_window
+  skip_final_snapshot     = false
+  deletion_protection     = var.deletion_protection
+}
 
-  publicly_accessible         = false
-  deletion_protection         = var.deletion_protection
-  backup_retention_period     = var.backup_retention_period
-  preferred_backup_window     = var.preferred_backup_window
-  maintenance_window          = var.preferred_maintenance_window
-  auto_minor_version_upgrade  = true
-  multi_az                    = var.multi_az
+resource "aws_rds_cluster_instance" "edge" {
+  count              = 2
+  identifier         = "${var.project_name}-instance-${count.index}"
+  cluster_identifier = aws_rds_cluster.edge.id
+  # Aurora requires db.t3.medium or larger
+  instance_class     = var.db_instance_class == "db.t3.micro" ? "db.t3.medium" : var.db_instance_class
+  engine             = aws_rds_cluster.edge.engine
+  engine_version     = aws_rds_cluster.edge.engine_version
 
   performance_insights_enabled = var.performance_insights
   monitoring_interval          = var.monitoring_interval
+}
 
-  skip_final_snapshot         = false
+resource "aws_rds_cluster" "secondary" {
+  count                   = length(var.secondary_subnet_ids) > 0 ? 1 : 0
+  provider                = aws.secondary
+  cluster_identifier      = "${var.project_name}-cluster-secondary"
+  global_cluster_identifier = aws_rds_global_cluster.edge.id
+  engine                  = aws_rds_global_cluster.edge.engine
+  engine_version          = aws_rds_global_cluster.edge.engine_version
+  db_subnet_group_name    = aws_db_subnet_group.secondary[0].name
+  vpc_security_group_ids  = local.secondary_selected_sg_ids
+  storage_encrypted       = true
+  kms_key_id              = var.kms_key_id
 
-  tags = {
-    Project = var.project_name
-  }
+  skip_final_snapshot     = true
+
+  depends_on = [aws_rds_cluster_instance.edge]
+}
+
+resource "aws_rds_cluster_instance" "secondary" {
+  count              = length(var.secondary_subnet_ids) > 0 ? 1 : 0
+  provider           = aws.secondary
+  identifier         = "${var.project_name}-instance-secondary-${count.index}"
+  cluster_identifier = aws_rds_cluster.secondary[0].id
+  instance_class     = var.db_instance_class == "db.t3.micro" ? "db.t3.medium" : var.db_instance_class
+  engine             = aws_rds_cluster.secondary[0].engine
+  engine_version     = aws_rds_cluster.secondary[0].engine_version
+
+  performance_insights_enabled = var.performance_insights
 }
 
 locals {
@@ -663,10 +958,18 @@ locals {
     "postgresql://%s:%s@%s:%s/%s",
     var.db_username,
     urlencode(local.effective_password),
-    aws_db_instance.edge.address,
-    aws_db_instance.edge.port,
+    aws_rds_cluster.edge.endpoint,
+    aws_rds_cluster.edge.port,
     var.db_name
   )
+  secondary_database_url = length(var.secondary_subnet_ids) > 0 ? format(
+    "postgresql://%s:%s@%s:%s/%s",
+    var.db_username,
+    urlencode(local.effective_password),
+    aws_rds_cluster.secondary[0].reader_endpoint,
+    aws_rds_cluster.secondary[0].port,
+    var.db_name
+  ) : ""
 }
 
 ###############################################
@@ -687,7 +990,8 @@ resource "kubernetes_secret" "edge_db" {
   }
   # Provider will base64-encode automatically; use string_data for convenience
   string_data = {
-    DATABASE_URL = local.database_url
+    DATABASE_URL           = local.database_url
+    SECONDARY_DATABASE_URL = local.secondary_database_url
   }
   type = "Opaque"
   depends_on = [kubernetes_namespace.edge]
@@ -754,6 +1058,21 @@ resource "kubernetes_ingress_v1" "edge" {
 }
 
 ###############################################
+# NetworkPolicy: Hardening Ingress
+###############################################
+resource "local_file" "edge_network_policy" {
+  count = var.ingress_enabled && length(var.alb_subnet_cidr_blocks) > 0 ? 1 : 0
+  content = templatefile("${path.module}/network-policy.yaml.tftpl", {
+    namespace              = var.k8s_namespace
+    ingress_name           = var.ingress_name
+    edge_service_name      = var.edge_service_name
+    edge_service_port      = var.edge_service_port
+    alb_subnet_cidr_blocks = var.alb_subnet_cidr_blocks
+  })
+  filename = "${path.module}/network-policy.yaml"
+}
+
+###############################################
 # Outputs
 ###############################################
 output "database_url" {
@@ -764,12 +1083,17 @@ output "database_url" {
 
 output "rds_endpoint" {
   description = "RDS writer endpoint hostname."
-  value       = aws_db_instance.edge.address
+  value       = aws_rds_cluster.edge.endpoint
 }
 
 output "rds_port" {
   description = "RDS port."
-  value       = aws_db_instance.edge.port
+  value       = aws_rds_cluster.edge.port
+}
+
+output "rds_secondary_endpoint" {
+  description = "RDS reader endpoint for the secondary region."
+  value       = length(var.secondary_subnet_ids) > 0 ? aws_rds_cluster.secondary[0].reader_endpoint : null
 }
 
 output "db_name" {
@@ -780,4 +1104,14 @@ output "db_name" {
 output "created_db_sg_id" {
   description = "ID of the created DB Security Group (if create_db_sg=true)."
   value       = var.create_db_sg ? aws_security_group.edge_db[0].id : null
+}
+
+output "waf_web_acl_arn" {
+  description = "ARN of the global WAF Web ACL."
+  value       = aws_wafv2_web_acl.gso_containment.arn
+}
+
+output "app_cloudfront_domain_name" {
+  description = "Domain name of the main application CloudFront distribution."
+  value       = var.app_domain_name != null && var.app_origin_domain_name != null ? aws_cloudfront_distribution.app_cdn[0].domain_name : null
 }

@@ -55,3 +55,55 @@ media
 build
 dist
 .vscode
+# General
+.git
+.gitignore
+.dockerignore
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.orig
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.coverage
+.coverage
+.pytest_cache/
+.mypy_cache/
+.env
+venv/
+env/
+*.egg-info/
+
+# Node / React
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+.cache/
+dist/
+build/
+
+# Django
+*.sqlite3
+media/
+staticfiles/
+*.mo
+*.pot
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml

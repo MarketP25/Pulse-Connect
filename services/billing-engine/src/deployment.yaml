@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-engine
+  namespace: pulsco
+  labels:
+    app: billing-engine
+    service: billing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: billing-engine
+  template:
+    metadata:
+      labels:
+        app: billing-engine
+    spec:
+      containers:
+        - name: billing-engine
+          image: pulsco/billing-engine:latest
+          ports:
+            - containerPort: 3100
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edge-gateway-db
+                  key: DATABASE_URL
+            - name: SECONDARY_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edge-gateway-db
+                  key: SECONDARY_DATABASE_URL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3100
+            initialDelaySeconds: 5
+            periodSeconds: 10

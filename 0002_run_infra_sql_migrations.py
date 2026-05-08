@@ -589,7 +589,7 @@ DROP TABLE IF EXISTS marp_alerts;
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('billing', '0001_initial'),  # Assuming 'billing' app has an initial migration
+        ('billing', '001_init','002_merkle_and_constraints','003_hardened_schema'),  #'billing' app migrations
     ]
 
     operations = [
